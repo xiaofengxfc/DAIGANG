@@ -1,0 +1,17 @@
+{
+  "name": "daigan-ops-console",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "代肝价格查询 · 私用运营台 —— 零依赖本地管理后台",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node server.mjs",
+    "local": "node server.mjs --local",
+    "check": "node scripts/check.mjs"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {}
+}

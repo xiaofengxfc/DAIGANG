@@ -1,0 +1,445 @@
+import fs from 'node:fs'
+import path from 'node:path'
+import { db, getSetting, setSetting, stamp, nextSerialNo } from '../db.mjs'
+import { get, post, patch, del, saveDataURL } from '../http.mjs'
+import { UPLOAD_DIR } from '../config.mjs'
+import { bad, notFound, fail, int, num, money, clampStr, nowISO, localDate, localMonth, parseJSON } from '../util.mjs'
+import { isSetUp, setPassword, verifyPassword, createSession, destroySession, destroyAllSessions, actorName, assertNotThrottled, noteFailure, clearFailures } from '../auth.mjs'
+import { lock, status as vaultStatus, isConfigured, configure, auditLog } from '../vault.mjs'
+import { STATUS_LABEL } from './orders.mjs'
+
+const SETTING_KEYS = [
+  'business_name',
+  'admin_name',
+  'contact',
+  'quote_footer',
+  'quote_valid_days',
+  'default_note',
+  'receipt_intro',
+]
+
+function readSettings() {
+  const out = {}
+  for (const k of SETTING_KEYS) out[k] = getSetting(k, '')
+  return out
+}
+
+/* ---------------- 看板 ---------------- */
+
+function decorateLite(row) {
+  const paid = money(
+    db
+      .prepare("SELECT COALESCE(SUM(CASE WHEN kind='refund' THEN -amount ELSE amount END),0) AS s FROM payments WHERE order_id = ? AND status = 'confirmed'")
+      .get(row.id).s
+  )
+  return {
+    ...row,
+    status_label: STATUS_LABEL[row.status] || row.status,
+    paid_total: paid,
+    due_total: money(Math.max(0, num(row.total) - paid)),
+    progress_count: db.prepare('SELECT COUNT(*) AS c FROM order_progress WHERE order_id = ?').get(row.id).c,
+    last_progress_on: db.prepare('SELECT MAX(happened_on) AS m FROM order_progress WHERE order_id = ?').get(row.id).m,
+  }
+}
+
+function buildDashboard() {
+  const today = localDate()
+  const month = localMonth()
+
+  const countBy = (status) => db.prepare('SELECT COUNT(*) AS c FROM orders WHERE status = ?').get(status).c
+  const sumPay = (from, to) =>
+    money(
+      db
+        .prepare(
+          `SELECT COALESCE(SUM(CASE WHEN kind='refund' THEN -amount ELSE amount END),0) AS s
+           FROM payments WHERE status='confirmed' AND paid_at >= ? AND paid_at <= ?`
+        )
+        .get(from, to).s
+    )
+  const refundOf = (from, to) =>
+    money(
+      db.prepare("SELECT COALESCE(SUM(amount),0) AS s FROM payments WHERE status='confirmed' AND kind='refund' AND paid_at >= ? AND paid_at <= ?").get(from, to).s
+    )
+
+  const ordersToday = db.prepare('SELECT COUNT(*) AS c, COALESCE(SUM(total),0) AS t FROM orders WHERE ordered_at >= ?').get(`${today}T00:00:00.000Z`)
+  const openOrders = db
+    .prepare("SELECT * FROM orders WHERE status IN ('in_progress','pending_accept') ORDER BY COALESCE(due_at, '9999') ASC, id DESC LIMIT 12")
+    .all()
+    .map(decorateLite)
+  const stale = db
+    .prepare(
+      `SELECT o.* FROM orders o
+       WHERE o.status = 'in_progress'
+         AND EXISTS (SELECT 1 FROM order_progress g WHERE g.order_id = o.id)
+         AND (SELECT MAX(g.happened_on) FROM order_progress g WHERE g.order_id = o.id) <= date('now','localtime','-2 day')
+       ORDER BY o.id DESC LIMIT 8`
+    )
+    .all()
+    .map(decorateLite)
+  const unpaid = db
+    .prepare(
+      `SELECT * FROM (
+         SELECT o.*, (SELECT COALESCE(SUM(CASE WHEN p.kind='refund' THEN -p.amount ELSE p.amount END),0)
+                        FROM payments p WHERE p.order_id = o.id AND p.status='confirmed') AS paid_total
+         FROM orders o WHERE o.status <> 'cancelled'
+       )
+       WHERE total > paid_total + 0.001
+       ORDER BY ordered_at DESC LIMIT 10`
+    )
+    .all()
+    .map((r) => ({ ...decorateLite(r), due_total: money(num(r.total) - money(r.paid_total)) }))
+  const monthAgg = db
+    .prepare('SELECT COUNT(*) AS c, COALESCE(SUM(total),0) AS t, COALESCE(SUM(platform_fee),0) AS f, COALESCE(SUM(cost),0) AS k FROM orders WHERE ordered_at >= ? AND status <> ?')
+    .get(`${month}-01T00:00:00.000Z`, 'cancelled')
+
+  const receivables = money(
+    db
+      .prepare(
+        `SELECT COALESCE(SUM(o.total - COALESCE((SELECT SUM(CASE WHEN p.kind='refund' THEN -p.amount ELSE p.amount END) FROM payments p WHERE p.order_id=o.id AND p.status='confirmed'),0)),0) AS s
+         FROM orders o WHERE o.status NOT IN ('cancelled','done')`
+      )
+      .get().s
+  )
+
+  return {
+    today,
+    month,
+    counts: {
+      pending_confirm: countBy('pending_confirm'),
+      pending_pay: countBy('pending_pay'),
+      in_progress: countBy('in_progress'),
+      pending_accept: countBy('pending_accept'),
+      done: countBy('done'),
+      after_sale: countBy('after_sale'),
+      open: db.prepare("SELECT COUNT(*) AS c FROM orders WHERE status NOT IN ('done','cancelled')").get().c,
+      customers: db.prepare("SELECT COUNT(*) AS c FROM customers WHERE status='active'").get().c,
+      credentials: db.prepare("SELECT COUNT(*) AS c FROM credentials WHERE status='active'").get().c,
+      services: db.prepare("SELECT COUNT(*) AS c FROM services WHERE status='active'").get().c,
+      games: db.prepare("SELECT COUNT(*) AS c FROM games WHERE status='active'").get().c,
+    },
+    today_money: {
+      ordered_count: ordersToday.c,
+      ordered_amount: money(ordersToday.t),
+      received: sumPay(today, today),
+      refunded: refundOf(today, today),
+    },
+    month_money: {
+      order_count: monthAgg.c,
+      ordered_amount: money(monthAgg.t),
+      received: sumPay(`${month}-01`, today),
+      profit: money(num(monthAgg.t) - num(monthAgg.f) - num(monthAgg.k)),
+      platform_fee: money(monthAgg.f),
+      cost: money(monthAgg.k),
+    },
+    receivables,
+    open_orders: openOrders,
+    stale_orders: stale,
+    unpaid_orders: unpaid,
+    recent_payments: db
+      .prepare(
+        `SELECT p.*, o.order_no, o.title AS order_title, c.name AS customer_name
+         FROM payments p LEFT JOIN orders o ON o.id = p.order_id
+         LEFT JOIN customers c ON c.id = COALESCE(p.customer_id, o.customer_id)
+         ORDER BY p.paid_at DESC, p.id DESC LIMIT 8`
+      )
+      .all(),
+    vault: { ...vaultStatus(), audit_count: db.prepare('SELECT COUNT(*) AS c FROM vault_audit').get().c },
+  }
+}
+
+/* ---------------- 财务 ---------------- */
+
+function buildFinance(from, to) {
+  const totals = db
+    .prepare(
+      `SELECT COUNT(*) AS order_count,
+              COALESCE(SUM(total),0) AS order_total,
+              COALESCE(SUM(platform_fee),0) AS platform_fee,
+              COALESCE(SUM(cost),0) AS cost,
+              COALESCE(SUM(discount),0) AS discount
+       FROM orders WHERE ordered_at >= ? AND ordered_at <= ? AND status <> 'cancelled'`
+    )
+    .get(`${from}T00:00:00.000Z`, `${to}T23:59:59.999Z`)
+
+  const received = money(
+    db
+      .prepare(
+        `SELECT COALESCE(SUM(CASE WHEN kind='refund' THEN -amount ELSE amount END),0) AS s
+         FROM payments WHERE status='confirmed' AND paid_at >= ? AND paid_at <= ?`
+      )
+      .get(from, to).s
+  )
+  const refunded = money(
+    db.prepare("SELECT COALESCE(SUM(amount),0) AS s FROM payments WHERE status='confirmed' AND kind='refund' AND paid_at >= ? AND paid_at <= ?").get(from, to).s
+  )
+  const grossReceived = money(received + refunded)
+
+  const byMethod = db
+    .prepare(
+      `SELECT method,
+              COALESCE(SUM(CASE WHEN kind='refund' THEN -amount ELSE amount END),0) AS amount,
+              COUNT(*) AS count
+       FROM payments WHERE status='confirmed' AND paid_at >= ? AND paid_at <= ?
+       GROUP BY method ORDER BY amount DESC`
+    )
+    .all(from, to)
+
+  const byGame = db
+    .prepare(
+      `SELECT COALESCE(o.game_name,'未指定') AS game_name,
+              COUNT(*) AS order_count,
+              COALESCE(SUM(o.total),0) AS order_total,
+              COALESCE(SUM(o.total - o.platform_fee - o.cost),0) AS profit
+       FROM orders o WHERE o.ordered_at >= ? AND o.ordered_at <= ? AND o.status <> 'cancelled'
+       GROUP BY game_name ORDER BY order_total DESC`
+    )
+    .all(`${from}T00:00:00.000Z`, `${to}T23:59:59.999Z`)
+
+  const daily = db
+    .prepare(
+      `WITH days(d) AS (
+         SELECT date(?, '+1 day', '-' || n || ' day') FROM (
+           WITH RECURSIVE c(n) AS (SELECT 0 UNION ALL SELECT n+1 FROM c WHERE n < 400)
+           SELECT n FROM c
+         )
+       )
+       SELECT days.d AS date,
+         (SELECT COALESCE(SUM(total),0) FROM orders o WHERE date(o.ordered_at,'localtime') = days.d AND o.status <> 'cancelled') AS ordered,
+         (SELECT COALESCE(SUM(CASE WHEN p.kind='refund' THEN -p.amount ELSE p.amount END),0) FROM payments p WHERE p.status='confirmed' AND p.paid_at = days.d) AS received
+       FROM days WHERE days.d >= ? AND days.d <= ? ORDER BY days.d`
+    )
+    .all(`${to}T00:00:00.000Z`, from, to)
+
+  const receivables = db
+    .prepare(
+      `SELECT o.id, o.order_no, o.title, o.customer_name, o.status, o.total, o.ordered_at,
+              COALESCE((SELECT SUM(CASE WHEN p.kind='refund' THEN -p.amount ELSE p.amount END) FROM payments p WHERE p.order_id=o.id AND p.status='confirmed'),0) AS paid_total
+       FROM orders o
+       WHERE o.status NOT IN ('cancelled')
+       ORDER BY o.ordered_at DESC`
+    )
+    .all()
+    .map((r) => ({ ...r, status_label: STATUS_LABEL[r.status] || r.status, due_total: money(num(r.total) - money(r.paid_total)) }))
+    .filter((r) => r.due_total > 0.001)
+
+  return {
+    range: { from, to },
+    totals: {
+      order_count: totals.order_count,
+      order_total: money(totals.order_total),
+      received: grossReceived,
+      refunded,
+      net_received: received,
+      due_total: money(totals.order_total - received),
+      platform_fee: money(totals.platform_fee),
+      cost: money(totals.cost),
+      discount: money(totals.discount),
+      profit: money(num(totals.order_total) - num(totals.platform_fee) - num(totals.cost)),
+    },
+    by_method: byMethod,
+    by_game: byGame,
+    daily,
+    receivables,
+  }
+}
+
+/* ---------------- 注册 ---------------- */
+
+export function register() {
+  /* ===== 初始化 / 登录 ===== */
+  get('/api/auth/me', (ctx) => ({
+    setup: isSetUp(),
+    authenticated: Boolean(ctx.session),
+    actor: ctx.session ? actorName() : '',
+    settings: ctx.session ? readSettings() : {},
+    vault: ctx.session ? vaultStatus() : { configured: false, unlocked: false },
+  }))
+
+  post('/api/setup', (ctx) => {
+    if (isSetUp()) fail(409, '已经初始化过了', 'already_setup')
+    assertNotThrottled('setup', ctx.ip)
+    const password = String(ctx.body.password ?? '')
+    const confirm = String(ctx.body.confirm ?? '')
+    if (password !== confirm) bad('两次输入的密码不一致', 'password_mismatch')
+    try {
+      setPassword(password)
+    } catch (err) {
+      noteFailure('setup', ctx.ip)
+      throw err
+    }
+    setSetting('business_name', clampStr(ctx.body.business_name, 60) || '我的代肝小铺')
+    setSetting('admin_name', clampStr(ctx.body.admin_name, 40) || '老板')
+    setSetting('quote_valid_days', String(int(ctx.body.quote_valid_days, 7)))
+    const vaultPassword = String(ctx.body.vault_password ?? '')
+    if (vaultPassword) {
+      try {
+        configure(vaultPassword)
+      } catch (err) {
+        // 保险箱密码不合规不该让整个初始化失败，退回未配置状态
+        lock('setup_failed')
+      }
+    }
+    clearFailures('setup', ctx.ip)
+    const { token, expiresAt } = createSession(ctx.ip, ctx.ua)
+    ctx.setSessionCookie(token, expiresAt)
+    return { ok: true, setup: true, vault: vaultStatus() }
+  })
+
+  post('/api/auth/login', (ctx) => {
+    if (!isSetUp()) fail(409, '还没有初始化，请先设置登录密码', 'not_setup')
+    assertNotThrottled('login', ctx.ip)
+    if (!verifyPassword(String(ctx.body.password ?? ''))) {
+      noteFailure('login', ctx.ip)
+      bad('密码不对', 'bad_password')
+    }
+    clearFailures('login', ctx.ip)
+    const { token, expiresAt } = createSession(ctx.ip, ctx.ua)
+    ctx.setSessionCookie(token, expiresAt)
+    return { ok: true }
+  })
+
+  post('/api/auth/logout', (ctx) => {
+    destroySession(ctx.token)
+    lock('logout')
+    ctx.clearSessionCookie()
+    return { ok: true }
+  })
+
+  post('/api/auth/password', (ctx) => {
+    if (!verifyPassword(String(ctx.body.current ?? ''))) bad('当前密码不对', 'bad_password')
+    const next = String(ctx.body.next ?? '')
+    if (next !== String(ctx.body.confirm ?? '')) bad('两次输入的新密码不一致', 'password_mismatch')
+    setPassword(next)
+    destroyAllSessions()
+    const { token, expiresAt } = createSession(ctx.ip, ctx.ua)
+    ctx.setSessionCookie(token, expiresAt)
+    return { ok: true, note: '其他设备上的登录已全部退出' }
+  })
+
+  /* ===== 看板 / 财务 ===== */
+  get('/api/dashboard', () => buildDashboard())
+  get('/api/finance/summary', (ctx) => {
+    const to = clampStr(ctx.query.to, 10) || localDate()
+    const from = clampStr(ctx.query.from, 10) || `${localMonth()}-01`
+    return buildFinance(from, to)
+  })
+
+  /* ===== 设置 ===== */
+  get('/api/settings', () => readSettings())
+  patch('/api/settings', (ctx) => {
+    for (const [k, v] of Object.entries(ctx.body || {})) {
+      if (!SETTING_KEYS.includes(k)) continue
+      setSetting(k, clampStr(v, 500))
+    }
+    return readSettings()
+  })
+
+  /* ===== 上传（游戏图标 / 进度截图） ===== */
+  post('/api/uploads', (ctx) => {
+    const { name, buf } = saveDataURL(ctx.body.data_url, clampStr(ctx.body.prefix, 20) || 'img')
+    fs.writeFileSync(path.join(UPLOAD_DIR, name), buf)
+    return { url: `/uploads/${name}`, bytes: buf.length }
+  })
+
+  /* ===== 全局搜索 ===== */
+  get('/api/search', (ctx) => {
+    const q = clampStr(ctx.query.q, 80).trim()
+    if (q.length < 1) return { customers: [], orders: [], services: [], games: [], credentials: [] }
+    const like = `%${q.replace(/[%_\\]/g, (m) => '\\' + m)}%`
+    return {
+      customers: db
+        .prepare("SELECT id, name, phone, wechat, qq FROM customers WHERE name LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\' OR wechat LIKE ? ESCAPE '\\' OR qq LIKE ? ESCAPE '\\' LIMIT 8")
+        .all(like, like, like, like),
+      orders: db
+        .prepare("SELECT id, order_no, title, status, total, customer_name FROM orders WHERE order_no LIKE ? ESCAPE '\\' OR title LIKE ? ESCAPE '\\' OR customer_name LIKE ? ESCAPE '\\' ORDER BY id DESC LIMIT 8")
+        .all(like, like, like)
+        .map((r) => ({ ...r, status_label: STATUS_LABEL[r.status] || r.status })),
+      services: db
+        .prepare("SELECT id, name, base_price, price_type, unit_label, status FROM services WHERE name LIKE ? ESCAPE '\\' OR description LIKE ? ESCAPE '\\' LIMIT 8")
+        .all(like, like),
+      games: db.prepare("SELECT id, name, short_name, status FROM games WHERE name LIKE ? ESCAPE '\\' OR short_name LIKE ? ESCAPE '\\' LIMIT 6").all(like, like),
+      credentials: db
+        .prepare("SELECT id, customer_id, label, masked_hint, server FROM credentials WHERE label LIKE ? ESCAPE '\\' OR masked_hint LIKE ? ESCAPE '\\' OR server LIKE ? ESCAPE '\\' OR role_name LIKE ? ESCAPE '\\' LIMIT 8")
+        .all(like, like, like, like),
+    }
+  })
+
+  /* ===== 备份 ===== */
+  const BACKUP_TABLES = [
+    'settings',
+    'games',
+    'service_categories',
+    'services',
+    'service_tiers',
+    'service_options',
+    'customers',
+    'credentials',
+    'orders',
+    'order_items',
+    'order_progress',
+    'payments',
+    'quotes',
+    'vault_audit',
+  ]
+
+  get('/api/backup/export', () => {
+    const data = {}
+    for (const t of BACKUP_TABLES) data[t] = db.prepare(`SELECT * FROM ${t}`).all()
+    return {
+      app: 'daigan-ops-console',
+      version: 1,
+      exported_at: nowISO(),
+      counts: Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v.length])),
+      note: '这个文件包含全部业务数据。游戏登录凭证是密文，只能用同一套保险箱密码解开。',
+      data,
+    }
+  })
+
+  post('/api/backup/import', (ctx) => {
+    const payload = ctx.body?.payload && typeof ctx.body.payload === 'object' ? ctx.body.payload : ctx.body
+    if (!payload || payload.app !== 'daigan-ops-console' || !payload.data) bad('这不是本后台导出的备份文件', 'bad_backup')
+    if (ctx.body?.confirm !== 'REPLACE') bad('导入会覆盖现有全部数据，需要确认', 'need_confirm')
+    const data = payload.data
+    db.exec('BEGIN')
+    try {
+      for (const t of [...BACKUP_TABLES].reverse()) db.prepare(`DELETE FROM ${t}`).run()
+      for (const t of BACKUP_TABLES) {
+        const rows = Array.isArray(data[t]) ? data[t] : []
+        for (const row of rows) {
+          const cols = Object.keys(row)
+          if (!cols.length) continue
+          db.prepare(`INSERT INTO ${t} (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`).run(...cols.map((c) => row[c]))
+        }
+      }
+      db.exec('COMMIT')
+    } catch (err) {
+      db.exec('ROLLBACK')
+      throw err
+    }
+    lock('imported')
+    destroyAllSessions()
+    ctx.clearSessionCookie()
+    return { ok: true, imported: Object.fromEntries(BACKUP_TABLES.map((t) => [t, (data[t] || []).length])), note: '所有设备需要重新登录' }
+  })
+
+  get('/api/backup/counts', () => {
+    const out = {}
+    for (const t of BACKUP_TABLES) out[t] = db.prepare(`SELECT COUNT(*) AS c FROM ${t}`).get().c
+    return out
+  })
+
+  /* ===== 清空业务数据（保留登录与保险箱设置） ===== */
+  post('/api/system/reset', (ctx) => {
+    if (ctx.body?.confirm !== 'CLEAR') bad('需要确认才可清空', 'need_confirm')
+    const tables = ['orders', 'order_items', 'order_progress', 'payments', 'quotes', 'credentials', 'customers', 'services', 'service_tiers', 'service_options', 'service_categories', 'games', 'vault_audit']
+    db.exec('BEGIN')
+    try {
+      for (const t of tables) db.prepare(`DELETE FROM ${t}`).run()
+      db.exec('COMMIT')
+    } catch (err) {
+      db.exec('ROLLBACK')
+      throw err
+    }
+    return { ok: true, cleared: tables.length }
+  })
+}

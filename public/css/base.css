@@ -1,0 +1,520 @@
+/* ============================================================
+   基础层：重置、排版、原生控件重绘
+   一个字体家族 + 一个等宽（只给数字、单号、账号用）
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+/* hidden 属性必须压得住类里的 display:flex/grid，否则"隐藏"的提示条会露出来 */
+[hidden] {
+  display: none !important;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--fs-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-wrap: break-word;
+}
+
+body.is-locked {
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure {
+  margin: 0;
+}
+
+h1 {
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+h3 {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+h4 {
+  font-size: var(--fs-base);
+  font-weight: 600;
+}
+
+a {
+  color: var(--cinnabar);
+  text-decoration-color: var(--cinnabar-line);
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: var(--sp-4) 0;
+}
+
+::selection {
+  background: var(--cinnabar-bg);
+  color: var(--ink);
+}
+
+/* 焦点环：键盘用户永远看得见 */
+:focus-visible {
+  outline: 2px solid var(--cinnabar);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* 保留原生滚动行为，只告诉浏览器配色 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+/* ---------- 数字与单号：等宽 + 表格数字 ---------- */
+
+.num,
+.mono,
+input[type='number'],
+input[type='date'],
+input[type='month'] {
+  font-family: var(--font-fig);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.num {
+  text-align: right;
+}
+
+.mono {
+  font-size: 0.94em;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- 文字工具类 ---------- */
+
+.muted {
+  color: var(--ink-2);
+}
+
+.dim {
+  color: var(--ink-3);
+}
+
+.tiny {
+  font-size: var(--fs-xs);
+}
+
+.sm {
+  font-size: var(--fs-sm);
+}
+
+.strong {
+  font-weight: 600;
+}
+
+.tone-jade {
+  color: var(--jade-ink);
+}
+.tone-amber {
+  color: var(--amber-ink);
+}
+.tone-slate {
+  color: var(--slate-ink);
+}
+.tone-oxblood {
+  color: var(--oxblood-ink);
+}
+.tone-cinnabar {
+  color: var(--cinnabar);
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- 按钮 ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-ctl);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: var(--fs-base);
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
+    color var(--t-fast) var(--ease);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--surface-3);
+}
+
+.btn:active:not(:disabled) {
+  background: var(--surface-3);
+  border-color: var(--ink-3);
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--cinnabar-solid);
+  border-color: var(--cinnabar-solid);
+  color: var(--on-cinnabar);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--cinnabar-solid-hover);
+  border-color: var(--cinnabar-solid-hover);
+}
+
+.btn--primary:active:not(:disabled) {
+  background: var(--cinnabar-strong);
+  border-color: var(--cinnabar-strong);
+}
+
+.btn--quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-2);
+}
+
+.btn--quiet:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.btn--danger {
+  border-color: var(--oxblood);
+  color: var(--oxblood-ink);
+  background: transparent;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: var(--oxblood-bg);
+}
+
+.btn--sm {
+  height: 28px;
+  padding: 0 10px;
+  font-size: var(--fs-sm);
+}
+
+.btn--icon {
+  width: 34px;
+  padding: 0;
+}
+
+.btn--icon.btn--sm {
+  width: 28px;
+}
+
+.btn--block {
+  width: 100%;
+}
+
+/* 载入中：文字变淡 + 转圈，按钮宽度不跳 */
+.btn[data-loading='1'] {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.btn[data-loading='1']::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 620ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* ---------- 表单控件 ---------- */
+
+.inp,
+.sel,
+.ta {
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-ctl);
+  background: var(--surface-inset);
+  color: var(--ink);
+  font-size: var(--fs-base);
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+
+.inp::placeholder,
+.ta::placeholder {
+  color: var(--ink-3);
+}
+
+.inp:hover:not(:disabled),
+.sel:hover:not(:disabled),
+.ta:hover:not(:disabled) {
+  border-color: var(--ink-3);
+}
+
+.inp:focus,
+.sel:focus,
+.ta:focus {
+  outline: none;
+  border-color: var(--cinnabar);
+  box-shadow: 0 0 0 3px var(--cinnabar-bg);
+}
+
+.inp:disabled,
+.sel:disabled,
+.ta:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.inp[aria-invalid='true'],
+.ta[aria-invalid='true'] {
+  border-color: var(--oxblood);
+}
+
+.ta {
+  min-height: 72px;
+  padding: 8px 10px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.sel {
+  appearance: none;
+  padding-right: 26px;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 14px) calc(50% + 1px), calc(100% - 9px) calc(50% + 1px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.inp--fig {
+  font-family: var(--font-fig);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* 复选框：方形，朱砂选中 */
+.chk {
+  appearance: none;
+  width: 17px;
+  height: 17px;
+  flex: none;
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  background: var(--surface-inset);
+  cursor: pointer;
+  position: relative;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+
+.chk:hover {
+  border-color: var(--ink-3);
+}
+
+.chk:checked {
+  background: var(--cinnabar-solid);
+  border-color: var(--cinnabar-solid);
+}
+
+.chk:checked::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--on-cinnabar);
+  clip-path: polygon(19% 51%, 41% 71%, 81% 27%, 87% 35%, 42% 85%, 13% 59%);
+}
+
+.chk:indeterminate {
+  background: var(--cinnabar-solid);
+  border-color: var(--cinnabar-solid);
+}
+
+.chk:indeterminate::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  top: 7px;
+  height: 2px;
+  background: var(--on-cinnabar);
+}
+
+/* 开关 */
+.sw {
+  appearance: none;
+  width: 36px;
+  height: 20px;
+  flex: none;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-strong);
+  background: var(--surface-3);
+  position: relative;
+  cursor: pointer;
+  transition: background var(--t-base) var(--ease), border-color var(--t-base) var(--ease);
+}
+
+.sw::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ink-2);
+  transition: transform var(--t-base) var(--ease), background var(--t-base) var(--ease);
+}
+
+.sw:checked {
+  background: var(--cinnabar-solid);
+  border-color: var(--cinnabar-solid);
+}
+
+.sw:checked::after {
+  transform: translateX(16px);
+  background: var(--on-cinnabar);
+}
+
+/* 表单排版 */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.field > .lbl {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--ink-2);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.field > .lbl .req {
+  color: var(--cinnabar);
+  font-size: var(--fs-xs);
+}
+
+.field .hint {
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+
+.field .err {
+  font-size: var(--fs-xs);
+  color: var(--oxblood-ink);
+}
+
+.inline {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+}
+
+@media (max-width: 560px) {
+  .row-2 {
+    grid-template-columns: 1fr;
+  }
+}

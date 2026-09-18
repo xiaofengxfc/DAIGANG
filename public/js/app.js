@@ -1,0 +1,651 @@
+/* ============================================================
+   外壳：导航轨 / 顶栏 / 路由 / 全局搜索 / 主题
+   ============================================================ */
+
+import { api, setApiHandlers } from './api.js'
+import { h, mount, clear, icon, debounce, fmtMoney } from './dom.js'
+import { toastErr, drawer, skeletonRows, toast } from './ui.js'
+import { refreshVault, syncVault, vaultLockButton } from './vaultgate.js'
+
+import dashboardView from './views/dashboard.js'
+import ordersView from './views/orders.js'
+import customersView from './views/customers.js'
+import priceView from './views/price.js'
+import gamesView from './views/games.js'
+import vaultView from './views/vault.js'
+import financeView from './views/finance.js'
+import quotesView from './views/quotes.js'
+import settingsView from './views/settings.js'
+import { renderGate, renderSetup } from './views/gate.js'
+
+/* ---------------- 导航表 ---------------- */
+
+export const NAV = [
+  { seg: '', label: '总览', icon: 'dashboard', view: dashboardView, tab: true },
+  { seg: 'orders', label: '订单', icon: 'orders', view: ordersView, tab: true, badge: (c) => c.open },
+  { seg: 'customers', label: '客户', icon: 'customers', view: customersView, tab: true },
+  { seg: 'price', label: '价格表', icon: 'price', view: priceView, tab: true },
+  { seg: 'games', label: '游戏', icon: 'games', view: gamesView },
+  { seg: 'vault', label: '保险箱', icon: 'vault', view: vaultView, badge: (c) => c.credentials },
+  { seg: 'finance', label: '财务', icon: 'finance', view: financeView },
+  { seg: 'quotes', label: '报价单', icon: 'quotes', view: quotesView },
+  { seg: 'settings', label: '设置', icon: 'settings', view: settingsView },
+]
+
+const state = {
+  me: null,
+  settings: {},
+  counts: {},
+  route: { seg: '', sub: '', query: new URLSearchParams() },
+}
+
+/* ---------------- 路由 ---------------- */
+
+export function parseRoute(hash) {
+  const raw = String(hash || location.hash || '#/').replace(/^#/, '')
+  const [path, qs] = raw.split('?')
+  const parts = path.split('/').filter(Boolean)
+  return {
+    seg: parts[0] || '',
+    sub: parts[1] || '',
+    rest: parts.slice(2),
+    query: new URLSearchParams(qs || ''),
+  }
+}
+
+export function navigate(to, { replace = false } = {}) {
+  const target = String(to).startsWith('#') ? String(to) : `#${to}`
+  if (replace) history.replaceState(null, '', target)
+  else location.hash = target
+  if (replace) runRoute()
+}
+
+/* ---------------- 应用对象（给视图用） ---------------- */
+
+const app = {
+  state,
+  navigate,
+  get route() {
+    return state.route
+  },
+  /** 重画当前页 + 刷新导航上的角标 */
+  async reload() {
+    await Promise.all([runRoute(), refreshCounts()])
+  },
+  refreshCounts,
+  setActions,
+  openOrder: (id) => navigate(`/orders/${id}`),
+  openCustomer: (id) => navigate(`/customers/${id}`),
+  openQuoteComposer: null, // 由 quotes 视图注入
+  vault: () => import('./vaultgate.js'),
+}
+
+/* ---------------- DOM 骨架 ---------------- */
+
+const root = document.getElementById('root')
+let shell = null
+let railNav = null
+let tabsNav = null
+let topbarTitle = null
+let topbarActions = null
+let mainInner = null
+let searchWrap = null
+let searchInput = null
+let searchPop = null
+let topbarEl = null
+
+function shellNodes() {
+  const brand = h(
+    'div.rail__brand',
+    h('div.rail__mark', '代'),
+    h(
+      'div',
+      { style: { minWidth: '0' } },
+      h('div.rail__name', '代肝运营台'),
+      h('div.rail__sub', { id: 'rail-sub' }, '本机私有')
+    )
+  )
+
+  railNav = h('div.rail__nav', { role: 'navigation', 'aria-label': '主模块' })
+
+  const themeBtn = h('button.navitem', { type: 'button', onclick: toggleTheme })
+  const lockBtnWrap = h('div', { style: { padding: '0 2px 0 0' } })
+  const logoutBtn = h(
+    'button.navitem',
+    {
+      type: 'button',
+      onclick: async () => {
+        await api.post('/api/auth/logout')
+        toast('已退出登录', 'ok')
+        boot()
+      },
+    },
+    h('span.navitem__ico', icon('logout', 17)),
+    h('span.navitem__label', '退出登录')
+  )
+
+  const rail = h(
+    'aside.rail',
+    brand,
+    railNav,
+    h(
+      'div.rail__foot',
+      h(
+        'div',
+        { style: { display: 'flex', gap: '6px', padding: '0 4px 6px' } },
+        h(
+          'button.btn.btn--sm',
+          {
+            type: 'button',
+            onclick: () => navigate('/quotes'),
+            style: { flex: '1' },
+          },
+          '做报价单'
+        )
+      ),
+      themeBtn,
+      logoutBtn
+    )
+  )
+
+  // 主题按钮文字随主题走
+  const paintTheme = (dark) => {
+    themeBtn.replaceChildren(
+      h('span.navitem__ico', icon(dark ? 'moon' : 'sun', 17)),
+      h('span.navitem__label', dark ? '深色帐桌' : '浅色帐桌'),
+      h('span.navitem__badge', '切换')
+    )
+  }
+  themePainters.length = 0
+  themePainters.push(paintTheme)
+  paintTheme(document.documentElement.getAttribute('data-theme') !== 'light')
+  themeBtn.addEventListener('click', () => toggleTheme())
+
+  // 顶栏
+  searchInput = h('input', {
+    type: 'search',
+    placeholder: '搜客户 / 手机号 / 单号 / 服务',
+    'aria-label': '全局搜索',
+    autocomplete: 'off',
+    spellcheck: 'false',
+  })
+  searchPop = h('div.search__pop', { hidden: true })
+  searchWrap = h(
+    'div.search',
+    h(
+      'div.search__box',
+      icon('search', 16),
+      searchInput,
+      h('span.search__kbd', '/')
+    ),
+    searchPop
+  )
+  const searchToggle = h(
+    'button.btn.btn--icon.btn--quiet.search-toggle',
+    { type: 'button', 'aria-label': '搜索', onclick: () => toggleMobileSearch() },
+    icon('search', 17)
+  )
+
+  topbarTitle = h('div.topbar__title', '总览')
+  topbarActions = h('div.cluster', { style: { gap: '6px' } })
+
+  // 保险箱锁扣放在顶栏，手机和电脑都够得着
+  const lockBtn = vaultLockButton()
+  lockBtn.classList.add('btn--sm')
+
+  topbarEl = h(
+    'header.topbar',
+    topbarTitle,
+    h('div.topbar__spacer'),
+    searchWrap,
+    searchToggle,
+    lockBtn,
+    topbarActions
+  )
+
+  mainInner = h('div.main__inner')
+  const main = h('main.main', { id: 'main' }, mainInner)
+
+  tabsNav = h('nav.tabs', { role: 'navigation', 'aria-label': '主模块（手机）' })
+
+  shell = h('div.shell', rail, topbarEl, main, tabsNav)
+  return shell
+}
+
+export function setActions(...nodes) {
+  if (!topbarActions) return
+  clear(topbarActions)
+  for (const n of nodes.flat()) if (n) topbarActions.appendChild(n)
+}
+
+/* ---------------- 主题 ---------------- */
+
+const themePainters = []
+
+function applyTheme(mode) {
+  if (mode === 'light' || mode === 'dark') document.documentElement.setAttribute('data-theme', mode)
+  else document.documentElement.removeAttribute('data-theme')
+  const dark = mode !== 'light'
+  const meta = document.querySelector('meta[name="theme-color"]')
+  if (meta) meta.setAttribute('content', dark ? '#100e0b' : '#f3efe7')
+  for (const paint of themePainters) {
+    try {
+      paint(dark)
+    } catch {
+      /* 忽略单个画笔的故障 */
+    }
+  }
+}
+
+function toggleTheme() {
+  const now = document.documentElement.getAttribute('data-theme')
+  const next = now === 'light' ? 'dark' : 'light'
+  applyTheme(next)
+  try {
+    localStorage.setItem('xfc.theme', next)
+  } catch {}
+  toast(next === 'light' ? '换成浅色帐桌' : '换成深色帐桌', 'info', 1400)
+}
+
+function initTheme() {
+  let saved = null
+  try {
+    saved = localStorage.getItem('xfc.theme')
+  } catch {}
+  applyTheme(saved)
+}
+
+/* ---------------- 全局搜索 ---------------- */
+
+let searchHits = []
+let searchActive = -1
+
+async function runSearch(q) {
+  if (!q || q.trim().length < 1) {
+    searchPop.hidden = true
+    searchHits = []
+    return
+  }
+  let data
+  try {
+    data = await api.get('/api/search', { q: q.trim() })
+  } catch {
+    return
+  }
+  const groups = [
+    ['客户', data.customers, (r) => ({ label: r.name, meta: r.phone || r.wechat || r.qq || '', go: `/customers/${r.id}` })],
+    [
+      '订单',
+      data.orders,
+      (r) => ({ label: `${r.order_no} ${r.title || ''}`, meta: `${r.customer_name || ''} ${r.status_label || ''} ¥${fmtMoney(r.total)}`, go: `/orders/${r.id}` }),
+    ],
+    ['服务', data.services, (r) => ({ label: r.name, meta: `¥${fmtMoney(r.base_price)} · ${r.status === 'archived' ? '已下架' : '在架'}`, go: `/price?s=${r.id}` })],
+    ['游戏', data.games, (r) => ({ label: r.name, meta: r.short_name || '', go: `/games` })],
+    ['凭证', data.credentials, (r) => ({ label: r.label || r.masked_hint, meta: `${r.server || ''} ${r.masked_hint || ''}`, go: `/vault?c=${r.id}` })],
+  ]
+
+  searchHits = []
+  clear(searchPop)
+  let any = false
+  for (const [name, rows, map] of groups) {
+    if (!rows || !rows.length) continue
+    any = true
+    const g = h('div.search__group', h('div.search__grouplbl', name))
+    for (const row of rows) {
+      const m = map(row)
+      const idx = searchHits.length
+      searchHits.push(m.go)
+      g.appendChild(
+        h(
+          'button.search__hit',
+          {
+            type: 'button',
+            'data-idx': String(idx),
+            onclick: () => {
+              closeSearch()
+              navigate(m.go)
+            },
+          },
+          h('span.truncate', m.label),
+          h('span.mono.tiny', m.meta)
+        )
+      )
+    }
+    searchPop.appendChild(g)
+  }
+  if (!any) searchPop.appendChild(h('div.search__group', h('div.empty__body', { style: { padding: '10px 8px' } }, '没搜到。试试单号、手机号或者服务名。')))
+  searchActive = -1
+  searchPop.hidden = false
+}
+
+function closeSearch() {
+  searchPop.hidden = true
+  searchActive = -1
+  topbarEl.classList.remove('topbar--searching')
+}
+
+function toggleMobileSearch() {
+  if (topbarEl.classList.contains('topbar--searching')) {
+    closeSearch()
+    searchInput.blur()
+  } else {
+    topbarEl.classList.add('topbar--searching')
+    setTimeout(() => searchInput.focus(), 40)
+  }
+}
+
+function moveSearch(delta) {
+  const buttons = [...searchPop.querySelectorAll('.search__hit')]
+  if (!buttons.length) return
+  searchActive = (searchActive + delta + buttons.length + 1) % (buttons.length + 1)
+  if (searchActive >= buttons.length) searchActive = delta > 0 ? 0 : buttons.length - 1
+  buttons.forEach((b, i) => b.toggleAttribute('data-active', i === searchActive))
+  buttons[searchActive].scrollIntoView({ block: 'nearest' })
+}
+
+function wireSearch() {
+  const fire = debounce(() => runSearch(searchInput.value), 180)
+  searchInput.addEventListener('input', fire)
+  searchInput.addEventListener('focus', () => {
+    if (searchInput.value.trim()) runSearch(searchInput.value)
+  })
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      moveSearch(1)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      moveSearch(-1)
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      const buttons = [...searchPop.querySelectorAll('.search__hit')]
+      const pick = searchActive >= 0 ? buttons[searchActive] : buttons[0]
+      if (pick) pick.click()
+    } else if (e.key === 'Escape') {
+      closeSearch()
+      searchInput.blur()
+    }
+  })
+
+  document.addEventListener('click', (e) => {
+    if (!searchWrap.contains(e.target) && !e.target.closest('.search-toggle')) closeSearch()
+  })
+
+  document.addEventListener('keydown', (e) => {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '')
+    if (e.key === '/' && !typing) {
+      e.preventDefault()
+      searchInput.focus()
+    } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault()
+      searchInput.focus()
+    }
+  })
+}
+
+/* ---------------- 导航 ---------------- */
+
+/** 手机断点。底部标签只在真正需要时才建出来，桌面端不留空壳。 */
+const mobileQuery = window.matchMedia('(max-width: 860px)')
+
+function navButton(item, { compact = false } = {}) {
+  const btn = compact
+    ? h('button.tab', { type: 'button' })
+    : h('button.navitem', { type: 'button' })
+  btn.dataset.seg = item.seg
+  const paint = () => {
+    const badge = item.badge ? item.badge(state.counts || {}) : null
+    // 注意：replaceChildren(null) 会插入文字 "null"，必须先把空值滤掉
+    if (compact) {
+      const kids = [icon(item.icon, 20), h('span', item.label)]
+      if (badge) kids.push(h('span.tab__n', String(badge)))
+      btn.replaceChildren(...kids)
+    } else {
+      const kids = [h('span.navitem__ico', icon(item.icon, 17)), h('span.navitem__label', item.label)]
+      if (badge) kids.push(h('span.navitem__badge', String(badge)))
+      btn.replaceChildren(...kids)
+    }
+  }
+  paint()
+  btn.addEventListener('click', () => navigate(item.seg ? `/${item.seg}` : '/'))
+  return { btn, paint }
+}
+
+let paints = []
+
+function buildNav() {
+  clear(railNav)
+  clear(tabsNav)
+  paints = []
+
+  for (const item of NAV) {
+    const { btn, paint } = navButton(item, { compact: false })
+    railNav.appendChild(btn)
+    paints.push(paint)
+  }
+
+  paints.forEach((p) => p())
+
+  // 手机上才有底部标签；桌面上这个容器保持空的
+  if (!mobileQuery.matches) return
+
+  for (const item of NAV.filter((n) => n.tab)) {
+    const { btn, paint } = navButton(item, { compact: true })
+    tabsNav.appendChild(btn)
+    paints.push(paint)
+  }
+
+  const moreBtn = h('button.tab', { type: 'button' }, icon('more', 20), h('span', '更多'))
+  moreBtn.addEventListener('click', () => {
+    const rest = NAV.filter((n) => !n.tab)
+    const moreDark = document.documentElement.getAttribute('data-theme') !== 'light'
+    drawer({
+      title: '全部模块',
+      body: h(
+        'div.stack.stack--tight',
+        h(
+          'div',
+          { style: { display: 'grid', gap: '6px' } },
+          rest.map((n) =>
+            h(
+              'button.navitem',
+              {
+                type: 'button',
+                onclick: () => {
+                  navigate(`/${n.seg}`)
+                  document.querySelector('dialog.drawer[open]')?.close()
+                },
+              },
+              h('span.navitem__ico', icon(n.icon, 17)),
+              h('span.navitem__label', n.label),
+              n.badge && state.counts ? h('span.navitem__badge', String(n.badge(state.counts) || '')) : null
+            )
+          )
+        ),
+        h('hr'),
+        h(
+          'button.navitem',
+          {
+            type: 'button',
+            onclick: (e) => {
+              toggleTheme()
+              e.currentTarget.querySelector('.navitem__label').textContent =
+                document.documentElement.getAttribute('data-theme') === 'light' ? '浅色帐桌' : '深色帐桌'
+            },
+          },
+          h('span.navitem__ico', icon(moreDark ? 'moon' : 'sun', 17)),
+          h('span.navitem__label', moreDark ? '深色帐桌' : '浅色帐桌'),
+          h('span.navitem__badge', '切换')
+        ),
+        h(
+          'button.navitem',
+          {
+            type: 'button',
+            onclick: async () => {
+              await api.post('/api/auth/logout')
+              toast('已退出登录', 'ok')
+              boot()
+            },
+          },
+          h('span.navitem__ico', icon('logout', 17)),
+          h('span.navitem__label', '退出登录')
+        )
+      ),
+    })
+  })
+  tabsNav.appendChild(moreBtn)
+}
+
+function markActive(seg) {
+  const mark = (sel) => {
+    document.querySelectorAll(sel).forEach((el) => {
+      if (el.dataset.seg === seg) el.setAttribute('aria-current', 'page')
+      else el.removeAttribute('aria-current')
+    })
+  }
+  mark('.rail .navitem')
+  mark('.tabs .tab')
+}
+
+/* ---------------- 计数 ---------------- */
+
+export async function refreshCounts() {
+  try {
+    const d = await api.get('/api/dashboard')
+    state.counts = d.counts || {}
+    state.dashboard = d
+  } catch {
+    return
+  }
+  for (const p of paints) p()
+}
+
+/* ---------------- 渲染 ---------------- */
+
+let rendering = false
+let renderToken = 0
+
+async function runRoute() {
+  if (!shell) return
+  const route = parseRoute()
+  state.route = route
+  const item = NAV.find((n) => n.seg === route.seg) || NAV[0]
+
+  topbarTitle.textContent = item.label
+  markActive(item.seg)
+  setActions()
+  closeSearch()
+
+  const token = ++renderToken
+  mount(mainInner, skeletonRows(6))
+
+  const ctx = {
+    route,
+    seg: route.seg,
+    sub: route.sub,
+    query: route.query,
+    app,
+    navigate,
+    setActions,
+    reload: () => app.reload(),
+  }
+
+  try {
+    const node = await item.view.render(ctx)
+    if (token !== renderToken) return
+    mount(mainInner, node)
+  } catch (err) {
+    if (token !== renderToken) return
+    toastErr(err)
+    mount(
+      mainInner,
+      h(
+        'div.panel',
+        h(
+          'div.panel__body',
+          h('div.empty', h('div.empty__title', '这一页没打开'), h('p.empty__body', err.message || '未知错误'), h('button.btn', { type: 'button', onclick: () => runRoute() }, '重试'))
+        )
+      )
+    )
+  }
+}
+
+/* ---------------- 启动 ---------------- */
+
+async function boot() {
+  initTheme()
+  clear(root)
+
+  let me
+  try {
+    me = await api.get('/api/auth/me')
+  } catch (err) {
+    clear(root)
+    root.appendChild(
+      h(
+        'div.gate',
+        h(
+          'div.gate__card',
+          h('div.gate__mark', '代'),
+          h('h1', '连不上后台'),
+          h('p.muted', err.message || '请确认启动窗口还开着，然后刷新这一页。'),
+          h('button.btn.btn--primary', { type: 'button', onclick: () => boot() }, '重试')
+        )
+      )
+    )
+    return
+  }
+
+  state.me = me
+  state.settings = me.settings || {}
+  document.title = (me.settings?.business_name || '代肝价格表') + ' · 私用运营台'
+  const sub = document.querySelector('#rail-sub')
+  if (sub) sub.textContent = me.settings?.business_name || '本机私有'
+
+  // 拿到状态了就把启动遮罩撤掉，别挡着登录页
+  document.getElementById('boot')?.remove()
+
+  if (!me.setup) {
+    clear(root)
+    root.appendChild(await renderSetup({ onDone: boot }))
+    return
+  }
+
+  if (!me.authenticated) {
+    clear(root)
+    root.appendChild(renderGate({ onDone: boot }))
+    return
+  }
+
+  syncVault(me.vault)
+  clear(root)
+  shell = shellNodes()
+  root.appendChild(shell)
+  buildNav()
+  wireSearch()
+  // 转屏、拉窗口时重排导航
+  const onBreakpoint = () => {
+    buildNav()
+    markActive(state.route.seg)
+  }
+  if (mobileQuery.addEventListener) mobileQuery.addEventListener('change', onBreakpoint)
+  else if (mobileQuery.addListener) mobileQuery.addListener(onBreakpoint)
+  await refreshCounts()
+  await runRoute()
+}
+
+setApiHandlers({
+  unauthorized: () => {
+    // 会话过期：把界面交回登录页
+    if (shell) {
+      shell = null
+      boot()
+    }
+  },
+  vaultLocked: () => {
+    refreshVault()
+  },
+})
+
+export { app, state }
+boot()
