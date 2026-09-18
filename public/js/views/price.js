@@ -32,6 +32,40 @@ function unitOf(s) {
   return s.unit_label || { fixed: '单', daily: '天', per_time: '次', per_unit: '个', package: '套' }[s.price_type] || '单'
 }
 
+/* ---------------- 大类的展开/收起状态 ----------------
+   必须放在模块这一层，不能放在 render() 里面：
+   存完一个表单会 app.reload() → 重新跑一遍 render()，
+   写在 render 里的 Map 每次都是新的，状态照样丢，
+   表现就是「填完内容大类自己收起来了」。
+
+   默认值：第一次见到某个大类时，空的或不超过 8 项的展开，多的先收起。
+   之后用户怎么点就怎么记着，刷新页面也还在（存在 sessionStorage）。
+------------------------------------------------------------------ */
+
+const CAT_OPEN_KEY = 'xfc.price.catOpen'
+const catOpen = new Map()
+
+try {
+  const saved = JSON.parse(sessionStorage.getItem(CAT_OPEN_KEY) || '{}')
+  for (const [k, v] of Object.entries(saved)) catOpen.set(String(k), !!v)
+} catch {
+  /* 读不出来就当没有，不影响使用 */
+}
+
+function isCatOpen(catId, count) {
+  const k = String(catId)
+  return catOpen.has(k) ? catOpen.get(k) : count <= 8
+}
+
+function setCatOpen(catId, open) {
+  catOpen.set(String(catId), !!open)
+  try {
+    sessionStorage.setItem(CAT_OPEN_KEY, JSON.stringify(Object.fromEntries(catOpen)))
+  } catch {
+    /* 存不进去也不影响当前这次使用 */
+  }
+}
+
 /* ---------------- 大类（分类）表单 ---------------- */
 
 export function categoryForm(values = {}, games = [], presetGameId = null) {
@@ -966,6 +1000,8 @@ export default {
         toast('先建一个大类，服务项要挂在大类下面', 'err', 3200)
         return newCategory()
       }
+      // 往收起的大类里加东西，先把它展开 —— 不然存完看不见自己刚加的那条
+      setCatOpen(categoryId, true)
       const cat = categories.find((c) => String(c.id) === String(categoryId))
       return serviceForm(
         { category_id: categoryId, game_id: cat?.game_id || '' },
@@ -1350,10 +1386,16 @@ export default {
             )
           )
 
-          // 空的默认展开（要看得见「加服务项」），服务项多的默认收起
-          catBody.style.display = b.all.length > 8 ? 'none' : ''
+          // 展开/收起状态记在 catOpen 里，刷新不会丢；
+          // 第一次见到某个大类时：空的或不超过 8 项的默认展开，多的默认收起
+          const open = isCatOpen(b.cat.id, b.all.length)
+          catBody.style.display = open ? '' : 'none'
+          catHead.setAttribute('aria-expanded', open ? 'true' : 'false')
           catHead.addEventListener('click', () => {
-            catBody.style.display = catBody.style.display === 'none' ? '' : 'none'
+            const next = catBody.style.display === 'none'
+            catBody.style.display = next ? '' : 'none'
+            catHead.setAttribute('aria-expanded', next ? 'true' : 'false')
+            setCatOpen(b.cat.id, next)
           })
           groupBody.appendChild(h('div.pcat', catHead, catBody))
         }
