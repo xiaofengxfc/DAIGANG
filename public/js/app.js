@@ -583,7 +583,12 @@ async function runRoute() {
   closeSearch()
 
   const token = ++renderToken
-  mount(mainInner, skeletonRows(6))
+  // 只有真的换页才铺骨架屏。
+  // 同页刷新（保存完一个表单、删掉一条记录之类）保留旧内容直接换新的 ——
+  // 否则中途内容被清空、页面高度塌成 6 行，浏览器会把滚动位置直接拽回顶部，
+  // 表现就是「填完东西页面自己往上滑」。
+  const keepScroll = switched ? 0 : window.scrollY
+  if (switched) mount(mainInner, skeletonRows(6))
 
   const ctx = {
     route,
@@ -600,7 +605,12 @@ async function runRoute() {
     const node = await item.view.render(ctx)
     if (token !== renderToken) return
     mount(mainInner, node)
-    if (switched) window.scrollTo({ top: 0, behavior: 'auto' })
+    // 换页回到顶部；同页刷新把滚动位置放回去
+    if (switched) {
+      window.scrollTo({ top: 0, behavior: 'auto' })
+    } else if (Math.abs(window.scrollY - keepScroll) > 1) {
+      window.scrollTo({ top: keepScroll, behavior: 'auto' })
+    }
   } catch (err) {
     if (token !== renderToken) return
     toastErr(err)
