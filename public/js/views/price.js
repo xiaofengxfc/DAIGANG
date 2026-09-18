@@ -1055,55 +1055,214 @@ export default {
       return options.filter((o) => o.service_id === sid || (!o.service_id && o.status === 'active'))
     }
 
-    /* 一行服务项 */
+    /* ---------------- 拖拽排序 ----------------
+       顺序存在 services.sort_order 上。拖完把「整份显示顺序」发给后端，
+       sort_order 就和页面看到的顺序对齐，不会跟别的项错位。
+       排序永远基于完整数据（services），所以开着搜索/筛选拖也不会漏掉东西。
+    -------------------------------------------------- */
+    let draggingId = null
+
+    const clearMarks = () => {
+      for (const el of listBox.querySelectorAll('.is-drop-before,.is-drop-after')) {
+        el.classList.remove('is-drop-before', 'is-drop-after')
+      }
+      for (const el of listBox.querySelectorAll('.is-drop-empty')) el.classList.remove('is-drop-empty')
+    }
+
+    /** 落点在哪一行之前；null = 放到最后 */
+    function rowAfterPoint(container, y) {
+      const rows = [...container.querySelectorAll('.pitem')].filter((r) => r.dataset.svcId !== String(draggingId))
+      for (const r of rows) {
+        const box = r.getBoundingClientRect()
+        if (y < box.top + box.height / 2) return r
+      }
+      return null
+    }
+
+    /** 按这次拖动，算出「所有服务项」的新顺序 */
+    function orderAfterMove(movedId, targetCat, beforeId) {
+      const key = String(targetCat.id)
+      const list = (servicesByCat.get(key) || []).map((s) => s.id).filter((id) => id !== movedId)
+      let at = beforeId ? list.indexOf(beforeId) : list.length
+      if (at < 0) at = list.length
+      list.splice(at, 0, movedId)
+
+      const ids = []
+      const seen = new Set()
+      const push = (id) => {
+        if (id == null || seen.has(id)) return
+        seen.add(id)
+        ids.push(id)
+      }
+      for (const grp of orderedGroups) {
+        for (const c of grp.cats) {
+          const k = String(c.id)
+          ;(k === key ? list : (servicesByCat.get(k) || []).map((s) => s.id)).forEach(push)
+        }
+        grp.loose.forEach((s) => push(s.id))
+      }
+      services.forEach((s) => push(s.id)) // 兜底：一条都不能漏
+      return ids
+    }
+
+    async function applyMove(movedId, targetCat, beforeId) {
+      const moved = services.find((s) => s.id === movedId)
+      if (!moved) return
+      const changedCat = String(moved.category_id || '') !== String(targetCat.id)
+      const ids = orderAfterMove(movedId, targetCat, beforeId)
+      try {
+        // 拖到别的大类里 = 顺便改归属，服务项的游戏跟着大类走
+        if (changedCat) {
+          await api.patch(`/api/services/${movedId}`, {
+            category_id: targetCat.id,
+            game_id: targetCat.game_id || '',
+          })
+        }
+        await api.post('/api/reorder/services', { ids })
+        toast(changedCat ? `已挪到「${targetCat.name}」` : '顺序已保存', 'ok')
+        ctx.app.reload()
+      } catch (err) {
+        toastErr(err)
+      }
+    }
+
+    function wireRow(row, s) {
+      row.draggable = true
+      row.dataset.svcId = String(s.id)
+      row.addEventListener('dragstart', (e) => {
+        draggingId = s.id
+        row.classList.add('is-dragging')
+        try {
+          e.dataTransfer.effectAllowed = 'move'
+          e.dataTransfer.setData('text/plain', String(s.id))
+        } catch {
+          /* 有些浏览器不给设置，忽略 */
+        }
+      })
+      row.addEventListener('dragend', () => {
+        draggingId = null
+        row.classList.remove('is-dragging')
+        clearMarks()
+      })
+    }
+
+    function wireCatBody(catBody, cat) {
+      catBody.addEventListener('dragover', (e) => {
+        if (!draggingId) return
+        e.preventDefault()
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+        clearMarks()
+        const after = rowAfterPoint(catBody, e.clientY)
+        if (after) {
+          after.classList.add('is-drop-before')
+        } else {
+          const rows = [...catBody.querySelectorAll('.pitem')]
+          if (rows.length) rows[rows.length - 1].classList.add('is-drop-after')
+          else catBody.classList.add('is-drop-empty')
+        }
+      })
+      catBody.addEventListener('dragleave', (e) => {
+        if (!catBody.contains(e.relatedTarget)) clearMarks()
+      })
+      catBody.addEventListener('drop', (e) => {
+        e.preventDefault()
+        if (!draggingId) return
+        const after = rowAfterPoint(catBody, e.clientY)
+        const beforeId = after ? Number(after.dataset.svcId) : null
+        const movedId = draggingId
+        draggingId = null
+        clearMarks()
+        applyMove(movedId, cat, beforeId)
+      })
+    }
+
+    /* 一行服务项。
+       没填备注、没填套餐内容、没挂增项、没有阶梯价的 —— 排成一行：
+       名字 …… ¥价格/单位，不留一片空白。
+       填了东西的才铺开成多行。规则只看服务项自己，不看它属于哪个大类。 */
     function serviceRow(s) {
       const related = optsFor(s.id)
-      return h(
-        'div.pitem',
+      const bare =
+        !s.description && !(s.package_items?.length) && !related.length && !(s.tier_count > 0) && s.status !== 'archived'
+
+      const acts = h(
+        'div.pitem__acts',
         h(
-          'div',
-          h(
-            'div.pitem__name',
-            s.name,
-            s.tier_count > 0 ? tag(`${s.tier_count} 档阶梯价`, 'cinnabar') : null,
-            s.status === 'archived' ? tag('已下架', 'oxblood') : null
-          ),
-          s.description ? h('div.pitem__desc', s.description) : null,
-          s.package_items?.length
-            ? h('div.subitems', h('div.subitem', h('span.subitem__k', '含'), h('span', s.package_items.join(' · '))))
-            : null,
-          related.length
-            ? h(
-                'div.subitems',
-                h(
-                  'div.subitem',
-                  h('span.subitem__k', '增项'),
-                  h(
-                    'span',
-                    related
-                      .slice(0, 6)
-                      .map((o) => `${o.name}${o.price_mode === 'percent' ? ` +${o.price}%` : o.price ? ` +${fmtMoney(o.price)}元` : ''}`)
-                      .join(' · ')
-                  )
-                )
-              )
-            : null
+          'button.btn.btn--sm.btn--quiet',
+          {
+            type: 'button',
+            title: '详情',
+            draggable: 'false',
+            onclick: (e) => {
+              e.stopPropagation()
+              servicePeek(s, ctx, { onChanged: () => ctx.app.reload() })
+            },
+          },
+          '详情'
         ),
         h(
-          'div.pitem__price',
-          h('div.pitem__fig', `¥${fmtMoney(s.base_price)}`),
-          h('div.pitem__unit', `/${unitOf(s)}`),
-          h(
-            'div.pitem__acts',
-            h('button.btn.btn--sm', { type: 'button', onclick: () => servicePeek(s, ctx, { onChanged: () => ctx.app.reload() }) }, '详情'),
-            h(
-              'button.btn.btn--sm',
-              { type: 'button', onclick: () => serviceForm(s, { games: allGames, categories }).then(() => ctx.app.reload()) },
-              icon('edit', 14)
-            )
-          )
+          'button.btn.btn--sm.btn--quiet',
+          {
+            type: 'button',
+            title: '改这个服务项',
+            draggable: 'false',
+            onclick: (e) => {
+              e.stopPropagation()
+              serviceForm(s, { games: allGames, categories }).then(() => ctx.app.reload())
+            },
+          },
+          icon('edit', 14)
         )
       )
+
+      const row = bare
+        ? h(
+            'div.pitem.pitem--slim',
+            { title: '拖动可以调整顺序' },
+            h('span.pitem__grip', icon('drag', 14)),
+            h('span.pitem__name', s.name),
+            h('span.pitem__leader'),
+            h('span.pitem__fig', `¥${fmtMoney(s.base_price)}`, h('em.pitem__unit', ` / ${unitOf(s)}`)),
+            acts
+          )
+        : h(
+            'div.pitem',
+            { title: '拖动可以调整顺序' },
+            h(
+              'div',
+              h(
+                'div.pitem__name',
+                h('span.pitem__grip', icon('drag', 14)),
+                s.name,
+                s.tier_count > 0 ? tag(`${s.tier_count} 档阶梯价`, 'cinnabar') : null,
+                s.status === 'archived' ? tag('已下架', 'oxblood') : null
+              ),
+              s.description ? h('div.pitem__desc', s.description) : null,
+              s.package_items?.length
+                ? h('div.subitems', h('div.subitem', h('span.subitem__k', '含'), h('span', s.package_items.join(' · '))))
+                : null,
+              related.length
+                ? h(
+                    'div.subitems',
+                    h(
+                      'div.subitem',
+                      h('span.subitem__k', '增项'),
+                      h(
+                        'span',
+                        related
+                          .slice(0, 6)
+                          .map((o) => `${o.name}${o.price_mode === 'percent' ? ` +${o.price}%` : o.price ? ` +${fmtMoney(o.price)}元` : ''}`)
+                          .join(' · ')
+                      )
+                    )
+                  )
+                : null
+            ),
+            h('div.pitem__price', h('div.pitem__fig', `¥${fmtMoney(s.base_price)}`), h('div.pitem__unit', `/${unitOf(s)}`), acts)
+          )
+
+      wireRow(row, s)
+      return row
     }
 
     function paint() {
@@ -1151,6 +1310,8 @@ export default {
           } else {
             for (const s of b.list) catBody.appendChild(serviceRow(s))
           }
+          // 整个大类都是放置区：可以排在任意位置，也可以从别的大类拖过来
+          wireCatBody(catBody, b.cat)
 
           const catHead = h(
             'div.pcat__head',
@@ -1200,6 +1361,8 @@ export default {
         if (loose.length) {
           const looseBody = h('div.pcat__body')
           for (const s of loose) looseBody.appendChild(serviceRow(s))
+          // 「未分类」不接拖放（它没有真正的大类 id，排进去会算错位置）。
+          // 但这里的行仍然可以往外拖，拖到某个大类里就等于重新归类。
           groupBody.appendChild(
             h(
               'div.pcat',

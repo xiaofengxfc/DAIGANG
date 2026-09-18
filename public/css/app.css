@@ -1623,10 +1623,112 @@ button.cell:hover {
   align-items: start;
   padding: var(--sp-3) var(--sp-4);
   border-top: 1px solid var(--line);
+  cursor: grab;
+}
+
+.pitem:active {
+  cursor: grabbing;
 }
 
 .pitem:hover {
   background: var(--surface-2);
+}
+
+/* 没填备注、没填套餐内容的服务项：压成一行，别在下面留一片空白 */
+.pitem--slim {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px var(--sp-4) 7px var(--sp-2);
+}
+
+.pitem__grip {
+  display: inline-flex;
+  align-items: center;
+  color: var(--ink-3);
+  opacity: 0;
+  transition: opacity 0.12s;
+  flex: none;
+}
+
+.pitem:hover .pitem__grip,
+.pitem:focus-within .pitem__grip {
+  opacity: 0.6;
+}
+
+/* 名字和价格之间那串点线 */
+.pitem__leader {
+  flex: 1;
+  min-width: 14px;
+  border-bottom: 1px dotted var(--line-strong);
+  transform: translateY(-4px);
+  align-self: center;
+}
+
+.pitem--slim .pitem__name {
+  flex: none;
+  max-width: 62%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.pitem--slim .pitem__fig {
+  flex: none;
+  font-family: var(--font-fig);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--cinnabar);
+  white-space: nowrap;
+}
+
+.pitem--slim .pitem__unit {
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  font-style: normal;
+  color: var(--ink-3);
+}
+
+/* 平时把操作收起来，鼠标放上去才露出来 —— 一行行全是按钮太吵 */
+.pitem--slim .pitem__acts {
+  opacity: 0;
+  transition: opacity 0.12s;
+  flex: none;
+  align-self: center;
+}
+
+.pitem--slim:hover .pitem__acts,
+.pitem--slim:focus-within .pitem__acts {
+  opacity: 1;
+}
+
+/* 触屏没有 hover，一直显示，否则等于没有入口 */
+@media (hover: none) {
+  .pitem--slim .pitem__acts,
+  .pitem__grip {
+    opacity: 1;
+  }
+}
+
+/* ---------- 拖动中的提示 ---------- */
+
+.pitem.is-dragging {
+  opacity: 0.35;
+}
+
+.pitem.is-drop-before {
+  box-shadow: inset 0 2px 0 0 var(--cinnabar);
+}
+
+.pitem.is-drop-after {
+  box-shadow: inset 0 -2px 0 0 var(--cinnabar);
+}
+
+.pcat__body.is-drop-empty {
+  background: var(--cinnabar-bg);
+  box-shadow: inset 0 0 0 1px var(--cinnabar-line);
 }
 
 .pitem__name {
