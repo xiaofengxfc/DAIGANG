@@ -55,9 +55,18 @@ export function parseRoute(hash) {
 
 export function navigate(to, { replace = false } = {}) {
   const target = String(to).startsWith('#') ? String(to) : `#${to}`
-  if (replace) history.replaceState(null, '', target)
-  else location.hash = target
-  if (replace) runRoute()
+  const current = location.hash || '#/'
+
+  if (replace) {
+    history.replaceState(null, '', target)
+    runRoute()
+    return
+  }
+
+  location.hash = target
+  // hash 没变就不会有 hashchange（比如点当前这一项，或只改了查询串），
+  // 这时候自己重画一次，免得「点了没反应」。
+  if ((location.hash || '#/') === current) runRoute()
 }
 
 /* ---------------- 应用对象（给视图用） ---------------- */
@@ -524,12 +533,18 @@ export async function refreshCounts() {
 
 let rendering = false
 let renderToken = 0
+let lastRouteKey = null
 
 async function runRoute() {
   if (!shell) return
   const route = parseRoute()
   state.route = route
   const item = NAV.find((n) => n.seg === route.seg) || NAV[0]
+
+  // 换了页面就回到顶部；只是刷新数据（app.reload）则保持当前位置
+  const routeKey = `${route.seg}/${route.sub}?${route.query.toString()}`
+  const switched = routeKey !== lastRouteKey
+  lastRouteKey = routeKey
 
   topbarTitle.textContent = item.label
   markActive(item.seg)
@@ -554,6 +569,7 @@ async function runRoute() {
     const node = await item.view.render(ctx)
     if (token !== renderToken) return
     mount(mainInner, node)
+    if (switched) window.scrollTo({ top: 0, behavior: 'auto' })
   } catch (err) {
     if (token !== renderToken) return
     toastErr(err)
@@ -645,6 +661,13 @@ setApiHandlers({
   vaultLocked: () => {
     refreshVault()
   },
+})
+
+// 导航的真正驱动力：hash 一变就重画。
+// 这个监听器只能有这一个 —— 之前清理"重复监听"时把它连同 boot() 里那份一起删掉，
+// 结果点导航只改地址栏、页面纹丝不动。
+window.addEventListener('hashchange', () => {
+  if (shell) runRoute()
 })
 
 export { app, state }
