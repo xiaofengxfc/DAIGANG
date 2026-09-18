@@ -11,7 +11,7 @@ import {
   toastErr,
   drawer,
   formDrawer,
-  confirmDelete,
+  modal,
   emptyState,
   tag,
   lamp,
@@ -21,6 +21,78 @@ import {
 import { customerForm } from './orders.js'
 import { openComposer } from './orders.js'
 import { paymentDrawer } from './orderbits.js'
+
+/** 「归档还是真删」二选一。返回 'archive' | 'delete' | null */
+function choiceDialog({ title, message, archiveLabel, archiveHint, deleteLabel, deleteHint }) {
+  return new Promise((resolve) => {
+    let done = false
+    const finish = (v) => {
+      if (done) return
+      done = true
+      resolve(v)
+    }
+    const actions = [{ label: '取消', onClick: () => finish(null) }]
+    // 注意：这里不能 return false —— 在 modal() 里 false 表示「别关窗」，而这里点完是要关掉的
+    if (archiveLabel) actions.push({ label: archiveLabel, onClick: () => finish('archive') })
+    actions.push({ label: deleteLabel, tone: 'danger', onClick: () => finish('delete') })
+    modal({
+      title,
+      wide: true,
+      body: h(
+        'div.stack.stack--tight',
+        h('p', { style: { lineHeight: '1.75' } }, message),
+        archiveLabel && archiveHint ? h('div.note.note--ok', h('strong', `${archiveLabel}：`), h('span', archiveHint)) : null,
+        deleteHint ? h('div.note.note--alert', h('strong', `${deleteLabel}：`), h('span', deleteHint)) : null
+      ),
+      actions,
+      onClose: () => finish(null),
+    })
+  })
+}
+
+/** 处理一位客户：归档，或者彻底删除 */
+async function removeCustomer(ctx, c) {
+  let p = null
+  try {
+    p = await api.get(`/api/customers/${c.id}/profile`)
+  } catch {
+    /* 拿不到档案也照样让他处理 */
+  }
+  const orders = p?.summary?.order_count ?? 0
+  const creds = p?.credentials?.length ?? 0
+  const quotes = p?.quotes?.length ?? 0
+  const busy = orders + creds + quotes > 0
+
+  const choice = await choiceDialog({
+    title: `处理客户「${c.name}」`,
+    message: busy
+      ? `这位客户名下有 ${orders} 张订单、${creds} 条登录凭证、${quotes} 份报价单。`
+      : '这位客户名下还没有订单、凭证和报价单。',
+    archiveLabel: busy ? '归档客户' : null,
+    archiveHint: '先从这个列表里收起来。订单、凭证、报价单全部原地不动，随时可以用上面的「已归档」找回来。',
+    deleteLabel: busy ? '彻底删除（连带凭证）' : '彻底删除',
+    deleteHint: creds
+      ? `这位客户存着 ${creds} 条登录凭证（游戏账号密码），彻底删除会把这 ${creds} 条一起删掉，删了就找不回来。` +
+        (orders ? `另外 ${orders} 张订单会失去客户关联 —— 单号、服务内容、冻结的客户名和收款记录都还在。` : '')
+      : orders
+        ? `${orders} 张订单会失去客户关联，但单号、服务内容、冻结的客户名和收款记录都还在。`
+        : '直接删掉，不影响任何其它数据。',
+  })
+  if (!choice) return
+  try {
+    if (choice === 'archive') {
+      await api.patch(`/api/customers/${c.id}`, { status: 'archived' })
+      toast(`客户「${c.name}」已归档`, 'ok')
+      ctx.navigate('/customers')
+    } else {
+      await api.del(`/api/customers/${c.id}`, { hard: '1' })
+      toast(`客户「${c.name}」已彻底删除`, 'ok')
+      ctx.navigate('/customers')
+    }
+  } catch (err) {
+    toastErr(err)
+  }
+}
 
 function customerRow(c, ctx) {
   return h(
@@ -67,6 +139,19 @@ export async function renderCustomerDetail(ctx, id) {
       const saved = await customerForm(c, { title: '改客户资料' })
       if (saved) ctx.app.reload()
     } }, icon('edit', 14), '改资料'),
+    // 归档过的客户给一条恢复的路，否则归档就成了单向操作
+    c.status === 'archived'
+      ? h('button.btn.btn--sm', { type: 'button', onclick: async () => {
+          try {
+            await api.patch(`/api/customers/${c.id}`, { status: 'active' })
+            toast(`客户「${c.name}」已恢复`, 'ok')
+            ctx.app.reload()
+          } catch (err) {
+            toastErr(err)
+          }
+        } }, icon('refresh', 14), '恢复')
+      : null,
+    h('button.btn.btn--sm.btn--quiet', { type: 'button', title: '归档或彻底删除这位客户', onclick: () => removeCustomer(ctx, c) }, icon('trash', 14)),
     h('button.btn.btn--sm.btn--quiet', { type: 'button', onclick: () => ctx.navigate('/customers') }, '返回列表')
   )
 
@@ -241,6 +326,10 @@ export default {
       const t = q.trim().toLowerCase()
       filtered = filtered.filter((c) => `${c.name} ${c.phone} ${c.wechat} ${c.qq} ${c.note} ${c.source}`.toLowerCase().includes(t))
     }
+    // 归档的客户默认收起来，不然「归档」看起来跟没删一样
+    const archivedCount = items.filter((c) => c.status === 'archived').length
+    if (only === 'archived') filtered = filtered.filter((c) => c.status === 'archived')
+    else filtered = filtered.filter((c) => c.status !== 'archived')
     if (only === 'due') filtered = filtered.filter((c) => c.due_total > 0.001)
     if (only === 'repeat') filtered = filtered.filter((c) => c.order_count >= 2)
 
@@ -262,6 +351,8 @@ export default {
         { key: '', label: '全部' },
         { key: 'due', label: '有欠款' },
         { key: 'repeat', label: '回头客' },
+        // 只有真的归档过客户，才把这个入口露出来
+        ...(archivedCount ? [{ key: 'archived', label: `已归档 ${archivedCount}` }] : []),
       ].map((f) =>
         h(
           'button.seg__btn',

@@ -1,6 +1,6 @@
 import { db, stamp, nextSerialNo } from '../db.mjs'
 import { get, post, patch, del } from '../http.mjs'
-import { bad, notFound, int, num, money, clampStr, stringifyJSON, localDate, nowISO, toStringArray } from '../util.mjs'
+import { bad, notFound, int, num, money, clampStr, stringifyJSON, parseJSON, localDate, nowISO, toStringArray } from '../util.mjs'
 import { computeItems, computeTotals } from '../pricing.mjs'
 
 /* ---------------- 状态机 ---------------- */
@@ -282,18 +282,47 @@ export function register() {
     // 金额：给了 items 就重算整单，否则只改折扣/手续费/成本
     let recomputed = null
     if (Array.isArray(ctx.body.items) && ctx.body.items.length) {
-      const computed = computeItems(ctx.body.items)
+      // 明细里可能混着 { keep_id } —— 那是报价单转过来、服务项已经不在价格表里的明细。
+      // 它们不能重算（服务项都没了），但也不能因为它们在，就把整单的改动一起丢掉。
+      // 以前前端遇到这种情况干脆不发 items，结果整单明细一条都改不动。
+      const calcRaw = ctx.body.items.filter((x) => !(x && x.keep_id))
+      const computed = calcRaw.length ? computeItems(calcRaw) : { items: [], items_subtotal: 0, addon_total: 0 }
+
+      // 原样保留的明细从库里读，不用前端传来的金额
+      const savedById = new Map(db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(id).map((r) => [r.id, r]))
+      const finalItems = []
+      let ci = 0
+      for (const raw of ctx.body.items) {
+        if (raw && raw.keep_id) {
+          const row = savedById.get(int(raw.keep_id))
+          if (!row) continue
+          const snap = parseJSON(row.snapshot, {})
+          const addonAmount = money((snap.addons || []).reduce((s, a) => s + num(a.amount), 0))
+          finalItems.push({
+            ...row,
+            snapshot: snap, // 库里的 snapshot 是字符串，这里必须换回对象，否则会被二次转义
+            base_amount: money(num(row.amount) - addonAmount),
+            addon_amount: addonAmount,
+            sort_order: (finalItems.length + 1) * 10,
+          })
+        } else {
+          const it = computed.items[ci++]
+          if (it) finalItems.push({ ...it, sort_order: (finalItems.length + 1) * 10 })
+        }
+      }
+
+      const itemsSubtotal = money(finalItems.reduce((s, i) => s + num(i.base_amount), 0))
+      const addonTotal = money(finalItems.reduce((s, i) => s + num(i.addon_amount), 0))
       recomputed = {
-        items,
+        items: finalItems,
         totals: computeTotals({
-          items_subtotal: computed.items_subtotal,
-          addon_total: computed.addon_total,
+          items_subtotal: itemsSubtotal,
+          addon_total: addonTotal,
           discount: 'discount' in ctx.body ? ctx.body.discount : existing.discount,
           platform_fee: 'platform_fee' in ctx.body ? ctx.body.platform_fee : existing.platform_fee,
           cost: 'cost' in ctx.body ? ctx.body.cost : existing.cost,
         }),
       }
-      recomputed.items = computed.items
     } else if (['discount', 'platform_fee', 'cost'].some((k) => k in ctx.body)) {
       recomputed = {
         items: null,

@@ -90,6 +90,9 @@ function buildQuote(body) {
     discount: body.discount,
   })
   const lines = computed.items.map((i) => ({
+    // 一定要把 ref_id 存下来 —— 报价单转订单后，「改明细」要靠它把明细对回价格表里的服务项。
+    // 以前这里没存，转出来的订单每条明细都成了「找不到服务项」，整单一条都改不了。
+    ref_id: i.ref_id || null,
     name: i.name,
     spec: i.spec,
     price_type: i.price_type,
@@ -100,6 +103,19 @@ function buildQuote(body) {
     snapshot: i.snapshot,
   }))
   return { lines, totals }
+}
+
+/**
+ * 老报价单里没存 ref_id（那时候还没这个字段），
+ * 转换时按服务名回填一下，让老单也能改明细。
+ */
+function guessServiceId(line) {
+  const name = line?.snapshot?.service_name || line?.name
+  if (!name) return null
+  const row = db
+    .prepare("SELECT id FROM services WHERE name = ? ORDER BY (status = 'active') DESC, id ASC LIMIT 1")
+    .get(String(name))
+  return row ? row.id : null
 }
 
 /* ---------------- 注册 ---------------- */
@@ -434,10 +450,11 @@ export function register() {
       const orderId = Number(info.lastInsertRowid)
       const stmt = db.prepare(
         `INSERT INTO order_items (order_id, kind, ref_id, name, spec, price_type, unit_label, unit_price, quantity, amount, snapshot, sort_order)
-         VALUES (?, 'service', NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         VALUES (?, 'service', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       q.items.forEach((i, idx) => {
-        stmt.run(orderId, i.name, i.spec || '', i.price_type || 'fixed', i.unit_label || '', money(i.unit_price), num(i.quantity, 1), money(i.amount), stringifyJSON(i.snapshot || {}), (idx + 1) * 10)
+        const refId = i.ref_id || guessServiceId(i)
+        stmt.run(orderId, refId, i.name, i.spec || '', i.price_type || 'fixed', i.unit_label || '', money(i.unit_price), num(i.quantity, 1), money(i.amount), stringifyJSON(i.snapshot || {}), (idx + 1) * 10)
       })
       db.exec('COMMIT')
       return { ok: true, order_id: orderId, order_no }

@@ -347,6 +347,47 @@ async function main() {
   const convertedOrderId = r.body.order_id
   r = await api('GET', `/api/orders/${convertedOrderId}`)
   ok('转出的订单带快照明细', r.body.items?.length === 2 && r.body.total === 450, { n: r.body.items?.length, t: r.body.total })
+  // 转出来的明细必须还能对回价格表里的服务项，否则「改明细」整单一条都改不了
+  ok(
+    '转出的明细保留了服务项关联（ref_id）',
+    r.body.items.every((i) => i.ref_id != null),
+    r.body.items.map((i) => `${i.name}:ref_id=${i.ref_id}`).join(', ')
+  )
+  // 改一条明细的数量，确认真的存下去了（以前这种情况整单明细都发不出去）
+  const convItems = r.body.items
+  const convTotal = Number(r.body.total)
+  const firstQty = Number(convItems[0].quantity)
+  const firstPrice = Number(convItems[0].unit_price)
+  const bumpQty = firstQty + 2
+  // 单价要一起带上，否则服务端会当成「没有改价」而按价格表重算
+  const withQty = (q) => ({
+    items: convItems.map((i, idx) => ({ service_id: i.ref_id, quantity: idx === 0 ? q : i.quantity, unit_price: i.unit_price })),
+  })
+  r = await api('PATCH', `/api/orders/${convertedOrderId}`, withQty(bumpQty))
+  ok('改明细能保存（不再被整单忽略）', r.status === 200, r.status)
+  r = await api('GET', `/api/orders/${convertedOrderId}`)
+  ok('数量改动同步到了订单', Number(r.body.items[0].quantity) === bumpQty, r.body.items.map((i) => `${i.name}×${i.quantity}`).join(', '))
+  ok('总价跟着重算了', Number(r.body.total) === convTotal + 2 * firstPrice, `${convTotal} → ${r.body.total}`)
+  ok('明细条数没变（没被删掉）', r.body.items.length === 2, `${r.body.items.length} 条`)
+  // 改回原样，免得影响后面财务口径的断言
+  await api('PATCH', `/api/orders/${convertedOrderId}`, withQty(firstQty))
+  r = await api('GET', `/api/orders/${convertedOrderId}`)
+  ok('改回原数量后金额复原', Number(r.body.total) === convTotal, `${r.body.total} vs ${convTotal}`)
+
+  /* ---------- 客户：归档 / 真删 ---------- */
+  section('客户归档与真删')
+  r = await api('POST', '/api/customers', { name: '待处理客户' })
+  const tmpCust = r.body.id
+  r = await api('DELETE', `/api/customers/${tmpCust}`)
+  ok('客户默认删除=归档', r.body.archived === true, r.body)
+  r = await api('GET', `/api/customers/${tmpCust}`)
+  ok('归档后客户还在（状态 archived）', r.body.status === 'archived', r.body.status)
+  r = await api('PATCH', `/api/customers/${tmpCust}`, { status: 'active' })
+  ok('客户能从归档恢复', r.body.status === 'active', r.body.status)
+  r = await api('DELETE', `/api/customers/${tmpCust}?hard=1`)
+  ok('客户带 hard=1 才是真删', r.body.deleted === true, r.body)
+  r = await api('GET', `/api/customers/${tmpCust}`)
+  ok('真删后客户没了', r.status === 404, String(r.status))
 
   /* ---------- 导出：图片模型 / Word 文档 ---------- */
   section('导出价格表')

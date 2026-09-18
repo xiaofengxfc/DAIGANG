@@ -208,10 +208,16 @@ export function listRows(def, query = {}) {
   return db.prepare(sql).all(...values).map((r) => shapeRow(def, r))
 }
 
-export function removeRow(def, id) {
+/**
+ * 删除。默认沿用「归档」策略（游戏、大类、客户这些都不真删，老订单才不会断）。
+ * 但用户确实需要能真正删掉建错的记录，所以支持显式 hard：
+ *   DELETE /api/xxx/:id?hard=1   →  真删
+ * 不传 hard 时行为和以前完全一样，老调用方不受影响。
+ */
+export function removeRow(def, id, { hard = false } = {}) {
   const existing = getRow(def, id)
   if (!existing) notFound()
-  if (def.archiveInstead) {
+  if (def.archiveInstead && !hard) {
     db.prepare(`UPDATE ${def.table} SET status = 'archived', updated_at = ? WHERE id = ?`).run(stamp(), int(id))
     return { archived: true, id: int(id) }
   }
@@ -233,7 +239,9 @@ export function registerCrud(prefix, def, { afterList, onDelete } = {}) {
   })
   post(`${prefix}`, (ctx) => createRow(def, ctx.body))
   patch(`${prefix}/:id`, (ctx) => updateRow(def, ctx.params.id, ctx.body))
-  del(`${prefix}/:id`, (ctx) => (onDelete ? onDelete(ctx, def) : removeRow(def, ctx.params.id)))
+  del(`${prefix}/:id`, (ctx) =>
+    onDelete ? onDelete(ctx, def) : removeRow(def, ctx.params.id, { hard: ctx.query.hard === '1' })
+  )
 }
 
 export { coerceValue, toDB, fromDB }

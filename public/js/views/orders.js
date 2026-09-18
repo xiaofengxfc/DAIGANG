@@ -364,7 +364,7 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
           `这张单有 ${unmappable.length} 条明细（${unmappable
             .map((i) => i.name)
             .join('、')}）在价格表里已经找不到对应的服务项，多半是从报价单转过来的。` +
-            '这些明细在这里改不了——保存时会原样保留，不会被删掉，也不会被重算。'
+            '这几条在这里改不了，保存时会原样保留（不会被删掉，也不会被重算）。其它明细的改动照常保存。'
         )
       : null,
     h('div', h('div.sechead', h('h3', '备注'))),
@@ -418,12 +418,43 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
       custSel.focus()
       return
     }
-    const items = [...picked.entries()].map(([id, sel]) => ({
-      service_id: id,
-      quantity: Number(sel.quantity) || 1,
-      option_ids: [...sel.optionIds],
-      unit_price: sel.unitPrice === '' ? undefined : Number(sel.unitPrice),
-    }))
+    const editableById = new Map(
+      [...picked.entries()].map(([id, sel]) => [
+        id,
+        {
+          service_id: id,
+          quantity: Number(sel.quantity) || 1,
+          option_ids: [...sel.optionIds],
+          unit_price: sel.unitPrice === '' ? undefined : Number(sel.unitPrice),
+        },
+      ])
+    )
+
+    // 拼出这次要保存的明细，顺序尽量跟原来一致：
+    //   · 原来就有、现在还能改的 → 用新填的值
+    //   · 原来就有、服务项已经没了的 → 带 keep_id 原样保留（服务端从库里读，不重算）
+    //   · 原来有但现在被取消勾选的 → 不带，等于删掉
+    //   · 这次新挑的 → 追加到最后
+    const items = []
+    const usedIds = new Set()
+    if (existing) {
+      const unmappableIds = new Set(unmappable.map((it) => it.id))
+      for (const it of existing.items || []) {
+        if (unmappableIds.has(it.id)) {
+          items.push({ keep_id: it.id })
+          continue
+        }
+        const editable = editableById.get(it.ref_id)
+        if (editable) {
+          items.push(editable)
+          usedIds.add(it.ref_id)
+        }
+      }
+    }
+    for (const [id, payloadItem] of editableById) {
+      if (!usedIds.has(id)) items.push(payloadItem)
+    }
+
     const payload = {
       customer_id: Number(custSel.value),
       game_id: gameSel.value ? Number(gameSel.value) : null,
@@ -435,15 +466,15 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
       due_at: dueInp.value || null,
       note: noteInp.value,
       internal_note: innerInp.value,
+      // 明细一律发出去 —— 改不了的用 keep_id 让服务端原样保留，
+      // 这样其它明细的改动才存得下来。
+      items,
     }
-    // 有改不了的明细时绝不发 items —— 服务端收到 items 会整单替换，
-    // 把那些报价单转来的明细直接删掉。宁可这次不动明细。
-    if (!unmappable.length) payload.items = items
     submitBtn.setAttribute('data-loading', '1')
     submitBtn.disabled = true
     try {
       const saved = existing ? await api.patch(`/api/orders/${existing.id}`, payload) : await api.post('/api/orders', payload)
-      if (existing && unmappable.length) toast('单据已更新（那几条改不了的明细保持原样）', 'ok', 3400)
+      if (existing && unmappable.length) toast('单据已更新（那几条改不了的明细原样保留）', 'ok', 3400)
       else toast(existing ? '单据已更新' : `开单成功 · ${saved.order_no}`, 'ok')
       d.close()
       if (!existing) ctx.navigate(`/orders/${saved.id}`)
