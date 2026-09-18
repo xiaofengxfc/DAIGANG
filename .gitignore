@@ -1,5 +1,8 @@
 # 你的数据，不进版本库
 data/
+data-test/
+data-smoke/
+backups/
 *.db
 *.db-wal
 *.db-shm

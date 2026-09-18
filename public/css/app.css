@@ -1530,10 +1530,51 @@ button.cell:hover {
   width: 100%;
   text-align: left;
   color: var(--ink);
+  flex-wrap: wrap;
 }
 
 .pgroup__head:hover {
   background: var(--surface-3);
+}
+
+/* 一张价格表（游戏）下面的「大类」 */
+.pcat {
+  border-top: 1px solid var(--line);
+}
+
+.pcat__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 9px var(--sp-4) 9px var(--sp-5);
+  cursor: pointer;
+  color: var(--ink);
+  flex-wrap: wrap;
+  background: var(--surface);
+}
+
+.pcat__head:hover {
+  background: var(--surface-2);
+}
+
+.pcat__name {
+  font-weight: 500;
+  font-size: var(--fs-base);
+}
+
+.pcat__name::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--cinnabar-line);
+  margin-right: 8px;
+  vertical-align: -1px;
+}
+
+.pcat__body {
+  background: var(--surface);
 }
 
 .pgroup__name {

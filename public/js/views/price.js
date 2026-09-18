@@ -1,10 +1,16 @@
 /* ============================================================
-   价格表：分类 → 服务项 → 阶梯价 / 套餐增项
+   价格表：游戏（一张价格表）→ 大类 → 服务项 → 阶梯价 / 套餐增项
    这一页是"代肝价格查询"的正身。
+
+   结构说明（和用户的心智模型对齐）：
+     一个游戏 = 一张价格表
+     一张价格表下面挂若干「大类」（日常 / 周常 / 深渊 / 活动…）
+     服务项只能挂在大类里，不能直接挂在游戏上
    ============================================================ */
 
 import { api, PRICE_TYPE_LABEL } from '../api.js'
 import { h, icon, fmtMoney, fmtQty, debounce, fmtDate } from '../dom.js'
+import { gameForm } from './games.js'
 import {
   table,
   toast,
@@ -25,31 +31,140 @@ function unitOf(s) {
   return s.unit_label || { fixed: '单', daily: '天', per_time: '次', per_unit: '个', package: '套' }[s.price_type] || '单'
 }
 
-/* ---------------- 分类表单 ---------------- */
+/* ---------------- 大类（分类）表单 ---------------- */
 
-export function categoryForm(values = {}, games = []) {
+export function categoryForm(values = {}, games = [], presetGameId = null) {
+  const isEdit = Boolean(values.id)
+  // 从某个游戏的价格表里点「新建大类」时，游戏默认就是这个游戏，
+  // 不会静悄悄落回「通用」——那正是之前让人以为"没建成"的原因之一。
+  const initial = { ...values }
+  if (!isEdit && presetGameId && initial.game_id === undefined) initial.game_id = String(presetGameId)
+
   return formDrawer({
-    title: values.id ? '改分类' : '新建分类',
+    title: isEdit ? '改大类' : '新建大类',
     submitLabel: '保存',
-    values,
-    intro: h('div.hint', '分类是价格表的第一层，像「日常 / 周常 / 活动 / 深渊 / 材料 / 成就」。'),
+    values: initial,
+    wide: true,
+    intro: h(
+      'div.hint',
+      '价格表的结构是三层：游戏 → 大类 → 服务项。先建大类（日常 / 周常 / 深渊 / 活动 / 材料…），再往大类里加具体的服务项。'
+    ),
     fields: [
-      { name: 'name', label: '分类名', type: 'text', required: true, placeholder: '例：日常' },
+      { name: 'name', label: '大类名称', type: 'text', required: true, placeholder: '例：日常 / 周常 / 深渊 / 活动' },
       {
         name: 'game_id',
-        label: '只属于某个游戏（留空 = 所有游戏通用）',
+        label: '属于哪个游戏',
         type: 'select',
-        options: [{ value: '', label: '通用（所有游戏）' }, ...games.map((g) => ({ value: String(g.id), label: g.name }))],
+        hint: '选「通用」就是一个所有游戏都能用的大类',
+        options: [{ value: '', label: '通用（不属于某个游戏）' }, ...games.map((g) => ({ value: String(g.id), label: g.name }))],
       },
-      { name: 'note', label: '备注', type: 'text' },
+      { name: 'note', label: '备注', type: 'text', placeholder: '选填' },
     ],
     onSubmit: async (v) => {
       const payload = { ...v, game_id: v.game_id || null }
-      const r = values.id ? await api.patch(`/api/categories/${values.id}`, payload) : await api.post('/api/categories/append', payload)
-      toast('分类已保存', 'ok')
+      const r = isEdit ? await api.patch(`/api/categories/${values.id}`, payload) : await api.post('/api/categories/append', payload)
+      toast('大类已保存', 'ok')
       return r
     },
   })
+}
+
+/* ---------------- 「游戏 ↔ 分类」联动选择 ----------------
+   以前这里是两个互不相干的 select：分类下拉会把所有游戏的分类全列出来，
+   于是很容易选出「游戏=崩铁、分类=原神日常」这种自相矛盾的服务项。
+   现在两个下拉互相牵制：
+     · 改游戏 → 分类列表只留这个游戏的和通用的
+     · 改分类 → 如果这个分类属于某个游戏，游戏自动跟着切过去
+   当前已经选中的分类永远保留在列表里，绝不因为筛选而把它悄悄丢掉。
+------------------------------------------------------------------ */
+
+export function gameCategoryField({ games = [], categories = [], gameId = '', categoryId = '' } = {}) {
+  let gameSel = null
+  let catSel = null
+  const state = { gameId: gameId ? String(gameId) : '', categoryId: categoryId ? String(categoryId) : '' }
+  // 只在打开表单时保留"当前这条"的大类（万一它和游戏对不上，也不能悄悄改掉它）。
+  // 用户一旦手动换游戏，就不再保留——否则换了游戏还看得到别的游戏的大类，很迷惑。
+  let keepCurrent = Boolean(state.categoryId)
+
+  const catOptionsFor = () =>
+    categories.filter((c) => {
+      if (keepCurrent && state.categoryId && String(c.id) === state.categoryId) return true
+      if (c.status === 'archived') return false
+      if (!state.gameId) return true
+      return !c.game_id || String(c.game_id) === state.gameId
+    })
+
+  function paintGames() {
+    gameSel.replaceChildren()
+    gameSel.appendChild(h('option', { value: '' }, '通用（不属于某个游戏）'))
+    for (const g of games) gameSel.appendChild(h('option', { value: String(g.id) }, g.name))
+    gameSel.value = state.gameId
+  }
+
+  function paintCats() {
+    const list = catOptionsFor()
+    catSel.replaceChildren()
+    catSel.appendChild(h('option', { value: '' }, list.length ? '— 选一个大类 —' : '这个游戏下还没有大类'))
+    for (const c of list) {
+      const foreign = c.game_id && String(c.game_id) !== state.gameId
+      catSel.appendChild(
+        h('option', { value: String(c.id) }, `${c.name}${c.game_name ? `（${c.game_name}）` : ''}${foreign ? ' ⚠' : ''}`)
+      )
+    }
+    catSel.value = list.some((c) => String(c.id) === state.categoryId) ? state.categoryId : ''
+    state.categoryId = catSel.value
+  }
+
+  return {
+    type: 'custom',
+    width: 'full',
+    render: () => {
+      gameSel = h('select.sel')
+      catSel = h('select.sel')
+
+      gameSel.addEventListener('change', () => {
+        state.gameId = gameSel.value
+        // 换了游戏，原来选的大类未必属于这个游戏 —— 清掉重选，免得张冠李戴
+        state.categoryId = ''
+        keepCurrent = false
+        paintCats()
+      })
+      catSel.addEventListener('change', () => {
+        state.categoryId = catSel.value
+        const c = categories.find((x) => String(x.id) === state.categoryId)
+        if (c?.game_id && String(c.game_id) !== state.gameId) {
+          state.gameId = String(c.game_id)
+          gameSel.value = state.gameId
+          paintCats() // 游戏跟着大类走了
+        }
+      })
+
+      paintGames()
+      paintCats()
+
+      return h(
+        'div.row-2',
+        h(
+          'div.field.field--full',
+          h('label.lbl', '属于哪个游戏'),
+          gameSel,
+          h('div.hint', '选「通用」表示这张价格表不绑游戏')
+        ),
+        h(
+          'div.field.field--full',
+          h('label.lbl', '放在哪个大类下', h('span.req', '*')),
+          catSel,
+          h('div.hint', '服务项必须挂在某个大类里。还没有大类就先去「新建分类」。')
+        )
+      )
+    },
+    collect: (out) => {
+      out.game_id = state.gameId || ''
+      out.category_id = state.categoryId || ''
+      if (!state.categoryId) return '请先选一个大类。价格表的结构是：游戏 → 大类 → 服务项，服务项不能直接挂到游戏上。'
+      return ''
+    },
+  }
 }
 
 /* ---------------- 服务项表单 ---------------- */
@@ -62,21 +177,7 @@ export function serviceForm(values = {}, { games = [], categories = [] } = {}) {
     wide: true,
     fields: [
       { name: 'name', label: '服务名', type: 'text', required: true, placeholder: '例：每日委托 / 深渊 12 层 / 活动全包' },
-      {
-        name: 'category_id',
-        label: '分类',
-        type: 'select',
-        required: true,
-        width: 'half',
-        options: categories.map((c) => ({ value: String(c.id), label: c.game_name ? `${c.name}（${c.game_name}）` : c.name })),
-      },
-      {
-        name: 'game_id',
-        label: '游戏（留空 = 通用）',
-        type: 'select',
-        width: 'half',
-        options: [{ value: '', label: '通用' }, ...games.map((g) => ({ value: String(g.id), label: g.name }))],
-      },
+      gameCategoryField({ games, categories, gameId: values.game_id, categoryId: values.category_id }),
       {
         name: 'price_type',
         label: '计价方式',
@@ -539,58 +640,107 @@ export function servicePeek(service, ctx, { onChanged } = {}) {
 export default {
   title: '价格表',
   async render(ctx) {
+    // 归档的游戏也要取回来——它的分类和服务项仍然要显示（老单不能断）
     const [gameRes, catRes, svcRes, optRes] = await Promise.all([
-      api.get('/api/games', { status: 'active' }),
+      api.get('/api/games', { limit: 200 }),
       api.get('/api/categories', { limit: 300 }),
       api.get('/api/services', { limit: 600 }),
       api.get('/api/options', { limit: 500 }),
     ])
-    const games = gameRes.items || []
+    const allGames = gameRes.items || []
+    const games = allGames.filter((g) => g.status === 'active') // 下拉框里只给在架的
     const categories = catRes.items || []
     const services = svcRes.items || []
     const options = optRes.items || []
 
     ctx.meta = { games, categories }
 
+    /* ---------- 三个动作：建价格表 / 建大类 / 加服务项 ---------- */
+    const newPriceTable = () => gameForm().then(() => ctx.app.reload())
+    const newCategory = (presetGameId = null) => categoryForm({}, games, presetGameId).then(() => ctx.app.reload())
+    const editCategory = (cat) => categoryForm(cat, games).then(() => ctx.app.reload())
+    const newService = (categoryId) => {
+      // 服务项必须落在大类里。没有大类就先引导去建大类，而不是弹一个孤立的服务项表单。
+      if (!categoryId) {
+        toast('先建一个大类，服务项要挂在大类下面', 'err', 3200)
+        return newCategory()
+      }
+      const cat = categories.find((c) => String(c.id) === String(categoryId))
+      return serviceForm(
+        { category_id: categoryId, game_id: cat?.game_id || '' },
+        { games: allGames.filter((g) => g.status === 'active' || String(g.id) === String(cat?.game_id)), categories }
+      ).then(() => ctx.app.reload())
+    }
+
     ctx.setActions(
-      h('button.btn.btn--sm', { type: 'button', onclick: () => categoryForm({}, games).then(() => ctx.app.reload()) }, icon('plus', 14), '分类'),
-      h('button.btn.btn--sm.btn--primary', { type: 'button', onclick: () => newService() }, icon('plus', 14), '服务项')
+      h('button.btn.btn--sm', { type: 'button', onclick: () => newPriceTable() }, icon('plus', 14), '新建价格表'),
+      h('button.btn.btn--sm.btn--primary', { type: 'button', onclick: () => newCategory() }, icon('plus', 14), '新建大类')
     )
 
-    if (!services.length && !categories.length) {
+    if (!allGames.length && !categories.length && !services.length) {
       return h(
         'section.panel',
         h(
           'div.panel__body',
           emptyState({
             iconName: 'price',
-            title: '价格表还是空的',
-            body: '这里的结构是三层：分类 → 服务项 → 套餐/增项。价格改一次，从今往后的单子都按新价，已经开出去的老单不动。',
+            title: '还没有价格表',
+            body: '一张价格表 = 一个游戏。先建价格表，再在里面建大类（日常 / 周常 / 深渊 / 活动），最后往大类里加具体的服务项。价格改一次，从今往后的单子都按新价，已经开出去的老单不动。',
             steps: [
-              '先建分类，比如「日常」「周常」「深渊」「活动」。',
-              '在分类下加服务项：每日委托、清体力、深渊 12 层……',
-              '每个服务项选一种计价方式：固定价 / 按天 / 按次 / 按数量 / 套餐价。',
-              '数量大的（比如深渊层数）可以加阶梯价，层数越多单价越低。',
-              '加急、指定角色、不动原石这类，做成增项。',
+              '① 建价格表：就是加一个游戏（可以顺手填区服、传图标）。',
+              '② 在价格表里建大类：日常、周常、深渊、活动……',
+              '③ 在大类里加服务项：每日委托、清体力、深渊 12 层……',
+              '④ 每个服务项选一种计价方式，填单价和说明。',
+              '⑤ 数量大的（比如深渊层数）加阶梯价，加急之类做成增项。',
             ],
-            actionLabel: '先建一个分类',
-            onAction: () => categoryForm({}, games).then(() => ctx.app.reload()),
-            secondary: categories.length
-              ? h('button.btn', { type: 'button', onclick: () => newService() }, '直接加服务项')
-              : null,
+            actionLabel: '新建第一张价格表',
+            onAction: () => newPriceTable(),
+            secondary: h('button.btn', { type: 'button', onclick: () => newCategory() }, '不绑游戏，建个通用大类'),
           })
         )
       )
     }
 
-    function newService(presetCatId = null) {
-      if (!categories.length) {
-        toast('先建一个分类', 'err')
-        return categoryForm({}, games).then(() => ctx.app.reload())
+    /* ---------- 分组：游戏 → 大类 → 服务项 ---------- */
+    const gameById = new Map(allGames.map((g) => [String(g.id), g]))
+    const catIds = new Set(categories.map((c) => String(c.id)))
+    const groupOrder = []
+    const groupMap = new Map()
+    const GENERIC = '通用（不属于某个游戏）'
+
+    function groupFor(key, name, game) {
+      if (!groupMap.has(key)) {
+        const grp = { key, name, game, cats: [], loose: [] }
+        groupMap.set(key, grp)
+        groupOrder.push(grp)
       }
-      const values = presetCatId ? { category_id: presetCatId } : {}
-      return serviceForm(values, { games, categories }).then(() => ctx.app.reload())
+      return groupMap.get(key)
     }
+
+    for (const g of allGames) groupFor(String(g.id), g.name, g)
+    for (const c of categories) {
+      const key = c.game_id ? String(c.game_id) : ''
+      groupFor(key, key ? gameById.get(key)?.name || c.game_name || '未知游戏' : GENERIC, gameById.get(key) || null).cats.push(c)
+    }
+
+    // 服务项按它所属的大类归组；没有大类的（含大类已被删的）按自己的 game_id 落到「未分类」
+    const servicesByCat = new Map()
+    for (const s of services) {
+      const cid = s.category_id && catIds.has(String(s.category_id)) ? String(s.category_id) : ''
+      if (cid) {
+        if (!servicesByCat.has(cid)) servicesByCat.set(cid, [])
+        servicesByCat.get(cid).push(s)
+      } else {
+        const key = s.game_id ? String(s.game_id) : ''
+        groupFor(key, key ? gameById.get(key)?.name || s.game_name || '未知游戏' : GENERIC, gameById.get(key) || null).loose.push(s)
+      }
+    }
+
+    // 展示顺序：游戏（按 sort_order）→ 通用 → 其它兜底组
+    const orderedGroups = []
+    for (const g of allGames) orderedGroups.push(groupMap.get(String(g.id)))
+    if (groupMap.has('')) orderedGroups.push(groupMap.get(''))
+    for (const g of groupOrder) if (!orderedGroups.includes(g)) orderedGroups.push(g)
 
     /* 过滤 */
     let filterGame = ctx.query.get('game') || ''
@@ -603,123 +753,211 @@ export default {
       return options.filter((o) => o.service_id === sid || (!o.service_id && o.status === 'active'))
     }
 
+    /* 一行服务项 */
+    function serviceRow(s) {
+      const related = optsFor(s.id)
+      return h(
+        'div.pitem',
+        h(
+          'div',
+          h(
+            'div.pitem__name',
+            s.name,
+            s.tier_count > 0 ? tag(`${s.tier_count} 档阶梯价`, 'cinnabar') : null,
+            s.status === 'archived' ? tag('已下架', 'oxblood') : null
+          ),
+          s.description ? h('div.pitem__desc', s.description) : null,
+          s.package_items?.length
+            ? h('div.subitems', h('div.subitem', h('span.subitem__k', '含'), h('span', s.package_items.join(' · '))))
+            : null,
+          related.length
+            ? h(
+                'div.subitems',
+                h(
+                  'div.subitem',
+                  h('span.subitem__k', '增项'),
+                  h(
+                    'span',
+                    related
+                      .slice(0, 6)
+                      .map((o) => `${o.name}${o.price_mode === 'percent' ? ` +${o.price}%` : o.price ? ` +${fmtMoney(o.price)}元` : ''}`)
+                      .join(' · ')
+                  )
+                )
+              )
+            : null
+        ),
+        h(
+          'div.pitem__price',
+          h('div.pitem__fig', `¥${fmtMoney(s.base_price)}`),
+          h('div.pitem__unit', `/${unitOf(s)}`),
+          h(
+            'div.pitem__acts',
+            h('button.btn.btn--sm', { type: 'button', onclick: () => servicePeek(s, ctx, { onChanged: () => ctx.app.reload() }) }, '详情'),
+            h(
+              'button.btn.btn--sm',
+              { type: 'button', onclick: () => serviceForm(s, { games: allGames, categories }).then(() => ctx.app.reload()) },
+              icon('edit', 14)
+            )
+          )
+        )
+      )
+    }
+
     function paint() {
       const q = filterQ.trim().toLowerCase()
       listBox.replaceChildren()
 
-      const matches = (s) => {
-        if (filterGame && String(s.game_id || '') !== filterGame) return false
-        if (filterStatus === 'active' && s.status === 'archived') return false
-        if (filterStatus === 'archived' && s.status !== 'archived') return false
-        if (q && !`${s.name} ${s.description} ${s.note} ${s.category_name} ${s.game_name}`.toLowerCase().includes(q)) return false
-        return true
-      }
+      const statusOk = (s) =>
+        filterStatus === 'all' ? true : filterStatus === 'active' ? s.status !== 'archived' : s.status === 'archived'
+      const catNameHit = (c) => !!q && `${c.name} ${c.note || ''}`.toLowerCase().includes(q)
+      const svcHit = (s, catMatched) =>
+        statusOk(s) && (!q || catMatched || `${s.name} ${s.description || ''} ${s.note || ''}`.toLowerCase().includes(q))
 
-      let shown = 0
-      const groups = categories.map((c) => ({ cat: c, list: services.filter((s) => s.category_id === c.id && matches(s)) }))
-      const loose = services.filter((s) => matches(s) && (!s.category_id || !categories.some((c) => c.id === s.category_id)))
-      if (loose.length) groups.push({ cat: { id: 0, name: '未分类' }, list: loose })
+      let shownGroups = 0
 
-      for (const { cat, list } of groups) {
-        if (!list.length && (q || filterGame || filterStatus !== 'active')) continue
-        shown += list.length
-        const head = h(
-          'button.pgroup__head',
-          { type: 'button' },
-          h('span.pgroup__name', cat.name),
-          cat.game_name ? tag(cat.game_name, 'slate') : null,
-          cat.status === 'archived' ? tag('分类已归档', 'oxblood') : null,
-          h('span.pgroup__grow'),
-          h('span.pgroup__n', `${list.length} 项`),
-          h('button.btn.btn--sm.btn--quiet', {
-            type: 'button',
-            title: '在这个分类下加服务项',
-            onclick: (e) => {
-              e.stopPropagation()
-              newService(cat.id)
-            },
-          }, icon('plus', 14)),
-          h('button.btn.btn--sm.btn--quiet', {
-            type: 'button',
-            title: '改分类',
-            onclick: (e) => {
-              e.stopPropagation()
-              if (!cat.id) return
-              categoryForm(cat, games).then(() => ctx.app.reload())
-            },
-          }, icon('edit', 14))
-        )
+      for (const grp of orderedGroups) {
+        if (filterGame && grp.key !== filterGame) continue
 
-        const items = h('div', { style: { display: 'none' } })
-        for (const s of list) {
-          const related = optsFor(s.id)
-          items.appendChild(
-            h(
-              'div.pitem',
+        let blocks = grp.cats.map((cat) => {
+          const all = servicesByCat.get(String(cat.id)) || []
+          const nameHit = catNameHit(cat)
+          return { cat, nameHit, all, list: all.filter((s) => svcHit(s, nameHit)) }
+        })
+        const loose = grp.loose.filter((s) => svcHit(s, false))
+
+        if (q) {
+          blocks = blocks.filter((b) => b.list.length || b.nameHit)
+          if (!blocks.length && !loose.length) continue
+        }
+
+        const svcCount = blocks.reduce((n, b) => n + b.list.length, 0) + loose.length
+        shownGroups++
+
+        const groupBody = h('div.pgroup__body')
+
+        for (const b of blocks) {
+          const catBody = h('div.pcat__body')
+          if (!b.list.length) {
+            catBody.appendChild(
               h(
                 'div',
-                h(
-                  'div.pitem__name',
-                  s.name,
-                  s.game_name ? tag(s.game_name, 'slate') : null,
-                  s.tier_count > 0 ? tag(`${s.tier_count} 档阶梯价`, 'cinnabar') : null,
-                  s.status === 'archived' ? tag('已下架', 'oxblood') : null
-                ),
-                s.description ? h('div.pitem__desc', s.description) : null,
-                s.package_items?.length
-                  ? h('div.subitems', h('div.subitem', h('span.subitem__k', '含'), h('span', s.package_items.join(' · '))))
-                  : null,
-                related.length
-                  ? h(
-                      'div.subitems',
-                      h(
-                        'div.subitem',
-                        h('span.subitem__k', '增项'),
-                        h(
-                          'span',
-                          related
-                            .slice(0, 6)
-                            .map((o) => `${o.name}${o.price_mode === 'percent' ? ` +${o.price}%` : o.price ? ` +${fmtMoney(o.price)}元` : ''}`)
-                            .join(' · ')
-                        )
-                      )
-                    )
-                  : null
-              ),
-              h(
-                'div.pitem__price',
-                h('div.pitem__fig', `¥${fmtMoney(s.base_price)}`),
-                h('div.pitem__unit', `/${unitOf(s)}`),
-                h(
-                  'div.pitem__acts',
-                  h('button.btn.btn--sm', { type: 'button', onclick: () => servicePeek(s, ctx, { onChanged: () => ctx.app.reload() }) }, '详情'),
-                  h('button.btn.btn--sm', { type: 'button', onclick: () => serviceForm(s, { games, categories }).then(() => ctx.app.reload()) }, icon('edit', 14))
-                )
+                { style: { padding: '2px 16px 14px' } },
+                h('span.dim.sm', b.all.length ? '这个筛选下没有服务项。' : '这个大类下还没有服务项 —— 点右边「加服务项」开始录。')
               )
+            )
+          } else {
+            for (const s of b.list) catBody.appendChild(serviceRow(s))
+          }
+
+          const catHead = h(
+            'div.pcat__head',
+            h('span.pcat__name', b.cat.name),
+            b.cat.status === 'archived' ? tag('大类已归档', 'oxblood') : null,
+            b.cat.note ? h('span.dim.tiny', b.cat.note) : null,
+            h('span.pgroup__grow'),
+            h(
+              'span.pgroup__n',
+              q && b.list.length !== b.all.length ? `${b.all.length} 个服务项（命中 ${b.list.length}）` : `${b.all.length} 个服务项`
+            ),
+            h(
+              'button.btn.btn--sm.btn--primary',
+              {
+                type: 'button',
+                title: '在这个大类下加服务项',
+                onclick: (e) => {
+                  e.stopPropagation()
+                  newService(b.cat.id)
+                },
+              },
+              icon('plus', 14),
+              '加服务项'
+            ),
+            h(
+              'button.btn.btn--sm.btn--quiet',
+              {
+                type: 'button',
+                title: '改大类',
+                onclick: (e) => {
+                  e.stopPropagation()
+                  editCategory(b.cat)
+                },
+              },
+              icon('edit', 14)
+            )
+          )
+
+          // 空的默认展开（要看得见「加服务项」），服务项多的默认收起
+          catBody.style.display = b.all.length > 8 ? 'none' : ''
+          catHead.addEventListener('click', () => {
+            catBody.style.display = catBody.style.display === 'none' ? '' : 'none'
+          })
+          groupBody.appendChild(h('div.pcat', catHead, catBody))
+        }
+
+        if (loose.length) {
+          const looseBody = h('div.pcat__body')
+          for (const s of loose) looseBody.appendChild(serviceRow(s))
+          groupBody.appendChild(
+            h(
+              'div.pcat',
+              h(
+                'div.pcat__head',
+                h('span.pcat__name', '未分类'),
+                tag('这些服务项还没归到大类', 'amber'),
+                h('span.pgroup__grow'),
+                h('span.pgroup__n', `${loose.length} 个`)
+              ),
+              looseBody
             )
           )
         }
 
-        const group = h('div.pgroup', head, items)
-        const toggle = () => {
-          const open = items.style.display === 'none'
-          items.style.display = open ? 'block' : 'none'
+        if (!blocks.length && !loose.length) {
+          groupBody.appendChild(
+            h(
+              'div',
+              { style: { padding: '2px 16px 14px' } },
+              h('span.dim.sm', '这张价格表还没有大类 —— 先点右边「新建大类」，再往里加服务项。')
+            )
+          )
         }
-        head.addEventListener('click', toggle)
-        if (list.length && list.length <= 8) items.style.display = 'block'
-        listBox.appendChild(group)
+
+        const groupHead = h(
+          'div.pgroup__head',
+          h('span.pgroup__name', grp.name),
+          grp.game?.status === 'archived' ? tag('游戏已归档', 'oxblood') : null,
+          grp.game?.servers?.length ? h('span.dim.tiny', grp.game.servers.join(' / ')) : null,
+          h('span.pgroup__grow'),
+          h('span.pgroup__n', `${blocks.length} 个大类 · ${svcCount} 个服务项`),
+          h(
+            'button.btn.btn--sm',
+            {
+              type: 'button',
+              title: '在这张价格表下新建大类',
+              onclick: (e) => {
+                e.stopPropagation()
+                newCategory(grp.key || null)
+              },
+            },
+            icon('plus', 14),
+            '新建大类'
+          )
+        )
+
+        listBox.appendChild(h('div.pgroup', groupHead, groupBody))
       }
 
-      if (!shown) {
+      if (!shownGroups) {
         listBox.appendChild(
           h(
             'div',
             emptyState({
               iconName: 'search',
-              title: q ? '没有匹配的服务项' : '这个筛选下没有服务项',
-              body: q ? '换个关键词，或者清空搜索。' : '试着切换上面的筛选，或者新建一个服务项。',
-              actionLabel: '新建服务项',
-              onAction: () => newService(),
+              title: q ? '没有匹配的服务项' : '这个筛选下没有内容',
+              body: q ? '换个关键词，或者清空搜索。' : '换个筛选条件，或者新建一个大类。',
+              actionLabel: q ? null : '新建大类',
+              onAction: q ? null : () => newCategory(filterGame || null),
             })
           )
         )
@@ -735,9 +973,11 @@ export default {
       }, 160)
     )
 
-    const gameSel = h('select.sel', { style: { width: 'auto', minWidth: '120px' } })
-    gameSel.appendChild(h('option', { value: '' }, '全部游戏'))
-    for (const g of games) gameSel.appendChild(h('option', { value: String(g.id) }, g.name))
+    const gameSel = h('select.sel', { style: { width: 'auto', minWidth: '140px' } })
+    gameSel.appendChild(h('option', { value: '' }, '全部价格表'))
+    for (const g of allGames) {
+      gameSel.appendChild(h('option', { value: String(g.id) }, g.status === 'archived' ? `${g.name}（已归档）` : g.name))
+    }
     if (filterGame) gameSel.value = filterGame
     gameSel.addEventListener('change', () => {
       filterGame = gameSel.value
@@ -783,11 +1023,18 @@ export default {
         h(
           'div.pagehead__txt',
           h('h1', '价格表'),
-          h('p.pagehead__sub', `${services.filter((s) => s.status === 'active').length} 个在架服务项 · 改价只影响之后开的单`)
+          h(
+            'p.pagehead__sub',
+            `${allGames.length} 张价格表 · ${categories.length} 个大类 · ${services.filter((s) => s.status === 'active').length} 个在架服务项 · 改价只影响之后开的单`
+          )
         )
       ),
       h('div.toolbar', statusSeg, gameSel, h('div.toolbar__grow'), searchInput),
-      h('section.panel', listBox)
+      h('section.panel', listBox),
+      h(
+        'div.note',
+        '结构是「游戏（一张价格表）→ 大类 → 服务项」。服务项必须挂在大类里。改价格表只影响之后开的单，已经开出去的老单，价格冻在下单那一刻。'
+      )
     )
   },
 }

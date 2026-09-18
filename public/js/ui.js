@@ -354,9 +354,12 @@ export function formDrawer({
       e.preventDefault()
       let firstBad = null
       const out = {}
+      let customErr = ''
       for (const b of built) {
         if (b.custom) {
-          b.collect(out)
+          // 自定义块可以返回一句错误来拦住提交（比如「还没选分类」）
+          const msg = b.collect(out)
+          if (typeof msg === 'string' && msg && !customErr) customErr = msg
           continue
         }
         b.el.classList.remove('is-bad')
@@ -380,6 +383,13 @@ export function formDrawer({
           continue
         }
         out[b.f.name] = v
+      }
+      // 自定义块报的错（比如「还没选大类」）优先于服务端错误显示
+      if (customErr) {
+        errBox.textContent = customErr
+        errBox.hidden = false
+        errBox.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+        return
       }
       if (firstBad) {
         if (firstBad.focus) firstBad.focus()
