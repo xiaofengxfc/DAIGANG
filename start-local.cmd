@@ -1,4 +1,8 @@
 @echo off
-chcp 65001 >nul
-rem 只允许本机访问：手机连不上，但也没有局域网被偷看密码的风险。
+rem ===========================================================
+rem  Daigan Ops Console - local-only launcher
+rem  Same as start.cmd but binds 127.0.0.1 only: phones on the
+rem  same WiFi cannot reach it. Use this on untrusted networks.
+rem  Keep this file pure ASCII (see start.cmd for why).
+rem ===========================================================
 call "%~dp0start.cmd" --local %*
