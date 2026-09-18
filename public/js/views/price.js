@@ -605,7 +605,6 @@ export default {
 
     function paint() {
       const q = filterQ.trim().toLowerCase()
-      const visibleCats = categories.filter((c) => (filterStatus === 'all' ? true : c.status === filterStatus || c.status !== 'archived'))
       listBox.replaceChildren()
 
       const matches = (s) => {

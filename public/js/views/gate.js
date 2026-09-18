@@ -83,9 +83,6 @@ export function renderGate({ onDone }) {
 /* ---------------- 首次初始化 ---------------- */
 
 export async function renderSetup({ onDone }) {
-  const days = h('input.inp.inp--fig', { type: 'text', inputmode: 'numeric', value: '7' })
-  void days
-
   return gateForm({
     title: '先把帐桌支起来',
     subtitle: '三步，一分钟之内能开始录价格。',

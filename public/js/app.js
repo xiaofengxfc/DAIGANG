@@ -5,7 +5,7 @@
 import { api, setApiHandlers } from './api.js'
 import { h, mount, clear, icon, debounce, fmtMoney } from './dom.js'
 import { toastErr, drawer, skeletonRows, toast } from './ui.js'
-import { refreshVault, syncVault, vaultLockButton } from './vaultgate.js'
+import { refreshVault, syncVault, vaultLockButton, resetVaultListeners } from './vaultgate.js'
 
 import dashboardView from './views/dashboard.js'
 import ordersView from './views/orders.js'
@@ -348,7 +348,12 @@ function moveSearch(delta) {
   if (!buttons.length) return
   searchActive = (searchActive + delta + buttons.length + 1) % (buttons.length + 1)
   if (searchActive >= buttons.length) searchActive = delta > 0 ? 0 : buttons.length - 1
-  buttons.forEach((b, i) => b.toggleAttribute('data-active', i === searchActive))
+  // 用 data-active="1"，和 CSS 里的 [data-active='1'] 对齐
+  // （toggleAttribute 只会写出空串，选择器匹配不上）
+  buttons.forEach((b, i) => {
+    if (i === searchActive) b.setAttribute('data-active', '1')
+    else b.removeAttribute('data-active')
+  })
   buttons[searchActive].scrollIntoView({ block: 'nearest' })
 }
 
@@ -388,6 +393,30 @@ function wireSearch() {
     } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault()
       searchInput.focus()
+    }
+  })
+}
+
+/* 这两个是挂在 document 上的，登出再登录不能重复挂 */
+let searchGlobalWired = false
+function wireSearchGlobals() {
+  if (searchGlobalWired) return
+  searchGlobalWired = true
+
+  document.addEventListener('click', (e) => {
+    if (!searchWrap || searchWrap.contains(e.target) || e.target.closest('.search-toggle')) return
+    closeSearch()
+  })
+
+  document.addEventListener('keydown', (e) => {
+    if (!shell) return
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '')
+    if (e.key === '/' && !typing) {
+      e.preventDefault()
+      searchInput?.focus()
+    } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault()
+      searchInput?.focus()
     }
   })
 }
@@ -615,8 +644,6 @@ async function boot() {
   state.me = me
   state.settings = me.settings || {}
   document.title = (me.settings?.business_name || '代肝价格表') + ' · 私用运营台'
-  const sub = document.querySelector('#rail-sub')
-  if (sub) sub.textContent = me.settings?.business_name || '本机私有'
 
   // 拿到状态了就把启动遮罩撤掉，别挡着登录页
   document.getElementById('boot')?.remove()
@@ -634,11 +661,16 @@ async function boot() {
   }
 
   syncVault(me.vault)
+  resetVaultListeners() // 外壳要重建了，先丢掉指向旧锁扣的监听
   clear(root)
   shell = shellNodes()
   root.appendChild(shell)
+  // 招牌名要等侧栏建好之后再写（之前是在建之前查的，永远查不到）
+  const sub = shell.querySelector('#rail-sub')
+  if (sub) sub.textContent = me.settings?.business_name || '本机私有'
   buildNav()
   wireSearch()
+  wireSearchGlobals()
   // 转屏、拉窗口时重排导航
   const onBreakpoint = () => {
     buildNav()

@@ -87,6 +87,7 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
   const servicesById = new Map(allServices.map((s) => [s.id, s]))
 
   const picked = new Map()
+  const unmappable = [] // 明细指向的服务项已经不在价格表里（比如报价单转来的单），改不了
   if (existing) {
     for (const it of existing.items || []) {
       const svc = servicesById.get(it.ref_id)
@@ -99,6 +100,8 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
           tiers: svc.tiers || [],
           options: svc.options || [],
         })
+      } else {
+        unmappable.push(it)
       }
     }
   }
@@ -286,6 +289,7 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
     })
 
     recordPainters.push(paintRow)
+    if (picked.has(s.id)) buildOptions() // 改单时这个服务项已经选中，增项勾选框也得建出来
     paintRow()
     return row
   }
@@ -354,6 +358,15 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
       h('div.field.field--full', h('label.lbl', '成本（元）'), costInp)
     ),
     summaryBox,
+    unmappable.length
+      ? h(
+          'div.note.note--warn',
+          `这张单有 ${unmappable.length} 条明细（${unmappable
+            .map((i) => i.name)
+            .join('、')}）在价格表里已经找不到对应的服务项，多半是从报价单转过来的。` +
+            '这些明细在这里改不了——保存时会原样保留，不会被删掉，也不会被重算。'
+        )
+      : null,
     h('div', h('div.sechead', h('h3', '备注'))),
     h('div.field.field--full', h('label.lbl', '给客户看的备注'), noteInp),
     h('div.field.field--full', h('label.lbl', '只有自己看得到的备注'), innerInp),
@@ -415,7 +428,6 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
       customer_id: Number(custSel.value),
       game_id: gameSel.value ? Number(gameSel.value) : null,
       title: titleInp.value,
-      items,
       discount: Number(discountInp.value) || 0,
       platform_fee: Number(feeInp.value) || 0,
       cost: Number(costInp.value) || 0,
@@ -424,11 +436,15 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
       note: noteInp.value,
       internal_note: innerInp.value,
     }
+    // 有改不了的明细时绝不发 items —— 服务端收到 items 会整单替换，
+    // 把那些报价单转来的明细直接删掉。宁可这次不动明细。
+    if (!unmappable.length) payload.items = items
     submitBtn.setAttribute('data-loading', '1')
     submitBtn.disabled = true
     try {
       const saved = existing ? await api.patch(`/api/orders/${existing.id}`, payload) : await api.post('/api/orders', payload)
-      toast(existing ? '单据已更新' : `开单成功 · ${saved.order_no}`, 'ok')
+      if (existing && unmappable.length) toast('单据已更新（那几条改不了的明细保持原样）', 'ok', 3400)
+      else toast(existing ? '单据已更新' : `开单成功 · ${saved.order_no}`, 'ok')
       d.close()
       if (!existing) ctx.navigate(`/orders/${saved.id}`)
       else ctx.app.reload()

@@ -22,12 +22,18 @@ export function syncVault(next) {
 }
 
 let onVaultChange = null
-const vaultListeners = []
+let vaultListeners = []
 
 export function setVaultListener(fn) {
   if (typeof fn !== 'function') return
   if (!vaultListeners.includes(fn)) vaultListeners.push(fn)
   onVaultChange = fn
+}
+
+/** 重建外壳时清掉旧监听，否则登出再登录会一直堆，还会往拆掉的按钮上写 */
+export function resetVaultListeners() {
+  vaultListeners = []
+  onVaultChange = null
 }
 
 function notifyVault() {
@@ -107,8 +113,10 @@ export function promptUnlock({ reason = '要取用游戏登录凭证，先解开
               seal.classList.add('seal-stamp')
               syncVault(st)
               await new Promise((r) => setTimeout(r, 260))
-              m.close()
+              // 先 resolve(true) 再 close —— 顺序反了的话，close 触发的
+              // onClose 会抢先把 promise 定成 false，解锁成功也当失败。
               finish(true)
+              m.close()
             } catch (err) {
               input.setAttribute('aria-invalid', 'true')
               input.select()
@@ -176,8 +184,9 @@ export async function ensureVaultReady() {
               try {
                 const st = await api.post('/api/vault/setup', { password: p1.value })
                 syncVault(st)
-                m.close()
+                // 同样：先 resolve 再 close，否则会被 onClose 抢成 false
                 finish(true)
+                m.close()
               } catch (err) {
                 errBox.textContent = err.message || '设置失败'
                 errBox.hidden = false

@@ -203,10 +203,21 @@ function buildControl(f, initial) {
 
   if (f.type === 'select') {
     const sel = h('select.sel', common)
+    const wanted = initial === null || initial === undefined ? '' : String(initial)
+    let matched = false
     for (const opt of f.options || []) {
       const o = h('option', { value: opt.value }, opt.label)
-      if (String(initial ?? '') === String(opt.value)) o.selected = true
+      if (String(opt.value) === wanted) {
+        o.selected = true
+        matched = true
+      }
       sel.appendChild(o)
+    }
+    // 原值不在选项里（分类被删了、游戏归档了……）时补一个占位项并选中它。
+    // 不补的话浏览器默认选中第一项，一保存就把这条记录的外键悄悄改掉了。
+    if (!matched) {
+      sel.insertBefore(h('option', { value: wanted }, wanted ? `（原值：${wanted}）` : '（未指定）'), sel.firstChild)
+      sel.value = wanted
     }
     return { control: sel, read: () => sel.value, focus: () => sel.focus() }
   }

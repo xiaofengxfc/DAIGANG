@@ -472,7 +472,8 @@ export default {
             },
           ],
           rows: items,
-          onRowClick: (q) => ctx.navigate(`/quotes?open=${q.id}`),
+          // 点一行就看这张报价单的文字版（原来跳到 ?open= 但没人处理，点了等于没反应）
+          onRowClick: (q) => showText(q),
         })
       ),
       h('div.note', '报价单里的价格是下单那一刻从价格表读出来的。以后你改价格表的价，这些老报价单上的数字不变。')
