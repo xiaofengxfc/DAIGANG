@@ -2,9 +2,9 @@
    总览 —— 第一屏是一个账簿抬头，不是指标卡
    ============================================================ */
 
-import { api, PAY_METHOD_LABEL } from '../api.js'
-import { h, fmtMoney, fmtDay, fmtDayFull, todayStr } from '../dom.js'
-import { emptyState, orderLamp } from '../ui.js'
+import { api, PAY_METHOD_LABEL, PAY_KIND_LABEL } from '../api.js'
+import { h, icon, fmtMoney, fmtDay, fmtDayFull, todayStr } from '../dom.js'
+import { emptyState, orderLamp, confirmDelete, toast, toastErr } from '../ui.js'
 import { orderTable, paymentDrawer } from './orderbits.js'
 
 function ledgerCell({ label, value, tone = '', onClick, hint }) {
@@ -225,7 +225,33 @@ export default {
                 ),
                 h(
                   'div.item__right',
-                  h(`div.item__fig${p.kind === 'refund' ? '.tone-oxblood' : '.tone-jade'}`, `${p.kind === 'refund' ? '−' : '+'}¥${fmtMoney(p.amount)}`)
+                  h(`div.item__fig${p.kind === 'refund' ? '.tone-oxblood' : '.tone-jade'}`, `${p.kind === 'refund' ? '−' : '+'}¥${fmtMoney(p.amount)}`),
+                  h(
+                    'button.btn.btn--sm.btn--quiet',
+                    {
+                      type: 'button',
+                      title: '删除这笔收款',
+                      onclick: async () => {
+                        const ok = await confirmDelete({
+                          title: '删掉这笔收款？',
+                          message:
+                            `${p.customer_name || '散客'} · ${PAY_KIND_LABEL[p.kind] || p.kind} ¥${fmtMoney(p.amount)}（${fmtDay(p.paid_at)}）` +
+                            (p.order_no
+                              ? `，挂在订单 ${p.order_no} 上。删掉后这张单的「已收 / 待收」会重新算。`
+                              : '。这笔没有挂订单。'),
+                        })
+                        if (!ok) return
+                        try {
+                          await api.del(`/api/payments/${p.id}`)
+                          toast('已删除这笔收款', 'ok')
+                          ctx.app.reload()
+                        } catch (err) {
+                          toastErr(err)
+                        }
+                      },
+                    },
+                    icon('trash', 13)
+                  )
                 )
               )
             )
