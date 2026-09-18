@@ -9,8 +9,9 @@
    ============================================================ */
 
 import { api, PRICE_TYPE_LABEL } from '../api.js'
-import { h, icon, fmtMoney, fmtQty, debounce, fmtDate } from '../dom.js'
+import { h, icon, fmtMoney, fmtQty, debounce, fmtDate, mount } from '../dom.js'
 import { gameForm } from './games.js'
+import { renderPriceCard, canvasToBlob, downloadBlob } from '../pricecard.js'
 import {
   table,
   toast,
@@ -635,6 +636,306 @@ export function servicePeek(service, ctx, { onChanged } = {}) {
   })
 }
 
+/* ---------------- 导出：图片 / Word 文档 ----------------
+   图片和文档都从服务端同一个「导出模型」生成，内容保证一致。
+   导出会自动裁掉多余内容（空大类、超出条数的服务项），
+   发微信和打印都好看。
+------------------------------------------------------------------ */
+
+async function openExporter(ctx, { games = [] } = {}) {
+  const state = {
+    // 默认「每个游戏各出一份」：发给客户时只发他那款游戏，
+    // 不要把几个游戏的价目混在同一张图/同一个文档里。
+    scope: 'per-game',
+    perCategory: '6',
+    maxCategories: '8',
+    withDesc: true,
+    contact: null, // null = 还没动过，用服务端默认值
+    footer: null,
+  }
+  let allModel = null // 不筛游戏的完整模型，用来知道有哪些游戏、各多少项
+
+  const scopeSel = h(
+    'select.sel',
+    h('option', { value: 'per-game' }, '每个游戏各出一份（推荐 · 分开的文件）'),
+    h('option', { value: 'merged' }, '全部游戏合并成一份'),
+    ...games.map((g) => h('option', { value: `game:${g.id}` }, `只要「${g.name}」这一份`))
+  )
+  scopeSel.value = state.scope
+
+  const perSel = h(
+    'select.sel',
+    ...[
+      { v: '4', l: '4 项' },
+      { v: '6', l: '6 项' },
+      { v: '8', l: '8 项' },
+      { v: '12', l: '12 项' },
+      { v: '99', l: '不限' },
+    ].map((o) => h('option', { value: o.v }, o.l))
+  )
+  perSel.value = state.perCategory
+
+  const catSel = h(
+    'select.sel',
+    ...[
+      { v: '6', l: '6 个' },
+      { v: '8', l: '8 个' },
+      { v: '12', l: '12 个' },
+      { v: '99', l: '不限' },
+    ].map((o) => h('option', { value: o.v }, o.l))
+  )
+  catSel.value = state.maxCategories
+
+  const descChk = h('input.chk', { type: 'checkbox' })
+  descChk.checked = true
+
+  const contactInp = h('input.inp', { placeholder: '例：微信 xiaofeng' })
+  const footerInp = h('input.inp', { placeholder: '例：价格随版本更新，以最新报价为准' })
+
+  const previewBox = h('div.exporter__preview')
+  const summary = h('div.hint', '正在生成预览…')
+  const imgBtn = h('button.btn.btn--primary', { type: 'button' }, icon('download', 14), '生成图片')
+  const docBtn = h('button.btn', { type: 'button' }, icon('quotes', 14), '生成 Word 文档')
+
+  let refreshing = 0
+  let previewModel = null
+
+  /** 公共查询参数（不含 game_id） */
+  function baseQuery() {
+    const q = {
+      per_category: state.perCategory,
+      max_categories: state.maxCategories,
+      with_desc: state.withDesc ? '1' : '0',
+    }
+    if (state.contact !== null) q.contact = state.contact
+    if (state.footer !== null) q.footer = state.footer
+    return q
+  }
+
+  /** 这次导出会产出哪几份 */
+  function targets(m) {
+    if (!m) return []
+    if (state.scope === 'merged') return [{ key: '', name: '', count: m.itemCount }]
+    if (state.scope.startsWith('game:')) {
+      const id = state.scope.slice(5)
+      const one = m.gameOptions.find((g) => g.key === id)
+      return one ? [one] : []
+    }
+    return m.gameOptions.slice()
+  }
+
+  async function refresh() {
+    const token = ++refreshing
+    let all
+    try {
+      all = await api.get('/api/pricebook/export-model', baseQuery())
+    } catch (err) {
+      summary.textContent = '预览生成失败：' + (err.message || '')
+      return
+    }
+    if (token !== refreshing) return
+    allModel = all
+
+    // 用户没改过的话，把服务端给的默认值回填进输入框
+    if (state.contact === null && document.activeElement !== contactInp) contactInp.value = all.contact || ''
+    if (state.footer === null && document.activeElement !== footerInp) footerInp.value = all.footer || ''
+
+    // 预览哪一份：合并就看全部；拆分就看第一份（一般就是第一个游戏）
+    const list = targets(all)
+    let preview = all
+    let previewName = ''
+    if (state.scope !== 'merged' && list.length) {
+      const first = list[0]
+      previewName = first.name
+      if (first.key) {
+        try {
+          preview = await api.get('/api/pricebook/export-model', { ...baseQuery(), game_id: first.key })
+        } catch {
+          preview = all
+        }
+      }
+    }
+    if (token !== refreshing) return
+    previewModel = preview
+
+    let canvas
+    try {
+      canvas = renderPriceCard(preview, { scale: 1 })
+    } catch (err) {
+      summary.textContent = '预览画不出来：' + (err.message || '')
+      return
+    }
+    mount(previewBox, h('img', { src: canvas.toDataURL('image/png'), alt: '价格表预览' }))
+
+    const hidden = preview.hiddenServices + preview.hiddenCategories
+    const parts = []
+    if (state.scope === 'per-game') {
+      parts.push(list.length > 1 ? `会生成 ${list.length} 份，每个游戏一份（不混在一起）` : '会生成 1 份')
+    } else if (state.scope === 'merged') {
+      parts.push('会生成 1 份，所有游戏合在一起')
+    } else {
+      parts.push(`只导出「${previewName || preview.subtitle}」1 份`)
+    }
+    parts.push(
+      `本份预览：${preview.itemCount} 个服务项、${preview.groups.length} 个大类` +
+        (hidden ? `，另有 ${hidden} 项没展开` : '')
+    )
+    summary.textContent = parts.join(' · ')
+    imgBtn.disabled = docBtn.disabled = !list.length
+  }
+
+  const rerender = debounce(() => refresh(), 220)
+
+  scopeSel.addEventListener('change', () => {
+    state.scope = scopeSel.value
+    refresh()
+  })
+  perSel.addEventListener('change', () => {
+    state.perCategory = perSel.value
+    refresh()
+  })
+  catSel.addEventListener('change', () => {
+    state.maxCategories = catSel.value
+    refresh()
+  })
+  descChk.addEventListener('change', () => {
+    state.withDesc = descChk.checked
+    refresh()
+  })
+  contactInp.addEventListener('input', () => {
+    state.contact = contactInp.value
+    rerender()
+  })
+  footerInp.addEventListener('input', () => {
+    state.footer = footerInp.value
+    rerender()
+  })
+
+  const d = drawer({
+    wide: true,
+    title: '导出价格表',
+    subtitle: '生成能直接发微信的图片，或者能打印、能编辑的 Word 文档',
+    body: h(
+      'div.stack',
+      h(
+        'div.formgrid',
+        h(
+          'div.field.field--full',
+          h('label.lbl', '导出范围'),
+          scopeSel,
+          h('div.hint', '默认每个游戏单独出一份，发给客户时只发他那款游戏，不会把几个游戏混在一张图上。')
+        ),
+        h('div.field.field--full', h('label.lbl', '每个大类最多列几项'), perSel, h('div.hint', '列不下的会折成「还有 N 项」')),
+        h('div.field.field--full', h('label.lbl', '最多列几个大类'), catSel),
+        h('div.field.field--full', h('label.lbl', '带说明文字'), h('label.inline', { style: { cursor: 'pointer' } }, descChk, h('span.sm', '展示服务项的说明和套餐内容'))),
+        h('div.field.field--full', h('label.lbl', '联系方式'), contactInp),
+        h('div.field.field--full', h('label.lbl', '页脚说明'), footerInp)
+      ),
+      h('div.sechead', { style: { marginBottom: '0' } }, h('h3', '预览'), h('span.sechead__note', '这就是生成出来的图片')),
+      previewBox,
+      summary,
+      h(
+        'div.note',
+        '导出会自动裁掉多余内容：空的大类不导出，超出条数的服务项折成「还有 N 项」，说明太长会截断。' +
+          '目的是一张图发出去好看、一眼能看完，而不是把整张价格表塞进去。'
+      )
+    ),
+    footer: [
+      h('button.btn', { type: 'button', onclick: () => d.close() }, '关闭'),
+      h('div', { style: { flex: '1' } }),
+      docBtn,
+      imgBtn,
+    ],
+  })
+
+  const safeName = (s) => String(s || '').replace(/[\\/:*?"<>|]/g, '_').slice(0, 60)
+
+  /** 逐个游戏取模型；合并模式就取一次 */
+  async function eachModel() {
+    const list = targets(allModel)
+    const out = []
+    for (const t of list) {
+      if (state.scope === 'merged') {
+        out.push({ target: t, model: allModel })
+      } else {
+        const m = t.key
+          ? await api.get('/api/pricebook/export-model', { ...baseQuery(), game_id: t.key })
+          : allModel
+        out.push({ target: t, model: m })
+      }
+    }
+    return out
+  }
+
+  function fileName(model, target, ext) {
+    const game = state.scope === 'merged' ? '' : target?.name || ''
+    return `${safeName(model.shopName)}-${safeName(game || '价目表')}-${model.date}.${ext}`
+  }
+
+  imgBtn.addEventListener('click', async () => {
+    if (!allModel) return
+    imgBtn.setAttribute('data-loading', '1')
+    try {
+      const jobs = await eachModel()
+      if (!jobs.length) return
+      let n = 0
+      for (const { target, model } of jobs) {
+        const blob = await canvasToBlob(renderPriceCard(model, { scale: 2 }))
+        if (!blob) {
+          toast('这个浏览器不支持生成图片，请换 Chrome / Edge / Safari 试试', 'err', 4200)
+          return
+        }
+        downloadBlob(blob, fileName(model, target, 'png'))
+        n++
+        // 连着下多个文件，给它一点间隔，免得被浏览器拦掉
+        if (n < jobs.length) await new Promise((r) => setTimeout(r, 400))
+      }
+      toast(n > 1 ? `已生成 ${n} 张图片，每个游戏一张` : '图片已生成，去下载文件夹看看', 'ok', 3600)
+    } catch (err) {
+      toastErr(err)
+    } finally {
+      imgBtn.removeAttribute('data-loading')
+    }
+  })
+
+  docBtn.addEventListener('click', async () => {
+    if (!allModel) return
+    docBtn.setAttribute('data-loading', '1')
+    try {
+      const jobs = await eachModel()
+      if (!jobs.length) return
+      let n = 0
+      for (const { target, model } of jobs) {
+        const q = new URLSearchParams(baseQuery())
+        if (state.scope !== 'merged' && target.key) q.set('game_id', target.key)
+        const res = await fetch(`/api/pricebook/export.docx?${q.toString()}`, { credentials: 'same-origin' })
+        if (!res.ok) {
+          let msg = '生成文档失败'
+          try {
+            const j = await res.json()
+            if (j?.error) msg = j.error
+          } catch {
+            /* 保持默认提示 */
+          }
+          toast(msg, 'err', 4200)
+          return
+        }
+        downloadBlob(await res.blob(), fileName(model, target, 'docx'))
+        n++
+        if (n < jobs.length) await new Promise((r) => setTimeout(r, 400))
+      }
+      toast(n > 1 ? `已生成 ${n} 份 Word 文档，每个游戏一份` : 'Word 文档已生成，可以用 Word / WPS 打开和修改', 'ok', 3600)
+    } catch (err) {
+      toastErr(err)
+    } finally {
+      docBtn.removeAttribute('data-loading')
+    }
+  })
+
+  refresh()
+  return d
+}
+
 /* ---------------- 页面 ---------------- */
 
 export default {
@@ -674,7 +975,8 @@ export default {
 
     ctx.setActions(
       h('button.btn.btn--sm', { type: 'button', onclick: () => newPriceTable() }, icon('plus', 14), '新建价格表'),
-      h('button.btn.btn--sm.btn--primary', { type: 'button', onclick: () => newCategory() }, icon('plus', 14), '新建大类')
+      h('button.btn.btn--sm.btn--primary', { type: 'button', onclick: () => newCategory() }, icon('plus', 14), '新建大类'),
+      h('button.btn.btn--sm', { type: 'button', onclick: () => openExporter(ctx, { games: allGames }) }, icon('download', 14), '导出图片/文档')
     )
 
     if (!allGames.length && !categories.length && !services.length) {

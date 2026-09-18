@@ -2,6 +2,8 @@ import { db, stamp } from '../db.mjs'
 import { get, post, patch, del } from '../http.mjs'
 import { bad, notFound, int, clampStr, nextSortOrder } from '../util.mjs'
 import { makeDef, registerCrud, getRow, createRow, updateRow, removeRow, listRows, shapeRow } from './_helpers.mjs'
+import { buildExportModel } from '../priceexport.mjs'
+import { buildDocx } from '../docx.mjs'
 
 export const games = makeDef({
   table: 'games',
@@ -285,5 +287,38 @@ export function register() {
         })),
       global_options: optsBy.get(0) || [],
     }
+  })
+
+  /* ============================================================
+     导出：图片和文档都从同一个导出模型出，保证内容一致
+     ============================================================ */
+
+  const exportOpts = (query) => ({
+    gameId: query.game_id ? int(query.game_id) : null,
+    perCategory: query.per_category ? int(query.per_category, 6) : 6,
+    maxCategories: query.max_categories ? int(query.max_categories, 8) : 8,
+    withDesc: query.with_desc !== '0',
+    title: query.title ? clampStr(query.title, 40) : '',
+    shopName: query.shop_name ? clampStr(query.shop_name, 40) : '',
+    contact: query.contact !== undefined ? clampStr(query.contact, 80) : undefined,
+    footer: query.footer !== undefined ? clampStr(query.footer, 120) : undefined,
+  })
+
+  /** 导出模型（JSON）—— 前端拿它画图片 */
+  get('/api/pricebook/export-model', (ctx) => buildExportModel(exportOpts(ctx.query)))
+
+  /** Word 文档（.docx）—— 直接落盘下载 */
+  get('/api/pricebook/export.docx', (ctx) => {
+    const model = buildExportModel(exportOpts(ctx.query))
+    const buf = buildDocx(model)
+    const safe = `${model.shopName}-价目表-${model.date}`.replace(/[\\/:*?"<>|]/g, '_').slice(0, 80)
+    ctx.res.writeHead(200, {
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'Content-Length': buf.length,
+      'Content-Disposition': `attachment; filename="price-list.docx"; filename*=UTF-8''${encodeURIComponent(safe)}.docx`,
+      'Cache-Control': 'no-store',
+    })
+    ctx.res.end(buf)
+    return undefined // 已经自己回过响应了
   })
 }

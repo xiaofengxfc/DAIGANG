@@ -6,6 +6,8 @@
  *   再跑：
  *     node scripts/smoke.mjs
  */
+import zlib from 'node:zlib'
+
 const BASE = process.env.XFC_BASE || 'http://127.0.0.1:8790'
 
 let cookie = ''
@@ -345,6 +347,80 @@ async function main() {
   const convertedOrderId = r.body.order_id
   r = await api('GET', `/api/orders/${convertedOrderId}`)
   ok('转出的订单带快照明细', r.body.items?.length === 2 && r.body.total === 450, { n: r.body.items?.length, t: r.body.total })
+
+  /* ---------- 导出：图片模型 / Word 文档 ---------- */
+  section('导出价格表')
+  r = await api('GET', '/api/pricebook/export-model')
+  ok('导出模型有抬头', typeof r.body.shopName === 'string' && r.body.shopName.length > 0, r.body.shopName)
+  ok('导出模型带大类和服务项', (r.body.groups || []).length > 0 && r.body.itemCount > 0, `groups=${r.body.groups?.length} items=${r.body.itemCount}`)
+  const flatItems = (r.body.groups || []).flatMap((g) => g.items || [])
+  ok('每项都带了格式化好的价格', flatItems.every((i) => typeof i.price === 'string' && i.price.startsWith('¥')), flatItems[0]?.price)
+  ok('模型列出了涉及的每个游戏', Array.isArray(r.body.gameOptions) && r.body.gameOptions.length >= 1, JSON.stringify(r.body.gameOptions))
+
+  // 「深渊 12 层」配了阶梯价，导出里应该出现阶梯提示
+  const tieredItem = flatItems.find((i) => i.name === '深渊 12 层')
+  ok('阶梯价被转成价格提示', !!tieredItem?.hint, tieredItem?.hint || '(没有 hint)')
+  // 「每日委托」挂了加急增项
+  const addonItem = flatItems.find((i) => i.name === '每日委托')
+  ok('增项被写进说明', (addonItem?.notes || []).some((n) => n.includes('增项')), JSON.stringify(addonItem?.notes))
+  ok('套餐内容被写进说明', (addonItem?.notes || []).some((n) => n.startsWith('含 ')), JSON.stringify(addonItem?.notes))
+
+  // 按游戏拆开：单独导一个游戏，不能混进别的游戏
+  const gameKeys = (r.body.gameOptions || []).filter((g) => g.key)
+  if (gameKeys.length) {
+    const only = gameKeys[0]
+    const one = await api('GET', `/api/pricebook/export-model?game_id=${only.key}`)
+    const names = [...new Set((one.body.groups || []).map((g) => g.gameName))]
+    ok('单独导出的那份不含别的游戏', names.length <= 1, names.join(' / '))
+    ok('单独导出只统计这个游戏的服务项', one.body.totalServices === only.count, `${one.body.totalServices} vs ${only.count}`)
+  } else {
+    ok('单独导出的那份不含别的游戏', true, '(只有一个游戏)')
+    ok('单独导出只统计这个游戏的服务项', true, '(只有一个游戏)')
+  }
+
+  // Word 文档
+  const docRes = await fetch(`${BASE}/api/pricebook/export.docx`, { headers: cookie ? { cookie } : {} })
+  ok('docx 返回 200', docRes.status === 200, String(docRes.status))
+  ok('docx MIME 正确', (docRes.headers.get('content-type') || '').includes('wordprocessingml'), docRes.headers.get('content-type'))
+  ok('docx 带中文文件名', (docRes.headers.get('content-disposition') || '').includes("filename*=UTF-8''"))
+  const docBuf = Buffer.from(await docRes.arrayBuffer())
+  ok('docx 是合法 ZIP（PK 头）', docBuf[0] === 0x50 && docBuf[1] === 0x4b && docBuf[2] === 0x03 && docBuf[3] === 0x04)
+  ok('docx 有实际内容', docBuf.length > 1200, `${docBuf.length} bytes`)
+
+  const readZip = (b) => {
+    let eocd = -1
+    for (let i = b.length - 22; i >= 0; i--) if (b.readUInt32LE(i) === 0x06054b50) { eocd = i; break }
+    if (eocd < 0) return null
+    const count = b.readUInt16LE(eocd + 10)
+    let off = b.readUInt32LE(eocd + 16)
+    const out = []
+    for (let i = 0; i < count; i++) {
+      const nameLen = b.readUInt16LE(off + 28)
+      const extraLen = b.readUInt16LE(off + 30)
+      const commentLen = b.readUInt16LE(off + 32)
+      const method = b.readUInt16LE(off + 10)
+      const compSize = b.readUInt32LE(off + 20)
+      const localOff = b.readUInt32LE(off + 42)
+      const name = b.slice(off + 46, off + 46 + nameLen).toString('utf8')
+      const dataStart = localOff + 30 + b.readUInt16LE(localOff + 26) + b.readUInt16LE(localOff + 28)
+      const raw = b.slice(dataStart, dataStart + compSize)
+      out.push({ name, data: method === 8 ? zlib.inflateRawSync(raw) : raw })
+      off += 46 + nameLen + extraLen + commentLen
+    }
+    return out
+  }
+  const parts = readZip(docBuf)
+  ok(
+    'docx 三个必需部件都在',
+    ['[Content_Types].xml', '_rels/.rels', 'word/document.xml'].every((n) => parts?.some((e) => e.name === n)),
+    (parts || []).map((e) => e.name).join(', ')
+  )
+  const docXml = parts?.find((e) => e.name === 'word/document.xml')?.data.toString('utf8') || ''
+  ok('document.xml 是合法 XML', docXml.startsWith('<?xml') && docXml.includes('<w:document ') && docXml.includes('</w:document>'))
+  ok('XML 转义正确（无裸 &）', !/&(?!amp;|lt;|gt;|quot;|apos;)/.test(docXml))
+  const docTexts = [...docXml.matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)].map((m) => m[1])
+  ok('文档里有服务名', docTexts.includes('每日委托'), docTexts.slice(0, 8).join(' | '))
+  ok('文档里有价格文本', docTexts.some((t) => t.startsWith('¥')))
 
   /* ---------- 财务 ---------- */
   section('财务')
