@@ -168,7 +168,9 @@ function shellNodes() {
   themePainters.length = 0
   themePainters.push(paintTheme)
   paintTheme(document.documentElement.getAttribute('data-theme') !== 'light')
-  themeBtn.addEventListener('click', () => toggleTheme())
+  // 注意：这个按钮的点击已经在上面 h() 的 onclick 里绑过了。
+  // 这里绝不能再 addEventListener 一次 —— 一次点击会 toggle 两下（深→浅→深），
+  // 表现就是"点了没反应、切不过去"。
 
   // 顶栏
   searchInput = h('input', {
