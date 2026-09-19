@@ -54,8 +54,11 @@ export function progressDrawer(order, onDone) {
 
 /* ---------------- 记收款 ---------------- */
 
-export function paymentDrawer(order, onDone, { presetKind = 'deposit' } = {}) {
+export function paymentDrawer(order, onDone, { presetKind } = {}) {
   const due = Number(order.due_total) || 0
+  const paid = Number(order.paid_total) || 0
+  // 还没收过钱 → 默认「全款」（一次付清最常见）；已经收过一部分 → 默认「尾款」
+  const kind = presetKind || (paid > 0.001 ? 'balance' : 'full')
   return formDrawer({
     title: '记一笔收款',
     subtitle: `${order.order_no} · 应收 ${fmtMoney(order.total)} 元，还差 ${fmtMoney(due)} 元`,
@@ -74,10 +77,11 @@ export function paymentDrawer(order, onDone, { presetKind = 'deposit' } = {}) {
         name: 'kind',
         label: '类型',
         type: 'select',
-        default: presetKind,
+        default: kind,
         width: 'half',
         options: [
           { value: 'deposit', label: '定金' },
+          { value: 'full', label: '全款' },
           { value: 'balance', label: '尾款' },
           { value: 'refund', label: '退款' },
         ],

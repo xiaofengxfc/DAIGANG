@@ -528,7 +528,7 @@ export function register() {
   post('/api/payments', (ctx) => {
     const amount = money(ctx.body.amount)
     if (amount <= 0) bad('金额要大于 0', 'bad_amount')
-    const kind = ['deposit', 'balance', 'refund'].includes(ctx.body.kind) ? ctx.body.kind : 'deposit'
+    const kind = ['deposit', 'full', 'balance', 'refund'].includes(ctx.body.kind) ? ctx.body.kind : 'deposit'
     const orderId = ctx.body.order_id ? int(ctx.body.order_id) : null
     let customerId = ctx.body.customer_id ? int(ctx.body.customer_id) : null
     let advancedTo = null
@@ -594,5 +594,68 @@ export function register() {
   del('/api/payments/:id', (ctx) => {
     db.prepare('DELETE FROM payments WHERE id = ?').run(int(ctx.params.id))
     return { deleted: true }
+  })
+
+  /* 进度汇报：给客户看的文本 + 图片模型，两者内容一致 */
+  get('/api/orders/:id/progress-report', (ctx) => {
+    const o = orderDetail(int(ctx.params.id))
+    if (!o) notFound('订单不存在')
+    const setting = (k) => db.prepare('SELECT value FROM settings WHERE key = ?').get(k)?.value || ''
+    const today = localDate()
+
+    const entries = [...(o.progress || [])]
+      .sort((a, b) => String(a.happened_on).localeCompare(String(b.happened_on)))
+      .map((p) => ({
+        date: String(p.happened_on || '').slice(0, 10),
+        content: p.content || '',
+        before: p.resources_before || '',
+        after: p.resources_after || '',
+        note: p.note || '',
+        shots: (p.media || []).filter((m) => /\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(m)).length,
+        links: (p.media || []).length,
+      }))
+
+    const report = {
+      shopName: setting('business_name') || '代肝工作室',
+      contact: setting('contact') || '',
+      title: '订单进度',
+      orderNo: o.order_no || '',
+      orderTitle: o.title || '',
+      customerName: o.customer_name || '散客',
+      gameName: o.game_name || '',
+      statusLabel: o.status_label || o.status || '',
+      total: money(o.total),
+      paid: money(o.paid_total),
+      due: money(o.due_total),
+      entries,
+      date: today,
+    }
+
+    const lines = []
+    lines.push(`【${report.shopName}】订单进度`)
+    lines.push(`单号：${report.orderNo}`)
+    if (report.orderTitle) lines.push(`内容：${report.orderTitle}`)
+    if (report.gameName) lines.push(`游戏：${report.gameName}`)
+    lines.push(`客户：${report.customerName}`)
+    lines.push(`状态：${report.statusLabel}`)
+    if (report.due > 0) lines.push(`已收 ${report.paid} 元，还差 ${report.due} 元`)
+    else lines.push(`已收 ${report.paid} 元（已结清）`)
+    lines.push('————————————')
+    if (!entries.length) {
+      lines.push('（还没有进度记录）')
+    } else {
+      for (const e of entries) {
+        const res = e.before || e.after ? `  ${e.before || '—'} → ${e.after || '—'}` : ''
+        lines.push(`${e.date}${res}`)
+        lines.push(`  ${e.content}`)
+        if (e.shots) lines.push(`  （附 ${e.shots} 张截图）`)
+        else if (e.links) lines.push(`  （附 ${e.links} 个链接）`)
+        if (e.note) lines.push(`  备注：${e.note}`)
+      }
+    }
+    lines.push('————————————')
+    if (report.contact) lines.push(`联系：${report.contact}`)
+
+    return { text: lines.join('\n'), report }
   })
 }

@@ -102,6 +102,7 @@ export const PAY_METHOD_LABEL = {
 
 export const PAY_KIND_LABEL = {
   deposit: '定金',
+  full: '全款',
   balance: '尾款',
   refund: '退款',
 }

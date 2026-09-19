@@ -20,6 +20,84 @@ import {
   copyButton,
 } from '../ui.js'
 import { orderTable, progressDrawer, paymentDrawer, statusDrawer, orderItemsList, progressTimeline, editProgressDrawer } from './orderbits.js'
+import { renderProgressCard } from '../progresscard.js'
+import { canvasToBlob, downloadBlob } from '../pricecard.js'
+
+/* ============================================================
+   分享进度：文本发微信 / 图片发微信
+   ============================================================ */
+
+async function shareProgress(order, ctx) {
+  let data
+  try {
+    data = await api.get(`/api/orders/${order.id}/progress-report`)
+  } catch (err) {
+    toastErr(err)
+    return
+  }
+  const { text, report } = data
+
+  const pre = h('pre.report-text')
+  pre.textContent = text
+
+  const imgBox = h('div.report-preview')
+  try {
+    imgBox.appendChild(h('img', { src: renderProgressCard(report, { scale: 1 }).toDataURL('image/png'), alt: '进度汇报预览' }))
+  } catch (err) {
+    imgBox.appendChild(h('div.hint', `图片预览画不出来：${err.message || ''}`))
+  }
+
+  async function doCopy() {
+    try {
+      await navigator.clipboard.writeText(text)
+      toast('进度文字已复制，粘到微信里就能发', 'ok', 3200)
+    } catch {
+      // 没有剪贴板权限就退回手动选中
+      const r = document.createRange()
+      r.selectNodeContents(pre)
+      const sel = window.getSelection()
+      sel.removeAllRanges()
+      sel.addRange(r)
+      toast('已选中文字，按 Ctrl+C 复制', 'ok', 3600)
+    }
+  }
+
+  async function doImage() {
+    try {
+      const blob = await canvasToBlob(renderProgressCard(report, { scale: 2 }))
+      if (!blob) {
+        toast('这个浏览器不支持生成图片，请换 Chrome / Edge / Safari 试试', 'err', 4200)
+        return
+      }
+      const safe = String(report.orderNo || '订单').replace(/[\\/:*?"<>|]/g, '_')
+      downloadBlob(blob, `${report.shopName}-进度-${safe}.png`)
+      toast('图片已生成，去下载文件夹看看', 'ok', 3200)
+    } catch (err) {
+      toastErr(err)
+    }
+  }
+
+  const m = modal({
+    title: '分享进度',
+    wide: true,
+    body: h(
+      'div.stack',
+      h('p.muted.sm', { style: { margin: '0' } }, '发给客户看这次做到哪了。图片发微信最好用，文字想改两句就复制。'),
+      h('div.sechead', { style: { marginBottom: '0' } }, h('h3', '图片'), h('span.sechead__note', '一张竖图，直接发')),
+      imgBox,
+      h('div.sechead', { style: { marginBottom: '0' } }, h('h3', '文字'), h('span.sechead__note', '复制了就能粘')),
+      pre,
+      h('div.note', '进度、资源变化、截图张数都会带上。截图原图发不进这张图里，图上只会写「附 N 张截图」，图还是自己另发。')
+    ),
+    actions: [
+      { label: '关闭', onClick: () => m.close() },
+      // 两个动作都不关窗，方便复制完文字再存张图
+      { label: '复制文字', onClick: () => { doCopy(); return false } },
+      { label: '存成图片', tone: 'primary', onClick: () => { doImage(); return false } },
+    ],
+  })
+  void ctx
+}
 
 /* ============================================================
    客户端试算（和服务器同一套口径，仅用于即时预览）
@@ -650,6 +728,7 @@ async function renderDetail(ctx, id) {
             sectionHead(
               '进度时间线',
               `${o.progress.length} 条`,
+              h('button.btn.btn--sm', { type: 'button', onclick: () => shareProgress(o, ctx) }, icon('quotes', 14), '分享进度'),
               h('button.btn.btn--sm.btn--primary', { type: 'button', onclick: () => progressDrawer(o, () => ctx.app.reload()) }, icon('plus', 14), '记一条')
             )
           ),
