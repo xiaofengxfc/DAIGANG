@@ -1212,6 +1212,121 @@ export default {
       })
     }
 
+    /* ---------------- 拖拽排序：大类 ----------------
+       和大类里的服务项是两套独立的状态，互不干扰：
+       · 抓着服务项拖 → 调服务项顺序（甚至换大类）
+       · 抓着大类标题拖 → 调大类顺序（甚至换游戏）
+       顺序同样存 sort_order，拖完把整份显示顺序发回去。
+    -------------------------------------------------- */
+    let draggingCat = null
+
+    /** 落点在哪一个大类之前；null = 放到这个组的最后 */
+    function catAfterPoint(groupBody, y) {
+      const cats = [...groupBody.querySelectorAll('.pcat')].filter(
+        (el) => el.dataset.catId && el.dataset.catId !== String(draggingCat)
+      )
+      for (const el of cats) {
+        const box = el.getBoundingClientRect()
+        if (y < box.top + box.height / 2) return el
+      }
+      return null
+    }
+
+    /** 按这次拖动，算出「所有大类」的新顺序（按页面显示顺序摊平） */
+    function catsOrderAfterMove(movedId, targetKey, beforeId) {
+      const byGroup = new Map()
+      for (const grp of orderedGroups) {
+        byGroup.set(grp.key, grp.cats.map((c) => c.id).filter((id) => id !== movedId))
+      }
+      if (!byGroup.has(targetKey)) byGroup.set(targetKey, [])
+      const target = byGroup.get(targetKey)
+      let at = beforeId ? target.indexOf(beforeId) : target.length
+      if (at < 0) at = target.length
+      target.splice(at, 0, movedId)
+
+      const ids = []
+      const seen = new Set()
+      const push = (id) => {
+        if (id == null || seen.has(id)) return
+        seen.add(id)
+        ids.push(id)
+      }
+      for (const grp of orderedGroups) for (const id of byGroup.get(grp.key) || []) push(id)
+      categories.forEach((c) => push(c.id)) // 兜底：一条都不能漏
+      return ids
+    }
+
+    async function applyCatMove(movedId, grp, beforeId) {
+      const cat = categories.find((c) => c.id === movedId)
+      if (!cat) return
+      const targetGameId = grp.key ? Number(grp.key) : null
+      const changedGame = String(cat.game_id || '') !== String(grp.key)
+      const ids = catsOrderAfterMove(movedId, grp.key, beforeId)
+      try {
+        // 拖到别的游戏那一组里 = 顺便换游戏
+        if (changedGame) await api.patch(`/api/categories/${movedId}`, { game_id: targetGameId })
+        await api.post('/api/reorder/categories', { ids })
+        toast(changedGame ? `「${cat.name}」已挪到 ${grp.name}` : '大类的顺序已保存', 'ok')
+        ctx.app.reload()
+      } catch (err) {
+        toastErr(err)
+      }
+    }
+
+    function wireCatHead(catHead, pcat, cat) {
+      catHead.draggable = true
+      pcat.dataset.catId = String(cat.id)
+      catHead.addEventListener('dragstart', (e) => {
+        // 抓着标题里的按钮时别触发拖动
+        if (e.target && e.target.closest && e.target.closest('.btn')) {
+          e.preventDefault()
+          return
+        }
+        draggingCat = cat.id
+        pcat.classList.add('is-dragging')
+        try {
+          e.dataTransfer.effectAllowed = 'move'
+          e.dataTransfer.setData('text/plain', `cat:${cat.id}`)
+        } catch {
+          /* 有的浏览器不给设置，忽略 */
+        }
+      })
+      catHead.addEventListener('dragend', () => {
+        draggingCat = null
+        pcat.classList.remove('is-dragging')
+        clearMarks()
+      })
+    }
+
+    function wireGroupBody(groupBody, grp) {
+      groupBody.addEventListener('dragover', (e) => {
+        if (!draggingCat) return
+        e.preventDefault()
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+        clearMarks()
+        const after = catAfterPoint(groupBody, e.clientY)
+        if (after) {
+          after.classList.add('is-drop-before')
+        } else {
+          const cats = [...groupBody.querySelectorAll('.pcat')].filter((el) => el.dataset.catId)
+          if (cats.length) cats[cats.length - 1].classList.add('is-drop-after')
+        }
+      })
+      groupBody.addEventListener('dragleave', (e) => {
+        if (!groupBody.contains(e.relatedTarget)) clearMarks()
+      })
+      groupBody.addEventListener('drop', (e) => {
+        e.preventDefault()
+        if (!draggingCat) return
+        const after = catAfterPoint(groupBody, e.clientY)
+        const beforeId = after && after.dataset.catId ? Number(after.dataset.catId) : null
+        const movedId = draggingCat
+        draggingCat = null
+        clearMarks()
+        applyCatMove(movedId, grp, beforeId)
+      })
+    }
+
     /* 一行服务项。
        没填备注、没填套餐内容、没挂增项、没有阶梯价的 —— 排成一行：
        名字 …… ¥价格/单位，不留一片空白。
@@ -1351,6 +1466,7 @@ export default {
 
           const catHead = h(
             'div.pcat__head',
+            { title: '按住可以调整大类顺序，拖到别的游戏/通用组里就是换归属' },
             h('span.pcat__name', b.cat.name),
             b.cat.status === 'archived' ? tag('大类已归档', 'oxblood') : null,
             b.cat.note ? h('span.dim.tiny', b.cat.note) : null,
@@ -1397,8 +1513,12 @@ export default {
             catHead.setAttribute('aria-expanded', next ? 'true' : 'false')
             setCatOpen(b.cat.id, next)
           })
-          groupBody.appendChild(h('div.pcat', catHead, catBody))
+          const pcatEl = h('div.pcat', catHead, catBody)
+          wireCatHead(catHead, pcatEl, b.cat)
+          groupBody.appendChild(pcatEl)
         }
+        // 这一组本身就是大类的放置区：组内调顺序，或者从别的游戏组拖过来
+        wireGroupBody(groupBody, grp)
 
         if (loose.length) {
           const looseBody = h('div.pcat__body')
@@ -1540,7 +1660,9 @@ export default {
       h('section.panel', listBox),
       h(
         'div.note',
-        '结构是「游戏（一张价格表）→ 大类 → 服务项」。服务项必须挂在大类里。改价格表只影响之后开的单，已经开出去的老单，价格冻在下单那一刻。'
+        '结构是「游戏（一张价格表）→ 大类 → 服务项」。服务项必须挂在大类里。' +
+          '按住服务项可以拖动排序，拖到别的大类里就顺手换归属；大类的标题也能拖，用来调整大类顺序，拖到别的游戏组里就是换游戏。' +
+          '改价格表只影响之后开的单，已经开出去的老单，价格冻在下单那一刻。'
       )
     )
   },

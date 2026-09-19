@@ -1553,6 +1553,11 @@ button.cell:hover {
   background: var(--surface);
 }
 
+/* 大类标题也能拖：抓住标题拖动 = 调大类顺序 */
+.pcat__head:active {
+  cursor: grabbing;
+}
+
 .pcat__head:hover {
   background: var(--surface-2);
 }
@@ -1714,15 +1719,18 @@ button.cell:hover {
 
 /* ---------- 拖动中的提示 ---------- */
 
-.pitem.is-dragging {
+.pitem.is-dragging,
+.pcat.is-dragging {
   opacity: 0.35;
 }
 
-.pitem.is-drop-before {
+.pitem.is-drop-before,
+.pcat.is-drop-before {
   box-shadow: inset 0 2px 0 0 var(--cinnabar);
 }
 
-.pitem.is-drop-after {
+.pitem.is-drop-after,
+.pcat.is-drop-after {
   box-shadow: inset 0 -2px 0 0 var(--cinnabar);
 }
 
