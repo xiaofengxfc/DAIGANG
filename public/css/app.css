@@ -2070,6 +2070,66 @@ pre.plaintext {
   color: var(--oxblood);
 }
 
+/* ---------- 客户档案里的订单列表（客户会反复下单，单多了要收得住） ---------- */
+
+.custorder__sum {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 10px var(--sp-4);
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+  background: var(--surface-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.custorder__sep {
+  padding: 8px var(--sp-4) 4px;
+  background: var(--surface);
+}
+
+/* 「还有 N 张…」那一行 */
+.item--more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 38px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-3);
+  cursor: pointer;
+  font: inherit;
+}
+
+.item--more:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+/* 「只看某个客户」的筛选标签 */
+.filterchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--cinnabar-line);
+  background: var(--cinnabar-bg);
+  color: var(--cinnabar);
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.filterchip:hover {
+  border-color: var(--cinnabar);
+}
+
 
 .formsec {
   padding-top: var(--sp-2);

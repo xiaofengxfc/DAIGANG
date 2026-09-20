@@ -4,7 +4,7 @@
    ============================================================ */
 
 import { api, PAY_METHOD_LABEL, PAY_KIND_LABEL, LOGIN_TYPE_LABEL, STATUS_TONE } from '../api.js'
-import { h, icon, fmtMoney, fmtDate, fmtDay, fmtDateTime, debounce, todayStr } from '../dom.js'
+import { h, icon, fmtMoney, fmtDate, fmtDay, fmtDateTime, debounce, todayStr, remainInfo } from '../dom.js'
 import {
   table,
   toast,
@@ -128,6 +128,87 @@ function customerRow(c, ctx) {
 
 /* ---------------- 客户档案 ---------------- */
 
+/** 在做 / 已结束 的一张订单行 */
+function orderLine(ctx, o) {
+  const done = ['done', 'cancelled'].includes(o.status)
+  const info = done ? { kind: 'ok', text: '' } : remainInfo(o.ordered_at, o.due_at)
+  const due = Number(o.due_total) || 0
+  return h(
+    'button.item',
+    { type: 'button', onclick: () => ctx.navigate(`/orders/${o.id}`) },
+    h(
+      'div.item__main',
+      h(
+        'div.item__title',
+        o.order_no,
+        lamp(o.status_label, STATUS_TONE[o.status] || 'muted'),
+        !done && info.text ? h(`span.duepill.duepill--${info.kind}`, info.text) : null
+      ),
+      h(
+        'div.item__meta',
+        h('span', o.title || '没写标题'),
+        h('span', fmtDay(o.ordered_at)),
+        o.due_at ? h('span', `交付 ${fmtDay(o.due_at)}`) : null
+      )
+    ),
+    h(
+      'div.item__right',
+      h('div.item__fig', `¥${fmtMoney(o.total)}`),
+      h('div.tbl__meta', due > 0.001 ? h('span.tone-amber', `未收 ¥${fmtMoney(due)}`) : h('span.dim', '已结清'))
+    )
+  )
+}
+
+/**
+ * 客户名下的订单。
+ * 客户会反复下单，单多了不能一股脑铺开 —— 先列在做的，已结束的收在后面，
+ * 各自封顶，剩下的给个「还有 N 张」。
+ */
+function customerOrders(ctx, c, orders) {
+  const active = orders.filter((o) => !['done', 'cancelled'].includes(o.status))
+  const closed = orders.filter((o) => ['done', 'cancelled'].includes(o.status))
+  const ACTIVE_MAX = 6
+  const CLOSED_MAX = 3
+  const unpaid = active.filter((o) => Number(o.due_total) > 0.001).length
+
+  const head = h(
+    'div.custorder__sum',
+    h('span', `在做 ${active.length}`),
+    closed.length ? h('span.dim', `· 已结束 ${closed.length}`) : null,
+    unpaid ? h('span.tone-amber', `· ${unpaid} 张没收齐`) : null
+  )
+
+  const body = h('div.itemlist')
+  for (const o of active.slice(0, ACTIVE_MAX)) body.appendChild(orderLine(ctx, o))
+  if (active.length > ACTIVE_MAX) {
+    body.appendChild(
+      h(
+        'button.item.item--more',
+        { type: 'button', onclick: () => ctx.navigate(`/orders?customer_id=${c.id}&status=open`) },
+        h('span.sm', `还有 ${active.length - ACTIVE_MAX} 张在做的单`),
+        icon('right', 13)
+      )
+    )
+  }
+
+  if (closed.length) {
+    body.appendChild(h('div.custorder__sep', h('span.sm.dim', '已结束')))
+    for (const o of closed.slice(0, CLOSED_MAX)) body.appendChild(orderLine(ctx, o))
+    if (closed.length > CLOSED_MAX) {
+      body.appendChild(
+        h(
+          'button.item.item--more',
+          { type: 'button', onclick: () => ctx.navigate(`/orders?customer_id=${c.id}&status=`) },
+          h('span.sm', `还有 ${closed.length - CLOSED_MAX} 张已结束的单`),
+          icon('right', 13)
+        )
+      )
+    }
+  }
+
+  return h('div', head, body)
+}
+
 export async function renderCustomerDetail(ctx, id) {
   const p = await api.get(`/api/customers/${id}/profile`)
   const c = p.customer
@@ -218,23 +299,18 @@ export async function renderCustomerDetail(ctx, id) {
         'div.stack',
         h(
           'section.panel',
-          h('div.panel__body', sectionHead('订单', `${p.orders.length} 张`)),
+          h(
+            'div.panel__body',
+            sectionHead(
+              '订单',
+              `${p.orders.length} 张`,
+              p.orders.length
+                ? h('button.btn.btn--sm', { type: 'button', onclick: () => ctx.navigate(`/orders?customer_id=${c.id}&status=`) }, '看全部')
+                : null
+            )
+          ),
           p.orders.length
-            ? h(
-                'div.itemlist',
-                p.orders.map((o) =>
-                  h(
-                    'button.item',
-                    { type: 'button', onclick: () => ctx.navigate(`/orders/${o.id}`) },
-                    h(
-                      'div.item__main',
-                      h('div.item__title', o.order_no, lamp(o.status_label, STATUS_TONE[o.status] || 'muted')),
-                      h('div.item__meta', h('span', o.title || ''), h('span', fmtDay(o.ordered_at)))
-                    ),
-                    h('div.item__right', h('div.item__fig', `¥${fmtMoney(o.total)}`))
-                  )
-                )
-              )
+            ? customerOrders(ctx, c, p.orders)
             : h('div.panel__body', emptyState({ iconName: 'orders', title: '还没有单', body: '给这个客户开第一张单。', actionLabel: '开单', onAction: () => openComposer(ctx, { presetCustomer: c.id }) }))
         ),
         h(

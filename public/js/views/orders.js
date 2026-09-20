@@ -919,6 +919,7 @@ export default {
 async function renderList(ctx, status) {
   {
     const q = ctx.query.get('q') || ''
+    const custId = ctx.query.get('customer_id') || ''
 
     ctx.setActions(
       h('button.btn.btn--sm.btn--primary', { type: 'button', onclick: () => openComposer(ctx) }, icon('plus', 14), '开新单')
@@ -928,8 +929,31 @@ async function renderList(ctx, status) {
     if (status === 'due') params.due = '1'
     else if (status) params.status = status
     if (q) params.q = q
+    // 从客户档案点「看这个客户的全部单」进来时，只筛这一个客户
+    if (custId) params.customer_id = custId
 
     const { items } = await api.get('/api/orders', params)
+
+    let cust = null
+    if (custId) {
+      try {
+        cust = await api.get(`/api/customers/${custId}`)
+      } catch {
+        cust = null
+      }
+    }
+
+    /** 拼查询串时把当前的筛选都带上，切 tab / 搜索不会把客户筛选弄丢 */
+    const href = (over = {}) => {
+      const st = 'status' in over ? over.status : status
+      const qq = 'q' in over ? over.q : q
+      const cc = 'customer_id' in over ? over.customer_id : custId
+      const p = new URLSearchParams()
+      if (st) p.set('status', st)
+      if (qq) p.set('q', qq)
+      if (cc) p.set('customer_id', cc)
+      return `/orders?${p.toString()}`
+    }
 
     const seg = h(
       'div.seg',
@@ -939,7 +963,7 @@ async function renderList(ctx, status) {
           {
             type: 'button',
             'aria-pressed': String(f.key === status),
-            onclick: () => ctx.navigate(f.key ? `/orders?status=${f.key}` : '/orders?status='),
+            onclick: () => ctx.navigate(href({ status: f.key })),
           },
           f.label
         )
@@ -950,11 +974,7 @@ async function renderList(ctx, status) {
     searchInput.addEventListener(
       'input',
       debounce(() => {
-        const v = searchInput.value.trim()
-        const p = new URLSearchParams()
-        if (status) p.set('status', status)
-        if (v) p.set('q', v)
-        ctx.navigate(`/orders?${p.toString()}`, { replace: true })
+        ctx.navigate(href({ q: searchInput.value.trim() }), { replace: true })
       }, 300)
     )
 
@@ -973,11 +993,25 @@ async function renderList(ctx, status) {
         'div.pagehead',
         h(
           'div.pagehead__txt',
-          h('h1', status === 'open' ? '在做的单' : '订单'),
+          h('h1', custId ? `${cust?.name || '这个客户'}的单` : status === 'open' ? '在做的单' : '订单'),
           h('p.pagehead__sub', items.length ? `${items.length} 张单 · 合计 ¥${fmtMoney(total.amount)} · 未收 ¥${fmtMoney(total.due)}` : '')
         )
       ),
-      h('div.toolbar', seg, h('div.toolbar__grow'), searchInput),
+      h(
+        'div.toolbar',
+        seg,
+        // 只看某个客户时给个明显的标签，点 × 就取消筛选
+        custId
+          ? h(
+              'button.filterchip',
+              { type: 'button', title: '取消「只看这个客户」', onclick: () => ctx.navigate(href({ customer_id: '' })) },
+              `只看「${cust?.name || '这个客户'}」`,
+              icon('close', 12)
+            )
+          : null,
+        h('div.toolbar__grow'),
+        searchInput
+      ),
       h(
         'section.panel',
         h(

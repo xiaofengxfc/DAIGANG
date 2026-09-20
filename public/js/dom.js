@@ -176,24 +176,34 @@ export function fmtShort(iso) {
 
 const WEEK = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 
-/** 纯日期字符串（YYYY-MM-DD）按字面显示，不要过 Date 以免时区偏移 */
+/**
+ * 从日期里取出年月日。
+ * 只认字面量，不过 Date —— 免得时区把日期挪一天。
+ * 既接受纯日期 `2026-09-12`，也接受带时间的 `2026-09-12T04:28:42.000Z`
+ * （后端存 ordered_at 时是「本地日期 + UTC 时间」，所以取前面那段字面量才对）。
+ */
+function ymd(dateStr) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ]|$)/.exec(String(dateStr || ''))
+  return m ? { y: Number(m[1]), m: Number(m[2]), d: Number(m[3]) } : null
+}
+
+/** 纯日期字符串按字面显示，不要过 Date 以免时区偏移 */
 export function fmtDay(dateStr) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || ''))
-  if (!m) return String(dateStr || '')
-  return `${Number(m[2])}月${Number(m[3])}日`
+  const v = ymd(dateStr)
+  return v ? `${v.m}月${v.d}日` : String(dateStr || '')
 }
 
 export function fmtDayFull(dateStr) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || ''))
-  if (!m) return String(dateStr || '')
-  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
-  return `${m[1]}-${m[2]}-${m[3]} ${WEEK[d.getDay()]}`
+  const v = ymd(dateStr)
+  if (!v) return String(dateStr || '')
+  const d = new Date(v.y, v.m - 1, v.d)
+  return `${v.y}-${String(v.m).padStart(2, '0')}-${String(v.d).padStart(2, '0')} ${WEEK[d.getDay()]}`
 }
 
 export function weekdayOf(dateStr) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || ''))
-  if (!m) return ''
-  return WEEK[new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getDay()]
+  const v = ymd(dateStr)
+  if (!v) return ''
+  return WEEK[new Date(v.y, v.m - 1, v.d).getDay()]
 }
 
 export function todayStr() {
