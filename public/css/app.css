@@ -2007,6 +2007,45 @@ pre.plaintext {
   grid-column: 1 / -1;
 }
 
+/* 下单日期和交付日期之间那行：还剩几天 */
+.remain {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  margin-top: calc(var(--sp-4) * -1 + 2px);
+  padding: 7px 12px;
+  border-left: 3px solid var(--line-strong);
+  background: var(--surface-2);
+  border-radius: 0 var(--r-card) var(--r-card) 0;
+}
+
+.remain__big {
+  font-family: var(--font-fig);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.remain--soon {
+  border-left-color: var(--cinnabar);
+  background: var(--cinnabar-bg);
+}
+
+.remain--soon .remain__big {
+  color: var(--cinnabar);
+}
+
+.remain--bad {
+  border-left-color: var(--oxblood);
+  background: var(--oxblood-bg);
+}
+
+.remain--bad .remain__big {
+  color: var(--oxblood);
+}
+
+
 .formsec {
   padding-top: var(--sp-2);
 }

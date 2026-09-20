@@ -204,6 +204,54 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
   const dateInp = h('input.inp', { type: 'date', value: existing ? fmtDate(existing.ordered_at) : todayStr() })
   const titleInp = h('input.inp', { placeholder: '不填就用服务名拼一个', value: existing?.title || '' })
   const dueInp = h('input.inp', { type: 'date', value: existing?.due_at ? fmtDate(existing.due_at) : '' })
+
+  /* 下单日期和交付日期之间：还剩几天。
+     「剩余」按今天算（这才是你真正关心的），另外把「下单到交付一共几天」也带上。 */
+  const remainBox = h('div.remain')
+  const dayDiff = (from, to) => {
+    if (!from || !to) return null
+    const f = new Date(`${String(from).slice(0, 10)}T00:00:00`)
+    const t = new Date(`${String(to).slice(0, 10)}T00:00:00`)
+    if (Number.isNaN(f.getTime()) || Number.isNaN(t.getTime())) return null
+    return Math.round((t - f) / 86400000)
+  }
+  function paintRemain() {
+    const start = dateInp.value
+    const due = dueInp.value
+    remainBox.replaceChildren()
+    remainBox.className = 'remain'
+    if (!due) {
+      remainBox.appendChild(h('span.dim.sm', '填了交付日期，这里会算还剩几天'))
+      return
+    }
+    const spanDays = dayDiff(start, due)
+    if (spanDays !== null && spanDays < 0) {
+      remainBox.classList.add('remain--bad')
+      remainBox.appendChild(h('span.remain__big', '交付日期比下单日期还早'))
+      remainBox.appendChild(h('span.dim.sm', `下单到交付 ${spanDays} 天，检查一下`))
+      return
+    }
+    const left = dayDiff(todayStr(), due)
+    if (left === null) {
+      remainBox.appendChild(h('span.dim.sm', '日期读不出来'))
+      return
+    }
+    let big
+    if (left > 0) big = `剩余 ${left} 天`
+    else if (left === 0) big = '今天到期'
+    else big = `已逾期 ${Math.abs(left)} 天`
+    if (left < 0) remainBox.classList.add('remain--bad')
+    else if (left <= 2) remainBox.classList.add('remain--soon')
+    remainBox.appendChild(h('span.remain__big', big))
+    if (spanDays !== null) {
+      remainBox.appendChild(h('span.dim.sm', `下单到交付一共 ${spanDays + 1} 天`))
+    }
+  }
+  dateInp.addEventListener('input', paintRemain)
+  dateInp.addEventListener('change', paintRemain)
+  dueInp.addEventListener('input', paintRemain)
+  dueInp.addEventListener('change', paintRemain)
+
   const noteInp = h('textarea.ta', { rows: 2, placeholder: '给客户看的备注' })
   noteInp.value = existing?.note || ''
   const innerInp = h('textarea.ta', { rows: 2, placeholder: '只有自己看得到的备注' })
@@ -413,6 +461,7 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
 
   renderServices()
   paintSummary()
+  paintRemain()
 
   /* —— 抽屉 —— */
   const body = h(
@@ -422,6 +471,8 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
       h('div.field.field--full', h('label.lbl', '客户 *'), h('div.cluster', { style: { gap: '6px' } }, custSel, addCustomerBtn())),
       h('div.field.field--full', h('label.lbl', '游戏'), gameSel),
       h('div.field.field--full', h('label.lbl', '下单日期'), dateInp),
+      // 夹在两个日期中间：还剩几天
+      h('div.field.field--full', remainBox),
       h('div.field.field--full', h('label.lbl', '交付日期'), dueInp),
       h('div.field.field--full', h('label.lbl', '订单标题'), titleInp)
     ),
