@@ -253,6 +253,18 @@ async function main() {
   r = await api('GET', '/api/orders?status=open')
   ok('按进行中筛选订单', (r.body.items || []).some((o) => o.id === orderId), r.body.items?.length)
   ok('列表带未收金额', r.body.items?.[0]?.due_total === 370, r.body.items?.[0]?.due_total)
+  // 客户反复下单时，列表要能看出这是他的第几单
+  ok(
+    '列表带这个客户一共下过几单',
+    r.body.items?.every((o) => typeof o.customer_order_count === 'number'),
+    r.body.items?.map((o) => `${o.customer_name}:${o.customer_order_count}`).join(', ')
+  )
+  r = await api('GET', '/api/orders?sort=customer')
+  ok('支持按客户排序', r.status === 200 && Array.isArray(r.body.items), r.status)
+  const names = (r.body.items || []).map((o) => o.customer_name || '')
+  ok('按客户排序后同名相邻', names.every((n, i) => i === 0 || n >= names[i - 1]), names.join(' | ').slice(0, 80))
+  r = await api('GET', `/api/orders?customer_id=${custId}`)
+  ok('支持按客户筛单', (r.body.items || []).every((o) => o.customer_id === custId), r.body.items?.length)
 
   r = await api('POST', `/api/orders/${orderId}/status`, { status: 'done' })
   ok('待付款不能直接改已完成', r.status === 400 && r.body.code === 'bad_transition', r.body)

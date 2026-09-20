@@ -169,7 +169,30 @@ export function orderColumns({ showCustomer = true, ctx } = {}) {
     cols.push({
       key: 'customer_name',
       label: '客户',
-      render: (o) => (o.customer_id ? h('span', o.customer_name || '—') : h('span.dim', '散客')),
+      render: (o) => {
+        // 散客（没挂客户）没什么可点的
+        if (!o.customer_id) return h('span.dim', '散客')
+        const n = Number(o.customer_order_count) || 0
+        return h(
+          'button.custcell',
+          {
+            type: 'button',
+            title: `看 ${o.customer_name || '这个客户'} 的档案（名下共 ${n} 张单）`,
+            onclick: (e) => {
+              // 别让点客户变成打开这一单
+              e.stopPropagation()
+              ctx.navigate(`/customers/${o.customer_id}`)
+            },
+          },
+          h('span.avatar.avatar--xs', (o.customer_name || '?').slice(0, 1)),
+          h(
+            'span.custcell__txt',
+            h('span.custcell__name', o.customer_name || '没填名字'),
+            // 一个客户反复下单时给个提示，头一单就不用标了
+            n > 1 ? h('span.custcell__n', `第 ${n} 单`) : null
+          )
+        )
+      },
     })
   }
   cols.push(

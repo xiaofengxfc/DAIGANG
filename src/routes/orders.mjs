@@ -35,7 +35,9 @@ const ORDER_LIST_SQL = `
     (SELECT COUNT(*) FROM order_progress g WHERE g.order_id = o.id) AS progress_count,
     (SELECT MAX(g.happened_on) FROM order_progress g WHERE g.order_id = o.id) AS last_progress_on,
     (SELECT COALESCE(SUM(CASE WHEN p.kind = 'refund' THEN -p.amount ELSE p.amount END), 0)
-       FROM payments p WHERE p.order_id = o.id AND p.status = 'confirmed') AS paid_total
+       FROM payments p WHERE p.order_id = o.id AND p.status = 'confirmed') AS paid_total,
+    -- 同一个客户一共下过几单：列表里一眼能看出是老客户还是头一回
+    (SELECT COUNT(*) FROM orders x WHERE x.customer_id = o.customer_id AND o.customer_id IS NOT NULL) AS customer_order_count
   FROM orders o
 `
 
@@ -170,7 +172,13 @@ export function register() {
     if (ctx.query.due === '1') {
       where.push("o.status NOT IN ('done','cancelled') AND o.total > (SELECT COALESCE(SUM(CASE WHEN p.kind='refund' THEN -p.amount ELSE p.amount END),0) FROM payments p WHERE p.order_id = o.id AND p.status='confirmed')")
     }
-    const orderBy = { oldest: 'o.ordered_at ASC, o.id ASC', amount: 'o.total DESC' }[ctx.query.sort] || 'o.ordered_at DESC, o.id DESC'
+    const orderBy =
+      {
+        oldest: 'o.ordered_at ASC, o.id ASC',
+        amount: 'o.total DESC',
+        // 按客户排：同一个客户的单会聚在一起，客户多的时候好对账
+        customer: "o.customer_name COLLATE NOCASE ASC, o.ordered_at DESC, o.id DESC",
+      }[ctx.query.sort] || 'o.ordered_at DESC, o.id DESC'
     const limit = Math.min(500, Math.max(1, int(ctx.query.limit, 200)))
     const rows = db
       .prepare(`${ORDER_LIST_SQL} ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY ${orderBy} LIMIT ?`)

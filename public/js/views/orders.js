@@ -920,6 +920,7 @@ async function renderList(ctx, status) {
   {
     const q = ctx.query.get('q') || ''
     const custId = ctx.query.get('customer_id') || ''
+    const sort = ctx.query.get('sort') || ''
 
     ctx.setActions(
       h('button.btn.btn--sm.btn--primary', { type: 'button', onclick: () => openComposer(ctx) }, icon('plus', 14), '开新单')
@@ -931,6 +932,7 @@ async function renderList(ctx, status) {
     if (q) params.q = q
     // 从客户档案点「看这个客户的全部单」进来时，只筛这一个客户
     if (custId) params.customer_id = custId
+    if (sort) params.sort = sort
 
     const { items } = await api.get('/api/orders', params)
 
@@ -948,10 +950,12 @@ async function renderList(ctx, status) {
       const st = 'status' in over ? over.status : status
       const qq = 'q' in over ? over.q : q
       const cc = 'customer_id' in over ? over.customer_id : custId
+      const so = 'sort' in over ? over.sort : sort
       const p = new URLSearchParams()
       if (st) p.set('status', st)
       if (qq) p.set('q', qq)
       if (cc) p.set('customer_id', cc)
+      if (so) p.set('sort', so)
       return `/orders?${p.toString()}`
     }
 
@@ -970,6 +974,19 @@ async function renderList(ctx, status) {
       )
     )
 
+    const sortSel = h(
+      'select.sel',
+      { style: { width: 'auto' }, 'aria-label': '排序方式' },
+      ...[
+        { v: '', l: '最新在前' },
+        { v: 'oldest', l: '最早在前' },
+        { v: 'customer', l: '按客户排' },
+        { v: 'amount', l: '按金额排' },
+      ].map((o) => h('option', { value: o.v }, o.l))
+    )
+    sortSel.value = sort
+    sortSel.addEventListener('change', () => ctx.navigate(href({ sort: sortSel.value })))
+
     const searchInput = h('input.inp', { type: 'search', placeholder: '搜单号 / 标题 / 客户名', value: q, style: { maxWidth: '260px' } })
     searchInput.addEventListener(
       'input',
@@ -986,6 +1003,9 @@ async function renderList(ctx, status) {
       },
       { amount: 0, due: 0 }
     )
+    // 涉及多少位客户 —— 客户多的时候这个数比单数更有信息量
+    const custCount = new Set(items.filter((o) => o.customer_id).map((o) => o.customer_id)).size
+    const walkIn = items.filter((o) => !o.customer_id).length
 
     return h(
       'div.stack',
@@ -994,7 +1014,12 @@ async function renderList(ctx, status) {
         h(
           'div.pagehead__txt',
           h('h1', custId ? `${cust?.name || '这个客户'}的单` : status === 'open' ? '在做的单' : '订单'),
-          h('p.pagehead__sub', items.length ? `${items.length} 张单 · 合计 ¥${fmtMoney(total.amount)} · 未收 ¥${fmtMoney(total.due)}` : '')
+          h(
+            'p.pagehead__sub',
+            items.length
+              ? `${items.length} 张单 · ${custCount} 位客户${walkIn ? ` + ${walkIn} 张散客` : ''} · 合计 ¥${fmtMoney(total.amount)} · 未收 ¥${fmtMoney(total.due)}`
+              : ''
+          )
         )
       ),
       h(
@@ -1010,6 +1035,7 @@ async function renderList(ctx, status) {
             )
           : null,
         h('div.toolbar__grow'),
+        sortSel,
         searchInput
       ),
       h(

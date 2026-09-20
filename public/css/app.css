@@ -2300,6 +2300,55 @@ pre.plaintext {
   color: var(--ink-2);
 }
 
+/* ---------- 订单列表里的客户格 ----------
+   客户多的时候，光看名字不容易扫，加个首字方块做视觉锚点。 */
+
+.custcell {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  max-width: 100%;
+}
+
+.custcell:hover .custcell__name {
+  color: var(--cinnabar);
+  text-decoration: underline;
+}
+
+.avatar--xs {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+.custcell__txt {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.custcell__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 9em;
+}
+
+.custcell__n {
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+
 /* ============================================================
    响应式
    ============================================================ */
