@@ -952,7 +952,11 @@ async function renderList(ctx, status) {
       const cc = 'customer_id' in over ? over.customer_id : custId
       const so = 'sort' in over ? over.sort : sort
       const p = new URLSearchParams()
-      if (st) p.set('status', st)
+      // status 必须显式带上，哪怕是空串：
+      //   ?status=   → 全部
+      //   完全没有 status → 落在默认的「在做」上
+      // 少了这个，「全部」点下去会被当成默认值，等于点不动。
+      p.set('status', st || '')
       if (qq) p.set('q', qq)
       if (cc) p.set('customer_id', cc)
       if (so) p.set('sort', so)
