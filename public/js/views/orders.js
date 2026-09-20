@@ -4,7 +4,7 @@
    ============================================================ */
 
 import { api, PRICE_TYPE_LABEL, PAY_METHOD_LABEL, PAY_KIND_LABEL, STATUS_TONE } from '../api.js'
-import { h, icon, fmtMoney, fmtQty, fmtDate, fmtDay, fmtDateTime, todayStr, debounce } from '../dom.js'
+import { h, icon, fmtMoney, fmtQty, fmtDate, fmtDay, fmtDateTime, todayStr, debounce, remainInfo } from '../dom.js'
 import {
   toast,
   toastErr,
@@ -208,44 +208,23 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
   /* 下单日期和交付日期之间：还剩几天。
      「剩余」按今天算（这才是你真正关心的），另外把「下单到交付一共几天」也带上。 */
   const remainBox = h('div.remain')
-  const dayDiff = (from, to) => {
-    if (!from || !to) return null
-    const f = new Date(`${String(from).slice(0, 10)}T00:00:00`)
-    const t = new Date(`${String(to).slice(0, 10)}T00:00:00`)
-    if (Number.isNaN(f.getTime()) || Number.isNaN(t.getTime())) return null
-    return Math.round((t - f) / 86400000)
-  }
   function paintRemain() {
-    const start = dateInp.value
-    const due = dueInp.value
     remainBox.replaceChildren()
     remainBox.className = 'remain'
-    if (!due) {
+    const info = remainInfo(dateInp.value, dueInp.value)
+    if (info.kind === 'none') {
       remainBox.appendChild(h('span.dim.sm', '填了交付日期，这里会算还剩几天'))
       return
     }
-    const spanDays = dayDiff(start, due)
-    if (spanDays !== null && spanDays < 0) {
+    if (info.kind === 'invalid') {
       remainBox.classList.add('remain--bad')
       remainBox.appendChild(h('span.remain__big', '交付日期比下单日期还早'))
-      remainBox.appendChild(h('span.dim.sm', `下单到交付 ${spanDays} 天，检查一下`))
+      remainBox.appendChild(h('span.dim.sm', `下单到交付 ${info.span} 天，检查一下`))
       return
     }
-    const left = dayDiff(todayStr(), due)
-    if (left === null) {
-      remainBox.appendChild(h('span.dim.sm', '日期读不出来'))
-      return
-    }
-    let big
-    if (left > 0) big = `剩余 ${left} 天`
-    else if (left === 0) big = '今天到期'
-    else big = `已逾期 ${Math.abs(left)} 天`
-    if (left < 0) remainBox.classList.add('remain--bad')
-    else if (left <= 2) remainBox.classList.add('remain--soon')
-    remainBox.appendChild(h('span.remain__big', big))
-    if (spanDays !== null) {
-      remainBox.appendChild(h('span.dim.sm', `下单到交付一共 ${spanDays + 1} 天`))
-    }
+    remainBox.classList.add(`remain--${info.kind}`)
+    remainBox.appendChild(h('span.remain__big', info.text))
+    if (info.span !== null) remainBox.appendChild(h('span.dim.sm', `下单到交付一共 ${info.span + 1} 天`))
   }
   dateInp.addEventListener('input', paintRemain)
   dateInp.addEventListener('change', paintRemain)
@@ -722,7 +701,15 @@ async function renderDetail(ctx, id) {
               h('span', o.game_name || '未指定游戏'),
               h('span', '·'),
               h('span', `下单 ${fmtDateTime(o.ordered_at)}`),
-              o.due_at ? h('span', `· 交付 ${fmtDay(o.due_at)}`) : null
+              o.due_at ? h('span', `· 交付 ${fmtDay(o.due_at)}`) : null,
+              // 交付日期还剩几天 —— 做完的单就不用提醒了
+              (() => {
+                if (['done', 'cancelled'].includes(o.status)) return null
+                const info = remainInfo(o.ordered_at, o.due_at)
+                if (info.kind === 'none') return null
+                if (info.kind === 'invalid') return h('span.duepill.duepill--bad', '交付日期填错了')
+                return h(`span.duepill.duepill--${info.kind}`, info.text)
+              })()
             )
           ),
           h(

@@ -4,7 +4,7 @@
    ============================================================ */
 
 import { api, PAY_METHOD_LABEL, PAY_KIND_LABEL, STATUS_TONE } from '../api.js'
-import { h, icon, fmtMoney, fmtDate, fmtDay, todayStr, fmtQty } from '../dom.js'
+import { h, icon, fmtMoney, fmtDate, fmtDay, todayStr, fmtQty, remainInfo } from '../dom.js'
 import { formDrawer, table, toast, toastErr, lamp, tag, orderTrack, copyButton, confirmDelete, emptyState } from '../ui.js'
 
 /* ---------------- 记进度 ---------------- */
@@ -184,6 +184,26 @@ export function orderColumns({ showCustomer = true, ctx } = {}) {
           : h('span.dim.sm', '还没记'),
     },
     { key: 'status', label: '状态', render: (o) => lamp(o.status_label, STATUS_TONE[o.status] || 'muted') },
+    {
+      key: 'due_at',
+      label: '交付',
+      cls: 'col-opt',
+      render: (o) => {
+        if (!o.due_at) return h('span.dim.sm', '—')
+        // 已经做完/取消的单不用再催了，只显示日期
+        const info = ['done', 'cancelled'].includes(o.status) ? { kind: 'ok', text: '' } : remainInfo(o.ordered_at, o.due_at)
+        return h(
+          'span',
+          { style: { display: 'inline-flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' } },
+          h('span.sm', fmtDay(o.due_at)),
+          info.kind === 'invalid'
+            ? h('span.duepill.duepill--bad', '填错了')
+            : info.text
+              ? h(`span.duepill.duepill--${info.kind}`, info.text)
+              : null
+        )
+      },
+    },
     { key: 'total', label: '总额', num: true, render: (o) => `¥${fmtMoney(o.total)}` },
     {
       key: 'due_total',

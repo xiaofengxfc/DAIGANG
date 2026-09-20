@@ -206,6 +206,35 @@ export function monthStart() {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-01`
 }
 
+/* ---------- 交付日期还剩几天 ----------
+   下单台和订单列表/详情共用这一份，算法保证一致。 */
+
+/** 两个日期相差几天（to - from）；读不出来返回 null */
+export function dayDiff(from, to) {
+  if (!from || !to) return null
+  const f = new Date(`${String(from).slice(0, 10)}T00:00:00`)
+  const t = new Date(`${String(to).slice(0, 10)}T00:00:00`)
+  if (Number.isNaN(f.getTime()) || Number.isNaN(t.getTime())) return null
+  return Math.round((t - f) / 86400000)
+}
+
+/**
+ * 交付日期的情况。
+ * kind: 'none' 没填 / 'ok' 还早 / 'soon' ≤2 天 / 'bad' 已逾期 / 'invalid' 交付早于下单
+ * text: 「剩余 7 天」「今天到期」「已逾期 3 天」
+ * span: 下单到交付跨了几天（null = 算不出来）
+ */
+export function remainInfo(orderedAt, dueAt) {
+  if (!dueAt) return { kind: 'none', text: '', span: null }
+  const span = dayDiff(orderedAt, dueAt)
+  if (span !== null && span < 0) return { kind: 'invalid', text: '', span }
+  const left = dayDiff(todayStr(), dueAt)
+  if (left === null) return { kind: 'none', text: '', span }
+  const text = left > 0 ? `剩余 ${left} 天` : left === 0 ? '今天到期' : `已逾期 ${Math.abs(left)} 天`
+  const kind = left < 0 ? 'bad' : left <= 2 ? 'soon' : 'ok'
+  return { kind, text, span }
+}
+
 export function relTime(iso) {
   if (!iso) return ''
   const d = new Date(iso)
