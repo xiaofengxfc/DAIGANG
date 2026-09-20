@@ -1542,15 +1542,19 @@ button.cell:hover {
   border-top: 1px solid var(--line);
 }
 
+/* 大类：比服务项高一级，所以要「重」得看得出来 ——
+   更大的字、更实的底色、一条完整的朱砂竖条，服务项则退回轻底色。 */
 .pcat__head {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  padding: 9px var(--sp-4) 9px var(--sp-5);
+  padding: 11px var(--sp-4) 11px var(--sp-3);
   cursor: pointer;
   color: var(--ink);
   flex-wrap: wrap;
-  background: var(--surface);
+  background: var(--surface-2);
+  border-top: 1px solid var(--line-strong);
+  border-bottom: 1px solid var(--line);
 }
 
 /* 大类标题也能拖：抓住标题拖动 = 调大类顺序 */
@@ -1559,27 +1563,44 @@ button.cell:hover {
 }
 
 .pcat__head:hover {
-  background: var(--surface-2);
+  background: var(--surface-3);
+}
+
+/* 整块左侧一条朱砂轨，一眼看出「这些服务项都属于它」 */
+.pcat {
+  border-left: 3px solid var(--cinnabar-line);
+  margin-left: 2px;
 }
 
 .pcat__name {
-  font-weight: 500;
-  font-size: var(--fs-base);
+  font-weight: 600;
+  font-size: var(--fs-md);
+  letter-spacing: -0.01em;
 }
 
 .pcat__name::before {
   content: '';
   display: inline-block;
-  width: 3px;
-  height: 12px;
+  width: 4px;
+  height: 15px;
   border-radius: 2px;
-  background: var(--cinnabar-line);
-  margin-right: 8px;
-  vertical-align: -1px;
+  background: var(--cinnabar);
+  margin-right: 9px;
+  vertical-align: -2px;
 }
 
+/* 服务项：轻底色 + 缩进，跟大类拉开层次 */
 .pcat__body {
   background: var(--surface);
+}
+
+.pcat__body .pitem {
+  padding-left: var(--sp-5);
+}
+
+/* 大类之间空开一点，别糊成一片 */
+.pcat + .pcat {
+  margin-top: 6px;
 }
 
 /* ============================================================
@@ -2328,6 +2349,28 @@ pre.plaintext {
   border-radius: 6px;
   font-size: var(--fs-xs);
   font-weight: 600;
+}
+
+.avatar--lg {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  object-fit: cover;
+}
+
+/* 头像是图片时用圆形；没头像时保留方块 initials */
+img.avatar {
+  object-fit: cover;
+}
+
+img.avatar--xs {
+  border-radius: 50%;
+}
+
+img.avatar--lg {
+  border-radius: 50%;
 }
 
 .custcell__txt {

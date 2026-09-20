@@ -239,6 +239,9 @@ const MIGRATIONS = [
   );
   CREATE INDEX idx_quotes_created ON quotes (created_at DESC);
   `,
+
+  // v2：客户头像
+  `ALTER TABLE customers ADD COLUMN avatar TEXT NOT NULL DEFAULT '';`,
 ]
 
 export function migrate() {

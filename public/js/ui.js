@@ -4,7 +4,7 @@
    ============================================================ */
 
 import { h, frag, icon, mount, clear, cls, uid, fmtMoney, fmtQty, copyText } from './dom.js'
-import { STATUS_TONE, STATUS_FLOW } from './api.js'
+import { api, STATUS_TONE, STATUS_FLOW } from './api.js'
 
 /* ============================================================
    吐司
@@ -275,6 +275,99 @@ export function makeField(f, initial) {
   const { el, errEl } = fieldShell(f, control)
   if (f.width !== 'half') el.classList.add('field--full')
   return { el, read, focus, control, errEl }
+}
+
+/**
+ * 图片上传字段：游戏图标、客户头像共用。
+ * 上传后落到 /api/uploads，值就是能直接当 img src 用的地址。
+ * 用法：fields: [..., imageField({ name: 'avatar', label: '头像' })]
+ */
+export function imageField({
+  name = 'image',
+  label = '图片',
+  value = '',
+  prefix = 'img',
+  shape = 'square',
+  size = 56,
+  hint = '',
+  placeholder = '无',
+} = {}) {
+  let url = value || ''
+  let preview = null
+
+  const file = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp,image/gif,image/svg+xml', style: { display: 'none' } })
+  const btn = h('button.btn.btn--sm', { type: 'button' }, icon('upload', 14), '选一张图')
+  const clearBtn = h('button.btn.btn--sm.btn--quiet', { type: 'button' }, '去掉')
+
+  function paint() {
+    if (!preview) return
+    preview.replaceChildren(
+      url ? h('img', { src: url, alt: label, style: { width: '100%', height: '100%', objectFit: 'cover' } }) : h('span.dim.tiny', placeholder)
+    )
+    clearBtn.style.display = url ? '' : 'none'
+  }
+
+  btn.addEventListener('click', () => file.click())
+  clearBtn.addEventListener('click', () => {
+    url = ''
+    paint()
+  })
+  file.addEventListener('change', async () => {
+    const f = file.files && file.files[0]
+    if (!f) return
+    if (f.size > 1.5 * 1024 * 1024) {
+      toast('图片请压到 1.5MB 以内', 'err', 3600)
+      return
+    }
+    btn.setAttribute('data-loading', '1')
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const fr = new FileReader()
+        fr.onload = () => resolve(fr.result)
+        fr.onerror = () => reject(new Error('读不了这个文件'))
+        fr.readAsDataURL(f)
+      })
+      const r = await api.post('/api/uploads', { data_url: dataUrl, prefix })
+      url = r.url
+      paint()
+      toast('图片已上传', 'ok')
+    } catch (err) {
+      toast(err && err.message ? err.message : '上传失败', 'err', 4200)
+    } finally {
+      btn.removeAttribute('data-loading')
+      file.value = ''
+    }
+  })
+
+  return {
+    type: 'custom',
+    width: 'full',
+    render: () => {
+      preview = h('div', {
+        style: {
+          width: `${size}px`,
+          height: `${size}px`,
+          borderRadius: shape === 'circle' ? '50%' : '12px',
+          border: '1px solid var(--line-strong)',
+          background: 'var(--surface-inset)',
+          overflow: 'hidden',
+          display: 'grid',
+          placeContent: 'center',
+          flex: 'none',
+        },
+      })
+      paint()
+      return h(
+        'div.field.field--full',
+        label ? h('label.lbl', label) : null,
+        h('div.cluster', preview, h('div.stack.stack--tight', h('div.cluster', btn, clearBtn), hint ? h('div.hint', hint) : null)),
+        file
+      )
+    },
+    collect: (out) => {
+      out[name] = url
+    },
+  }
 }
 
 /**

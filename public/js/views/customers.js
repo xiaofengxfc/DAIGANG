@@ -98,7 +98,9 @@ function customerRow(c, ctx) {
   return h(
     'button.item',
     { type: 'button', onclick: () => ctx.navigate(`/customers/${c.id}`) },
-    h('div.avatar', (c.name || '?').slice(0, 1)),
+    c.avatar
+      ? h('img.avatar', { src: c.avatar, alt: '', loading: 'lazy' })
+      : h('div.avatar', (c.name || '?').slice(0, 1)),
     h(
       'div.item__main',
       h(
@@ -285,11 +287,18 @@ export async function renderCustomerDetail(ctx, id) {
     h(
       'div.pagehead',
       h(
-        'div.pagehead__txt',
-        h('h1', c.name),
+        'div.cluster',
+        { style: { gap: 'var(--sp-3)', alignItems: 'center' } },
+        c.avatar
+          ? h('img.avatar.avatar--lg', { src: c.avatar, alt: '', style: { flex: 'none' } })
+          : h('div.avatar.avatar--lg', { style: { flex: 'none' } }, (c.name || '?').slice(0, 1)),
         h(
-          'p.pagehead__sub',
-          `${s.order_count} 张单 · 累计 ¥${fmtMoney(s.order_total)}${s.due_total > 0.001 ? ` · 还欠 ¥${fmtMoney(s.due_total)}` : ' · 已结清'}`
+          'div.pagehead__txt',
+          h('h1', c.name),
+          h(
+            'p.pagehead__sub',
+            `${s.order_count} 张单 · 累计 ¥${fmtMoney(s.order_total)}${s.due_total > 0.001 ? ` · 还欠 ¥${fmtMoney(s.due_total)}` : ' · 已结清'}`
+          )
         )
       )
     ),

@@ -5,98 +5,31 @@
 
 import { api } from '../api.js'
 import { h, icon, fmtDate, fmtMoney } from '../dom.js'
-import { table, toast, toastErr, formDrawer, confirmModal, confirmDelete, emptyState, tag, copyButton } from '../ui.js'
+import { table, toast, toastErr, formDrawer, imageField, confirmModal, confirmDelete, emptyState, tag, copyButton } from '../ui.js'
 
-/* 游戏图标：上传后落到 data/uploads，列表里当图片用 */
-function iconField(initialUrl = '') {
-  let url = initialUrl
-  let preview
-  const file = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp,image/gif,image/svg+xml', style: { display: 'none' } })
-  const btn = h('button.btn.btn--sm', { type: 'button' }, icon('upload', 14), '选一张图')
-  const clearBtn = h('button.btn.btn--sm.btn--quiet', { type: 'button' }, '去掉')
-
-  function paint() {
-    if (!preview) return
-    preview.replaceChildren(
-      url
-        ? h('img', { src: url, alt: '游戏图标', style: { width: '100%', height: '100%', objectFit: 'cover' } })
-        : h('span.dim.tiny', '无图标')
-    )
-    clearBtn.style.display = url ? '' : 'none'
-  }
-
-  btn.addEventListener('click', () => file.click())
-  clearBtn.addEventListener('click', () => {
-    url = ''
-    paint()
-  })
-  file.addEventListener('change', async () => {
-    const f = file.files && file.files[0]
-    if (!f) return
-    if (f.size > 1.5 * 1024 * 1024) {
-      toastErr('图片请压到 1.5MB 以内')
-      return
-    }
-    btn.setAttribute('data-loading', '1')
-    try {
-      const dataUrl = await new Promise((resolve, reject) => {
-        const fr = new FileReader()
-        fr.onload = () => resolve(fr.result)
-        fr.onerror = () => reject(new Error('读不了这个文件'))
-        fr.readAsDataURL(f)
-      })
-      const r = await api.post('/api/uploads', { data_url: dataUrl, prefix: 'game' })
-      url = r.url
-      paint()
-      toast('图标已上传', 'ok')
-    } catch (err) {
-      toastErr(err)
-    } finally {
-      btn.removeAttribute('data-loading')
-      file.value = ''
-    }
-  })
-
-  return {
-    type: 'custom',
-    width: 'full',
-    render: () => {
-      preview = h('div', {
-        style: {
-          width: '56px',
-          height: '56px',
-          borderRadius: '12px',
-          border: '1px solid var(--line-strong)',
-          background: 'var(--surface-inset)',
-          overflow: 'hidden',
-          display: 'grid',
-          placeContent: 'center',
-          flex: 'none',
-        },
-      })
-      paint()
-      return h(
-        'div.field.field--full',
-        h('label.lbl', '图标'),
-        h('div.cluster', preview, h('div.stack.stack--tight', h('div.cluster', btn, clearBtn), h('div.hint', '选填。会显示在游戏列表和报价单上。'))),
-        file
-      )
-    },
-    collect: (out) => {
-      out.icon = url
-    },
-  }
-}
+/* 游戏图标：上传后落到 data/uploads，列表里当图片用。
+   具体实现挪到了 ui.js 的 imageField（和客户头像共用一份）。 */
 
 export function gameForm(values = {}) {
   return formDrawer({
     title: values.id ? '改游戏' : '新建游戏',
     submitLabel: '保存',
     wide: true,
+    // 必须把 values 交给 formDrawer：
+    // 表单是按 f.name in values ? values[f.name] : f.default 取初值的，
+    // 不传就全用 default，而下面这些字段没写 default —— 结果就是「改游戏」时
+    // 名字、简介、区服、排序全是空的，逼你重填一遍。
+    values,
     fields: [
       { name: 'name', label: '游戏名', type: 'text', required: true, placeholder: '例：原神 / 崩坏：星穹铁道', width: 'half' },
       { name: 'short_name', label: '简称', type: 'text', placeholder: '例：YS / 崩铁', width: 'half' },
-      iconField(values.icon || ''),
+      imageField({
+        name: 'icon',
+        label: '图标',
+        value: values.icon || '',
+        prefix: 'game',
+        hint: '选填。会显示在游戏列表和报价单上。',
+      }),
       { name: 'servers', label: '区服列表', type: 'tags', hint: '逗号分隔。例：天空岛, 世界树, 亚服。开单时可以直接选。' },
       {
         name: 'status',

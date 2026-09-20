@@ -38,8 +38,9 @@ function unitOf(s) {
    写在 render 里的 Map 每次都是新的，状态照样丢，
    表现就是「填完内容大类自己收起来了」。
 
-   默认值：第一次见到某个大类时，空的或不超过 8 项的展开，多的先收起。
-   之后用户怎么点就怎么记着，刷新页面也还在（存在 sessionStorage）。
+   默认**全部收起**：一进价格表先看到的是「这张表里有哪些大类、各有多少项」，
+   想看哪个再点开哪个，不用在一屏拉不到底的长列表里翻。
+   谁点开过就记住谁（刷新页面也还在，存在 sessionStorage）。
 ------------------------------------------------------------------ */
 
 const CAT_OPEN_KEY = 'xfc.price.catOpen'
@@ -52,9 +53,9 @@ try {
   /* 读不出来就当没有，不影响使用 */
 }
 
-function isCatOpen(catId, count) {
+function isCatOpen(catId) {
   const k = String(catId)
-  return catOpen.has(k) ? catOpen.get(k) : count <= 8
+  return catOpen.has(k) ? catOpen.get(k) : false
 }
 
 function setCatOpen(catId, open) {
@@ -1504,7 +1505,7 @@ export default {
 
           // 展开/收起状态记在 catOpen 里，刷新不会丢；
           // 第一次见到某个大类时：空的或不超过 8 项的默认展开，多的默认收起
-          const open = isCatOpen(b.cat.id, b.all.length)
+          const open = isCatOpen(b.cat.id)
           catBody.style.display = open ? '' : 'none'
           catHead.setAttribute('aria-expanded', open ? 'true' : 'false')
           catHead.addEventListener('click', () => {

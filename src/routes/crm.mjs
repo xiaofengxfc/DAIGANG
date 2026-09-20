@@ -16,6 +16,7 @@ export const customers = makeDef({
   archiveInstead: true,
   columns: {
     name: { type: 'string', required: true, label: '昵称', max: 60, filter: true },
+    avatar: { type: 'string', label: '头像', max: 400 },
     phone: { type: 'string', label: '手机号', max: 30, unique: true },
     wechat: { type: 'string', label: '微信', max: 60 },
     qq: { type: 'string', label: 'QQ', max: 30 },

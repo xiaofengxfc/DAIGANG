@@ -12,6 +12,7 @@ import {
   modal,
   confirmDelete,
   formDrawer,
+  imageField,
   emptyState,
   lamp,
   tag,
@@ -608,6 +609,15 @@ export function customerForm(values = {}, { title = '新客户' } = {}) {
     submitLabel: '保存',
     values,
     fields: [
+      imageField({
+        name: 'avatar',
+        label: '头像',
+        value: values.avatar || '',
+        prefix: 'customer',
+        shape: 'circle',
+        size: 60,
+        hint: '选填。会显示在客户列表和订单列表上，客户多了好认。',
+      }),
       { name: 'name', label: '昵称', type: 'text', required: true, placeholder: '客户怎么称呼' },
       { name: 'phone', label: '手机号', type: 'text', width: 'half', hint: '用作客户标识，方便搜索' },
       { name: 'wechat', label: '微信', type: 'text', width: 'half' },

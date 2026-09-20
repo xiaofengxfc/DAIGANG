@@ -184,7 +184,9 @@ export function orderColumns({ showCustomer = true, ctx } = {}) {
               ctx.navigate(`/customers/${o.customer_id}`)
             },
           },
-          h('span.avatar.avatar--xs', (o.customer_name || '?').slice(0, 1)),
+          o.customer_avatar
+            ? h('img.avatar.avatar--xs', { src: o.customer_avatar, alt: '', loading: 'lazy' })
+            : h('span.avatar.avatar--xs', (o.customer_name || '?').slice(0, 1)),
           h(
             'span.custcell__txt',
             h('span.custcell__name', o.customer_name || '没填名字'),

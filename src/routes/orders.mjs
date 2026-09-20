@@ -37,7 +37,9 @@ const ORDER_LIST_SQL = `
     (SELECT COALESCE(SUM(CASE WHEN p.kind = 'refund' THEN -p.amount ELSE p.amount END), 0)
        FROM payments p WHERE p.order_id = o.id AND p.status = 'confirmed') AS paid_total,
     -- 同一个客户一共下过几单：列表里一眼能看出是老客户还是头一回
-    (SELECT COUNT(*) FROM orders x WHERE x.customer_id = o.customer_id AND o.customer_id IS NOT NULL) AS customer_order_count
+    (SELECT COUNT(*) FROM orders x WHERE x.customer_id = o.customer_id AND o.customer_id IS NOT NULL) AS customer_order_count,
+    -- 客户头像：订单列表的客户格里直接显示
+    (SELECT c.avatar FROM customers c WHERE c.id = o.customer_id) AS customer_avatar
   FROM orders o
 `
 
