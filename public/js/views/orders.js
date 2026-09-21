@@ -757,6 +757,91 @@ async function renderDetail(ctx, id) {
     }
   }
 
+  /** 拆单：把几个服务项挪到一张新单上，两边各自收款结单 */
+  const splitOrder = () => {
+    const pickedIds = new Set()
+    const list = h('div.itemlist')
+    for (const it of o.items) {
+      const cb = h('input.chk', { type: 'checkbox', 'aria-label': `拆出 ${it.name}` })
+      cb.addEventListener('change', () => {
+        if (cb.checked) pickedIds.add(it.id)
+        else pickedIds.delete(it.id)
+        paintFoot()
+      })
+      list.appendChild(
+        h(
+          'label.item',
+          { style: { cursor: 'pointer', alignItems: 'center', gap: '10px' } },
+          cb,
+          h(
+            'div.item__main',
+            h('div.item__title', it.name, it.is_daily ? tag('每天做', 'jade') : null),
+            it.spec ? h('div.tbl__meta', it.spec) : null
+          ),
+          h('div.item__right', h('div.item__fig', `¥${fmtMoney(it.amount)}`))
+        )
+      )
+    }
+    const foot = h('div.note.note--warn')
+    const m = modal({
+      title: `拆单 · ${o.order_no}`,
+      wide: true,
+      body: h(
+        'div.stack',
+        h('p.sm', '适合「30天日体 + 几个活动」这种单：把活动拆出去单独结算，日体那张继续天天标今日完成。'),
+        h('p.sm.dim', '勾上要拆出去的 —— 选中的会变成一张新单，没选的留在原单。'),
+        list,
+        foot
+      ),
+      actions: [
+        { label: '取消' },
+        {
+          label: '拆成新单',
+          tone: 'primary',
+          key: 'go',
+          onClick: async ({ close }) => {
+            try {
+              const r = await api.post(`/api/orders/${o.id}/split`, { item_ids: [...pickedIds] })
+              close()
+              toast(`已拆出 ${r.moved_count} 项，新单 ${r.created.order_no}`, 'ok', 4200)
+              if (r.original_overpaid > 0.001) {
+                setTimeout(
+                  () =>
+                    toast(
+                      `注意：原单还留着 ¥${fmtMoney(r.payments_stayed)} 的收款，但金额只剩 ¥${fmtMoney(r.original.total)}，多收了 ¥${fmtMoney(r.original_overpaid)}`,
+                      'err',
+                      9000
+                    ),
+                  400
+                )
+              }
+              ctx.app.reload()
+            } catch (err) {
+              toastErr(err)
+              return false
+            }
+          },
+        },
+      ],
+    })
+    function paintFoot() {
+      const n = pickedIds.size
+      const rest = o.items.length - n
+      foot.replaceChildren(
+        h(
+          'span',
+          n === 0
+            ? '还没勾任何服务项。'
+            : rest === 0
+              ? '不能全拆走 —— 原单得至少留一个服务项（整张都要挪的话，不如直接改这一张）。'
+              : `拆出去 ${n} 项，原单留 ${rest} 项。折扣 / 手续费 / 成本留在原单，新单从 0 开始。`
+        )
+      )
+      if (m.setDisabled) m.setDisabled('go', n === 0 || rest === 0)
+    }
+    paintFoot()
+  }
+
   ctx.setActions(
     h('button.btn.btn--sm', { type: 'button', onclick: () => progressDrawer(o, () => ctx.app.reload()) }, icon('edit', 14), '记进度'),
     o.due_total > 0.001
@@ -785,6 +870,10 @@ async function renderDetail(ctx, id) {
       '推进状态'
     ),
     h('button.btn.btn--sm', { type: 'button', onclick: () => openComposer(ctx, { existing: o }) }, icon('price', 14), '改明细'),
+    // 混着日常和一次性的单：把一次性的拆出去，两边各自结算
+    o.items.length > 1
+      ? h('button.btn.btn--sm', { type: 'button', title: '把其中几个服务项拆成一张新单', onclick: splitOrder }, icon('copy', 14), '拆单')
+      : null,
     h(
       'button.btn.btn--sm.btn--icon',
       {

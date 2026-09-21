@@ -288,6 +288,139 @@ export function register() {
     }
   })
 
+  /**
+   * 拆单：把一张单里的若干服务项挪到一张新单上，两边各自收款、各自结单。
+   * 典型场景：「30天日体 + 两个活动」拆成两张 —— 日体那张天天标今日完成，
+   * 活动那张自己走完成流程，互不牵扯。
+   *
+   * 钱怎么分（说清楚，免得对不上账）：
+   *   · 每个服务项自己的金额（含它的增项）跟着它走；
+   *   · 折扣 / 手续费 / 成本**留在原单**，新单从 0 开始（拆完可以各自再改）；
+   *   · 已经记过的收款也**留在原单**，不自动分。原单因此可能变成「多收」，
+   *     会在返回里告诉前端。
+   * body: { item_ids: [要拆出去的服务项 id] }
+   */
+  post('/api/orders/:id/split', (ctx) => {
+    const id = int(ctx.params.id)
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id)
+    if (!order) notFound('订单不存在')
+
+    const rawIds = Array.isArray(ctx.body.item_ids) ? ctx.body.item_ids.map((x) => int(x)).filter((n) => n > 0) : []
+    if (!rawIds.length) bad('请至少勾一个要拆出去的服务项', 'nothing_selected')
+
+    const all = db.prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY sort_order, id').all(id)
+    const move = all.filter((i) => rawIds.includes(i.id))
+    const keep = all.filter((i) => !rawIds.includes(i.id))
+    if (move.length !== rawIds.length) bad('有服务项不属于这张单', 'bad_item')
+    if (!keep.length) bad('至少得留一个服务项在原单里；如果整张都要挪走，不如直接改这一张', 'leaves_nothing')
+
+    // 从快照里把「增项」还原出来，才能把 base 和 addon 分开算
+    const split = (rows) => {
+      let base = 0
+      let addon = 0
+      for (const r of rows) {
+        let snap = {}
+        try {
+          snap = JSON.parse(r.snapshot || '{}')
+        } catch {
+          snap = {}
+        }
+        const a = money((snap.addons || []).reduce((s, x) => s + num(x.amount), 0))
+        addon = money(addon + a)
+        base = money(base + (money(r.amount) - a))
+      }
+      return { items_subtotal: money(base), addon_total: money(addon) }
+    }
+
+    const movedSum = split(move)
+    const keepSum = split(keep)
+    // 原单保留原来的折扣/手续费/成本；新单从 0 起
+    const keepTotals = computeTotals({
+      items_subtotal: keepSum.items_subtotal,
+      addon_total: keepSum.addon_total,
+      discount: order.discount,
+      platform_fee: order.platform_fee,
+      cost: order.cost,
+    })
+    const newTotals = computeTotals({ items_subtotal: movedSum.items_subtotal, addon_total: movedSum.addon_total })
+
+    const now = stamp()
+    const paid = money(
+      db
+        .prepare("SELECT COALESCE(SUM(CASE WHEN kind='refund' THEN -amount ELSE amount END),0) AS s FROM payments WHERE order_id = ? AND status = 'confirmed'")
+        .get(id).s
+    )
+
+    db.exec('BEGIN')
+    try {
+      // 1. 新单：客户/游戏/日期/状态都照抄，标题加个来源标注
+      const orderNo = nextSerialNo('DH', 'orders', 'order_no')
+      const title = clampStr(`${order.title || '订单'}（拆出）`, 120)
+      const info = db
+        .prepare(
+          `INSERT INTO orders (order_no, customer_id, game_id, title, status, customer_name, game_name,
+             items_subtotal, addon_total, discount, total, platform_fee, cost, ordered_at, due_at, completed_at,
+             note, internal_note, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .run(
+          orderNo,
+          order.customer_id,
+          order.game_id,
+          title,
+          order.status,
+          order.customer_name,
+          order.game_name,
+          newTotals.items_subtotal,
+          newTotals.addon_total,
+          newTotals.discount,
+          newTotals.total,
+          newTotals.platform_fee,
+          newTotals.cost,
+          order.ordered_at,
+          order.due_at,
+          order.completed_at,
+          `拆自 ${order.order_no}`,
+          '',
+          now,
+          now
+        )
+      const newId = Number(info.lastInsertRowid)
+
+      // 2. 把选中的明细挪过去（保留原来的 sort_order，顺序不变）
+      const upd = db.prepare('UPDATE order_items SET order_id = ? WHERE id = ?')
+      for (const it of move) upd.run(newId, it.id)
+
+      // 3. 原单按剩下的重算
+      db.prepare(
+        `UPDATE orders SET items_subtotal = ?, addon_total = ?, discount = ?, total = ?,
+           platform_fee = ?, cost = ?, updated_at = ? WHERE id = ?`
+      ).run(
+        keepTotals.items_subtotal,
+        keepTotals.addon_total,
+        keepTotals.discount,
+        keepTotals.total,
+        keepTotals.platform_fee,
+        keepTotals.cost,
+        now,
+        id
+      )
+      db.exec('COMMIT')
+
+      return {
+        created: orderDetail(newId),
+        original: orderDetail(id),
+        moved_count: move.length,
+        // 原单剩下的钱已经不够抵之前收的了 —— 提醒一下，别让账悄悄偏掉
+        original_overpaid: money(Math.max(0, paid - keepTotals.total)),
+        payments_stayed: paid,
+      }
+    } catch (err) {
+      db.exec('ROLLBACK')
+      throw err
+    }
+  })
+
   /* ===== 改单：改价只影响这一单，不碰价格表 ===== */
   patch('/api/orders/:id', (ctx) => {
     const id = int(ctx.params.id)

@@ -325,6 +325,66 @@ async function main() {
   r = await api('DELETE', `/api/orders/${closedOrderId}`)
   ok('临时单已清理（不影响后面的统计）', r.status === 200, r.status)
 
+  /* ---- 拆单：把一张单里的若干服务项挪到新单，两边各自结算 ---- */
+  r = await api('POST', '/api/orders', {
+    customer_id: custId,
+    game_id: gameId,
+    title: '待拆的单',
+    items: [
+      { service_id: svcDaily, quantity: 10 },
+      { service_id: svcAbyss, quantity: 4 },
+    ],
+    discount: 10,
+    platform_fee: 5,
+    cost: 3,
+  })
+  const splitId = r.body.id
+  const beforeSplit = r.body
+  ok('建好待拆的单', beforeSplit.items.length === 2, `${beforeSplit.order_no} ¥${beforeSplit.total}`)
+  const keepItem = beforeSplit.items.find((i) => i.ref_id === svcDaily)
+  const moveItem = beforeSplit.items.find((i) => i.ref_id === svcAbyss)
+
+  r = await api('POST', `/api/orders/${splitId}/split`, { item_ids: [moveItem.id] })
+  ok('拆单返回新单和原单', r.status === 200 && !!r.body.created?.id && !!r.body.original?.id, `${r.status}`)
+  const created = r.body.created
+  const original = r.body.original
+  ok('新单号跟原单不一样', created.order_no !== original.order_no, `${original.order_no} → ${created.order_no}`)
+  ok('新单拿走了被勾的那一项', created.items.length === 1 && created.items[0].ref_id === svcAbyss, created.items.map((i) => i.name).join('、'))
+  ok('原单只剩没勾的那一项', original.items.length === 1 && original.items[0].ref_id === svcDaily, original.items.map((i) => i.name).join('、'))
+  ok('原单金额 = 剩下的项 - 折扣', Math.abs(original.total - Math.max(0, keepItem.amount - 10)) < 0.01, `¥${original.total}（项 ¥${keepItem.amount} - 折 10）`)
+  ok('新单金额 = 拆走那一项的钱', Math.abs(created.total - moveItem.amount) < 0.01, `¥${created.total} vs ¥${moveItem.amount}`)
+  ok('两边的项钱加起来没变', Math.abs(original.items_subtotal + created.items_subtotal - beforeSplit.items_subtotal) < 0.01, `${original.items_subtotal} + ${created.items_subtotal} vs ${beforeSplit.items_subtotal}`)
+  ok('折扣/手续费/成本留在原单', original.discount === 10 && original.platform_fee === 5 && original.cost === 3, `${original.discount}/${original.platform_fee}/${original.cost}`)
+  ok('新单这几项从 0 开始', created.discount === 0 && created.platform_fee === 0 && created.cost === 0, `${created.discount}/${created.platform_fee}/${created.cost}`)
+  ok('客户/游戏/日期照抄过去', created.customer_id === beforeSplit.customer_id && created.game_id === beforeSplit.game_id && created.ordered_at === beforeSplit.ordered_at, '')
+  ok('标题标了来源', /拆出/.test(created.title) && /拆自/.test(created.note || ''), `${created.title} / ${created.note}`)
+
+  // 拆完两边各自走各自的
+  r = await api('POST', `/api/orders/${created.id}/status`, { status: 'in_progress' })
+  r = await api('POST', `/api/orders/${created.id}/status`, { status: 'done' })
+  ok('拆出来的新单能单独标完成', r.body.status === 'done', r.body.status_label)
+  const origAfter = (await api('GET', `/api/orders/${splitId}`)).body
+  ok('原单状态不受影响', origAfter.status === beforeSplit.status, `${beforeSplit.status_label} → ${origAfter.status_label}`)
+  r = await api('POST', '/api/payments', { order_id: created.id, kind: 'full', method: '微信', amount: created.total, paid_at: '2026-09-21' })
+  ok('新单能单独收款', r.status === 200, r.status)
+  ok('收的钱只算在新单上', (await api('GET', `/api/orders/${created.id}`)).body.paid_total === created.total, '')
+  ok('原单一分钱没收（没被带过去）', (await api('GET', `/api/orders/${splitId}`)).body.paid_total === 0, '')
+
+  // 边界
+  r = await api('POST', `/api/orders/${splitId}/split`, { item_ids: [] })
+  ok('一项都没勾会被拒', r.status === 400 && r.body.code === 'nothing_selected', r.body.code)
+  r = await api('POST', `/api/orders/${splitId}/split`, { item_ids: [(await api('GET', `/api/orders/${splitId}`)).body.items[0].id] })
+  ok('全拆走会被拒（原单不能空）', r.status === 400 && r.body.code === 'leaves_nothing', r.body.code)
+  r = await api('POST', `/api/orders/${splitId}/split`, { item_ids: [999999] })
+  ok('不属于这张单的明细会被拒', r.status === 400 && r.body.code === 'bad_item', r.body.code)
+  r = await api('GET', `/api/orders/${splitId}`)
+  ok('被拒之后原单毫发无损', r.body.items.length === 1 && r.body.total === original.total, `${r.body.items.length} 项 ¥${r.body.total}`)
+
+  // 清掉拆出来的两张（新单有收款，得带 force）
+  await api('DELETE', `/api/orders/${created.id}?force=1`)
+  r = await api('DELETE', `/api/orders/${splitId}`)
+  ok('拆单测试的临时单都清理了', r.status === 200, r.status)
+
   /* ---------- 收款 ---------- */
   section('收款与状态推进')
   r = await api('POST', '/api/payments', { order_id: orderId, amount: 200, method: 'wechat', kind: 'deposit', note: '定金' })

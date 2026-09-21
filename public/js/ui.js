@@ -78,6 +78,7 @@ function openDialog({ node, onClose }) {
 export function modal({ title, body, actions = [], wide = false, onClose }) {
   const foot = h('div.modal__foot')
   const close = () => finish()
+  const buttons = new Map()
   const dlg = h(
     `dialog.modal${wide ? '.modal--wide' : ''}`,
     h('div.modal__body', title ? h('h2.modal__title', title) : null, body),
@@ -85,24 +86,32 @@ export function modal({ title, body, actions = [], wide = false, onClose }) {
   )
   const finish = openDialog({ node: dlg, onClose })
   for (const a of actions) {
-    foot.appendChild(
-      h(
-        `button.btn${a.tone === 'primary' ? '.btn--primary' : a.tone === 'danger' ? '.btn--danger' : ''}`,
-        {
-          type: 'button',
-          onclick: async () => {
-            if (a.onClick) {
-              const r = await a.onClick({ close: finish })
-              if (r === false) return
-            }
-            if (a.keepOpen !== true) finish()
-          },
+    const btn = h(
+      `button.btn${a.tone === 'primary' ? '.btn--primary' : a.tone === 'danger' ? '.btn--danger' : ''}`,
+      {
+        type: 'button',
+        onclick: async () => {
+          if (a.onClick) {
+            const r = await a.onClick({ close: finish })
+            if (r === false) return
+          }
+          if (a.keepOpen !== true) finish()
         },
-        a.label
-      )
+      },
+      a.label
     )
+    if (a.key) buttons.set(a.key, btn)
+    foot.appendChild(btn)
   }
-  return { close: finish, node: dlg }
+  return {
+    close: finish,
+    node: dlg,
+    /** 灰掉某个按钮（动作上标了 key 才能按 key 找）。比如「没勾东西就不能拆」。 */
+    setDisabled: (key, disabled) => {
+      const b = buttons.get(key)
+      if (b) b.disabled = Boolean(disabled)
+    },
+  }
 }
 
 export function confirmModal({ title, message, confirmLabel = '确定', tone = 'primary', extra = null }) {
