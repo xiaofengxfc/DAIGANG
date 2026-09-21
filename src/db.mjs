@@ -242,6 +242,23 @@ const MIGRATIONS = [
 
   // v2：客户头像
   `ALTER TABLE customers ADD COLUMN avatar TEXT NOT NULL DEFAULT '';`,
+
+  // v3：包天/日体那种「今天做完了，明天还接着做」的单。
+  // 存的是标记当天的日期，不是布尔值 —— 第二天日期对不上就自动回到「在做的」，
+  // 不需要定时任务去重置。
+  `ALTER TABLE orders ADD COLUMN daily_done_on TEXT;`,
+
+  // v4：哪些大类是「每天都要做」的（日常、日体、包天…）。
+  // 按名字先猜一遍，之后可以在价格表里自己改。
+  `ALTER TABLE service_categories ADD COLUMN is_daily INTEGER NOT NULL DEFAULT 0;
+   UPDATE service_categories
+      SET is_daily = 1
+    WHERE name LIKE '%日常%' OR name LIKE '%日体%' OR name LIKE '%包天%' OR name LIKE '%每日%';`,
+
+  // v5：单个服务项也能单独指定「每天做」。
+  // 留空(NULL) = 跟着它所在的大类走，所以以后往「日常」大类里加服务项不用再设一遍；
+  // 1 / 0 = 在这个服务项上强制覆盖大类。
+  `ALTER TABLE services ADD COLUMN is_daily INTEGER;`,
 ]
 
 export function migrate() {

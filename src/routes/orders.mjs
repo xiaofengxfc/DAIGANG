@@ -39,7 +39,9 @@ const ORDER_LIST_SQL = `
     -- 同一个客户一共下过几单：列表里一眼能看出是老客户还是头一回
     (SELECT COUNT(*) FROM orders x WHERE x.customer_id = o.customer_id AND o.customer_id IS NOT NULL) AS customer_order_count,
     -- 客户头像：订单列表的客户格里直接显示
-    (SELECT c.avatar FROM customers c WHERE c.id = o.customer_id) AS customer_avatar
+    (SELECT c.avatar FROM customers c WHERE c.id = o.customer_id) AS customer_avatar,
+    -- 客户手机号：列表里直接能看，不用点进档案
+    (SELECT c.phone FROM customers c WHERE c.id = o.customer_id) AS customer_phone
   FROM orders o
 `
 
@@ -48,6 +50,8 @@ function decorateOrder(row) {
   const paid = money(row.paid_total)
   const total = money(row.total)
   const hasProgress = row.progress_count > 0
+  // 「今日已完成」：标记的日期就是今天才算数，昨天标记的今天就自动失效
+  const dailyDoneToday = !!row.daily_done_on && row.daily_done_on === localDate()
   return {
     ...row,
     status_label: STATUS_LABEL[row.status] || row.status,
@@ -56,6 +60,7 @@ function decorateOrder(row) {
     overpaid: money(Math.max(0, paid - total)),
     profit: money(total - num(row.platform_fee) - num(row.cost)),
     next_statuses: TRANSITIONS[row.status] || [],
+    daily_done_today: dailyDoneToday,
     stale: row.status === 'in_progress' && hasProgress && row.last_progress_on && daysBetween(row.last_progress_on, localDate()) >= 2,
     idle_days: row.last_progress_on ? daysBetween(row.last_progress_on, localDate()) : null,
   }
@@ -85,7 +90,18 @@ function orderDetail(id) {
     } catch {
       snapshot = {}
     }
-    return { ...i, snapshot }
+    // 这条明细属于哪个大类、是不是「每天都要做」的那种。
+    // 判断顺序：服务项自己指定了就用它的（1/0），没指定(NULL)就跟着大类走。
+    // 认不出来（老单、服务项被删）就当普通项，不崩。
+    const svc = i.ref_id ? db.prepare('SELECT category_id, is_daily FROM services WHERE id = ?').get(i.ref_id) : null
+    const cat = svc && svc.category_id ? db.prepare('SELECT name, is_daily FROM service_categories WHERE id = ?').get(svc.category_id) : null
+    const daily = svc && svc.is_daily !== null && svc.is_daily !== undefined ? !!svc.is_daily : !!(cat && cat.is_daily)
+    return {
+      ...i,
+      snapshot,
+      category_name: cat ? cat.name : '',
+      is_daily: daily,
+    }
   })
   const progressParsed = progressList.map((p) => {
     let media = []
@@ -97,6 +113,11 @@ function orderDetail(id) {
     return { ...p, media }
   })
 
+  // 这张单里「每天要做」的和「一次性的」各是哪些 ——
+  // 标「今日已完成」时用来提醒你：别把还没做的活一起藏起来了。
+  const dailyItems = itemsParsed.filter((i) => i.is_daily)
+  const otherItems = itemsParsed.filter((i) => !i.is_daily)
+
   return {
     ...order,
     items: itemsParsed,
@@ -105,6 +126,9 @@ function orderDetail(id) {
     credentials,
     package_contents: itemsParsed.flatMap((i) => (i.snapshot.package_items || []).map((p) => ({ service: i.name, item: p }))),
     addon_summary: itemsParsed.flatMap((i) => (i.snapshot.addons || []).map((a) => ({ service: i.name, ...a }))),
+    daily_item_count: dailyItems.length,
+    other_items: otherItems.map((i) => i.name),
+    has_daily: dailyItems.length > 0,
   }
 }
 
@@ -143,6 +167,13 @@ export function register() {
     const status = clampStr(ctx.query.status, 40)
     if (status === 'open') {
       where.push("o.status NOT IN ('done','cancelled')")
+      // 今天已经标记「今日已完成」的先从在做里挪走，明天日期对不上自己就回来了
+      where.push('(o.daily_done_on IS NULL OR o.daily_done_on <> ?)')
+      values.push(localDate())
+    } else if (status === 'daily_done') {
+      // 只看今天标记过的这批，方便反悔
+      where.push('o.daily_done_on = ?')
+      values.push(localDate())
     } else if (status === 'unpaid') {
       where.push("o.status IN ('pending_confirm','pending_pay')")
     } else if (status && STATUS_LABEL[status]) {
@@ -412,6 +443,23 @@ export function register() {
       ).run(int(ctx.params.id), localDate(), `状态改为「${STATUS_LABEL[next]}」：${clampStr(ctx.body.note, 400)}`, now)
     }
     return orderDetail(ctx.params.id)
+  })
+
+  /**
+   * 今日已完成：日体、包天这种天天要做的单，今天做完了先挪出「在做」列表，
+   * 明天日期对不上就自动回来 —— 只存日期，不存布尔，省掉定时重置。
+   * body: { done: true } 标记 / { done: false } 撤销
+   */
+  post('/api/orders/:id/daily-done', (ctx) => {
+    const id = int(ctx.params.id)
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id)
+    if (!order) notFound('订单不存在')
+    if (['done', 'cancelled'].includes(order.status)) {
+      bad(`这张单已经是「${STATUS_LABEL[order.status]}」了，不用再标今日完成`, 'order_closed')
+    }
+    const done = ctx.body.done !== false
+    db.prepare('UPDATE orders SET daily_done_on = ?, updated_at = ? WHERE id = ?').run(done ? localDate() : null, stamp(), id)
+    return orderDetail(id)
   })
 
   /** 删除订单：收过钱的不让删，避免账对不上 */

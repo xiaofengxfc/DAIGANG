@@ -94,6 +94,13 @@ export function categoryForm(values = {}, games = [], presetGameId = null) {
         hint: '选「通用」就是一个所有游戏都能用的大类',
         options: [{ value: '', label: '通用（不属于某个游戏）' }, ...games.map((g) => ({ value: String(g.id), label: g.name }))],
       },
+      {
+        name: 'is_daily',
+        label: '每天都做',
+        type: 'check',
+        checkLabel: '每天都做（日常 / 日体 / 包天这种天天要做的）',
+        hint: '勾上之后，开单时会标出来，标「今日已完成」时也会提醒你这张单里是不是还夹着别的活',
+      },
       { name: 'note', label: '备注', type: 'text', placeholder: '选填' },
     ],
     onSubmit: async (v) => {
@@ -228,6 +235,19 @@ export function serviceForm(values = {}, { games = [], categories = [] } = {}) {
       { name: 'min_qty', label: '起订量', type: 'number', width: 'half' },
       { name: 'max_qty', label: '封顶量（留空不限）', type: 'number', width: 'half' },
       { name: 'description', label: '说明', type: 'textarea', rows: 3, placeholder: '客户问的时候你能直接念出来的一段话' },
+      {
+        name: 'is_daily',
+        label: '每天都做',
+        type: 'select',
+        width: 'half',
+        hint: '默认跟着大类走 —— 往「日常」大类里加的服务项自动就算每天做',
+        default: values.is_daily === null || values.is_daily === undefined ? '' : String(values.is_daily),
+        options: [
+          { value: '', label: '跟随大类（推荐）' },
+          { value: '1', label: '是，每天都做' },
+          { value: '0', label: '否，一次性的' },
+        ],
+      },
       { name: 'package_items', label: '套餐包含内容', type: 'tags', hint: '套餐价 / 全包类服务用。逗号分隔，报价单上会逐条列出来。' },
       {
         name: 'status',
@@ -1469,6 +1489,8 @@ export default {
             'div.pcat__head',
             { title: '按住可以调整大类顺序，拖到别的游戏/通用组里就是换归属' },
             h('span.pcat__name', b.cat.name),
+            // 每天都要做的大类，在价格表里也标一下
+            b.cat.is_daily ? tag('每天做', 'jade') : null,
             b.cat.status === 'archived' ? tag('大类已归档', 'oxblood') : null,
             b.cat.note ? h('span.dim.tiny', b.cat.note) : null,
             h('span.pgroup__grow'),

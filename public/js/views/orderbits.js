@@ -159,7 +159,9 @@ export function orderColumns({ showCustomer = true, ctx } = {}) {
           h(
             'div.tbl__primary',
             o.order_no,
-            o.stale ? h('span.tag.tag--amber', { style: { marginLeft: '6px' } }, `${o.idle_days} 天没动`) : null
+            o.stale ? h('span.tag.tag--amber', { style: { marginLeft: '6px' } }, `${o.idle_days} 天没动`) : null,
+            // 今天已经交付过的日体单，第二天自己会回到「在做」
+            o.daily_done_today ? h('span.tag.tag--jade', { style: { marginLeft: '6px' } }, '今日已完成') : null
           ),
           h('div.tbl__meta', o.title || '（没写标题）')
         ),
@@ -177,7 +179,7 @@ export function orderColumns({ showCustomer = true, ctx } = {}) {
           'button.custcell',
           {
             type: 'button',
-            title: `看 ${o.customer_name || '这个客户'} 的档案（名下共 ${n} 张单）`,
+            title: `看 ${o.customer_name || '这个客户'} 的档案（名下共 ${n} 张单）${o.customer_phone ? ` · ${o.customer_phone}` : ''}`,
             onclick: (e) => {
               // 别让点客户变成打开这一单
               e.stopPropagation()
@@ -190,8 +192,14 @@ export function orderColumns({ showCustomer = true, ctx } = {}) {
           h(
             'span.custcell__txt',
             h('span.custcell__name', o.customer_name || '没填名字'),
-            // 一个客户反复下单时给个提示，头一单就不用标了
-            n > 1 ? h('span.custcell__n', `第 ${n} 单`) : null
+            h(
+              'span.custcell__n',
+              // 手机号直接列出来，要联系客户不用点进档案
+              o.customer_phone ? h('span.mono', o.customer_phone) : null,
+              o.customer_phone && n > 1 ? h('span', ' · ') : null,
+              // 一个客户反复下单时给个提示，头一单就不用标了
+              n > 1 ? h('span', `第 ${n} 单`) : null
+            )
           )
         )
       },
@@ -310,6 +318,8 @@ export function orderItemsList(items) {
           h(
             'div.item__title',
             it.name,
+            // 每天都要做的那种，标出来 —— 标「今日已完成」时一眼看出哪部分是日体
+            it.is_daily ? tag('每天做', 'jade') : null,
             it.snapshot?.price_overridden ? tag('改过价', 'cinnabar') : null,
             it.snapshot?.matched_tier ? tag('阶梯价', 'slate') : null
           ),

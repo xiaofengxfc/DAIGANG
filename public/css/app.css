@@ -2555,12 +2555,22 @@ img.avatar--lg {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 9em;
+  max-width: 10em;
 }
 
 .custcell__n {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
   font-size: var(--fs-xs);
   color: var(--ink-3);
+  white-space: nowrap;
+}
+
+/* 手机号：等宽、比「第 N 单」显眼一点，方便直接念/拨 */
+.custcell__n .mono {
+  color: var(--ink-2);
+  letter-spacing: 0.01em;
 }
 
 /* ============================================================

@@ -10,6 +10,7 @@ import {
   toastErr,
   drawer,
   modal,
+  confirmModal,
   confirmDelete,
   formDrawer,
   imageField,
@@ -716,11 +717,67 @@ export function customerForm(values = {}, { title = '新客户' } = {}) {
 
 async function renderDetail(ctx, id) {
   const o = await api.get(`/api/orders/${id}`)
+  const closed = ['done', 'cancelled'].includes(o.status)
+
+  /** 今日已完成：日体、包天那种天天要做的单，今天做完了先挪出「在做」，明天自己回来 */
+  const dailyDone = async (done) => {
+    // 撤销不用问。标记时如果这张单里还夹着「一次性的活」（比如 30天日体 + 两个活动），
+    // 得先提醒一句 —— 标完整张单都会从「在做」里消失，别把没做的活动一起藏了。
+    if (done && (o.other_items || []).length) {
+      const ok = await confirmModal({
+        title: '这张单里还有别的活',
+        message: `标成「今日已完成」之后，整张单今天都会从「在做」里消失，明天才回来。这张单里除了每天要做的，还有：${o.other_items.join('、')}。这些今天也做完了吗？`,
+        confirmLabel: '都做完了，标吧',
+      })
+      if (!ok) return
+    }
+    try {
+      await api.post(`/api/orders/${o.id}/daily-done`, { done })
+      toast(done ? '标成今日完成，明天会自动回到「在做的」' : '已撤销，回到「在做的」', 'ok', 3200)
+      ctx.app.reload()
+    } catch (err) {
+      toastErr(err)
+    }
+  }
+
+  /** 直接推进到已完成（状态机允许才能走，比如还没付钱的单会被拦下） */
+  const finishNow = async () => {
+    const ok = await confirmModal({
+      title: `把 ${o.order_no} 标成已完成？`,
+      message: '整张单就结束了，不再出现在「在做的」里。如果这是每天都要做的日体单，应该用「今日已完成」。',
+      confirmLabel: '标成已完成',
+    })
+    if (!ok) return
+    try {
+      await api.post(`/api/orders/${o.id}/status`, { status: 'done' })
+      toast('订单已完成', 'ok')
+      ctx.app.reload()
+    } catch (err) {
+      toastErr(err)
+    }
+  }
 
   ctx.setActions(
     h('button.btn.btn--sm', { type: 'button', onclick: () => progressDrawer(o, () => ctx.app.reload()) }, icon('edit', 14), '记进度'),
     o.due_total > 0.001
       ? h('button.btn.btn--sm', { type: 'button', onclick: () => paymentDrawer(o, () => ctx.app.reload()) }, icon('wallet', 14), '记收款')
+      : null,
+    // 每天要做的单：今天做完了先标掉，明天自己回来
+    !closed
+      ? h(
+          'button.btn.btn--sm',
+          {
+            type: 'button',
+            title: o.daily_done_today ? '撤销今日完成，重新回到「在做」' : '今天这份做完了，先挪出「在做」，明天自动回来',
+            onclick: () => dailyDone(!o.daily_done_today),
+          },
+          icon(o.daily_done_today ? 'refresh' : 'check', 14),
+          o.daily_done_today ? '撤销今日完成' : '今日已完成'
+        )
+      : null,
+    // 状态机允许的话，一步标成整单完成
+    !closed && (o.next_statuses || []).includes('done')
+      ? h('button.btn.btn--sm.btn--primary', { type: 'button', title: '整张单结束', onclick: finishNow }, icon('check', 14), '标记完成')
       : null,
     h(
       'button.btn.btn--sm',
@@ -976,6 +1033,7 @@ async function renderDetail(ctx, id) {
 
 const FILTERS = [
   { key: 'open', label: '在做的' },
+  { key: 'daily_done', label: '今日已完成' },
   { key: 'pending_confirm', label: '待确认' },
   { key: 'pending_pay', label: '待付款' },
   { key: 'in_progress', label: '进行中' },
@@ -1100,7 +1158,16 @@ async function renderList(ctx, status) {
         'div.pagehead',
         h(
           'div.pagehead__txt',
-          h('h1', custId ? `${cust?.name || '这个客户'}的单` : status === 'open' ? '在做的单' : '订单'),
+          h(
+            'h1',
+            custId
+              ? `${cust?.name || '这个客户'}的单`
+              : status === 'open'
+                ? '在做的单'
+                : status === 'daily_done'
+                  ? '今日已完成'
+                  : '订单'
+          ),
           h(
             'p.pagehead__sub',
             items.length
@@ -1125,6 +1192,17 @@ async function renderList(ctx, status) {
         sortSel,
         searchInput
       ),
+      // 今日已完成这一档要解释一下，不然会以为单子丢了
+      status === 'daily_done'
+        ? h(
+            'div.note.note--ok',
+            h('span', { style: { flex: 'none' } }, icon('check', 15)),
+            h(
+              'span',
+              '这些是今天标了「今日已完成」的单 —— 今天不用再管，明天它们会自动回到「在做的」。点单号进去可以撤销。'
+            )
+          )
+        : null,
       h(
         'section.panel',
         h(

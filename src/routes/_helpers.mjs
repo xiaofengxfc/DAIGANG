@@ -25,7 +25,14 @@ export function makeDef(spec) {
 function coerceValue(col, raw, isCreate) {
   const t = col.type || 'string'
   if (raw === undefined) {
-    if (isCreate) return col.default !== undefined ? col.default : t === 'bool' ? 0 : t === 'strarray' || t === 'json' ? (t === 'json' ? {} : []) : ''
+    if (isCreate) {
+      if (col.default !== undefined) return col.default
+      // 引用列没给值必须是 NULL。以前这里会落到最后的 ''，
+      // 而 '' 写进 INTEGER 外键列就成了空字符串，SQLite 直接报
+      // FOREIGN KEY constraint failed —— 表单总是显式传 null 才一直没暴露。
+      if (t === 'ref') return null
+      return t === 'bool' ? 0 : t === 'strarray' || t === 'json' ? (t === 'json' ? {} : []) : ''
+    }
     return undefined
   }
   if (col.nullable && (raw === null || raw === '' || raw === undefined)) return null
@@ -63,7 +70,9 @@ function coerceValue(col, raw, isCreate) {
 function toDB(col, value) {
   const t = col.type || 'string'
   if (t === 'strarray' || t === 'json') return stringifyJSON(value)
-  if (t === 'bool') return value ? 1 : 0
+  // 可空的 bool 要保住 NULL（「跟随大类」和「否」是两回事，
+  // 把 NULL 压成 0 会让「跟随」被永久改成「否」）
+  if (t === 'bool') return value === null || value === undefined ? null : value ? 1 : 0
   return value
 }
 
@@ -71,7 +80,8 @@ function fromDB(col, value) {
   const t = col.type || 'string'
   if (t === 'strarray') return parseJSON(value, [])
   if (t === 'json') return parseJSON(value, {})
-  if (t === 'bool') return Boolean(value)
+  // 可空 bool 的 NULL 要原样传出去，前端才能显示「跟随大类」
+  if (t === 'bool') return value === null || value === undefined ? (col.nullable ? null : false) : Boolean(value)
   return value
 }
 

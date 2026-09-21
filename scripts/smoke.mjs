@@ -99,6 +99,29 @@ async function main() {
   ok('新建分类', r.status === 200 && r.body.id > 0, r.body)
   const catId = r.body.id
 
+  // 「日常」这种名字的大类，建的时候没传 is_daily 也要自动认出来
+  ok('新建「日常」大类自动勾上每天做', r.body.is_daily === true, String(r.body.is_daily))
+  r = await api('POST', '/api/categories/append', { name: '活动' })
+  const tmpCatId = r.body.id
+  ok('新建「活动」大类不会被误勾', r.body.is_daily === false, String(r.body.is_daily))
+  // 引用列不给值要存成 NULL —— 存成 '' 会撞外键
+  r = await api('POST', '/api/services/append', { name: '没指定游戏的临时项', category_id: catId, base_price: 1 })
+  const tmpSvcId = r.body.id
+  ok('新建服务项不给 game_id 也能成（外键不能再报错）', r.status === 200 && r.body.id > 0, `${r.status} ${JSON.stringify(r.body).slice(0, 70)}`)
+  ok('没给 game_id 时确实是 null，不是空字符串', r.body.game_id === null, JSON.stringify(r.body.game_id))
+  // 可空 bool 的 NULL 要保住：跟随大类 ≠ 否
+  ok('服务项没设 is_daily 时是 null（跟随大类）', r.body.is_daily === null, JSON.stringify(r.body.is_daily))
+  r = await api('POST', '/api/services/append', { name: '强制一次性的', category_id: catId, base_price: 1, is_daily: 0 })
+  const tmpSvc2 = r.body.id
+  ok('显式设成 0 就是 false，不被 NULL 混掉', r.body.is_daily === false, JSON.stringify(r.body.is_daily))
+  r = await api('PATCH', `/api/services/${tmpSvc2}`, { is_daily: null })
+  ok('还能改回 null（跟随大类）', r.body.is_daily === null, JSON.stringify(r.body.is_daily))
+  // 全部清掉：留着会让后面「几个大类 / 几个服务项」的统计全对不上
+  await api('DELETE', `/api/services/${tmpSvcId}?hard=1`)
+  await api('DELETE', `/api/services/${tmpSvc2}?hard=1`)
+  r = await api('DELETE', `/api/categories/${tmpCatId}?hard=1`)
+  ok('临时大类和服务项都清理干净', r.status === 200, r.status)
+
   r = await api('POST', '/api/services', {
     name: '每日委托',
     category_id: catId,
@@ -266,8 +289,41 @@ async function main() {
   r = await api('GET', `/api/orders?customer_id=${custId}`)
   ok('支持按客户筛单', (r.body.items || []).every((o) => o.customer_id === custId), r.body.items?.length)
 
+  // 列表里要能直接看到客户手机号
+  const withCust = (r.body.items || []).find((o) => o.customer_id === custId)
+  ok('订单行带客户手机号', withCust?.customer_phone === '13800138000', withCust?.customer_phone)
+
+  /* ---- 今日已完成（日体那种天天要做的单） ---- */
+  const statusBefore = (await api('GET', `/api/orders/${orderId}`)).body.status
+  r = await api('POST', `/api/orders/${orderId}/daily-done`, { done: true })
+  ok('能标成今日已完成', r.status === 200 && r.body.daily_done_today === true, `daily_done_on=${r.body.daily_done_on}`)
+  ok('标今日完成不改订单状态（不是整单完成）', r.body.status === statusBefore && r.body.status !== 'done', `${statusBefore} → ${r.body.status}`)
+  r = await api('GET', '/api/orders?status=open&limit=300')
+  ok('标完就从「在做」列表里挪走了', !(r.body.items || []).some((o) => o.id === orderId), `${r.body.items?.length} 张在做`)
+  r = await api('GET', '/api/orders?status=daily_done&limit=300')
+  ok('「今日已完成」列表里能找到', (r.body.items || []).some((o) => o.id === orderId), r.body.items?.length)
+  r = await api('POST', `/api/orders/${orderId}/daily-done`, { done: false })
+  ok('能撤销今日完成', r.body.daily_done_today === false && !r.body.daily_done_on, String(r.body.daily_done_on))
+  r = await api('GET', '/api/orders?status=open&limit=300')
+  ok('撤销后回到「在做」', (r.body.items || []).some((o) => o.id === orderId), '')
+
   r = await api('POST', `/api/orders/${orderId}/status`, { status: 'done' })
   ok('待付款不能直接改已完成', r.status === 400 && r.body.code === 'bad_transition', r.body)
+
+  // 整单做完之后就不该再让它标今日完成了。
+  // 用一张临时单测，测完立刻删掉 —— 否则后面那些「一共几张单」的统计全会被带偏。
+  r = await api('POST', '/api/orders', {
+    customer_id: custId,
+    game_id: gameId,
+    items: [{ service_id: svcDaily, quantity: 1 }],
+  })
+  const closedOrderId = r.body.id
+  await api('POST', `/api/orders/${closedOrderId}/status`, { status: 'in_progress' })
+  await api('POST', `/api/orders/${closedOrderId}/status`, { status: 'done' })
+  r = await api('POST', `/api/orders/${closedOrderId}/daily-done`, { done: true })
+  ok('已完成的单不给标今日完成', r.status === 400 && r.body.code === 'order_closed', `${r.status} ${r.body.code}`)
+  r = await api('DELETE', `/api/orders/${closedOrderId}`)
+  ok('临时单已清理（不影响后面的统计）', r.status === 200, r.status)
 
   /* ---------- 收款 ---------- */
   section('收款与状态推进')

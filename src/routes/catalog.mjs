@@ -21,6 +21,12 @@ export const games = makeDef({
   },
 })
 
+/** 名字看起来是不是「每天都要做」的那种大类。
+ *  新建大类时拿它自动勾上，以后新加的「日常 / 每日委托」也能认出来，不用手动设。 */
+export function looksDaily(name) {
+  return /日常|日体|包天|每日|托管/.test(String(name || ''))
+}
+
 export const categories = makeDef({
   table: 'service_categories',
   listOrder: 'sort_order ASC, id ASC',
@@ -29,6 +35,16 @@ export const categories = makeDef({
   columns: {
     game_id: { type: 'ref', label: '所属游戏', filter: true },
     name: { type: 'string', required: true, label: '分类名', max: 60, filter: true },
+    // 每天都要做的大类（日常、日体、包天…）。开单时会标出来，
+    // 标「今日已完成」时也靠它提醒你这张单里还有没有别的活。
+    // 没显式传值时，按名字自动认一次 —— 所以后面新加的大类也能自动兼容。
+    is_daily: {
+      type: 'bool',
+      default: 0,
+      label: '每天都做',
+      filter: true,
+      validate: (value, body) => (body && 'is_daily' in body ? value : looksDaily(body && body.name) ? 1 : value),
+    },
     status: { type: 'string', default: 'active', enum: ['active', 'archived'], filter: true },
     sort_order: { type: 'int', default: 0 },
     note: { type: 'text', max: 1000 },
@@ -45,6 +61,9 @@ export const services = makeDef({
     category_id: { type: 'ref', label: '分类', filter: true },
     game_id: { type: 'ref', label: '游戏', filter: true },
     name: { type: 'string', required: true, label: '服务名', max: 120, filter: true },
+    // 留空 = 跟着所在大类走（往「日常」大类里加的服务项自动就是每天做的）；
+    // 想单独指定就选「是 / 否」，覆盖大类。
+    is_daily: { type: 'bool', nullable: true, default: null, label: '每天都做', filter: true },
     description: { type: 'text', label: '说明', max: 2000 },
     price_type: {
       type: 'string',

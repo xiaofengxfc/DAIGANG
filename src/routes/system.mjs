@@ -63,8 +63,13 @@ function buildDashboard() {
 
   const ordersToday = db.prepare('SELECT COUNT(*) AS c, COALESCE(SUM(total),0) AS t FROM orders WHERE ordered_at >= ?').get(`${today}T00:00:00.000Z`)
   const openOrders = db
-    .prepare("SELECT * FROM orders WHERE status IN ('in_progress','pending_accept') ORDER BY COALESCE(due_at, '9999') ASC, id DESC LIMIT 12")
-    .all()
+    .prepare(
+      `SELECT * FROM orders
+       WHERE status IN ('in_progress','pending_accept')
+         AND (daily_done_on IS NULL OR daily_done_on <> ?)
+       ORDER BY COALESCE(due_at, '9999') ASC, id DESC LIMIT 12`
+    )
+    .all(today)
     .map(decorateLite)
   const stale = db
     .prepare(
