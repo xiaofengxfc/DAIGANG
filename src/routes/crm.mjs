@@ -166,9 +166,13 @@ export function register() {
     if (!customer) notFound('客户不存在')
     const orders = db.prepare('SELECT * FROM orders WHERE customer_id = ? ORDER BY id DESC').all(id)
     const orderIds = orders.map((o) => o.id)
+    // 带上 order_no：收款流水里要显示这笔是哪张单的（payments 表本身没这一列）
+    const from = `FROM payments p LEFT JOIN orders o ON o.id = p.order_id`
     const payments = orderIds.length
-      ? db.prepare(`SELECT * FROM payments WHERE customer_id = ? OR order_id IN (${orderIds.map(() => '?').join(',')}) ORDER BY paid_at DESC, id DESC`).all(id, ...orderIds)
-      : db.prepare('SELECT * FROM payments WHERE customer_id = ? ORDER BY paid_at DESC, id DESC').all(id)
+      ? db
+          .prepare(`SELECT p.*, o.order_no AS order_no ${from} WHERE p.customer_id = ? OR p.order_id IN (${orderIds.map(() => '?').join(',')}) ORDER BY p.paid_at DESC, p.id DESC`)
+          .all(id, ...orderIds)
+      : db.prepare(`SELECT p.*, o.order_no AS order_no ${from} WHERE p.customer_id = ? ORDER BY p.paid_at DESC, p.id DESC`).all(id)
     const creds = db
       .prepare('SELECT id, game_id, label, login_type, server, role_name, masked_hint, status, created_at FROM credentials WHERE customer_id = ? ORDER BY id DESC')
       .all(id)

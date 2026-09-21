@@ -385,6 +385,60 @@ async function main() {
   r = await api('DELETE', `/api/orders/${splitId}`)
   ok('拆单测试的临时单都清理了', r.status === 200, r.status)
 
+  /* ---- 拆单：已经收过钱的单，收款要能跟着分（不然两张单的账都是错的） ---- */
+  r = await api('POST', '/api/orders', {
+    customer_id: custId,
+    game_id: gameId,
+    title: '收过钱再拆',
+    items: [
+      { service_id: svcDaily, quantity: 10 },
+      { service_id: svcAbyss, quantity: 4 },
+    ],
+  })
+  const paidSplitId = r.body.id
+  const paidBefore = r.body
+  await api('POST', '/api/payments', { order_id: paidSplitId, kind: 'full', method: '微信', amount: paidBefore.total, paid_at: '2026-09-21' })
+  await api('POST', `/api/orders/${paidSplitId}/progress`, { happened_on: '2026-09-19', content: '拆之前记的进度' })
+  const paidBefore2 = (await api('GET', `/api/orders/${paidSplitId}`)).body
+  ok('先把这张单收满 + 记一条进度', Math.abs(paidBefore2.paid_total - paidBefore2.total) < 0.01 && paidBefore2.progress.length === 1, `已收 ¥${paidBefore2.paid_total} / 进度 ${paidBefore2.progress.length} 条`)
+  ok('收款记录本来就该带单号', paidBefore2.payments.every((p) => p.order_no === paidBefore2.order_no), paidBefore2.payments.map((p) => p.order_no || '(空)').join(','))
+
+  const moveIt = paidBefore2.items.find((i) => i.ref_id === svcAbyss)
+  r = await api('POST', `/api/orders/${paidSplitId}/split`, { item_ids: [moveIt.id], progress: 'move' })
+  const pOrig = r.body.original
+  const pNew = r.body.created
+  ok('默认按比例把收款分了', r.body.payments_moved === 1, `分了 ${r.body.payments_moved} 笔`)
+  ok('★ 两张单的已收加起来 = 原来那笔', Math.abs(pOrig.paid_total + pNew.paid_total - paidBefore2.paid_total) < 0.02, `${pOrig.paid_total} + ${pNew.paid_total} vs ${paidBefore2.paid_total}`)
+  ok('★ 原单正好结清（不再多收）', Math.abs(pOrig.paid_total - pOrig.total) < 0.02 && pOrig.overpaid < 0.01, `总 ¥${pOrig.total} 已收 ¥${pOrig.paid_total}`)
+  ok('★ 新单也正好结清', Math.abs(pNew.paid_total - pNew.total) < 0.02 && pNew.overpaid < 0.01, `总 ¥${pNew.total} 已收 ¥${pNew.paid_total}`)
+  ok('分出来的那笔标了来源', (pNew.payments[0]?.note || '').includes('拆自'), pNew.payments[0]?.note)
+  ok('两边收款记录都带单号', pOrig.payments.every((p) => p.order_no === pOrig.order_no) && pNew.payments.every((p) => p.order_no === pNew.order_no), `${pOrig.payments[0]?.order_no} / ${pNew.payments[0]?.order_no}`)
+  ok('★ 选了「跟到新单」，进度整批搬过去了', pNew.progress.length === 1 && pOrig.progress.length === 0, `原 ${pOrig.progress.length} / 新 ${pNew.progress.length}`)
+
+  // 选「全留在原单」也行，但要老实告诉你多收了
+  r = await api('POST', '/api/orders', {
+    customer_id: custId,
+    game_id: gameId,
+    title: '收款留原单',
+    items: [
+      { service_id: svcDaily, quantity: 10 },
+      { service_id: svcAbyss, quantity: 4 },
+    ],
+  })
+  const keepPayId = r.body.id
+  await api('POST', '/api/payments', { order_id: keepPayId, kind: 'full', method: '微信', amount: r.body.total, paid_at: '2026-09-21' })
+  const keepCur = (await api('GET', `/api/orders/${keepPayId}`)).body
+  r = await api('POST', `/api/orders/${keepPayId}/split`, { item_ids: [keepCur.items.find((i) => i.ref_id === svcAbyss).id], payments: 'keep' })
+  ok('选「全留在原单」就不分收款', r.body.payments_moved === 0, String(r.body.payments_moved))
+  ok('★ 原单因此变「多收」，返回里报了数', r.body.original_overpaid > 0.001, `多收 ¥${r.body.original_overpaid}`)
+  ok('新单还欠全款', Math.abs(r.body.created.due_total - r.body.created.total) < 0.01, `还欠 ¥${r.body.created.due_total}`)
+
+  await api('DELETE', `/api/orders/${pNew.id}?force=1`)
+  await api('DELETE', `/api/orders/${pOrig.id}?force=1`)
+  await api('DELETE', `/api/orders/${r.body.created.id}?force=1`)
+  r = await api('DELETE', `/api/orders/${keepPayId}?force=1`)
+  ok('收过钱再拆的临时单也清理了', r.status === 200, r.status)
+
   /* ---------- 收款 ---------- */
   section('收款与状态推进')
   r = await api('POST', '/api/payments', { order_id: orderId, amount: 200, method: 'wechat', kind: 'deposit', note: '定金' })

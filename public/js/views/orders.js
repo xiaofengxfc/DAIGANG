@@ -783,6 +783,23 @@ async function renderDetail(ctx, id) {
       )
     }
     const foot = h('div.note.note--warn')
+
+    // 收款 / 进度怎么跟着走
+    const paySel = h(
+      'select.sel',
+      { 'aria-label': '收款怎么分' },
+      h('option', { value: 'proportional' }, '按金额比例分到两张单（推荐）'),
+      h('option', { value: 'keep' }, '全部留在原单')
+    )
+    const progSel = h(
+      'select.sel',
+      { 'aria-label': '进度时间线怎么处理' },
+      h('option', { value: 'keep' }, '留在原单'),
+      h('option', { value: 'move' }, '跟到新单')
+    )
+    const hasPay = (o.payments || []).length > 0
+    const hasProg = (o.progress || []).length > 0
+
     const m = modal({
       title: `拆单 · ${o.order_no}`,
       wide: true,
@@ -791,6 +808,11 @@ async function renderDetail(ctx, id) {
         h('p.sm', '适合「30天日体 + 几个活动」这种单：把活动拆出去单独结算，日体那张继续天天标今日完成。'),
         h('p.sm.dim', '勾上要拆出去的 —— 选中的会变成一张新单，没选的留在原单。'),
         list,
+        // 已经记过收款/进度才问，没有就不用烦
+        hasPay
+          ? h('div.field', h('label.lbl', `收款怎么分（这张单已收 ¥${fmtMoney(o.paid_total)}）`), paySel)
+          : null,
+        hasProg ? h('div.field', h('label.lbl', `进度时间线（现有 ${o.progress.length} 条）`), progSel) : null,
         foot
       ),
       actions: [
@@ -801,14 +823,21 @@ async function renderDetail(ctx, id) {
           key: 'go',
           onClick: async ({ close }) => {
             try {
-              const r = await api.post(`/api/orders/${o.id}/split`, { item_ids: [...pickedIds] })
+              const r = await api.post(`/api/orders/${o.id}/split`, {
+                item_ids: [...pickedIds],
+                payments: paySel.value,
+                progress: progSel.value,
+              })
               close()
-              toast(`已拆出 ${r.moved_count} 项，新单 ${r.created.order_no}`, 'ok', 4200)
+              const bits = [`已拆出 ${r.moved_count} 项，新单 ${r.created.order_no}`]
+              if (r.payments_moved) bits.push(`收款分了 ${r.payments_moved} 笔`)
+              if (r.progress_moved) bits.push(`进度跟过去 ${r.progress_moved} 条`)
+              toast(bits.join(' · '), 'ok', 4600)
               if (r.original_overpaid > 0.001) {
                 setTimeout(
                   () =>
                     toast(
-                      `注意：原单还留着 ¥${fmtMoney(r.payments_stayed)} 的收款，但金额只剩 ¥${fmtMoney(r.original.total)}，多收了 ¥${fmtMoney(r.original_overpaid)}`,
+                      `注意：原单还留着 ¥${fmtMoney(r.original_paid)} 的收款，但金额只剩 ¥${fmtMoney(r.original.total)}，多收了 ¥${fmtMoney(r.original_overpaid)}`,
                       'err',
                       9000
                     ),

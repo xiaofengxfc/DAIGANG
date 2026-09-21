@@ -77,7 +77,14 @@ function orderDetail(id) {
   if (!row) return null
   const order = decorateOrder(row)
   const items = db.prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY sort_order, id').all(order.id)
-  const paymentsList = db.prepare('SELECT * FROM payments WHERE order_id = ? ORDER BY paid_at, id').all(order.id)
+  // 带上 order_no：收款流水里要显示这笔是哪张单的（payments 表本身没这一列）
+  const paymentsList = db
+    .prepare(
+      `SELECT p.*, o.order_no AS order_no FROM payments p
+       LEFT JOIN orders o ON o.id = p.order_id
+       WHERE p.order_id = ? ORDER BY p.paid_at, p.id`
+    )
+    .all(order.id)
   const progressList = db.prepare('SELECT * FROM order_progress WHERE order_id = ? ORDER BY happened_on DESC, id DESC').all(order.id)
   const credentials = db
     .prepare('SELECT id, label, login_type, server, role_name, masked_hint FROM credentials WHERE customer_id = ? ORDER BY id DESC')
@@ -296,9 +303,12 @@ export function register() {
    * 钱怎么分（说清楚，免得对不上账）：
    *   · 每个服务项自己的金额（含它的增项）跟着它走；
    *   · 折扣 / 手续费 / 成本**留在原单**，新单从 0 开始（拆完可以各自再改）；
-   *   · 已经记过的收款也**留在原单**，不自动分。原单因此可能变成「多收」，
-   *     会在返回里告诉前端。
-   * body: { item_ids: [要拆出去的服务项 id] }
+   *   · 收款按 `payments` 决定：
+   *       'proportional'（默认）按两张单的金额比例把那几笔收款拆开，两边各自结清；
+   *       'keep' 全留在原单（原单可能变「多收」，会在返回里告诉你）。
+   *   · 进度按 `progress` 决定：'keep'（默认）留在原单，'move' 整批跟到新单。
+   *     进度是一段自由文字，没有跟服务项挂钩，所以只能整批走或整批留。
+   * body: { item_ids: [...], payments: 'proportional'|'keep', progress: 'keep'|'move' }
    */
   post('/api/orders/:id/split', (ctx) => {
     const id = int(ctx.params.id)
@@ -313,6 +323,9 @@ export function register() {
     const keep = all.filter((i) => !rawIds.includes(i.id))
     if (move.length !== rawIds.length) bad('有服务项不属于这张单', 'bad_item')
     if (!keep.length) bad('至少得留一个服务项在原单里；如果整张都要挪走，不如直接改这一张', 'leaves_nothing')
+
+    const payMode = ctx.body.payments === 'keep' ? 'keep' : 'proportional'
+    const progressMode = ctx.body.progress === 'move' ? 'move' : 'keep'
 
     // 从快照里把「增项」还原出来，才能把 base 和 addon 分开算
     const split = (rows) => {
@@ -405,15 +418,50 @@ export function register() {
         now,
         id
       )
+
+      // 4. 收款：按金额比例把每一笔拆成两份，各自结清
+      let paymentsMoved = 0
+      if (payMode === 'proportional') {
+        const beforeTotal = money(order.total)
+        const ratio = beforeTotal > 0.005 ? Math.min(1, Math.max(0, newTotals.total / beforeTotal)) : 0
+        const rows = db.prepare('SELECT * FROM payments WHERE order_id = ? ORDER BY id').all(id)
+        const ins = db.prepare(
+          `INSERT INTO payments (order_id, customer_id, kind, amount, method, status, paid_at, note, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        for (const p of rows) {
+          // 尾差留在原单，避免两边加起来跟原来对不上
+          const share = money(money(p.amount) * ratio)
+          if (share <= 0.005) continue
+          ins.run(newId, p.customer_id, p.kind, share, p.method, p.status, p.paid_at, clampStr(`${p.note ? p.note + ' · ' : ''}拆自 ${order.order_no}`, 400), now)
+          const rest = money(money(p.amount) - share)
+          if (rest <= 0.005) db.prepare('DELETE FROM payments WHERE id = ?').run(p.id)
+          else db.prepare('UPDATE payments SET amount = ? WHERE id = ?').run(rest, p.id)
+          paymentsMoved += 1
+        }
+      }
+
+      // 5. 进度：整批留在原单，或整批跟到新单
+      let progressMoved = 0
+      if (progressMode === 'move') {
+        const c = db.prepare('SELECT COUNT(*) AS c FROM order_progress WHERE order_id = ?').get(id).c
+        db.prepare('UPDATE order_progress SET order_id = ? WHERE order_id = ?').run(newId, id)
+        progressMoved = c
+      }
+
       db.exec('COMMIT')
 
+      const createdDetail = orderDetail(newId)
+      const originalDetail = orderDetail(id)
       return {
-        created: orderDetail(newId),
-        original: orderDetail(id),
+        created: createdDetail,
+        original: originalDetail,
         moved_count: move.length,
-        // 原单剩下的钱已经不够抵之前收的了 —— 提醒一下，别让账悄悄偏掉
-        original_overpaid: money(Math.max(0, paid - keepTotals.total)),
-        payments_stayed: paid,
+        payments_moved: paymentsMoved,
+        progress_moved: progressMoved,
+        // 选了「收款全留在原单」时，原单剩下的钱可能已经不够抵之前收的了
+        original_overpaid: originalDetail.overpaid,
+        original_paid: originalDetail.paid_total,
       }
     } catch (err) {
       db.exec('ROLLBACK')
