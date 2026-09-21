@@ -476,15 +476,19 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
   gameFilterSel.appendChild(h('option', { value: '' }, '全部游戏'))
   for (const g of games) gameFilterSel.appendChild(h('option', { value: String(g.id) }, g.name))
 
-  /* 按大类筛。大类列表跟着游戏走 —— 选了游戏就只列这个游戏的大类（加上通用的），
-     选过的大类要是不属于新游戏了，自动退掉，免得挑出个空列表。 */
+  /* 按大类筛。**大类列表完全由上面选的游戏决定** ——
+     选了某个游戏就只列这个游戏的大类，选了「全部游戏」才列全部。
+     唯一的例外：这个游戏一个大类都没有（服务项全挂在「通用」大类下）时，
+     把通用大类带上，否则筛选框空着没法用。 */
   let catFilter = ''
   const catFilterSel = h('select.sel', { style: { width: 'auto', minWidth: '130px' }, 'aria-label': '按大类筛选' })
 
-  const pickableCats = () =>
-    book.categories.filter(
-      (c) => c.services && c.services.length && (!gameFilter || !c.game_id || String(c.game_id) === gameFilter)
-    )
+  const pickableCats = () => {
+    const withSvc = book.categories.filter((c) => c.services && c.services.length)
+    if (!gameFilter) return withSvc
+    const own = withSvc.filter((c) => String(c.game_id || '') === gameFilter)
+    return own.length ? own : withSvc.filter((c) => !c.game_id)
+  }
 
   function paintCatFilter() {
     const list = pickableCats()

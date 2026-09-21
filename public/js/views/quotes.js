@@ -151,12 +151,22 @@ export async function openQuoteComposer(ctx, { existing = null } = {}) {
     return out.join('\n')
   }
 
-  /* 按大类筛 */
+  /* 按大类筛。**大类列表完全由上面选的游戏决定** ——
+     选了某个游戏就只列这个游戏的大类，选了「不指定游戏」才列全部。
+     唯一的例外：这个游戏一个大类都没有（服务项全挂在「通用」大类下）时，
+     把通用大类带上，否则筛选框空着没法用。 */
   let catFilter = ''
   const catFilterSel = h('select.sel', { style: { width: 'auto', minWidth: '130px' }, 'aria-label': '按大类筛选' })
 
   function paintCatFilter() {
-    const list = book.categories.filter((c) => c.services && c.services.length)
+    const gameId = gameSel.value
+    const withSvc = book.categories.filter((c) => c.services && c.services.length)
+    let list = withSvc
+    if (gameId) {
+      const own = withSvc.filter((c) => String(c.game_id || '') === gameId)
+      list = own.length ? own : withSvc.filter((c) => !c.game_id)
+    }
+    // 换游戏后，原来选的大类要是已经不在列表里就退掉
     if (catFilter && !list.some((c) => String(c.id) === catFilter)) catFilter = ''
     catFilterSel.replaceChildren(
       h('option', { value: '' }, '全部大类'),
@@ -318,7 +328,12 @@ export async function openQuoteComposer(ctx, { existing = null } = {}) {
   noteInp.addEventListener('input', paintSheet)
   validInp.addEventListener('change', paintSheet)
   custSel.addEventListener('change', paintSheet)
-  gameSel.addEventListener('change', paintSheet)
+  // 换了游戏，大类列表要跟着换（筛着的那个大类如果不属于新游戏会自动退掉）
+  gameSel.addEventListener('change', () => {
+    paintCatFilter()
+    renderServices()
+    paintSheet()
+  })
   toggleTextBtn.addEventListener('click', () => {
     showText = !showText
     toggleTextBtn.replaceChildren(icon('quotes', 14), showText ? '收起文字版' : '看文字版')
