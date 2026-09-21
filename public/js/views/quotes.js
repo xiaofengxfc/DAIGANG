@@ -33,10 +33,12 @@ export async function openQuoteComposer(ctx, { existing = null } = {}) {
   const customers = custRes.items || []
   const games = gameRes.items || []
   const allServices = []
-  for (const cat of book.categories) for (const s of cat.services) allServices.push({ ...s, _cat: cat.name })
-  for (const s of book.loose) allServices.push({ ...s, _cat: '未分类' })
+  for (const cat of book.categories) for (const s of cat.services) allServices.push({ ...s, _cat: cat.name, _catId: cat.id })
+  for (const s of book.loose) allServices.push({ ...s, _cat: '未分类', _catId: 0 })
 
   const picked = new Map()
+  /** 每行自己的重画函数，筛选后重画时用得上 */
+  const rowPainters = []
   let title = existing?.title || '代肝报价单'
   let note = existing?.note || ''
   let validUntil = existing?.valid_until || new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10)
@@ -63,7 +65,8 @@ export async function openQuoteComposer(ctx, { existing = null } = {}) {
   const validInp = h('input.inp', { type: 'date', value: validUntil })
   const searchInput = h('input.inp', { type: 'search', placeholder: '搜服务名…' })
 
-  const svcList = h('div', { style: { display: 'flex', flexDirection: 'column' } })
+  const svcList = h('div.picker__scroll')
+  const pickerFoot = h('div.picker__foot')
   const sheetBox = h('div.stack.stack--tight')
   const textBox = h('pre.plaintext', { style: { display: 'none' } })
   const toggleTextBtn = h('button.btn.btn--sm', { type: 'button' }, icon('quotes', 14), '看文字版')
@@ -123,6 +126,8 @@ export async function openQuoteComposer(ctx, { existing = null } = {}) {
       textBox.textContent = buildText(lines, total)
       textBox.style.display = ''
     }
+    // 挑服务框底部那条「已选 N 项」跟着一起刷新
+    paintFoot()
   }
 
   function buildText(lines, total) {
@@ -146,33 +151,97 @@ export async function openQuoteComposer(ctx, { existing = null } = {}) {
     return out.join('\n')
   }
 
+  /* 按大类筛 */
+  let catFilter = ''
+  const catFilterSel = h('select.sel', { style: { width: 'auto', minWidth: '130px' }, 'aria-label': '按大类筛选' })
+
+  function paintCatFilter() {
+    const list = book.categories.filter((c) => c.services && c.services.length)
+    if (catFilter && !list.some((c) => String(c.id) === catFilter)) catFilter = ''
+    catFilterSel.replaceChildren(
+      h('option', { value: '' }, '全部大类'),
+      ...list.map((c) => h('option', { value: String(c.id) }, c.name))
+    )
+    catFilterSel.value = catFilter
+  }
+  catFilterSel.addEventListener('change', () => {
+    catFilter = catFilterSel.value
+    renderServices()
+  })
+
+  /** 「已选 N 项 + 清空」，固定在挑服务框底部 */
+  function paintFoot() {
+    const n = picked.size
+    pickerFoot.replaceChildren(
+      n ? h('span.cluster', { style: { gap: '6px' } }, h('span.pickcount', String(n)), h('span', '已选')) : h('span.dim', '还没勾服务项'),
+      h('div', { style: { flex: '1' } }),
+      n
+        ? h(
+            'button.btn.btn--sm.btn--quiet',
+            {
+              type: 'button',
+              onclick: () => {
+                picked.clear()
+                for (const p of rowPainters) if (p) p()
+                paintSheet()
+                paintFoot()
+              },
+            },
+            '清空'
+          )
+        : null
+    )
+  }
+
   function renderServices() {
     const q = searchInput.value.trim().toLowerCase()
+    rowPainters.length = 0
     const cats = new Map()
     for (const s of allServices) {
+      if (catFilter && String(s._catId || '') !== catFilter) continue
       if (q && !`${s.name} ${s.description} ${s._cat}`.toLowerCase().includes(q)) continue
       if (!cats.has(s._cat)) cats.set(s._cat, [])
       cats.get(s._cat).push(s)
     }
     svcList.replaceChildren()
     if (!allServices.length) {
-      svcList.appendChild(h('div.empty', h('div.empty__body', '价格表还是空的。'), h('button.btn.btn--sm', { type: 'button', onclick: () => ctx.navigate('/price') }, '先去建价格表')))
+      svcList.appendChild(
+        h('div.empty', h('div.empty__body', '价格表还是空的。'), h('button.btn.btn--sm', { type: 'button', onclick: () => ctx.navigate('/price') }, '先去建价格表'))
+      )
+      paintFoot()
+      return
+    }
+    if (!cats.size) {
+      svcList.appendChild(
+        h('div.empty', h('div.empty__body', '没有匹配的服务项。'), h('button.btn.btn--sm', { type: 'button', onclick: () => ctx.navigate('/price') }, '去价格表看看'))
+      )
+      paintFoot()
       return
     }
     for (const [catName, list] of cats) {
-      svcList.appendChild(h('div.search__grouplbl', { style: { padding: '10px 0 4px' } }, catName))
+      const group = h(
+        'div.pickgroup',
+        h('div.pickgroup__head', h('span.pickgroup__name', catName), h('span.pickgroup__n', `${list.length} 项`))
+      )
       for (const s of list) {
         const sel = picked.get(s.id)
-        const cb = h('input.chk', { type: 'checkbox' })
+        const cb = h('input.chk', { type: 'checkbox', 'aria-label': `选择 ${s.name}` })
         cb.checked = Boolean(sel)
-        const qty = h('input.inp.inp--fig', { inputmode: 'decimal', style: { width: '70px' } })
-        const price = h('input.inp.inp--fig', { inputmode: 'decimal', style: { width: '82px' }, placeholder: '改价' })
-        const box = h('div.cluster', { style: { gap: '6px', display: sel ? '' : 'none' } }, qty, h('span.dim.tiny', defaultUnit(s)), price, h('span.dim.tiny', '元'))
+        const qty = h('input.inp.inp--fig', { inputmode: 'decimal', style: { width: '70px' }, 'aria-label': `${s.name} 数量` })
+        const price = h('input.inp.inp--fig', { inputmode: 'decimal', style: { width: '82px' }, placeholder: '改价', 'aria-label': `${s.name} 单价` })
+        const ctrl = h('div.pickrow__ctrl')
+        ctrl.append(h('div.cluster', { style: { gap: '6px' } }, qty, h('span.dim.tiny', defaultUnit(s)), price, h('span.dim.tiny', '元')))
+
+        const optWrap = h('div.cluster', { style: { gap: '10px' } })
+        const detail = h('div.pickrow__detail', optWrap)
+        const row = h('div.pickrow')
 
         const paint = () => {
           const cur = picked.get(s.id)
+          row.classList.toggle('pickrow--on', Boolean(cur))
           cb.checked = Boolean(cur)
-          box.style.display = cur ? '' : 'none'
+          ctrl.style.display = cur ? '' : 'none'
+          detail.style.display = cur ? '' : 'none'
           if (cur) {
             if (document.activeElement !== qty) qty.value = String(cur.quantity)
             if (document.activeElement !== price) price.value = cur.unitPrice === '' ? '' : String(cur.unitPrice)
@@ -181,6 +250,7 @@ export async function openQuoteComposer(ctx, { existing = null } = {}) {
         const toggle = () => {
           if (picked.has(s.id)) picked.delete(s.id)
           else picked.set(s.id, { quantity: Number(s.min_qty) || 1, unitPrice: '', optionIds: new Set() })
+          buildOpts()
           paint()
           paintSheet()
         }
@@ -196,7 +266,6 @@ export async function openQuoteComposer(ctx, { existing = null } = {}) {
           paintSheet()
         })
 
-        const optWrap = h('div.cluster', { style: { gap: '10px', paddingTop: '4px' } })
         function buildOpts() {
           optWrap.replaceChildren()
           const cur = picked.get(s.id)
@@ -212,30 +281,36 @@ export async function openQuoteComposer(ctx, { existing = null } = {}) {
             optWrap.appendChild(h('label.inline', { style: { cursor: 'pointer', gap: '5px' } }, oc, h('span.sm', o.name)))
           }
         }
-        cb.addEventListener('change', buildOpts)
-        buildOpts()
 
-        svcList.appendChild(
+        row.append(
           h(
-            'div',
-            { style: { borderTop: '1px solid var(--line)', padding: '9px 11px' } },
+            'div.pickrow__top',
+            cb,
             h(
-              'div',
-              { style: { display: 'flex', alignItems: 'center', gap: '10px' } },
-              cb,
+              'button.pickrow__main',
+              { type: 'button', onclick: toggle },
               h(
-                'button',
-                { type: 'button', style: { flex: '1', textAlign: 'left', background: 'none', border: 0, cursor: 'pointer', color: 'inherit', padding: 0, minWidth: '0' }, onclick: toggle },
-                h('div.tbl__primary', s.name),
-                h('div.tbl__meta', `${PRICE_TYPE_LABEL[s.price_type] || s.price_type} · ¥${fmtMoney(s.base_price)}/${defaultUnit(s)}`)
+                'span.pickrow__line',
+                h('span.pickrow__name', s.name),
+                h('span.pickrow__fig', `¥${fmtMoney(s.base_price)}`, h('em', `/${defaultUnit(s)}`))
               ),
-              box
-            ),
-            sel ? h('div', { style: { paddingLeft: '27px' } }, optWrap) : null
-          )
+              h(
+                'span.pickrow__meta',
+                [PRICE_TYPE_LABEL[s.price_type] || s.price_type, s.description || null].filter(Boolean).join(' · ')
+              )
+            )
+          ),
+          ctrl,
+          detail
         )
+        rowPainters.push(paint)
+        buildOpts()
+        paint()
+        group.appendChild(row)
       }
+      svcList.appendChild(group)
     }
+    paintFoot()
   }
 
   searchInput.addEventListener('input', debounce(renderServices, 140))
@@ -250,6 +325,7 @@ export async function openQuoteComposer(ctx, { existing = null } = {}) {
     paintSheet()
   })
 
+  paintCatFilter()
   renderServices()
   paintSheet()
 
@@ -274,8 +350,8 @@ export async function openQuoteComposer(ctx, { existing = null } = {}) {
         h(
           'div.stack.stack--tight',
           h('div.sechead', h('h3', '挑服务'), h('span.sechead__note', '勾上就进单')),
-          searchInput,
-          h('div', { style: { border: '1px solid var(--line)', borderRadius: 'var(--r-card)', overflow: 'hidden', maxHeight: '52vh', overflowY: 'auto' } }, svcList)
+          h('div.cluster', { style: { gap: '6px' } }, searchInput, catFilterSel),
+          h('div.picker', svcList, pickerFoot)
         ),
         h(
           'div.stack.stack--tight',

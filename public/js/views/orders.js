@@ -243,7 +243,8 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
 
   /* —— 服务挑选区 —— */
   const svcSearch = h('input.inp', { type: 'search', placeholder: '搜服务名…' })
-  const svcList = h('div', { style: { display: 'flex', flexDirection: 'column' } })
+  const svcList = h('div.picker__scroll')
+  const pickerFoot = h('div.picker__foot')
   const summaryBox = h('div.stack.stack--tight')
   const totalFig = h('span.quote-sheet__totalfig')
   let gameFilter = ''
@@ -255,6 +256,8 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
     for (const s of allServices) {
       if (!s.name) continue
       if (gameFilter && String(s.game_id || '') !== gameFilter && s.game_id) continue
+      // 大类筛：跟搜索、游戏筛是「都要满足」的关系
+      if (catFilter && String(s._catId || '') !== catFilter) continue
       if (q && !(`${s.name} ${s.description} ${s._catName}`.toLowerCase().includes(q))) continue
       const key = s._catName || '未分类'
       if (!cats.has(key)) cats.set(key, [])
@@ -272,12 +275,46 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
       return
     }
     for (const [catName, list] of cats) {
-      const group = h('div', h('div.search__grouplbl', { style: { padding: '10px 0 4px' } }, catName))
+      const group = h(
+        'div.pickgroup',
+        h(
+          'div.pickgroup__head',
+          h('span.pickgroup__name', catName),
+          h('span.pickgroup__n', `${list.length} 项`)
+        )
+      )
       for (const s of list) {
         group.appendChild(serviceRow(s))
       }
       svcList.appendChild(group)
     }
+    paintPickerFoot()
+  }
+
+  /** 「已选 N 项 + 共多少钱」，顺带一个清空 */
+  function paintPickerFoot() {
+    const n = picked.size
+    pickerFoot.replaceChildren(
+      n
+        ? h('span.cluster', { style: { gap: '6px' } }, h('span.pickcount', String(n)), h('span', '已选'))
+        : h('span.dim', '还没勾服务项'),
+      h('div', { style: { flex: '1' } }),
+      n
+        ? h(
+            'button.btn.btn--sm.btn--quiet',
+            {
+              type: 'button',
+              onclick: () => {
+                picked.clear()
+                for (const p of recordPainters) if (p) p()
+                paintSummary()
+                paintPickerFoot()
+              },
+            },
+            '清空'
+          )
+        : null
+    )
   }
 
   function serviceRow(s) {
@@ -289,18 +326,17 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
     const optWrap = h('div.cluster', { style: { gap: '10px' } })
     const tierHint = h('span.dim.tiny')
     const qtyBox = h('div.cluster', { style: { gap: '6px' } }, qty, h('span.dim.tiny', defaultUnit(s)), price, h('span.dim.tiny', '元'))
-    const flatPrice = h('span.dim.sm', `¥${fmtMoney(s.base_price)}/${defaultUnit(s)}`)
-    const detail = h('div', { style: { display: 'none', flexDirection: 'column', gap: 'var(--sp-3)', paddingTop: '8px' } })
-    const row = h('div', { style: { borderTop: '1px solid var(--line)', padding: '10px 12px' } })
+    const ctrl = h('div.pickrow__ctrl', qtyBox)
+    const detail = h('div.pickrow__detail')
+    const row = h('div.pickrow')
 
     /** 只重画选中/未选中的外观，不重建输入框（否则打字会掉焦点） */
     function paintRow() {
       const cur = picked.get(s.id)
-      row.style.background = cur ? 'var(--surface-2)' : 'transparent'
+      row.classList.toggle('pickrow--on', Boolean(cur))
       cb.checked = Boolean(cur)
-      qtyBox.style.display = cur ? '' : 'none'
-      flatPrice.style.display = cur ? 'none' : ''
-      detail.style.display = cur ? 'flex' : 'none'
+      ctrl.style.display = cur ? '' : 'none'
+      detail.style.display = cur ? '' : 'none'
       if (!cur) return
       if (document.activeElement !== qty) qty.value = String(cur.quantity)
       if (document.activeElement !== price) price.value = cur.unitPrice === '' ? '' : String(cur.unitPrice)
@@ -339,27 +375,30 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
 
     row.append(
       h(
-        'div',
-        { style: { display: 'flex', alignItems: 'center', gap: '10px' } },
+        'div.pickrow__top',
         cb,
         h(
-          'button',
-          {
-            type: 'button',
-            style: { flex: '1', textAlign: 'left', background: 'none', border: 0, cursor: 'pointer', color: 'inherit', minWidth: '0', padding: 0 },
-            onclick: toggle,
-          },
-          h('div.tbl__primary', s.name),
+          'button.pickrow__main',
+          { type: 'button', onclick: () => toggle() },
           h(
-            'div.tbl__meta',
-            `${PRICE_TYPE_LABEL[s.price_type] || s.price_type} · 基准 ¥${fmtMoney(s.base_price)}/${defaultUnit(s)}${
-              s.tiers?.length ? ` · ${s.tiers.length} 档阶梯价` : ''
-            }`
+            'span.pickrow__line',
+            h('span.pickrow__name', s.name),
+            // 价格常驻：不勾选也知道多少钱
+            h('span.pickrow__fig', `¥${fmtMoney(s.base_price)}`, h('em', `/${defaultUnit(s)}`))
+          ),
+          h(
+            'span.pickrow__meta',
+            [
+              PRICE_TYPE_LABEL[s.price_type] || s.price_type,
+              s.tiers?.length ? `${s.tiers.length} 档阶梯价` : null,
+              s.description || null,
+            ]
+              .filter(Boolean)
+              .join(' · ')
           )
-        ),
-        qtyBox,
-        flatPrice
+        )
       ),
+      ctrl,
       detail
     )
     detail.append(optWrap, tierHint)
@@ -426,19 +465,49 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
     )
     // 服务行的背景跟着选中状态走
     for (const p of recordPainters) if (p) p()
+    // 已选数量也一起刷新
+    paintPickerFoot()
   }
 
   svcSearch.addEventListener('input', debounce(renderServices, 140))
   for (const inp of [discountInp, feeInp, costInp]) inp.addEventListener('input', paintSummary)
 
-  const gameFilterSel = h('select.sel', { style: { width: 'auto', minWidth: '130px' } })
+  const gameFilterSel = h('select.sel', { style: { width: 'auto', minWidth: '130px' }, 'aria-label': '按游戏筛选' })
   gameFilterSel.appendChild(h('option', { value: '' }, '全部游戏'))
   for (const g of games) gameFilterSel.appendChild(h('option', { value: String(g.id) }, g.name))
-  gameFilterSel.addEventListener('change', () => {
-    gameFilter = gameFilterSel.value
+
+  /* 按大类筛。大类列表跟着游戏走 —— 选了游戏就只列这个游戏的大类（加上通用的），
+     选过的大类要是不属于新游戏了，自动退掉，免得挑出个空列表。 */
+  let catFilter = ''
+  const catFilterSel = h('select.sel', { style: { width: 'auto', minWidth: '130px' }, 'aria-label': '按大类筛选' })
+
+  const pickableCats = () =>
+    book.categories.filter(
+      (c) => c.services && c.services.length && (!gameFilter || !c.game_id || String(c.game_id) === gameFilter)
+    )
+
+  function paintCatFilter() {
+    const list = pickableCats()
+    if (catFilter && !list.some((c) => String(c.id) === catFilter)) catFilter = ''
+    catFilterSel.replaceChildren(
+      h('option', { value: '' }, '全部大类'),
+      ...list.map((c) => h('option', { value: String(c.id) }, c.name))
+    )
+    catFilterSel.value = catFilter
+  }
+
+  catFilterSel.addEventListener('change', () => {
+    catFilter = catFilterSel.value
     renderServices()
   })
 
+  gameFilterSel.addEventListener('change', () => {
+    gameFilter = gameFilterSel.value
+    paintCatFilter()
+    renderServices()
+  })
+
+  paintCatFilter()
   renderServices()
   paintSummary()
   paintRemain()
@@ -457,8 +526,8 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
       h('div.field.field--full', h('label.lbl', '订单标题'), titleInp)
     ),
     h('div', h('div.sechead', h('h3', '挑服务'), h('span.sechead__note', '勾上就进单子，数量可以改'))),
-    h('div.cluster', { style: { marginBottom: '6px' } }, svcSearch, gameFilterSel),
-    h('div', { style: { border: '1px solid var(--line)', borderRadius: 'var(--r-card)', overflow: 'hidden', maxHeight: '46vh', overflowY: 'auto' } }, svcList),
+    h('div.cluster', { style: { marginBottom: '6px' } }, svcSearch, gameFilterSel, catFilterSel),
+    h('div.picker', svcList, pickerFoot),
     h('div', h('div.sechead', h('h3', '金额'))),
     h(
       'div.formgrid',

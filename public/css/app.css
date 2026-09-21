@@ -2152,6 +2152,177 @@ pre.plaintext {
 }
 
 
+/* ============================================================
+   挑服务（下单台、报价单共用一套外观）
+   ============================================================ */
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  overflow: hidden;
+  max-height: 46vh;
+  background: var(--surface);
+}
+
+/* 只有这一层滚动，「已选 N 项」那条固定在底下不跟着滚 */
+.picker__scroll {
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.pickgroup + .pickgroup {
+  border-top: 1px solid var(--line-strong);
+}
+
+/* 分类标题吸顶 —— 滚到哪儿都知道自己在哪个大类里 */
+.pickgroup__head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 12px 6px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.pickgroup__name {
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  color: var(--ink);
+}
+
+.pickgroup__name::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--cinnabar);
+  margin-right: 7px;
+  vertical-align: -1px;
+}
+
+.pickgroup__n {
+  margin-left: auto;
+  font-family: var(--font-fig);
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+
+.pickrow {
+  padding: 9px 12px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.pickrow--on {
+  background: var(--cinnabar-bg);
+  box-shadow: inset 3px 0 0 0 var(--cinnabar);
+}
+
+.pickrow__top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+}
+
+.pickrow__main {
+  display: block;
+  min-width: 0;
+  border: 0;
+  background: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pickrow__line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.pickrow__name {
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 价格常驻显示 —— 不勾选也看得到多少钱 */
+.pickrow__fig {
+  margin-left: auto;
+  flex: none;
+  font-family: var(--font-fig);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--cinnabar);
+  white-space: nowrap;
+}
+
+.pickrow__fig em {
+  font-style: normal;
+  font-weight: 400;
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+
+.pickrow__meta {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pickrow__ctrl,
+.pickrow__detail {
+  padding-left: 26px;
+}
+
+.pickrow__ctrl {
+  padding-top: 9px;
+}
+
+.pickrow__detail {
+  padding-top: 7px;
+}
+
+.picker__foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  background: var(--surface-2);
+  border-top: 1px solid var(--line);
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+
+/* 「已选 N 项」的小徽标 */
+.pickcount {
+  display: inline-block;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--cinnabar-solid);
+  color: var(--ink-inverse);
+  font-family: var(--font-fig);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
 .formsec {
   padding-top: var(--sp-2);
 }
