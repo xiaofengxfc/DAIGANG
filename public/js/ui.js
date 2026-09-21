@@ -640,8 +640,14 @@ export function kv(pairs) {
   return dl
 }
 
-export function sectionHead(title, note, actions) {
-  return h('div.sechead', h('h3', title), note ? h('span.sechead__note', note) : null, actions || null)
+/**
+ * 小标题：标题 + 可选说明 + 右侧若干个动作。
+ * 动作是可变参数 —— 以前只收一个，多传的会被静默丢掉
+ * （「进度时间线」上「记一条」就是这么消失的）。
+ */
+export function sectionHead(title, note, ...actions) {
+  const list = actions.flat().filter(Boolean)
+  return h('div.sechead', h('h3', title), note ? h('span.sechead__note', note) : null, ...list)
 }
 
 export function copyButton(text, label = '复制', { size = 'sm', onCopied } = {}) {
