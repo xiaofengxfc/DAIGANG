@@ -9,23 +9,187 @@ import { formDrawer, table, toast, toastErr, lamp, tag, orderTrack, copyButton, 
 
 /* ---------------- 记进度 ---------------- */
 
-/** 资源对比：两个并排输入，提交时自己塞进结果 */
+/** 要盯的三个资源。名字跟 src/ocr.mjs 里的 RESOURCE_ALIASES 对应 */
+export const RES_KEYS = ['星声', '体力', '贝币']
+
+/**
+ * 把「星声 105 体力 86」这种文本拆成三个标准资源 + 其他。
+ * 老记录（甚至「原石 12000 / 树脂 160」这种）都读得回来，
+ * 认不出的标签原样留在「其他」里，一个字都不丢。
+ */
+export function parseResources(text) {
+  const raw = String(text || '').trim()
+  const out = { 星声: '', 体力: '', 贝币: '', other: '' }
+  if (!raw) return out
+  const re = /([^\s\d,，./·、]+)\s*([\d][\d,，]*(?:\.\d+)?)/g
+  const found = []
+  let m
+  while ((m = re.exec(raw))) found.push([m[1], m[2].replace(/[,，]/g, '')])
+  if (!found.length) {
+    out.other = raw
+    return out
+  }
+  const leftovers = []
+  for (const [k, v] of found) {
+    if (RES_KEYS.includes(k)) out[k] = v
+    else leftovers.push(`${k} ${v}`)
+  }
+  out.other = leftovers.join(' · ')
+  return out
+}
+
+/** 反过来拼回一行文本（还是人一眼能读的样子） */
+export function buildResources(vals, other) {
+  const parts = []
+  for (const k of RES_KEYS) {
+    const v = String((vals && vals[k]) ?? '').trim()
+    if (v) parts.push(`${k} ${v}`)
+  }
+  const o = String(other || '').trim()
+  if (o) parts.push(o)
+  return parts.join(' ')
+}
+
+/** 前后差值，给「本次消耗」那行用 */
+export function resourceDelta(beforeText, afterText) {
+  const a = parseResources(beforeText)
+  const b = parseResources(afterText)
+  const out = []
+  for (const k of RES_KEYS) {
+    const x = Number(a[k])
+    const y = Number(b[k])
+    if (!a[k] || !b[k] || !Number.isFinite(x) || !Number.isFinite(y)) continue
+    out.push({ key: k, diff: y - x })
+  }
+  return out
+}
+
+/**
+ * 资源对比：星声 / 体力 / 贝币 各一个框，外加一个「其他」兜底。
+ * 两边都能点「识别截图」，直接从游戏截图里认这几个数。
+ */
 function resourcesField({ before = '', after = '' } = {}) {
   let read = () => ({ resources_before: '', resources_after: '' })
+  let ocrOk = null
+  const sides = []
+
+  const buildSide = (label, initial) => {
+    const parsed = parseResources(initial)
+    const inputs = {}
+    for (const k of RES_KEYS) {
+      const inp = h('input.inp.inp--fig', { inputmode: 'numeric', style: { width: '92px' }, 'aria-label': `${label} ${k}` })
+      inp.value = parsed[k]
+      inputs[k] = inp
+    }
+    const other = h('input.inp', { placeholder: '其他（可选）', 'aria-label': `${label} 其他资源` })
+    other.value = parsed.other
+
+    const deltaLine = h('div.hint')
+    const note = h('div.note.note--ok', { hidden: true })
+    const file = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp', style: { display: 'none' } })
+    const shotBtn = h('button.btn.btn--sm', { type: 'button', title: '选一张游戏截图，自动认星声 / 体力 / 贝币' }, icon('eye', 14), '识别截图')
+
+    const box = h(
+      'div.field.field--full',
+      h('div.cluster', h('label.lbl', label), h('div', { style: { flex: '1' } }), shotBtn),
+      h('div.cluster', { style: { gap: '6px', flexWrap: 'wrap' } }, ...RES_KEYS.map((k) => h('label.inline', { style: { gap: '4px' } }, h('span.dim.tiny', k), inputs[k]))),
+      other,
+      deltaLine,
+      note,
+      file
+    )
+    const rec = { inputs, other, deltaLine, note }
+    sides.push(rec)
+
+    shotBtn.addEventListener('click', () => {
+      if (ocrOk === false) return toast('这台机器上没法识别（只支持 Windows）', 'err', 3600)
+      file.click()
+    })
+    file.addEventListener('change', async () => {
+      const f = file.files && file.files[0]
+      if (!f) return
+      if (f.size > 1.5 * 1024 * 1024) {
+        file.value = ''
+        return toast('截图请压到 1.5MB 以内', 'err', 3600)
+      }
+      shotBtn.setAttribute('data-loading', '1')
+      try {
+        const dataUrl = await new Promise((resolve, reject) => {
+          const fr = new FileReader()
+          fr.onload = () => resolve(fr.result)
+          fr.onerror = () => reject(new Error('读不了这个文件'))
+          fr.readAsDataURL(f)
+        })
+        const r = await api.post('/api/ocr', { data_url: dataUrl })
+        const got = r.resources || {}
+        let n = 0
+        for (const k of RES_KEYS) {
+          if (got[k] === undefined || got[k] === null) continue
+          inputs[k].value = String(got[k])
+          n++
+        }
+        // 认出来的原文也摊开给用户核对 —— 认错的时候一眼能看出来
+        const lines = (r.lines || []).filter((l) => l.trim()).slice(0, 8)
+        note.replaceChildren(
+          h('strong', n ? `认出 ${n} 项，请核对一下再保存` : '这三个资源一个都没认出来，可以手动填'),
+          lines.length ? h('div.tiny', { style: { marginTop: '4px', opacity: '.85' } }, `识别到的原文：${lines.join(' ｜ ')}`) : null
+        )
+        note.hidden = false
+        paint()
+        toast(n ? `认出 ${n} 项，核对后再保存` : '这张图里没认出资源数字', n ? 'ok' : 'err', 3600)
+      } catch (err) {
+        toastErr(err)
+      } finally {
+        shotBtn.removeAttribute('data-loading')
+        file.value = ''
+      }
+    })
+    return box
+  }
+
+  function vals(p) {
+    const o = {}
+    for (const k of RES_KEYS) o[k] = p.inputs[k].value
+    return buildResources(o, p.other.value)
+  }
+
+  function paint() {
+    if (sides.length < 2) return
+    const deltas = resourceDelta(vals(sides[0]), vals(sides[1]))
+    sides[1].deltaLine.textContent = deltas.length
+      ? '本次消耗：' +
+        deltas
+          .map((d) => {
+            const sign = d.diff < 0 ? '−' : d.diff > 0 ? '+' : '±'
+            return `${d.key} ${sign}${fmtQty(Math.abs(d.diff))}`
+          })
+          .join(' · ')
+      : ''
+  }
+
   return {
     type: 'custom',
     width: 'full',
     render: () => {
-      const b = h('input.inp', { placeholder: '原石 12000 / 树脂 160', 'aria-label': '做之前的资源' })
-      const a = h('input.inp', { placeholder: '原石 12400 / 树脂 40', 'aria-label': '做之后的资源' })
-      b.value = before
-      a.value = after
-      read = () => ({ resources_before: b.value.trim(), resources_after: a.value.trim() })
-      return h(
-        'div.row-2',
-        h('div.field.field--full', h('label.lbl', '资源对比 · 做之前'), b),
-        h('div.field.field--full', h('label.lbl', '资源对比 · 做之后'), a)
-      )
+      const box = h('div.stack.stack--tight', buildSide('资源对比 · 做之前', before), buildSide('资源对比 · 做之后', after))
+      read = () => ({ resources_before: vals(sides[0]), resources_after: vals(sides[1]) })
+      for (const p of sides) {
+        for (const k of RES_KEYS) p.inputs[k].addEventListener('input', paint)
+        p.other.addEventListener('input', paint)
+      }
+      paint()
+      if (ocrOk === null) {
+        ocrOk = true
+        api
+          .get('/api/ocr/status')
+          .then((s) => {
+            ocrOk = Boolean(s && s.available)
+          })
+          .catch(() => {
+            ocrOk = false
+          })
+      }
+      return box
     },
     collect: (out) => Object.assign(out, read()),
   }

@@ -1,9 +1,11 @@
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { db, getSetting, setSetting, stamp, nextSerialNo } from '../db.mjs'
 import { get, post, patch, del, saveDataURL } from '../http.mjs'
 import { UPLOAD_DIR } from '../config.mjs'
 import { bad, notFound, fail, int, num, money, clampStr, nowISO, localDate, localMonth, bizDate, parseJSON } from '../util.mjs'
+import { ocrAvailable, ocrImage, extractResources } from '../ocr.mjs'
 import { isSetUp, setPassword, verifyPassword, createSession, destroySession, destroyAllSessions, actorName, assertNotThrottled, noteFailure, clearFailures } from '../auth.mjs'
 import { lock, status as vaultStatus, isConfigured, configure, auditLog } from '../vault.mjs'
 import { STATUS_LABEL } from './orders.mjs'
@@ -346,9 +348,35 @@ export function register() {
     return { url: `/uploads/${name}`, bytes: buf.length }
   })
 
+  /**
+   * 认截图：把游戏截图里的资源数字抠出来（星声 / 体力 / 贝币）。
+   * 用 Windows 自带的 OCR，本机跑，图不出这台电脑。
+   * 认出来的只是「猜」，前端会让人核对后再填，不直接写库。
+   */
+  post('/api/ocr', async (ctx) => {
+    if (!ocrAvailable()) fail(400, '这台机器上没有可用的 OCR（只支持 Windows）', 'no_ocr')
+    const { name, buf } = saveDataURL(ctx.body.data_url, 'ocr')
+    const tmp = path.join(os.tmpdir(), `xfc-ocr-src-${process.pid}-${Date.now()}-${name}`)
+    fs.writeFileSync(tmp, buf)
+    try {
+      const r = await ocrImage(tmp, { lang: clampStr(ctx.body.lang, 20) || 'zh-Hans-CN' })
+      if (!r.ok) fail(400, r.error || '识别失败', 'ocr_failed')
+      const wanted = Array.isArray(ctx.body.wanted) && ctx.body.wanted.length ? ctx.body.wanted.map((w) => clampStr(w, 20)) : undefined
+      return { resources: extractResources(r.words, wanted), lines: r.lines, word_count: r.words.length }
+    } finally {
+      try {
+        fs.unlinkSync(tmp)
+      } catch {
+        /* 清不掉就算了，临时目录里的东西 */
+      }
+    }
+  })
+
+  /** 这台机器能不能用截图识别（前端据此决定要不要显示按钮） */
+  get('/api/ocr/status', () => ({ available: ocrAvailable(), platform: process.platform }))
+
   /* ===== 全局搜索 ===== */
-  get('/api/search', (ctx) => {
-    const q = clampStr(ctx.query.q, 80).trim()
+  get('/api/search', (ctx) => {    const q = clampStr(ctx.query.q, 80).trim()
     if (q.length < 1) return { customers: [], orders: [], services: [], games: [], credentials: [] }
     const like = `%${q.replace(/[%_\\]/g, (m) => '\\' + m)}%`
     return {
