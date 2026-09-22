@@ -24,6 +24,23 @@ export function localDate(d = new Date()) {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
 }
 
+/**
+ * 「干活的那一天」是从几点算起的。
+ * 代肝经常干到后半夜，凌晨 1 点做完的日体不该算成第二天 ——
+ * 所以凌晨 4 点之前都还算前一天。
+ */
+export const DAY_START_HOUR = 4
+
+/**
+ * 业务日期：跟 localDate 一样是 YYYY-MM-DD，但把凌晨 0:00–3:59 归到前一天。
+ * 「今日已完成」全靠它 —— 存的、比的、筛的都是这个，所以刷新点是凌晨 4 点。
+ */
+export function bizDate(d = new Date(), cutoffHour = DAY_START_HOUR) {
+  const x = new Date(d.getTime())
+  if (x.getHours() < cutoffHour) x.setDate(x.getDate() - 1)
+  return localDate(x)
+}
+
 export function localMonth(d = new Date()) {
   return localDate(d).slice(0, 7)
 }

@@ -3,7 +3,7 @@ import path from 'node:path'
 import { db, getSetting, setSetting, stamp, nextSerialNo } from '../db.mjs'
 import { get, post, patch, del, saveDataURL } from '../http.mjs'
 import { UPLOAD_DIR } from '../config.mjs'
-import { bad, notFound, fail, int, num, money, clampStr, nowISO, localDate, localMonth, parseJSON } from '../util.mjs'
+import { bad, notFound, fail, int, num, money, clampStr, nowISO, localDate, localMonth, bizDate, parseJSON } from '../util.mjs'
 import { isSetUp, setPassword, verifyPassword, createSession, destroySession, destroyAllSessions, actorName, assertNotThrottled, noteFailure, clearFailures } from '../auth.mjs'
 import { lock, status as vaultStatus, isConfigured, configure, auditLog } from '../vault.mjs'
 import { STATUS_LABEL } from './orders.mjs'
@@ -69,7 +69,7 @@ function buildDashboard() {
          AND (daily_done_on IS NULL OR daily_done_on <> ?)
        ORDER BY COALESCE(due_at, '9999') ASC, id DESC LIMIT 12`
     )
-    .all(today)
+    .all(bizDate())
     .map(decorateLite)
   const stale = db
     .prepare(

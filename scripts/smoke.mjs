@@ -7,6 +7,8 @@
  *     node scripts/smoke.mjs
  */
 import zlib from 'node:zlib'
+// 纯函数，不连数据库，可以直接拿来验「凌晨 4 点换日」的边界
+import { bizDate, localDate, DAY_START_HOUR } from '../src/util.mjs'
 
 const BASE = process.env.XFC_BASE || 'http://127.0.0.1:8790'
 
@@ -298,6 +300,8 @@ async function main() {
   r = await api('POST', `/api/orders/${orderId}/daily-done`, { done: true })
   ok('能标成今日已完成', r.status === 200 && r.body.daily_done_today === true, `daily_done_on=${r.body.daily_done_on}`)
   ok('标今日完成不改订单状态（不是整单完成）', r.body.status === statusBefore && r.body.status !== 'done', `${statusBefore} → ${r.body.status}`)
+  // 「今天」是凌晨 4 点换日的那个 bizDate，不是日历日期
+  ok('标的是「干活的今天」，不是日历日期', r.body.daily_done_on === bizDate(), `${r.body.daily_done_on} vs bizDate=${bizDate()}`)
   r = await api('GET', '/api/orders?status=open&limit=300')
   ok('标完就从「在做」列表里挪走了', !(r.body.items || []).some((o) => o.id === orderId), `${r.body.items?.length} 张在做`)
   r = await api('GET', '/api/orders?status=daily_done&limit=300')
@@ -306,6 +310,15 @@ async function main() {
   ok('能撤销今日完成', r.body.daily_done_today === false && !r.body.daily_done_on, String(r.body.daily_done_on))
   r = await api('GET', '/api/orders?status=open&limit=300')
   ok('撤销后回到「在做」', (r.body.items || []).some((o) => o.id === orderId), '')
+
+  // 换日点是凌晨 4 点：干到后半夜的人，凌晨 1 点做完的日体不该算第二天
+  ok(`换日点是凌晨 ${DAY_START_HOUR} 点`, DAY_START_HOUR === 4, String(DAY_START_HOUR))
+  ok('凌晨 0:30 归前一天', bizDate(new Date('2026-09-22T00:30:00')) === '2026-09-21', bizDate(new Date('2026-09-22T00:30:00')))
+  ok('凌晨 3:59 还归前一天', bizDate(new Date('2026-09-22T03:59:00')) === '2026-09-21', bizDate(new Date('2026-09-22T03:59:00')))
+  ok('凌晨 4:00 算新的一天', bizDate(new Date('2026-09-22T04:00:00')) === '2026-09-22', bizDate(new Date('2026-09-22T04:00:00')))
+  ok('白天不受影响', bizDate(new Date('2026-09-22T12:00:00')) === '2026-09-22', bizDate(new Date('2026-09-22T12:00:00')))
+  ok('跨年也对（1月1日凌晨2点 → 上一年12月31日）', bizDate(new Date('2026-01-01T02:00:00')) === '2025-12-31', bizDate(new Date('2026-01-01T02:00:00')))
+  ok('localDate 还是老老实实的日历日期', localDate(new Date('2026-09-22T02:00:00')) === '2026-09-22', localDate(new Date('2026-09-22T02:00:00')))
 
   r = await api('POST', `/api/orders/${orderId}/status`, { status: 'done' })
   ok('待付款不能直接改已完成', r.status === 400 && r.body.code === 'bad_transition', r.body)

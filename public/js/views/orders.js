@@ -726,14 +726,14 @@ async function renderDetail(ctx, id) {
     if (done && (o.other_items || []).length) {
       const ok = await confirmModal({
         title: '这张单里还有别的活',
-        message: `标成「今日已完成」之后，整张单今天都会从「在做」里消失，明天才回来。这张单里除了每天要做的，还有：${o.other_items.join('、')}。这些今天也做完了吗？`,
+        message: `标成「今日已完成」之后，整张单这个「今天」都会从「在做」里消失，过了凌晨 4 点才回来。这张单里除了每天要做的，还有：${o.other_items.join('、')}。这些今天也做完了吗？`,
         confirmLabel: '都做完了，标吧',
       })
       if (!ok) return
     }
     try {
       await api.post(`/api/orders/${o.id}/daily-done`, { done })
-      toast(done ? '标成今日完成，明天会自动回到「在做的」' : '已撤销，回到「在做的」', 'ok', 3200)
+      toast(done ? '标成今日完成，过了凌晨 4 点自动回到「在做的」' : '已撤销，回到「在做的」', 'ok', 3400)
       ctx.app.reload()
     } catch (err) {
       toastErr(err)
@@ -1317,7 +1317,7 @@ async function renderList(ctx, status) {
             h('span', { style: { flex: 'none' } }, icon('check', 15)),
             h(
               'span',
-              '这些是今天标了「今日已完成」的单 —— 今天不用再管，明天它们会自动回到「在做的」。点单号进去可以撤销。'
+              '这些是这个「今天」标了「今日已完成」的单 —— 今天不用再管，过了凌晨 4 点它们会自动回到「在做的」。点单号进去可以撤销。'
             )
           )
         : null,

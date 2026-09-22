@@ -1,6 +1,6 @@
 import { db, stamp, nextSerialNo } from '../db.mjs'
 import { get, post, patch, del } from '../http.mjs'
-import { bad, notFound, int, num, money, clampStr, stringifyJSON, parseJSON, localDate, nowISO, toStringArray } from '../util.mjs'
+import { bad, notFound, int, num, money, clampStr, stringifyJSON, parseJSON, localDate, bizDate, nowISO, toStringArray } from '../util.mjs'
 import { computeItems, computeTotals } from '../pricing.mjs'
 
 /* ---------------- 状态机 ---------------- */
@@ -50,8 +50,10 @@ function decorateOrder(row) {
   const paid = money(row.paid_total)
   const total = money(row.total)
   const hasProgress = row.progress_count > 0
-  // 「今日已完成」：标记的日期就是今天才算数，昨天标记的今天就自动失效
-  const dailyDoneToday = !!row.daily_done_on && row.daily_done_on === localDate()
+  // 「今日已完成」：标记的那一天就是「干活的今天」才算数。
+  // 用 bizDate（凌晨 4 点换日）而不是 localDate —— 干到后半夜的人，
+  // 凌晨 1 点做完的日体应该还算当天，不该一到 0 点就自己冒回「在做」。
+  const dailyDoneToday = !!row.daily_done_on && row.daily_done_on === bizDate()
   return {
     ...row,
     status_label: STATUS_LABEL[row.status] || row.status,
@@ -174,13 +176,14 @@ export function register() {
     const status = clampStr(ctx.query.status, 40)
     if (status === 'open') {
       where.push("o.status NOT IN ('done','cancelled')")
-      // 今天已经标记「今日已完成」的先从在做里挪走，明天日期对不上自己就回来了
+      // 这个「今天」已经标记「今日已完成」的先从在做里挪走；
+      // 过了凌晨 4 点日期对不上，自己就回来了
       where.push('(o.daily_done_on IS NULL OR o.daily_done_on <> ?)')
-      values.push(localDate())
+      values.push(bizDate())
     } else if (status === 'daily_done') {
-      // 只看今天标记过的这批，方便反悔
+      // 只看这个「今天」标记过的这批，方便反悔
       where.push('o.daily_done_on = ?')
-      values.push(localDate())
+      values.push(bizDate())
     } else if (status === 'unpaid') {
       where.push("o.status IN ('pending_confirm','pending_pay')")
     } else if (status && STATUS_LABEL[status]) {
@@ -628,7 +631,8 @@ export function register() {
 
   /**
    * 今日已完成：日体、包天这种天天要做的单，今天做完了先挪出「在做」列表，
-   * 明天日期对不上就自动回来 —— 只存日期，不存布尔，省掉定时重置。
+   * 第二天日期对不上就自动回来 —— 只存日期，不存布尔，省掉定时重置。
+   * 存的是 bizDate()：凌晨 4 点才算新的一天，干到后半夜不会突然刷新。
    * body: { done: true } 标记 / { done: false } 撤销
    */
   post('/api/orders/:id/daily-done', (ctx) => {
@@ -639,7 +643,7 @@ export function register() {
       bad(`这张单已经是「${STATUS_LABEL[order.status]}」了，不用再标今日完成`, 'order_closed')
     }
     const done = ctx.body.done !== false
-    db.prepare('UPDATE orders SET daily_done_on = ?, updated_at = ? WHERE id = ?').run(done ? localDate() : null, stamp(), id)
+    db.prepare('UPDATE orders SET daily_done_on = ?, updated_at = ? WHERE id = ?').run(done ? bizDate() : null, stamp(), id)
     return orderDetail(id)
   })
 
