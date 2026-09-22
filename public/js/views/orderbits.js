@@ -65,15 +65,32 @@ export function resourceDelta(beforeText, afterText) {
 }
 
 /**
- * 资源对比：星声 / 体力 / 贝币 各一个框，外加一个「其他」兜底。
- * 两边都能点「识别截图」，直接从游戏截图里认这几个数。
+ * 上一条进度里「做之后」的资源。
+ * 连着记的时候，这一次的「做之前」就是上一次的「做之后」——
+ * 直接带出来，省得每回都重抄一遍。
  */
-function resourcesField({ before = '', after = '' } = {}) {
+export function lastResourcesAfter(order) {
+  const list = (order && order.progress) || []
+  const sorted = [...list].sort(
+    (a, b) => String(a.happened_on || '').localeCompare(String(b.happened_on || '')) || (a.id || 0) - (b.id || 0)
+  )
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    if (sorted[i].resources_after) return sorted[i].resources_after
+  }
+  return ''
+}
+
+/**
+ * 资源对比：星声 / 体力 / 贝币 各一个框，外加一个「其他」兜底。
+ * 两边都能点「识别画面」看屏幕，或点「识别截图」选一张图。
+ * beforeFrom 有值时说明「做之前」是带上一条来的，给个提示讲清来历。
+ */
+function resourcesField({ before = '', after = '', beforeFrom = '' } = {}) {
   let read = () => ({ resources_before: '', resources_after: '' })
   let ocrOk = null
   const sides = []
 
-  const buildSide = (label, initial) => {
+  const buildSide = (label, initial, isFirst = false) => {
     const parsed = parseResources(initial)
     const inputs = {}
     for (const k of RES_KEYS) {
@@ -95,6 +112,8 @@ function resourcesField({ before = '', after = '' } = {}) {
       h('div.cluster', h('label.lbl', label), h('div', { style: { flex: '1' } }), watchBtn, shotBtn),
       h('div.cluster', { style: { gap: '6px', flexWrap: 'wrap' } }, ...RES_KEYS.map((k) => h('label.inline', { style: { gap: '4px' } }, h('span.dim.tiny', k), inputs[k]))),
       other,
+      // 「做之前」是带上一条来的时候，说清来历，免得以为填错了
+      isFirst && beforeFrom ? h('div.hint', `「做之前」带的是${beforeFrom}，不对就直接改。`) : null,
       deltaLine,
       note,
       file
@@ -225,7 +244,7 @@ function resourcesField({ before = '', after = '' } = {}) {
     type: 'custom',
     width: 'full',
     render: () => {
-      const box = h('div.stack.stack--tight', buildSide('资源对比 · 做之前', before), buildSide('资源对比 · 做之后', after))
+      const box = h('div.stack.stack--tight', buildSide('资源对比 · 做之前', before, true), buildSide('资源对比 · 做之后', after))
       read = () => ({ resources_before: vals(sides[0]), resources_after: vals(sides[1]) })
       for (const p of sides) {
         for (const k of RES_KEYS) p.inputs[k].addEventListener('input', paint)
@@ -250,6 +269,8 @@ function resourcesField({ before = '', after = '' } = {}) {
 }
 
 export function progressDrawer(order, onDone) {
+  // 连着记的时候，「做之前」直接带上一条的「做之后」—— 不用重抄
+  const carried = lastResourcesAfter(order)
   return formDrawer({
     title: '记一条进度',
     subtitle: `${order.order_no} · ${order.title || ''}`,
@@ -257,7 +278,7 @@ export function progressDrawer(order, onDone) {
     intro: h('div.hint', '以后客户问"做到哪了"，直接把这条发给他就行。'),
     fields: [
       { name: 'happened_on', label: '日期', type: 'date', required: true, default: todayStr(), width: 'half' },
-      resourcesField(),
+      resourcesField({ before: carried, beforeFrom: carried ? '上一条的「做之后」' : '' }),
       { name: 'content', label: '这次做了什么', type: 'textarea', required: true, rows: 4, placeholder: '例：清完今日委托 + 派遣，深渊打到第 7 层' },
       { name: 'media', label: '截图 / 录屏链接', type: 'tags', hint: '把图床或相册链接粘进来，多个用逗号分隔。也可以先在别处截好图再贴链接。' },
       { name: 'note', label: '备注', type: 'textarea', rows: 2, placeholder: '例：第 7 层差一颗星，明天补' },
