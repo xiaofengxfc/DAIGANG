@@ -6,6 +6,7 @@ import { get, post, patch, del, saveDataURL } from '../http.mjs'
 import { UPLOAD_DIR } from '../config.mjs'
 import { bad, notFound, fail, int, num, money, clampStr, nowISO, localDate, localMonth, bizDate, parseJSON } from '../util.mjs'
 import { ocrAvailable, ocrImage, extractResources } from '../ocr.mjs'
+import { recognizeScreenOnce, SCREEN_RESOURCES, MIN_SCORE } from '../screen.mjs'
 import { isSetUp, setPassword, verifyPassword, createSession, destroySession, destroyAllSessions, actorName, assertNotThrottled, noteFailure, clearFailures } from '../auth.mjs'
 import { lock, status as vaultStatus, isConfigured, configure, auditLog } from '../vault.mjs'
 import { STATUS_LABEL } from './orders.mjs'
@@ -373,7 +374,19 @@ export function register() {
   })
 
   /** 这台机器能不能用截图识别（前端据此决定要不要显示按钮） */
-  get('/api/ocr/status', () => ({ available: ocrAvailable(), platform: process.platform }))
+  get('/api/ocr/status', () => ({ available: ocrAvailable(), screen: ocrAvailable(), platform: process.platform }))
+
+  /**
+   * 认当前屏幕：截一次屏 → OCR 读数字 → 用图标认出哪个是星声/体力/贝币。
+   * 前端每 1.5 秒调一次，凑齐三个就停 —— 这就是「盯着屏幕直到认到」。
+   * 认不准的宁可不出现在 resources 里，也绝不瞎填。
+   */
+  post('/api/ocr/screen', async (ctx) => {
+    if (!ocrAvailable()) fail(400, '这台机器上用不了屏幕识别（只支持 Windows）', 'no_screen')
+    const r = await recognizeScreenOnce({ minScore: num(ctx.body.min_score, MIN_SCORE) || MIN_SCORE })
+    if (!r.ok) fail(400, r.error || '识别失败', 'screen_failed')
+    return { resources: r.resources, candidates: r.candidates, size: r.size, want: SCREEN_RESOURCES }
+  })
 
   /* ===== 全局搜索 ===== */
   get('/api/search', (ctx) => {    const q = clampStr(ctx.query.q, 80).trim()

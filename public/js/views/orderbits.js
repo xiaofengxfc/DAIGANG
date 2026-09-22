@@ -88,10 +88,11 @@ function resourcesField({ before = '', after = '' } = {}) {
     const note = h('div.note.note--ok', { hidden: true })
     const file = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp', style: { display: 'none' } })
     const shotBtn = h('button.btn.btn--sm', { type: 'button', title: '选一张游戏截图，自动认星声 / 体力 / 贝币' }, icon('eye', 14), '识别截图')
+    const watchBtn = h('button.btn.btn--sm.btn--primary', { type: 'button', title: '切到游戏，程序会一直看着屏幕，三个都认到就自动停' }, icon('refresh', 14), '识别画面')
 
     const box = h(
       'div.field.field--full',
-      h('div.cluster', h('label.lbl', label), h('div', { style: { flex: '1' } }), shotBtn),
+      h('div.cluster', h('label.lbl', label), h('div', { style: { flex: '1' } }), watchBtn, shotBtn),
       h('div.cluster', { style: { gap: '6px', flexWrap: 'wrap' } }, ...RES_KEYS.map((k) => h('label.inline', { style: { gap: '4px' } }, h('span.dim.tiny', k), inputs[k]))),
       other,
       deltaLine,
@@ -104,6 +105,59 @@ function resourcesField({ before = '', after = '' } = {}) {
     shotBtn.addEventListener('click', () => {
       if (ocrOk === false) return toast('这台机器上没法识别（只支持 Windows）', 'err', 3600)
       file.click()
+    })
+
+    /**
+     * 识别画面：切到游戏，程序每 1.5 秒截一次屏，
+     * 三个资源都认到就自动停 —— 不用截图、不用来回切。
+     */
+    let watching = false
+    watchBtn.addEventListener('click', async () => {
+      if (watching) return
+      if (ocrOk === false) return toast('这台机器上用不了屏幕识别（只支持 Windows）', 'err', 3600)
+      watching = true
+      watchBtn.setAttribute('data-loading', '1')
+      const got = {}
+      const deadline = Date.now() + 90000
+      const paintProgress = () => {
+        const have = RES_KEYS.filter((k) => got[k] !== undefined)
+        note.hidden = false
+        note.replaceChildren(
+          h('strong', `正在看屏幕… 已认到 ${have.length}/3${have.length ? '（' + have.join('、') + '）' : ''}`),
+          h('div.tiny', { style: { marginTop: '4px', opacity: '.85' } }, '切到游戏，走到有这几个资源的界面；三个都认到就自动停。')
+        )
+      }
+      paintProgress()
+      try {
+        while (Date.now() < deadline && RES_KEYS.some((k) => got[k] === undefined)) {
+          let r = null
+          try {
+            r = await api.post('/api/ocr/screen', {})
+          } catch (err) {
+            // 单次失败（比如切窗口时截到黑屏）不算结束，接着看
+            await new Promise((res) => setTimeout(res, 1200))
+            continue
+          }
+          for (const k of RES_KEYS) {
+            if (got[k] === undefined && r.resources && r.resources[k] !== undefined) got[k] = r.resources[k]
+          }
+          for (const k of RES_KEYS) if (got[k] !== undefined) inputs[k].value = String(got[k])
+          paintProgress()
+          paint()
+          if (RES_KEYS.every((k) => got[k] !== undefined)) break
+          await new Promise((res) => setTimeout(res, 1500))
+        }
+        const n = RES_KEYS.filter((k) => got[k] !== undefined).length
+        note.replaceChildren(
+          h('strong', n === RES_KEYS.length ? '三个都认到了，核对一下再保存' : `只认到 ${n} 个，剩下的自己填一下`),
+          h('div.tiny', { style: { marginTop: '4px', opacity: '.85' } }, '认出来的都是「图标 + 数字」对上的，认不准的宁可不填。')
+        )
+        toast(n === RES_KEYS.length ? '三个都认到了' : `认到 ${n} 个`, n ? 'ok' : 'err', 3600)
+      } finally {
+        watching = false
+        watchBtn.removeAttribute('data-loading')
+        paint()
+      }
     })
     file.addEventListener('change', async () => {
       const f = file.files && file.files[0]
