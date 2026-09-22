@@ -124,6 +124,12 @@ export function renderProgressCard(report, { scale = 2 } = {}) {
     if (e.before || e.after) {
       text(W - PAD, y, `${e.before || '—'} → ${e.after || '—'}`, resFont, CINNABAR, 'right')
     }
+    // 算好的差单独一行 —— 客户看「动了多少」比看两串原始数字快得多。
+    // 这一行是服务端算的，跟「复制文字」里那行完全一致。
+    if (e.delta) {
+      y += 30
+      text(PAD + 16, y, `本次消耗：${e.delta}`, resFont, INK)
+    }
 
     const bodyLines = wrap(measure, e.content, bodyFont, CW - 16, 8)
     for (const ln of bodyLines) {

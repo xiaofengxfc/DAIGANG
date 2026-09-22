@@ -840,6 +840,34 @@ export function register() {
   })
 
   /* 进度汇报：给客户看的文本 + 图片模型，两者内容一致 */
+/**
+ * 从「星声 105 体力 86」里抠出 标签→数字（跟前端 parseResources 一个规则）
+ */
+function parseResPairs(text) {
+  const out = {}
+  const re = /([^\s\d,，./·、]+)\s*([\d][\d,，]*(?:\.\d+)?)/g
+  let m
+  while ((m = re.exec(String(text || '')))) out[m[1]] = Number(m[2].replace(/[,，]/g, ''))
+  return out
+}
+
+/**
+ * 算出这一趟的消耗，给人看的一行：`星声 +780 · 体力 −191`
+ * 跟前端「本次消耗」用同一套规则 —— 分享出去的文字和界面上看到的必须一致。
+ */
+function resourceDeltaText(beforeText, afterText) {
+  const a = parseResPairs(beforeText)
+  const b = parseResPairs(afterText)
+  const parts = []
+  for (const k of Object.keys(b)) {
+    if (!(k in a)) continue
+    const d = money(b[k] - a[k])
+    if (!Number.isFinite(d) || Math.abs(d) < 0.001) continue
+    parts.push(`${k} ${d > 0 ? '+' : '−'}${Math.abs(d)}`)
+  }
+  return parts.join(' · ')
+}
+
   get('/api/orders/:id/progress-report', (ctx) => {
     const o = orderDetail(int(ctx.params.id))
     if (!o) notFound('订单不存在')
@@ -853,6 +881,7 @@ export function register() {
         content: p.content || '',
         before: p.resources_before || '',
         after: p.resources_after || '',
+        delta: resourceDeltaText(p.resources_before, p.resources_after),
         note: p.note || '',
         shots: (p.media || []).filter((m) => /\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(m)).length,
         links: (p.media || []).length,
@@ -890,6 +919,8 @@ export function register() {
       for (const e of entries) {
         const res = e.before || e.after ? `  ${e.before || '—'} → ${e.after || '—'}` : ''
         lines.push(`${e.date}${res}`)
+        // 「做之前 → 做之后」是原始记录，再给一行算好的差，客户一眼看出这一趟动了多少
+        if (e.delta) lines.push(`  本次消耗：${e.delta}`)
         lines.push(`  ${e.content}`)
         if (e.shots) lines.push(`  （附 ${e.shots} 张截图）`)
         else if (e.links) lines.push(`  （附 ${e.links} 个链接）`)
