@@ -103,8 +103,10 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
   // 顺序要紧：底纹要先推入 ops，文字后推，画的时候才是「先底后字」。
   const noticeFont = font(23)
   const noticeLabelFont = font(19, 700)
-  const noticeBlock = (text, label = '公告') => {
-    const raw = String(text || '').trim()
+  // 参数千万别叫 text —— 会把外面那个画字的 text() 遮住，
+  // 结果就是「预览画不出来：text is not a function」。
+  const noticeBlock = (notice, label = '公告') => {
+    const raw = String(notice || '').trim()
     if (!raw) return
     const inner = 30
     const lines = wrapText(measure, raw, noticeFont, CW - inner * 2 - 6, 8)

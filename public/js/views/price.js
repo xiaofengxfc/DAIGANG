@@ -664,7 +664,7 @@ function optionEditor(service) {
     section('全局通用增项', globals, '建在所有服务项上都可用，比如「不动原石」「全程录屏」。在「新建增项」里把绑定服务留空即可。')
   }
 
-  return drawer({
+  const d = drawer({
     title: '套餐与增项',
     subtitle: service.name,
     body: h(
@@ -756,6 +756,12 @@ function optionEditor(service) {
           )
     ),
   })
+
+  // 这里原来漏了 load()：不拉数据的话，这个抽屉永远只显示「加增项 / 通用增项」
+  // 两个按钮，已有的增项根本看不见，也就没法改 —— 只能一直往里加新的。
+  // 顺手把失败也说出来，别再出现「打开是空的，但不知道为什么」。
+  load().catch(toastErr)
+  return d
 }
 
 /* ---------------- 服务项详情抽屉 ---------------- */
