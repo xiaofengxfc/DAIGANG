@@ -206,7 +206,8 @@ function currencyGain(service, games = [], categories = []) {
   const raw = service?.currency_amount
   if (raw === null || raw === undefined || raw === '') return ''
   const n = Number(raw)
-  if (!Number.isFinite(n)) return ''
+  // 数量得是正数：0 和空一样，都当没填（不然会显示「星声 0」）
+  if (!Number.isFinite(n) || n <= 0) return ''
   let gid = service.game_id || ''
   if (!gid && service.category_id) {
     gid = (categories || []).find((c) => String(c.id) === String(service.category_id))?.game_id || ''

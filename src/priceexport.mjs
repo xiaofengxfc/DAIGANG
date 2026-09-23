@@ -120,7 +120,7 @@ export function buildExportModel(opts = {}) {
     const raw = s.currency_amount
     if (raw === null || raw === undefined || raw === '') return ''
     const n = num(raw)
-    if (!Number.isFinite(n)) return ''
+    if (!Number.isFinite(n) || n <= 0) return ''
     let gid = s.game_id && gameById.has(s.game_id) ? s.game_id : null
     if (!gid && s.category_id) {
       const g = catById.get(s.category_id)?.game_id

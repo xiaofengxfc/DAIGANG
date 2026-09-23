@@ -747,6 +747,27 @@ async function main() {
       ?.map((t) => t.replace(/<[^>]+>/g, '')) || []
   ok('docx 里也有这一行', gainTexts.includes('可得 原石 200'), gainTexts.filter((t) => t.includes('可得')).join(' | '))
 
+  /* 下单时把「可得货币」一起冻进快照 —— 和价格一个道理，之后改价格表不影响老单 */
+  const custList = await api('GET', '/api/customers?limit=10')
+  const custId2 = (custList.body.items || [])[0]?.id
+  r = await api('POST', '/api/orders', {
+    customer_id: custId2,
+    game_id: gameId,
+    items: [{ service_id: target.id, quantity: 2 }],
+  })
+  ok('能下单（为了验货币快照）', r.status === 200 && r.body.id > 0, `${r.status}`)
+  const od = await api('GET', `/api/orders/${r.body.id}`)
+  const odItem = (od.body.items || [])[0]
+  ok(
+    '订单明细快照冻住了「可得货币」（存的是每个的数量）',
+    odItem?.snapshot?.gain?.name === '原石' && Number(odItem?.snapshot?.gain?.amount) === 200,
+    JSON.stringify(odItem?.snapshot?.gain)
+  )
+  ok('数量也冻住了（前端按数量翻倍显示）', Number(odItem?.quantity) === 2, odItem?.quantity)
+  await api('DELETE', `/api/orders/${r.body.id}?force=1`)
+  const afterDel = await api('GET', '/api/orders?limit=300&status=all')
+  ok('验货币用的测试单已清理', !(afterDel.body.items || []).some((o) => o.id === r.body.id))
+
   // 游戏没配货币名 → 光有数量也不显示（免得出现一个没有单位的数字）
   await api('PATCH', `/api/games/${gameId}`, { currency: '' })
   r = await api('GET', `/api/pricebook/export-model?game_id=${gameId}`)

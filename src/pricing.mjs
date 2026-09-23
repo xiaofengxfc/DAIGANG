@@ -54,6 +54,28 @@ export const defaultUnitLabel = (service) =>
   '单'
 
 /**
+ * 这个服务项能让客户拿到多少货币。
+ * 名字配在游戏上（games.currency），数量配在服务项上（services.currency_amount）；
+ * 服务项自己没绑游戏就跟着它的大类走。
+ * 两个都没配、或者数量不是正数 → 返回 null（那就不显示，也不会冻进快照）。
+ */
+export function loadGain(service) {
+  const raw = service?.currency_amount
+  if (raw === null || raw === undefined || raw === '') return null
+  const amount = num(raw)
+  if (!Number.isFinite(amount) || amount <= 0) return null
+  let gid = service.game_id || null
+  if (!gid && service.category_id) {
+    gid =
+      db.prepare('SELECT game_id FROM service_categories WHERE id = ?').get(Number(service.category_id))?.game_id ||
+      null
+  }
+  if (!gid) return null
+  const name = String(db.prepare('SELECT currency FROM games WHERE id = ?').get(Number(gid))?.currency || '').trim()
+  return name ? { name, amount } : null
+}
+
+/**
  * 把「选了哪些服务、几份、加了哪些增项」算成一张单子。
  * rawItems: [{ service_id, quantity, option_ids: [], unit_price?, note? }]
  */
@@ -110,6 +132,9 @@ export function computeItems(rawItems) {
         matched_tier: tier ? { min_qty: tier.min_qty, max_qty: tier.max_qty, unit_price: tier.unit_price } : null,
         package_items: service.package_items || [],
         addons,
+        // 能拿多少货币：和价格一样冻在下单那一刻。
+        // 以后改价格表上的数字，这张老单还是当时说好的那个数。
+        gain: loadGain(service),
         note: clampStr(raw.note, 400),
       },
     })

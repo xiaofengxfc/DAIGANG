@@ -154,6 +154,38 @@ function addDays(iso, n) {
 /** 大类/服务项两级的「每天都做」：服务项自己设了就听它的，没设（null）跟着大类走 */
 const svcIsDaily = (s) => (s.is_daily === null || s.is_daily === undefined ? Boolean(s._catDaily) : Boolean(s.is_daily))
 
+/**
+ * 把若干 [货币名, 数量] 加起来写成一行。
+ * 一个游戏一种货币，正常只有一种；真混了两种（跨游戏下单）就分着写、不硬加。
+ */
+function gainSum(pairs) {
+  const byName = new Map()
+  for (const pair of pairs || []) {
+    if (!pair) continue
+    const [name, amount] = pair
+    if (!name || !Number.isFinite(amount) || amount <= 0) continue
+    byName.set(name, (byName.get(name) || 0) + amount)
+  }
+  if (!byName.size) return ''
+  return [...byName.entries()].map(([name, amount]) => `${name} ${fmtQty(amount)}`).join(' + ')
+}
+
+/**
+ * 单子里这些明细加起来能让客户拿到多少货币。
+ * 认的是快照里的 gain（下单那刻冻住的），所以之后改价格表不影响老单。
+ */
+function gainTotal(items) {
+  return gainSum(
+    (items || [])
+      .map((it) => {
+        const g = it?.snapshot?.gain
+        if (!g || !g.name) return null
+        return [g.name, Number(g.amount || 0) * (Number(it.quantity) || 1)]
+      })
+      .filter(Boolean)
+  )
+}
+
 function calcPicked(picked, servicesById) {
   let subtotal = 0
   let addons = 0
@@ -192,11 +224,15 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
   const games = gameRes.items || []
   const allServices = []
   for (const cat of book.categories) {
-    // _catDaily 带上大类的「每天都做」，服务项自己没设时要用它兜底
-    for (const s of cat.services) allServices.push({ ...s, _catName: cat.name, _catId: cat.id, _catDaily: cat.is_daily })
+    // _catDaily / _catGameId 带上大类的信息：服务项自己没设时要用它兜底
+    for (const s of cat.services) {
+      allServices.push({ ...s, _catName: cat.name, _catId: cat.id, _catDaily: cat.is_daily, _catGameId: cat.game_id })
+    }
   }
-  for (const s of book.loose) allServices.push({ ...s, _catName: '未分类', _catId: 0, _catDaily: false })
+  for (const s of book.loose) allServices.push({ ...s, _catName: '未分类', _catId: 0, _catDaily: false, _catGameId: s.game_id })
   const servicesById = new Map(allServices.map((s) => [s.id, s]))
+  // 货币名字配在游戏上
+  const gameById = new Map((book.games || []).map((g) => [String(g.id), g]))
 
   const picked = new Map()
   const unmappable = [] // 明细指向的服务项已经不在价格表里（比如报价单转来的单），改不了
@@ -378,9 +414,26 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
     )
   }
 
+  /** 「星声 240」这种：从服务项上取 [货币名, 每个多少]；游戏没配货币名就是 null */
+  function svcGainPair(s) {
+    const raw = s?.currency_amount
+    if (raw === null || raw === undefined || raw === '') return null
+    const per = Number(raw)
+    if (!Number.isFinite(per) || per <= 0) return null
+    const gid = s.game_id || s._catGameId || ''
+    const name = String(gameById.get(String(gid))?.currency || '').trim()
+    return name ? [name, per] : null
+  }
+  const svcGain = (s) => {
+    const pair = svcGainPair(s)
+    return pair ? `${pair[0]} ${fmtQty(pair[1])}` : ''
+  }
+
   function serviceRow(s) {
     const cb = h('input.chk', { type: 'checkbox', 'aria-label': `选择 ${s.name}` })
     cb.checked = picked.has(s.id)
+    // 这个服务项能让客户拿到多少货币（游戏上配了名字才显示）
+    const gain = svcGain(s)
 
     const qty = h('input.inp.inp--fig', { inputmode: 'decimal', style: { width: '76px' }, 'aria-label': `${s.name} 数量` })
     const price = h('input.inp.inp--fig', { inputmode: 'decimal', style: { width: '86px' }, placeholder: '改价', 'aria-label': `${s.name} 单价` })
@@ -444,6 +497,8 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
           h(
             'span.pickrow__line',
             h('span.pickrow__name', s.name),
+            // 能给客户拿到多少 —— 代肝卖的就是这个，挑的时候就摆在名字旁边
+            gain ? h('span.pickrow__gain', gain) : null,
             // 价格常驻：不勾选也知道多少钱
             h('span.pickrow__fig', `¥${fmtMoney(s.base_price)}`, h('em', `/${defaultUnit(s)}`))
           ),
@@ -540,6 +595,15 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
     const cost = Math.max(0, Number(costInp.value) || 0)
     const total = Math.max(0, subtotal + addons - discount)
     totalFig.textContent = `¥${fmtMoney(total)}`
+    // 这一单加起来能给客户拿到多少货币（数量算进去）
+    const gainText = gainSum(
+      [...picked.entries()]
+        .map(([id, sel]) => {
+          const pair = svcGainPair(servicesById.get(id))
+          return pair ? [pair[0], pair[1] * (Number(sel.quantity) || 1)] : null
+        })
+        .filter(Boolean)
+    )
 
     // 单子里有每天都做的服务项 → 交付日期按天数自动填。
     // 用户自己动过交付日期就不碰了；清空则回到自动。
@@ -565,7 +629,9 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
         h('span.dim', '折扣'),
         h('span.num.tone-oxblood', `−¥${fmtMoney(discount)}`),
         h('span.dim', '利润预估'),
-        h('span.num', `¥${fmtMoney(total - fee - cost)}`)
+        h('span.num', `¥${fmtMoney(total - fee - cost)}`),
+        gainText ? h('span.dim', '可得') : null,
+        gainText ? h('span.num', gainText) : null
       )
     )
     // 服务行的背景跟着选中状态走
@@ -1128,6 +1194,10 @@ async function renderDetail(ctx, id) {
           h(
             'div.panel__foot',
             h('span.sm.dim', `共 ${o.items.length} 项`),
+            // 这张单所有明细加起来能让客户拿到多少货币（同一个货币才合计）
+            gainTotal(o.items)
+              ? h('span.sm.dim', { style: { marginLeft: '10px' } }, `可得 ${gainTotal(o.items)}`)
+              : null,
             h('div', { style: { flex: '1' } }),
             h('span.sm.dim', '合计'),
             h('span.strong', `¥${fmtMoney(o.total)}`)

@@ -2540,6 +2540,19 @@ pre.plaintext {
   color: var(--ink-3);
 }
 
+/* 这个服务项能让客户拿到多少货币（游戏上配了货币名才显示） */
+.pickrow__gain {
+  flex: none;
+  padding: 1px 7px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  font-family: var(--font-fig);
+  font-size: var(--fs-xs);
+  color: var(--ink-2);
+  white-space: nowrap;
+  translate: 0 -1px;
+}
+
 .pickrow__meta {
   display: block;
   margin-top: 1px;

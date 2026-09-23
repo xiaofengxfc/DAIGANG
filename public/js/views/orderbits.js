@@ -547,6 +547,15 @@ export function orderTable(rows, ctx, opts = {}) {
 
 /* ---------------- 详情里的一段 ---------------- */
 
+/** 这一条明细能让客户拿到多少货币（快照里是每个的数量，乘上本条数量）。没配就返回空串 */
+export function itemGain(it) {
+  const g = it?.snapshot?.gain
+  if (!g || !g.name) return ''
+  const total = Number(g.amount || 0) * (Number(it.quantity) || 1)
+  if (!Number.isFinite(total) || total <= 0) return ''
+  return `${g.name} ${fmtQty(total)}`
+}
+
 export function orderItemsList(items) {
   return h(
     'div.itemlist',
@@ -565,6 +574,15 @@ export function orderItemsList(items) {
             it.snapshot?.matched_tier ? tag('阶梯价', 'slate') : null
           ),
           it.spec ? h('div.tbl__meta', it.spec) : null,
+          // 这一条能让客户拿到多少货币。快照里冻的是「每个」的数量，
+          // 这里乘上本条的数量 —— 跟右边「单价 × 数量 = 金额」一个口径，
+          // 也跟下面「共 N 项」那条合计对得上（×2 就该拿两倍）。
+          itemGain(it)
+            ? h(
+                'div.subitems',
+                h('div.subitem', h('span.subitem__k', '可得'), h('span.strong', itemGain(it)))
+              )
+            : null,
           it.snapshot?.package_items?.length
             ? h(
                 'div.subitems',
