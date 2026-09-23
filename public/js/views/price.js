@@ -268,6 +268,17 @@ export function categoryForm(values = {}, games = [], presetGameId = null) {
         hint: '勾上之后，开单时会标出来，标「今日已完成」时也会提醒你这张单里是不是还夹着别的活',
       },
       { name: 'note', label: '备注', type: 'text', placeholder: '选填' },
+      {
+        name: 'notice',
+        label: '大类提示',
+        type: 'textarea',
+        rows: 2,
+        maxlength: 400,
+        placeholder: '例：本大类按层数计价，10 层起接。',
+        hint:
+          '只给客户看的一句话，可以做多行。导出价格表时，它会显示在「这个大类」的名字下面、服务项上面 —— ' +
+          '缩进一格，比游戏那条顶部提示低一级。和「备注」分开：备注是你自己看的，不会出现在导出里。',
+      },
     ],
     onSubmit: async (v) => {
       const payload = { ...v, game_id: v.game_id || null }
@@ -1692,6 +1703,10 @@ export default {
 
         for (const b of blocks) {
           const catBody = h('div.pcat__body')
+          // 大类自己的提示：排在这个大类的名字下面、服务项上面。
+          // 缩进对齐服务项的名字，比游戏那条顶部提示低一级。
+          const catNotice = String(b.cat.notice || '').trim()
+          if (catNotice) catBody.appendChild(h('div.pcat__notice', h('span', catNotice)))
           if (!b.list.length) {
             catBody.appendChild(
               h(

@@ -33,7 +33,7 @@ export function looksDaily(name) {
 export const categories = makeDef({
   table: 'service_categories',
   listOrder: 'sort_order ASC, id ASC',
-  searchColumns: ['name', 'note'],
+  searchColumns: ['name', 'note', 'notice'],
   archiveInstead: true,
   columns: {
     game_id: { type: 'ref', label: '所属游戏', filter: true },
@@ -51,6 +51,9 @@ export const categories = makeDef({
     status: { type: 'string', default: 'active', enum: ['active', 'archived'], filter: true },
     sort_order: { type: 'int', default: 0 },
     note: { type: 'text', max: 1000 },
+    // 对外提示：只给客户看，排在这个大类的名字下面、服务项上面。
+    // 和 note 分开是有意的 —— note 是自己记账用的，不该发到客户手上。
+    notice: { type: 'text', label: '大类提示', max: 400 },
   },
 })
 

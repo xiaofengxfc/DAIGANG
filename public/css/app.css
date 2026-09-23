@@ -1708,6 +1708,21 @@ button.cell:hover {
   padding-left: 34px;
 }
 
+/* 大类自己的提示：排在这个大类的名字下面、服务项上面。
+   缩进对齐服务项的名字，暖色底 + 朱砂竖线，比游戏那条顶部提示低一级 ——
+   和导出图片 / Word 里那一块长得一样。 */
+.pcat__notice {
+  display: flex;
+  margin: 2px var(--sp-4) 6px 34px;
+  padding: 8px 12px;
+  background: var(--cinnabar-bg);
+  border-left: 3px solid var(--cinnabar);
+  font-size: var(--fs-sm);
+  line-height: 1.65;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+}
+
 /* 大类之间空开一点，别糊成一片 */
 .pcat + .pcat {
   margin-top: 4px;
@@ -2019,6 +2034,12 @@ button.cell:hover {
   .pitem,
   .pcat__body .pitem {
     padding-left: 26px;
+  }
+
+  /* 窄屏上缩进也跟着收，别把提示挤成一条 */
+  .pcat__notice {
+    margin-left: 26px;
+    margin-right: var(--sp-3);
   }
 
   .pitem__grip {

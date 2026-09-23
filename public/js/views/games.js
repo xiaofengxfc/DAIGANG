@@ -44,14 +44,14 @@ export function gameForm(values = {}) {
       { name: 'servers', label: '区服列表', type: 'tags', hint: '逗号分隔。例：天空岛, 世界树, 亚服。开单时可以直接选。' },
       {
         name: 'notice',
-        label: '公告',
+        label: '顶部提示',
         type: 'textarea',
         rows: 3,
         maxlength: 600,
         placeholder: '例：本价格表自 9 月 20 日起执行；包月客户送一次活动代打。',
         hint:
           '只给客户看的一句话。可以做多行，一行一件事。' +
-          '导出价格表时，它会显示在图片 / Word 的「最上方」——抬头下面、第一个大类上面。' +
+          '导出价格表时，它会显示在图片 / Word 的最上方 —— 抬头下面、第一个大类上面，不带任何标题。' +
           '和「备注」分开：备注是你自己记账用的，不会出现在导出里。',
       },
       {

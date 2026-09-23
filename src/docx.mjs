@@ -142,13 +142,14 @@ const bottomRule = (color = RULE, sz = 8) =>
 const rightTab = (leader = 'dot') => `<w:tabs><w:tab w:val="right" w:leader="${leader}" w:pos="${TEXT_W}"/></w:tabs>`
 
 /**
- * 公告块：暖色底 + 左边一道朱砂竖线，就是应用里那个提示条的样子。
+ * 提示块：暖色底 + 左边一道朱砂竖线，就是应用里那个提示条的样子。
  * 每行一个段落（Word 不认 \n），相邻段落边框设置相同，Word 会自动接成一个整块。
  *
  * label 默认空着：这份文档是发给客户的，暖色块自己就说明白了，
  * 不用在上面再压一个「公告」的标题。
+ * 大类的提示会传更小的 size 和更大的 left —— 层级低一级，缩进一格。
  */
-function noticeParas(notice, label = '') {
+function noticeParas(notice, label = '', { left = 160, size = 20, after = 140 } = {}) {
   const lines = String(notice || '')
     .split(/\r?\n/)
     .map((s) => s.trim())
@@ -157,14 +158,14 @@ function noticeParas(notice, label = '') {
   const box = (extra) =>
     `<w:shd w:val="clear" w:color="auto" w:fill="${TINT}"/>` +
     `<w:pBdr><w:left w:val="single" w:sz="18" w:space="12" w:color="${CINNABAR}"/></w:pBdr>` +
-    `<w:ind w:left="160" w:right="120"/>` +
+    `<w:ind w:left="${left}" w:right="120"/>` +
     extra
   // 标签单独一行，和图片版排法一致（同一个模型，两边看起来要一样）
-  const out = label ? [para(run(label, { size: 18, bold: true, color: CINNABAR }), { pPr: box(spacing(80, 0, 240)) })] : []
+  const out = label ? [para(run(label, { size: size - 2, bold: true, color: CINNABAR }), { pPr: box(spacing(80, 0, 240)) })] : []
   lines.forEach((ln, i) =>
     out.push(
-      para(run(ln, { size: 20, color: INK }), {
-        pPr: box(spacing(0, i === lines.length - 1 ? 140 : 0, 250)),
+      para(run(ln, { size, color: INK }), {
+        pPr: box(spacing(0, i === lines.length - 1 ? after : 0, 250)),
       })
     )
   )
@@ -213,11 +214,11 @@ export function buildDocx(model) {
       )
     }
 
-    // 合并导出时，游戏公告跟在它的第一个大类上面（小标题里已经写了游戏名就不重复了）
-    if (g.notice) {
+    // 合并导出时，游戏的提示跟在它的第一个大类上面（小标题里已经写了游戏名就不重复了）
+    if (g.gameNotice) {
       // 只在没印游戏小标题时才用游戏名当标签 —— 不再出现「公告」两个字
       const label = gameHead || !g.gameName ? '' : g.gameName
-      body.push(...noticeParas(g.notice, label))
+      body.push(...noticeParas(g.gameNotice, label))
     }
 
     body.push(
@@ -225,6 +226,11 @@ export function buildDocx(model) {
         pPr: spacing(gi === 0 ? 0 : 200, 60, 240) + bottomRule(RULE, 6),
       })
     )
+
+    // 大类自己的提示：排在名字下面、服务项上面，缩进一格、字小一号
+    if (g.catNotice) {
+      body.push(...noticeParas(g.catNotice, '', { left: 360, size: 19, after: 120 }))
+    }
 
     for (const it of g.items) {
       body.push(

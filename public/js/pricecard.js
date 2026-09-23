@@ -98,41 +98,43 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
     ops.push({ t: 'line', x1, y1, x2, y2, color, width, dash })
   const rect = (x, y0, w, h, color) => ops.push({ t: 'rect', x, y: y0, w, h, color })
 
-  /* ---------- 公告条 ---------- */
+  /* ---------- 提示条 ---------- */
   // 暖色底 + 左边一道朱砂竖线，和 Word 文档里的排法完全一致。
   // 顺序要紧：底纹要先推入 ops，文字后推，画的时候才是「先底后字」。
-  const noticeFont = font(23)
-  const noticeLabelFont = font(19, 700)
   // 参数千万别叫 text —— 会把外面那个画字的 text() 遮住，
   // 结果就是「预览画不出来：text is not a function」。
   // label 默认空着：价目表是发给客户的，暖色底那一条自己就说明白了，
   // 不用在上面再压一个「公告」的标题。
-  const noticeBlock = (notice, label = '') => {
+  // indent / size 是给「大类提示」用的：缩进一格、字小一号，层级低一级。
+  const noticeBlock = (notice, label = '', { indent = 0, size = 23 } = {}) => {
     const raw = String(notice || '').trim()
     if (!raw) return
     const inner = 30
-    const lines = wrapText(measure, raw, noticeFont, CW - inner * 2 - 6, 8)
+    const bodyFont = font(size)
+    const labelFont = font(Math.max(15, size - 4), 700)
+    const boxW = CW - indent
+    const lines = wrapText(measure, raw, bodyFont, boxW - inner * 2 - 6, 8)
     if (!lines.length) return
 
     // 高度先算好再铺底 —— ops 是按顺序画的，底纹必须先推入，否则会盖住文字
     const lead = 28
-    const labelStep = label ? 30 : 0
-    const lineStep = 34
+    const labelStep = label ? size + 7 : 0
+    const lineStep = Math.round(size * 1.48)
     const h = lead + labelStep + lines.length * lineStep + 18
 
-    y += 46
+    y += size >= 23 ? 46 : 32
     const top = y
-    rect(PAD, top, CW, h, TINT)
-    rect(PAD, top, 6, h, CINNABAR)
+    rect(PAD + indent, top, boxW, h, TINT)
+    rect(PAD + indent, top, 6, h, CINNABAR)
 
     let base = top + lead
     if (label) {
-      text(PAD + inner, base, label, noticeLabelFont, CINNABAR)
+      text(PAD + indent + inner, base, label, labelFont, CINNABAR)
       base += labelStep
     }
     for (const ln of lines) {
       base += lineStep
-      text(PAD + inner, base, ln, noticeFont, INK)
+      text(PAD + indent + inner, base, ln, bodyFont, INK)
     }
     y = top + h
   }
@@ -188,15 +190,18 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
       line(PAD, y, W - PAD, y, RULE_STRONG, 2)
     }
 
-    // 合并导出时，游戏公告跟在它的第一个大类上面。
+    // 合并导出时，游戏的提示跟在它的第一个大类上面。
     // 小标题里已经写了游戏名就不重复；没写标题的才用游戏名当标签 —— 但不再出现「公告」两个字。
-    if (g.notice) noticeBlock(g.notice, gameHead || !g.gameName ? '' : g.gameName)
+    if (g.gameNotice) noticeBlock(g.gameNotice, gameHead || !g.gameName ? '' : g.gameName)
 
     y += 62
     rect(PAD, y - 23, 6, 27, CINNABAR)
     text(PAD + 18, y, fitText(measure, g.name, catFont, CW - 18), catFont, g.isOrphan ? INK_GRAY : INK)
     y += 14
     line(PAD, y, W - PAD, y, RULE, 1)
+
+    // 大类自己的提示：排在名字下面、服务项上面，缩进一格、字小一号
+    if (g.catNotice) noticeBlock(g.catNotice, '', { indent: 22, size: 20 })
 
     for (const it of g.items) {
       y += 46

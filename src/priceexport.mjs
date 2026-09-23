@@ -146,18 +146,21 @@ export function buildExportModel(opts = {}) {
   const noticeShown = new Set()
   const pushSection = (cat, gameKey, list) => {
     const shown = list.slice(0, perCategory)
-    // 合并导出时，公告挂在这个游戏的第一个大类上面，只出现一次
-    let notice = ''
+    // 合并导出时，游戏的提示挂在这个游戏的第一个大类上面，只出现一次
+    let gameNotice = ''
     if (gameKey && gameKey !== focusKey && !noticeShown.has(gameKey)) {
       noticeShown.add(gameKey)
-      notice = clampStr(noticeByGame.get(gameKey) || '', 600)
+      gameNotice = clampStr(noticeByGame.get(gameKey) || '', 600)
     }
     sections.push({
       name: cat ? clampStr(cat.name, 40) : '未分类',
       isOrphan: !cat,
       gameKey,
       gameName: gameKey ? gameById.get(Number(gameKey))?.name || '' : '',
-      notice,
+      gameNotice,
+      // 大类自己的提示：排在它名字下面、服务项上面。
+      // 「未分类」是临时的桶，没有真正的大类记录，所以没有提示。
+      catNotice: cat ? clampStr(cat.notice || '', 400) : '',
       items: shown.map(makeItem),
       more: list.length - shown.length,
       total: list.length,
@@ -225,7 +228,7 @@ export function buildExportModel(opts = {}) {
     title: clampStr(opts.title || '代肝价目表', 40),
     subtitle,
     date: dateStr,
-    // 公告：整份只面向一个游戏时在最上方显示（图片和 Word 都是）
+    // 提示：整份只面向一个游戏时在最上方显示（图片和 Word 都是）
     notice: topNotice,
     noticeGameName: focusKey ? gameById.get(Number(focusKey))?.name || '' : '',
     groups: trimmed,

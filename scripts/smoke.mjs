@@ -665,7 +665,7 @@ async function main() {
 
   r = await api('GET', `/api/pricebook/export-model?game_id=${gameId}`)
   ok('单游戏导出把公告取到了', r.body.notice === NOTICE, r.body.notice)
-  ok('公告提到最上方后，大类上就不再重复', (r.body.groups || []).every((g) => !g.notice))
+  ok('游戏提示提到最上方后，大类上就不再重复', (r.body.groups || []).every((g) => !g.gameNotice))
 
   const noticeRes = await fetch(`${BASE}/api/pricebook/export.docx?game_id=${gameId}`, {
     headers: cookie ? { cookie } : {},
@@ -684,7 +684,40 @@ async function main() {
   // 清空之后不能有残留（老游戏的 notice 默认是空串）
   await api('PATCH', `/api/games/${gameId}`, { notice: '' })
   r = await api('GET', `/api/pricebook/export-model?game_id=${gameId}`)
-  ok('公告清空后导出里就没有了', !r.body.notice && (r.body.groups || []).every((g) => !g.notice), r.body.notice)
+  ok('公告清空后导出里就没有了', !r.body.notice && (r.body.groups || []).every((g) => !g.gameNotice), r.body.notice)
+
+  /* 大类提示：排在这个大类的名字下面、服务项上面 */
+  const CAT_NOTICE = '大类提示冒烟：按层数计价，10 层起接'
+  r = await api('PATCH', `/api/categories/${catId}`, { notice: CAT_NOTICE })
+  ok('大类能存提示', r.body.notice === CAT_NOTICE, r.body.notice)
+
+  r = await api('GET', `/api/pricebook/export-model?game_id=${gameId}`)
+  const catGroup = (r.body.groups || []).find((g) => g.name === '日常')
+  ok('导出模型里大类带上了自己的提示', catGroup?.catNotice === CAT_NOTICE, catGroup?.catNotice)
+  ok('大类提示和游戏提示是两个字段', catGroup?.gameNotice === '', JSON.stringify(catGroup?.gameNotice))
+
+  const catRes = await fetch(`${BASE}/api/pricebook/export.docx?game_id=${gameId}`, {
+    headers: cookie ? { cookie } : {},
+  })
+  const catXml =
+    readZip(Buffer.from(await catRes.arrayBuffer()))
+      ?.find((e) => e.name === 'word/document.xml')
+      ?.data.toString('utf8') || ''
+  const catTexts = [...catXml.matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)].map((m) => m[1])
+  const iCat = catTexts.indexOf('日常')
+  const iCatNotice = catTexts.indexOf(CAT_NOTICE)
+  const iItem = catTexts.indexOf('每日委托')
+  ok(
+    'docx 里大类提示排在大类名之后、服务项之前',
+    iCat >= 0 && iCatNotice > iCat && iItem > iCatNotice,
+    `大类@${iCat} 提示@${iCatNotice} 服务项@${iItem}`
+  )
+  ok('大类提示也带暖色底纹和朱砂竖线', catXml.includes('w:fill="FDF1EA"') && catXml.includes('w:color="B33A22"'))
+  ok('docx 里同样不出现「公告」两个字', !catTexts.includes('公告'))
+
+  await api('PATCH', `/api/categories/${catId}`, { notice: '' })
+  r = await api('GET', `/api/pricebook/export-model?game_id=${gameId}`)
+  ok('大类提示清空后导出里就没有了', (r.body.groups || []).every((g) => !g.catNotice))
 
   /* ---------- 财务 ---------- */
   section('财务')
