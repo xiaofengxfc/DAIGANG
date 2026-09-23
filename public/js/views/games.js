@@ -183,7 +183,9 @@ export default {
                 })
                 if (!ok) return
                 try {
-                  await api.del(`/api/games/${g.id}`)
+                  // hard=1：这个按钮写的是「彻底删除」，隔壁还有单独的「归档」。
+                  // 不传的话后端默认归档 —— 点了等于没删，只是从列表里收起来了。
+                  await api.del(`/api/games/${g.id}`, { hard: 1 })
                   toast('已删除', 'ok')
                   ctx.app.reload()
                 } catch (err) {

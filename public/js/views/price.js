@@ -794,7 +794,9 @@ export function servicePeek(service, ctx, { onChanged } = {}) {
         )
       : h('div', h('div.pitem__fig', `¥${fmtMoney(service.base_price)}`), h('div.pitem__unit', `/${unitOf(service)}`))
 
-  return drawer({
+  // 存下来是为了删完之后能把这个抽屉关掉（删掉的是一条已经不存在的东西，
+  // 抽屉留在那儿只会让人以为还在）。
+  const d = drawer({
     title: service.name,
     subtitle: `${PRICE_TYPE_LABEL[service.price_type] || service.price_type} · ${service.category_name || '未分类'}${service.game_name ? ` · ${service.game_name}` : ''}`,
     body: h(
@@ -861,8 +863,17 @@ export function servicePeek(service, ctx, { onChanged } = {}) {
                 tone: 'danger',
               })
               if (!ok) return
-              await api.del(`/api/services/${service.id}`)
+              try {
+                // hard=1：这个按钮写的「删除」，下架是上面那个按钮。
+                // 不传的话后端只会归档，东西还在「已下架」里躺着。
+                await api.del(`/api/services/${service.id}`, { hard: 1 })
+              } catch (err) {
+                toastErr(err)
+                return
+              }
               toast('已删除', 'ok')
+              // 先关抽屉再刷新：删掉的东西不该还挂在屏幕上
+              d.close()
               reload()
             },
           },
@@ -872,6 +883,8 @@ export function servicePeek(service, ctx, { onChanged } = {}) {
       )
     ),
   })
+
+  return d
 }
 
 /* ---------------- 导出：图片 / Word 文档 ----------------
