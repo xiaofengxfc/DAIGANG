@@ -629,6 +629,40 @@ async function runRoute() {
 
 /* ---------------- 启动 ---------------- */
 
+/**
+ * 后端还是旧进程的提示条。
+ *
+ * 界面是每次刷新重新读盘的，后端却是启动时加载的那个进程 ——
+ * 代码更新后不重启，新加的字段会被后端静默丢掉（填了没反应，也不报错）。
+ * 这个提示条就是替人把「该重启了」说出来。关掉后本次会话不再打扰。
+ */
+let staleBar = null
+function showStaleNotice(stale) {
+  if (!stale || staleBar) return
+  const KEY = 'xfc.stale.dismissed'
+  try {
+    if (sessionStorage.getItem(KEY) === '1') return
+  } catch {
+    /* 存不进去就一直显示，也行 */
+  }
+  const close = () => {
+    try {
+      sessionStorage.setItem(KEY, '1')
+    } catch {
+      /* 忽略 */
+    }
+    staleBar?.remove()
+    staleBar = null
+  }
+  staleBar = h(
+    'div.stalebar',
+    h('span.stalebar__ico', '!'),
+    h('span', '程序改过但还没重启 —— 新加的字段现在存不进去。关掉启动窗口、重新双击 start.cmd 就好。'),
+    h('button.stalebar__x', { type: 'button', title: '知道了', onclick: close }, '×')
+  )
+  document.body.appendChild(staleBar)
+}
+
 async function boot() {
   initTheme()
   clear(root)
@@ -656,6 +690,7 @@ async function boot() {
   state.me = me
   state.settings = me.settings || {}
   document.title = (me.settings?.business_name || '代肝价格表') + ' · 私用运营台'
+  showStaleNotice(me.stale)
 
   // 拿到状态了就把启动遮罩撤掉，别挡着登录页
   document.getElementById('boot')?.remove()

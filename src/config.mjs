@@ -1,8 +1,53 @@
+import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+
+/** 这个进程是什么时候起来的 */
+export const BOOT_AT = Date.now()
+
+/**
+ * 磁盘上最新的后端代码是什么时候改的。
+ *
+ * 用来发现「代码更新了但程序没重启」：这时候前端（每次刷新都重新读盘）是新的，
+ * 后端却是旧进程 —— 新加的字段会被静默丢掉（填了存不进去，也不报错）。
+ * 以前只能靠人记得重启，现在让程序自己说出来。
+ */
+export function newestCodeMtime() {
+  let newest = 0
+  const take = (p) => {
+    try {
+      newest = Math.max(newest, fs.statSync(p).mtimeMs)
+    } catch {
+      /* 读不到就跳过 */
+    }
+  }
+  take(path.join(ROOT, 'server.mjs'))
+  const walk = (dir, depth = 0) => {
+    if (depth > 4) return
+    let list = []
+    try {
+      list = fs.readdirSync(dir, { withFileTypes: true })
+    } catch {
+      return
+    }
+    for (const e of list) {
+      const p = path.join(dir, e.name)
+      if (e.isDirectory()) walk(p, depth + 1)
+      else if (e.name.endsWith('.mjs')) take(p)
+    }
+  }
+  walk(path.join(ROOT, 'src'))
+  return newest
+}
+
+/** 磁盘上的代码比这个进程新 → 该重启了（留 1 秒容差给文件时间戳精度） */
+export function needsRestart() {
+  const newer = newestCodeMtime()
+  return newer > 0 && newer > BOOT_AT + 1000
+}
 
 function parseArgs(argv) {
   const out = { _: [] }

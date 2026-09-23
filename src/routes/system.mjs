@@ -3,7 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { db, getSetting, setSetting, stamp, nextSerialNo } from '../db.mjs'
 import { get, post, patch, del, saveDataURL } from '../http.mjs'
-import { UPLOAD_DIR } from '../config.mjs'
+import { UPLOAD_DIR, needsRestart } from '../config.mjs'
 import { bad, notFound, fail, int, num, money, clampStr, nowISO, localDate, localMonth, bizDate, parseJSON } from '../util.mjs'
 import { ocrAvailable, ocrImage, extractResources } from '../ocr.mjs'
 import { recognizeScreenOnce, SCREEN_RESOURCES, MIN_SCORE } from '../screen.mjs'
@@ -261,6 +261,9 @@ export function register() {
     actor: ctx.session ? actorName() : '',
     settings: ctx.session ? readSettings() : {},
     vault: ctx.session ? vaultStatus() : { configured: false, unlocked: false },
+    // 代码更新了但程序没重启：前端会是新的、后端还是旧的，新字段存不进去。
+    // 前端拿到这个标记就挂一条提示，别让人对着「填了没反应」猜。
+    stale: needsRestart(),
   }))
 
   post('/api/setup', (ctx) => {
