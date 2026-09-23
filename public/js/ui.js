@@ -245,7 +245,12 @@ function buildControl(f, initial) {
 
   if (f.type === 'select') {
     const sel = h('select.sel', common)
-    const wanted = initial === null || initial === undefined ? '' : String(initial)
+    const raw = initial === null || initial === undefined ? '' : String(initial)
+    // 后端把 bool 列原样传成 true / false，而选项里写的是 '1' / '0'。
+    // 直接 String() 对不上，就会冒出一个「（原值：false）」。
+    // 所以先按选项集试一次别名换算（只在选项里真有 '1' / '0' 时才换）。
+    const alias = raw === 'true' ? '1' : raw === 'false' ? '0' : raw
+    const wanted = alias !== raw && (f.options || []).some((o) => String(o.value) === alias) ? alias : raw
     let matched = false
     for (const opt of f.options || []) {
       const o = h('option', { value: opt.value }, opt.label)

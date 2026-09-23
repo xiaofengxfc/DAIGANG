@@ -451,7 +451,9 @@ export function serviceForm(values = {}, { games = [], categories = [] } = {}) {
         type: 'select',
         width: 'half',
         hint: '默认跟着大类走 —— 往「日常」大类里加的服务项自动就算每天做',
-        default: values.is_daily === null || values.is_daily === undefined ? '' : String(values.is_daily),
+        // 编辑时初值直接取 values.is_daily（接口给的是 true / false / null），
+        // 由选择框自己换算成 '1' / '0' / ''。这里只在「新建」时起作用。
+        default: '',
         options: [
           { value: '', label: '跟随大类（推荐）' },
           { value: '1', label: '是，每天都做' },
