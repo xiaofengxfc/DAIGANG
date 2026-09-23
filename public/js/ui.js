@@ -144,6 +144,39 @@ export function confirmDelete({ title, message, confirmLabel = '删除' }) {
   return confirmModal({ title, message, confirmLabel, tone: 'danger' })
 }
 
+/**
+ * 「归档还是真删」二选一。返回 'archive' | 'delete' | null。
+ *
+ * 默认删除 = 归档，只有这里选了「彻底删除」才走 ?hard=1。
+ * archiveLabel 传 null 就只给「取消 / 彻底删除」两个选择（比如已经归档过的记录）。
+ */
+export function choiceDialog({ title, message, archiveLabel, archiveHint, deleteLabel, deleteHint }) {
+  return new Promise((resolve) => {
+    let done = false
+    const finish = (v) => {
+      if (done) return
+      done = true
+      resolve(v)
+    }
+    const actions = [{ label: '取消', onClick: () => finish(null) }]
+    // 注意：这里不能 return false —— 在 modal() 里 false 表示「别关窗」，而这里点完是要关掉的
+    if (archiveLabel) actions.push({ label: archiveLabel, onClick: () => finish('archive') })
+    actions.push({ label: deleteLabel, tone: 'danger', onClick: () => finish('delete') })
+    modal({
+      title,
+      wide: true,
+      body: h(
+        'div.stack.stack--tight',
+        h('p', { style: { lineHeight: '1.75' } }, message),
+        archiveLabel && archiveHint ? h('div.note.note--ok', h('strong', `${archiveLabel}：`), h('span', archiveHint)) : null,
+        deleteHint ? h('div.note.note--alert', h('strong', `${deleteLabel}：`), h('span', deleteHint)) : null
+      ),
+      actions,
+      onClose: () => finish(null),
+    })
+  })
+}
+
 /* ============================================================
    抽屉
    ============================================================ */

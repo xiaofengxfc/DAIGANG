@@ -1552,13 +1552,16 @@ button.cell:hover {
   line-height: 1.1;
 }
 
-/* 公告：和导出图片 / Word 最上方那条是同一份内容，在这里也看一眼 */
+/* 公告：和导出图片 / Word 最上方那条是同一份内容，在这里也看一眼。
+   不带「公告」标题，靠左边那道朱砂竖线 + 暖色底说明它是提示 ——
+   和导出图里那一块长得一样，所见即所得。 */
 .pgroup__notice {
   display: flex;
   gap: 9px;
   align-items: baseline;
-  padding: 10px var(--sp-4);
+  padding: 10px calc(var(--sp-4) - 3px);
   background: var(--cinnabar-bg);
+  border-left: 3px solid var(--cinnabar);
   border-bottom: 1px solid var(--line);
   font-size: var(--fs-sm);
   line-height: 1.7;
@@ -1566,12 +1569,14 @@ button.cell:hover {
   white-space: pre-wrap;
 }
 
-.pgroup__notice-k {
+/* 游戏列表里那条公告预览的记号：一道小朱砂竖条，代替「公告」两个字 */
+.notice-tick {
   flex: none;
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: var(--cinnabar);
+  align-self: center;
+  width: 3px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--cinnabar);
 }
 
 /* ---------- 大类：账簿里的一节 ----------

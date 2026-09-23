@@ -282,10 +282,14 @@ const MIGRATIONS = [
   CREATE INDEX IF NOT EXISTS idx_guest_messages_status ON guest_messages (status, created_at DESC);
   `,
 
-  // v7：每个游戏的「公告」。
-  // 和 note（自己看的备注）分开：公告是对外给客户看的，
+  // v7：每个游戏的「对外提示」（界面上不写「公告」两个字）。
+  // 和 note（自己看的备注）分开：提示是对外给客户看的，
   // 生成的价格表图片 / Word 文档会把它放在最上方。
   `ALTER TABLE games ADD COLUMN notice TEXT NOT NULL DEFAULT '';`,
+
+  // v8：大类也能写一条对外提示，排在那个大类的名字下面、服务项上面。
+  // 和 games.notice 是同一套做法，只是层级低一级。
+  `ALTER TABLE service_categories ADD COLUMN notice TEXT NOT NULL DEFAULT '';`,
 ]
 
 export function migrate() {

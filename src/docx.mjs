@@ -144,9 +144,12 @@ const rightTab = (leader = 'dot') => `<w:tabs><w:tab w:val="right" w:leader="${l
 /**
  * 公告块：暖色底 + 左边一道朱砂竖线，就是应用里那个提示条的样子。
  * 每行一个段落（Word 不认 \n），相邻段落边框设置相同，Word 会自动接成一个整块。
+ *
+ * label 默认空着：这份文档是发给客户的，暖色块自己就说明白了，
+ * 不用在上面再压一个「公告」的标题。
  */
-function noticeParas(text, label = '公告') {
-  const lines = String(text || '')
+function noticeParas(notice, label = '') {
+  const lines = String(notice || '')
     .split(/\r?\n/)
     .map((s) => s.trim())
     .filter(Boolean)
@@ -191,9 +194,9 @@ export function buildDocx(model) {
   body.push(para('', { pPr: bottomRule(CINNABAR, 18) + spacing(0, 160, 240) }))
 
   /* —— 公告：只面向一个游戏时放在最上方 —— */
-  // 抬头那行已经写了游戏名，这里就不用再重复一遍
+  // 抬头那行已经写了游戏名，暖色块也够显眼，所以不带任何标题文字
   if (model.notice) {
-    body.push(...noticeParas(model.notice, '公告'))
+    body.push(...noticeParas(model.notice))
   }
 
   /* —— 大类 —— */
@@ -210,9 +213,10 @@ export function buildDocx(model) {
       )
     }
 
-    // 合并导出时，游戏公告跟在它的第一个大类上面（游戏名已经写在小标题里就不重复了）
+    // 合并导出时，游戏公告跟在它的第一个大类上面（小标题里已经写了游戏名就不重复了）
     if (g.notice) {
-      const label = gameHead || !g.gameName ? '公告' : `${g.gameName} 公告`
+      // 只在没印游戏小标题时才用游戏名当标签 —— 不再出现「公告」两个字
+      const label = gameHead || !g.gameName ? '' : g.gameName
       body.push(...noticeParas(g.notice, label))
     }
 

@@ -11,44 +11,16 @@ import {
   toastErr,
   drawer,
   formDrawer,
-  modal,
   emptyState,
   tag,
   lamp,
   sectionHead,
   copyButton,
+  choiceDialog,
 } from '../ui.js'
 import { customerForm } from './orders.js'
 import { openComposer } from './orders.js'
 import { paymentDrawer } from './orderbits.js'
-
-/** 「归档还是真删」二选一。返回 'archive' | 'delete' | null */
-function choiceDialog({ title, message, archiveLabel, archiveHint, deleteLabel, deleteHint }) {
-  return new Promise((resolve) => {
-    let done = false
-    const finish = (v) => {
-      if (done) return
-      done = true
-      resolve(v)
-    }
-    const actions = [{ label: '取消', onClick: () => finish(null) }]
-    // 注意：这里不能 return false —— 在 modal() 里 false 表示「别关窗」，而这里点完是要关掉的
-    if (archiveLabel) actions.push({ label: archiveLabel, onClick: () => finish('archive') })
-    actions.push({ label: deleteLabel, tone: 'danger', onClick: () => finish('delete') })
-    modal({
-      title,
-      wide: true,
-      body: h(
-        'div.stack.stack--tight',
-        h('p', { style: { lineHeight: '1.75' } }, message),
-        archiveLabel && archiveHint ? h('div.note.note--ok', h('strong', `${archiveLabel}：`), h('span', archiveHint)) : null,
-        deleteHint ? h('div.note.note--alert', h('strong', `${deleteLabel}：`), h('span', deleteHint)) : null
-      ),
-      actions,
-      onClose: () => finish(null),
-    })
-  })
-}
 
 /** 处理一位客户：归档，或者彻底删除 */
 async function removeCustomer(ctx, c) {

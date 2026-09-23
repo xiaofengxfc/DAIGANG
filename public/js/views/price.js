@@ -25,6 +25,7 @@ import {
   sectionHead,
   copyButton,
   modal,
+  choiceDialog,
 } from '../ui.js'
 
 const PRICE_TYPES = Object.entries(PRICE_TYPE_LABEL).map(([value, label]) => ({ value, label }))
@@ -1186,6 +1187,42 @@ export default {
     const newPriceTable = () => gameForm().then(() => ctx.app.reload())
     const newCategory = (presetGameId = null) => categoryForm({}, games, presetGameId).then(() => ctx.app.reload())
     const editCategory = (cat) => categoryForm(cat, games).then(() => ctx.app.reload())
+
+    /** 处理一个大类：归档（先收起来，服务项一个不动）或者彻底删除。
+     *  以前这里只有「改大类」，没有删除入口，建错的大类就没法收拾。 */
+    async function removeCategory(cat) {
+      let n = 0
+      try {
+        const usage = await api.get(`/api/categories/${cat.id}/usage`)
+        n = usage.services || 0
+      } catch {
+        /* 拿不到用量也照样让他处理 */
+      }
+      const archived = cat.status === 'archived'
+      const choice = await choiceDialog({
+        title: `处理大类「${cat.name}」`,
+        message: n ? `这个大类下面有 ${n} 个服务项。` : '这个大类下面还没有服务项。',
+        archiveLabel: archived ? null : '归档大类',
+        archiveHint: '先从价格表里收起来。服务项、价格、阶梯价全部原地不动，随时能改回来。',
+        deleteLabel: '彻底删除',
+        deleteHint: n
+          ? `底下这 ${n} 个服务项不会跟着消失，只会变成「未分类」，还能重新归到别的大类里。已经开出去的老订单也不受影响 —— 价格冻在下单那一刻。`
+          : '直接删掉，不影响任何其它数据。',
+      })
+      if (!choice) return
+      try {
+        if (choice === 'archive') {
+          await api.patch(`/api/categories/${cat.id}`, { status: 'archived' })
+          toast('已归档，服务项一个没动', 'ok')
+        } else {
+          await api.del(`/api/categories/${cat.id}`, { hard: 1 })
+          toast(n ? `已删除，${n} 个服务项变成了「未分类」` : '已删除', 'ok')
+        }
+        ctx.app.reload()
+      } catch (err) {
+        toastErr(err)
+      }
+    }
     const newService = (categoryId) => {
       // 服务项必须落在大类里。没有大类就先引导去建大类，而不是弹一个孤立的服务项表单。
       if (!categoryId) {
@@ -1727,6 +1764,19 @@ export default {
                   },
                 },
                 icon('edit', 14)
+              ),
+              // 归档 / 彻底删除。以前这里没有入口，建错的大类就只能一直挂着。
+              h(
+                'button.btn.btn--sm.btn--quiet',
+                {
+                  type: 'button',
+                  title: '归档或彻底删除这个大类',
+                  onclick: (e) => {
+                    e.stopPropagation()
+                    removeCategory(b.cat)
+                  },
+                },
+                icon('trash', 14)
               )
             )
           )
@@ -1813,13 +1863,9 @@ export default {
           h(
             'div.pgroup',
             groupHead,
-            gameNotice
-              ? h(
-                  'div.pgroup__notice',
-                  h('span.pgroup__notice-k', '公告'),
-                  h('span', gameNotice)
-                )
-              : null,
+            // 不带「公告」两个字：左边那道朱砂竖线 + 暖色底已经说明它是提示了，
+            // 而且它跟导出图片 / Word 最上方那条是同一份内容，两边长得一样。
+            gameNotice ? h('div.pgroup__notice', h('span', gameNotice)) : null,
             groupBody
           )
         )

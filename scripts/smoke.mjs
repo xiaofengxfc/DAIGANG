@@ -675,11 +675,10 @@ async function main() {
       ?.find((e) => e.name === 'word/document.xml')
       ?.data.toString('utf8') || ''
   const noticeTexts = [...noticeXml.matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)].map((m) => m[1])
-  const iLabel = noticeTexts.indexOf('公告')
   const iNotice = noticeTexts.indexOf(NOTICE)
   const iFirstCat = noticeTexts.indexOf('日常')
-  ok('docx 里有「公告」标签', iLabel >= 0, noticeTexts.slice(0, 8).join(' | '))
-  ok('docx 里公告排在第一个大类之前', iLabel >= 0 && iNotice > iLabel && iFirstCat > iNotice, `公告@${iNotice} 大类@${iFirstCat}`)
+  ok('docx 里不再出现「公告」两个字', !noticeTexts.includes('公告'), noticeTexts.slice(0, 8).join(' | '))
+  ok('docx 里公告正文排在第一个大类之前', iNotice >= 0 && iFirstCat > iNotice, `正文@${iNotice} 大类@${iFirstCat}`)
   ok('公告带暖色底纹和朱砂竖线', noticeXml.includes('w:fill="FDF1EA"') && noticeXml.includes('w:color="B33A22"'))
 
   // 清空之后不能有残留（老游戏的 notice 默认是空串）

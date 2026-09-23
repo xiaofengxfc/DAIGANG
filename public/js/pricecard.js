@@ -105,7 +105,9 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
   const noticeLabelFont = font(19, 700)
   // 参数千万别叫 text —— 会把外面那个画字的 text() 遮住，
   // 结果就是「预览画不出来：text is not a function」。
-  const noticeBlock = (notice, label = '公告') => {
+  // label 默认空着：价目表是发给客户的，暖色底那一条自己就说明白了，
+  // 不用在上面再压一个「公告」的标题。
+  const noticeBlock = (notice, label = '') => {
     const raw = String(notice || '').trim()
     if (!raw) return
     const inner = 30
@@ -186,8 +188,9 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
       line(PAD, y, W - PAD, y, RULE_STRONG, 2)
     }
 
-    // 合并导出时，游戏公告跟在它的第一个大类上面（小标题里已经写了游戏名就不重复）
-    if (g.notice) noticeBlock(g.notice, gameHead || !g.gameName ? '公告' : `${g.gameName} 公告`)
+    // 合并导出时，游戏公告跟在它的第一个大类上面。
+    // 小标题里已经写了游戏名就不重复；没写标题的才用游戏名当标签 —— 但不再出现「公告」两个字。
+    if (g.notice) noticeBlock(g.notice, gameHead || !g.gameName ? '' : g.gameName)
 
     y += 62
     rect(PAD, y - 23, 6, 27, CINNABAR)

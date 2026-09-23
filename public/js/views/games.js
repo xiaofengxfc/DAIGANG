@@ -131,12 +131,13 @@ export default {
           ),
           g.note ? h('div.tbl__meta', g.note) : null,
           // 公告会在导出图片 / Word 的最上方出现，所以列表里给一条预览，
-          // 免得改了公告自己都忘了发出去的是哪一版
+          // 免得改了公告自己都忘了发出去的是哪一版。
+          // 用一道朱砂小竖条当记号，不写「公告」两个字。
           g.notice
             ? h(
                 'div.tbl__meta',
-                { style: { display: 'flex', gap: '6px', alignItems: 'baseline' } },
-                tag('公告', 'cinnabar'),
+                { style: { display: 'flex', gap: '7px', alignItems: 'baseline' } },
+                h('span.notice-tick'),
                 h('span', { style: { whiteSpace: 'pre-wrap' } }, firstLine(g.notice))
               )
             : null
