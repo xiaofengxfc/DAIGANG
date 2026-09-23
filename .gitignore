@@ -10,5 +10,13 @@ backups/
 # 运行时产物
 node_modules/
 *.log
+*.err
 .edge-*/
 shots/
+data-s*/
+data-v*/
+data-*/
+tmp*.png
+probe*.png
+card-*.png
+del*.png
