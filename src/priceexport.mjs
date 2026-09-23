@@ -111,6 +111,25 @@ export function buildExportModel(opts = {}) {
 
   const catById = new Map(cats.map((c) => [c.id, c]))
 
+  /* ---------- 可获得货币 ----------
+     货币名字配在游戏上（一个游戏一种，games.currency），
+     服务项上只填数量（services.currency_amount）。
+     服务项自己没绑游戏就跟着它的大类走。
+     游戏没配名字、或者服务项没填数量 → 返回空串，那就什么都不显示。 */
+  const gainOf = (s) => {
+    const raw = s.currency_amount
+    if (raw === null || raw === undefined || raw === '') return ''
+    const n = num(raw)
+    if (!Number.isFinite(n)) return ''
+    let gid = s.game_id && gameById.has(s.game_id) ? s.game_id : null
+    if (!gid && s.category_id) {
+      const g = catById.get(s.category_id)?.game_id
+      if (g && gameById.has(g)) gid = g
+    }
+    const currency = String((gid ? gameById.get(gid)?.currency : '') || '').trim()
+    return currency ? `可得 ${currency} ${qty(n)}` : ''
+  }
+
   /* ---------- 归类 ---------- */
   const makeItem = (s) => {
     const { price, hint } = priceOf(s, tiersBy.get(s.id))
@@ -123,7 +142,9 @@ export function buildExportModel(opts = {}) {
       const payable = addons.filter((o) => num(o.price) > 0)
       if (payable.length) notes.push(`增项：${payable.slice(0, 5).map(addonText).join('、')}`)
     }
-    return { name: clampStr(s.name, 40), price, hint, notes }
+    // 单个服务项的价格说明和「可得货币」都跟 withDesc 无关：
+    // 前者是价格本身的一部分，后者是客户最关心的那个数，裁掉就没意义了。
+    return { name: clampStr(s.name, 40), price, hint, notes, gain: gainOf(s) }
   }
 
   // 有归属的大类 → 按大类分组；没有的 → 按游戏落到「未分类」

@@ -719,6 +719,50 @@ async function main() {
   r = await api('GET', `/api/pricebook/export-model?game_id=${gameId}`)
   ok('大类提示清空后导出里就没有了', (r.body.groups || []).every((g) => !g.catNotice))
 
+  /* 游戏货币：名字配在游戏上，数量配在服务项上 */
+  r = await api('PATCH', `/api/games/${gameId}`, { currency: '原石' })
+  ok('游戏能存货币名', r.body.currency === '原石', r.body.currency)
+
+  const m0 = await api('GET', `/api/pricebook/export-model?game_id=${gameId}`)
+  const firstName = (m0.body.groups || []).flatMap((g) => g.items)[0]?.name
+  const svcList = await api('GET', '/api/services?limit=600')
+  const target = (svcList.body.items || []).find((s) => s.name === firstName)
+  ok('找得到一个能改的服务项', Boolean(target), firstName)
+
+  r = await api('PATCH', `/api/services/${target.id}`, { currency_amount: 200 })
+  ok('服务项能存可获得数量', Number(r.body.currency_amount) === 200, r.body.currency_amount)
+
+  r = await api('GET', `/api/pricebook/export-model?game_id=${gameId}`)
+  const withGain = (r.body.groups || []).flatMap((g) => g.items).find((i) => i.name === firstName)
+  ok('导出模型里带上「可得 原石 200」', withGain?.gain === '可得 原石 200', withGain?.gain)
+
+  const gainRes = await fetch(`${BASE}/api/pricebook/export.docx?game_id=${gameId}`, {
+    headers: cookie ? { cookie } : {},
+  })
+  const gainTexts =
+    readZip(Buffer.from(await gainRes.arrayBuffer()))
+      ?.find((e) => e.name === 'word/document.xml')
+      ?.data.toString('utf8')
+      .match(/<w:t[^>]*>([^<]*)<\/w:t>/g)
+      ?.map((t) => t.replace(/<[^>]+>/g, '')) || []
+  ok('docx 里也有这一行', gainTexts.includes('可得 原石 200'), gainTexts.filter((t) => t.includes('可得')).join(' | '))
+
+  // 游戏没配货币名 → 光有数量也不显示（免得出现一个没有单位的数字）
+  await api('PATCH', `/api/games/${gameId}`, { currency: '' })
+  r = await api('GET', `/api/pricebook/export-model?game_id=${gameId}`)
+  const noName = (r.body.groups || []).flatMap((g) => g.items).find((i) => i.name === firstName)
+  ok('游戏没配货币名时不显示那个数', noName?.gain === '', JSON.stringify(noName?.gain))
+
+  // 数量留空 → 也不显示
+  await api('PATCH', `/api/games/${gameId}`, { currency: '原石' })
+  await api('PATCH', `/api/services/${target.id}`, { currency_amount: null })
+  r = await api('GET', `/api/pricebook/export-model?game_id=${gameId}`)
+  const noAmt = (r.body.groups || []).flatMap((g) => g.items).find((i) => i.name === firstName)
+  ok('数量留空时不显示', noAmt?.gain === '', JSON.stringify(noAmt?.gain))
+
+  // 收尾：别把货币名留给后面的用例
+  await api('PATCH', `/api/games/${gameId}`, { currency: '' })
+
   /* ---------- 财务 ---------- */
   section('财务')
   r = await api('GET', '/api/finance/summary?from=2020-01-01&to=2099-01-01')

@@ -290,6 +290,13 @@ const MIGRATIONS = [
   // v8：大类也能写一条对外提示，排在那个大类的名字下面、服务项上面。
   // 和 games.notice 是同一套做法，只是层级低一级。
   `ALTER TABLE service_categories ADD COLUMN notice TEXT NOT NULL DEFAULT '';`,
+
+  // v9：游戏货币。
+  // games.currency 是这个游戏里客户最认的那种货币的名字（原石 / 星声 / 纠缠之缘…），
+  // services.currency_amount 是这个服务项能让客户拿到多少 ——
+  // 一个游戏一种，留空表示这个游戏没配货币，服务项上那个数就不显示。
+  `ALTER TABLE games ADD COLUMN currency TEXT NOT NULL DEFAULT '';
+   ALTER TABLE services ADD COLUMN currency_amount REAL;`,
 ]
 
 export function migrate() {

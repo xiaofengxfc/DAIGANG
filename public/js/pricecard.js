@@ -168,6 +168,7 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
   const priceFont = font(27, 600, true)
   const descFont = font(20)
   const hintFont = font(19, 400, true)
+  const gainFont = font(21, 500)
   const catFont = font(27, 600)
   const gameFont = font(37, 700)
   const moreFont = font(20, 400)
@@ -223,6 +224,13 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
       if (it.hint) {
         y += 27
         text(nameX, y, fitText(measure, it.hint, hintFont, CW - 18), hintFont, CINNABAR)
+      }
+
+      // 可得货币：客户最关心的是「花这个钱能拿到多少」，
+      // 所以单独一行、比说明重一档，也不能被 notes 的截断挤掉
+      if (it.gain) {
+        y += 29
+        text(nameX, y, fitText(measure, it.gain, gainFont, CW - 18), gainFont, INK_GRAY)
       }
 
       // 说明 / 含… / 增项…，最多两行

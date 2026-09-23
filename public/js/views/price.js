@@ -198,6 +198,23 @@ function priceRange(list) {
   return lo === hi ? `¥${fmtMoney(lo)}` : `¥${fmtMoney(lo)} – ¥${fmtMoney(hi)}`
 }
 
+/* ---------------- 可获得货币 ----------------
+   货币名字配在游戏上（一个游戏一种），服务项上只填数量。
+   归属这么找：服务项自己的 game_id → 没有就跟它大类走。
+   游戏没配货币名，或者服务项没填数量，就返回空字符串（那就不显示）。 */
+function currencyGain(service, games = [], categories = []) {
+  const raw = service?.currency_amount
+  if (raw === null || raw === undefined || raw === '') return ''
+  const n = Number(raw)
+  if (!Number.isFinite(n)) return ''
+  let gid = service.game_id || ''
+  if (!gid && service.category_id) {
+    gid = (categories || []).find((c) => String(c.id) === String(service.category_id))?.game_id || ''
+  }
+  const name = String((games || []).find((g) => String(g.id) === String(gid))?.currency || '').trim()
+  return name ? `${name} ${fmtQty(n)}` : ''
+}
+
 /* ---------------- 大类的展开/收起状态 ----------------
    必须放在模块这一层，不能放在 render() 里面：
    存完一个表单会 app.reload() → 重新跑一遍 render()，
@@ -390,6 +407,11 @@ export function gameCategoryField({ games = [], categories = [], gameId = '', ca
 /* ---------------- 服务项表单 ---------------- */
 
 export function serviceForm(values = {}, { games = [], categories = [] } = {}) {
+  // 货币名字填在游戏上，这里只填数量。先按服务项当前所属的游戏找一下名字，
+  // 这样标签上就能直接写「（星声）」而不是干巴巴一个「可获得货币」。
+  const gameIdOf = values.game_id || categories.find((c) => String(c.id) === String(values.category_id))?.game_id || ''
+  const currency = games.find((g) => String(g.id) === String(gameIdOf))?.currency || ''
+
   return formDrawer({
     title: values.id ? '改服务项' : '新建服务项',
     submitLabel: '保存',
@@ -411,6 +433,17 @@ export function serviceForm(values = {}, { games = [], categories = [] } = {}) {
       { name: 'base_price', label: '基准单价', type: 'money', required: true, width: 'half', suffix: '元' },
       { name: 'min_qty', label: '起订量', type: 'number', width: 'half' },
       { name: 'max_qty', label: '封顶量（留空不限）', type: 'number', width: 'half' },
+      {
+        name: 'currency_amount',
+        label: '可获得货币',
+        type: 'number',
+        width: 'half',
+        suffix: currency,
+        placeholder: '例：200',
+        hint: currency
+          ? `这个服务项能让客户拿到多少「${currency}」。留空就不显示。价格表图片 / Word 和详情里都会带上。`
+          : '这个服务项能让客户拿到多少游戏货币。货币名字先去「游戏」里填，填了这里才显示得出来。留空就不显示。',
+      },
       { name: 'description', label: '说明', type: 'textarea', rows: 3, placeholder: '客户问的时候你能直接念出来的一段话' },
       {
         name: 'is_daily',
@@ -445,6 +478,11 @@ export function serviceForm(values = {}, { games = [], categories = [] } = {}) {
         game_id: v.game_id || null,
         min_qty: Number(v.min_qty) || 1,
         max_qty: v.max_qty === '' || v.max_qty === null ? null : Number(v.max_qty),
+        // 留空 = 不显示，存 NULL（和「封顶量」一个规矩）
+        currency_amount:
+          v.currency_amount === '' || v.currency_amount === null || v.currency_amount === undefined
+            ? null
+            : Number(v.currency_amount),
       }
       const r = values.id ? await api.patch(`/api/services/${values.id}`, payload) : await api.post('/api/services/append', payload)
       toast('服务项已保存', 'ok')
@@ -794,6 +832,9 @@ export function servicePeek(service, ctx, { onChanged } = {}) {
         )
       : h('div', h('div.pitem__fig', `¥${fmtMoney(service.base_price)}`), h('div.pitem__unit', `/${unitOf(service)}`))
 
+  // 能给客户拿到多少货币（货币名字配在游戏上）
+  const gain = currencyGain(service, ctx.meta?.games || [], ctx.meta?.categories || [])
+
   // 存下来是为了删完之后能把这个抽屉关掉（删掉的是一条已经不存在的东西，
   // 抽屉留在那儿只会让人以为还在）。
   const d = drawer({
@@ -810,6 +851,8 @@ export function servicePeek(service, ctx, { onChanged } = {}) {
           service.status === 'active' ? tag('在架', 'jade') : tag('已下架', 'oxblood')
         )
       ),
+      // 能给客户拿到多少货币
+      gain ? h('div', h('span.tag.tag--outline', `可获得 ${gain}`)) : null,
       service.description ? h('p', { style: { lineHeight: '1.7' } }, service.description) : null,
       service.package_items?.length
         ? h(
@@ -1586,6 +1629,8 @@ export default {
        填了东西的才铺开成多行。规则只看服务项自己，不看它属于哪个大类。 */
     function serviceRow(s) {
       const related = optsFor(s.id)
+      // 这个服务项能让客户拿到多少货币（游戏上配了名字才显示）
+      const gain = currencyGain(s, allGames, categories)
       const bare =
         !s.description && !(s.package_items?.length) && !related.length && !(s.tier_count > 0) && s.status !== 'archived'
 
@@ -1624,7 +1669,7 @@ export default {
             'div.pitem.pitem--slim',
             { title: '拖动可以调整顺序' },
             h('span.pitem__grip', icon('drag', 14)),
-            h('span.pitem__name', s.name),
+            h('span.pitem__name', s.name, gain ? tag(gain, 'outline') : null),
             h('span.pitem__leader'),
             h(
               'span.pitem__amount',
@@ -1642,6 +1687,7 @@ export default {
                 'div.pitem__name',
                 h('span.pitem__grip', icon('drag', 14)),
                 s.name,
+                gain ? tag(gain, 'outline') : null,
                 s.tier_count > 0 ? tag(`${s.tier_count} 档阶梯价`, 'cinnabar') : null,
                 s.status === 'archived' ? tag('已下架', 'oxblood') : null
               ),

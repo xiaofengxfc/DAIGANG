@@ -43,6 +43,14 @@ export function gameForm(values = {}) {
       }),
       { name: 'servers', label: '区服列表', type: 'tags', hint: '逗号分隔。例：天空岛, 世界树, 亚服。开单时可以直接选。' },
       {
+        name: 'currency',
+        label: '货币名称',
+        type: 'text',
+        width: 'half',
+        placeholder: '例：原石 / 星声 / 纠缠之缘',
+        hint: '这个游戏里客户最认的那种货币叫什么。填了之后，服务项上就能写「这个套餐给多少」。',
+      },
+      {
         name: 'notice',
         label: '顶部提示',
         type: 'textarea',

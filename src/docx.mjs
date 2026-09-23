@@ -243,6 +243,10 @@ export function buildDocx(model) {
       if (it.hint) {
         body.push(para(run(it.hint, { size: 18, color: CINNABAR }), { pPr: spacing(0, 0, 240) }))
       }
+      // 可得货币：单独一行、加粗一档，说明文字截断也不会把它挤掉
+      if (it.gain) {
+        body.push(para(run(it.gain, { size: 19, bold: true, color: GRAY }), { pPr: spacing(20, 0, 240) }))
+      }
       for (const note of (it.notes || []).filter(Boolean).slice(0, 3)) {
         body.push(para(run(note, { size: 18, color: GRAY }), { pPr: spacing(0, 0, 240) }))
       }

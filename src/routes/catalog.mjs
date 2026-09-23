@@ -15,12 +15,15 @@ export const games = makeDef({
     short_name: { type: 'string', label: '简称', max: 40 },
     icon: { type: 'string', label: '图标', max: 400 },
     servers: { type: 'strarray', label: '区服', max: 40 },
+    // 这个游戏里客户最认的那种货币叫什么（原石 / 星声 / 纠缠之缘…）。
+    // 只存名字；具体数量写在服务项上（services.currency_amount）。
+    currency: { type: 'string', label: '货币名称', max: 20 },
     status: { type: 'string', default: 'active', enum: ['active', 'archived'], filter: true },
     sort_order: { type: 'int', default: 0 },
     note: { type: 'text', label: '备注', max: 1000 },
-    // 对外公告：只给客户看。生成价格表图片 / Word 时会放在最上方。
+    // 对外提示：只给客户看。生成价格表图片 / Word 时会放在最上方。
     // 和 note 分开是有意的 —— note 是自己记账用的，不该发到客户手上。
-    notice: { type: 'text', label: '公告', max: 600 },
+    notice: { type: 'text', label: '顶部提示', max: 600 },
   },
 })
 
@@ -83,6 +86,9 @@ export const services = makeDef({
     min_qty: { type: 'number', label: '起订量', default: 1 },
     max_qty: { type: 'number', label: '封顶量', nullable: true, default: null },
     package_items: { type: 'json', label: '套餐内容', default: [] },
+    // 这个服务项能让客户拿到多少「游戏里那个货币」。
+    // 留空(NULL) = 不显示；货币名字在游戏上配（games.currency）。
+    currency_amount: { type: 'number', label: '可获得货币', nullable: true, default: null },
     status: { type: 'string', default: 'active', enum: ['active', 'archived'], filter: true },
     sort_order: { type: 'int', default: 0 },
     note: { type: 'text', label: '备注', max: 1000 },
