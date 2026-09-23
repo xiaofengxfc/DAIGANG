@@ -111,6 +111,7 @@ const GRAY = '6F6759'
 const CINNABAR = 'B33A22'
 const RULE = 'DED6C6'
 const RULE_STRONG = 'C9BFAB'
+const TINT = 'FDF1EA'
 const FONT = '微软雅黑'
 
 const PAGE_W = 11906 // A4 宽（twips）
@@ -141,6 +142,33 @@ const bottomRule = (color = RULE, sz = 8) =>
 const rightTab = (leader = 'dot') => `<w:tabs><w:tab w:val="right" w:leader="${leader}" w:pos="${TEXT_W}"/></w:tabs>`
 
 /**
+ * 公告块：暖色底 + 左边一道朱砂竖线，就是应用里那个提示条的样子。
+ * 每行一个段落（Word 不认 \n），相邻段落边框设置相同，Word 会自动接成一个整块。
+ */
+function noticeParas(text, label = '公告') {
+  const lines = String(text || '')
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+  if (!lines.length) return []
+  const box = (extra) =>
+    `<w:shd w:val="clear" w:color="auto" w:fill="${TINT}"/>` +
+    `<w:pBdr><w:left w:val="single" w:sz="18" w:space="12" w:color="${CINNABAR}"/></w:pBdr>` +
+    `<w:ind w:left="160" w:right="120"/>` +
+    extra
+  // 标签单独一行，和图片版排法一致（同一个模型，两边看起来要一样）
+  const out = label ? [para(run(label, { size: 18, bold: true, color: CINNABAR }), { pPr: box(spacing(80, 0, 240)) })] : []
+  lines.forEach((ln, i) =>
+    out.push(
+      para(run(ln, { size: 20, color: INK }), {
+        pPr: box(spacing(0, i === lines.length - 1 ? 140 : 0, 250)),
+      })
+    )
+  )
+  return out
+}
+
+/**
  * 把导出模型渲染成一份 .docx。
  * 排版用的是「菜单式点线」：服务名 …… 价格。朴素、好读、打印也好看。
  */
@@ -162,17 +190,30 @@ export function buildDocx(model) {
   )
   body.push(para('', { pPr: bottomRule(CINNABAR, 18) + spacing(0, 160, 240) }))
 
+  /* —— 公告：只面向一个游戏时放在最上方 —— */
+  // 抬头那行已经写了游戏名，这里就不用再重复一遍
+  if (model.notice) {
+    body.push(...noticeParas(model.notice, '公告'))
+  }
+
   /* —— 大类 —— */
   let lastGame = null
   model.groups.forEach((g, gi) => {
     // 导出多个游戏时，插一条游戏小标题（比大类高一级）
-    if (model.multiGame && g.gameName && g.gameName !== lastGame) {
+    const gameHead = Boolean(model.multiGame && g.gameName && g.gameName !== lastGame)
+    if (gameHead) {
       lastGame = g.gameName
       body.push(
         para(run(g.gameName, { size: 34, bold: true, color: INK }), {
           pPr: spacing(gi === 0 ? 0 : 320, 40, 240) + bottomRule(RULE_STRONG, 12),
         })
       )
+    }
+
+    // 合并导出时，游戏公告跟在它的第一个大类上面（游戏名已经写在小标题里就不重复了）
+    if (g.notice) {
+      const label = gameHead || !g.gameName ? '公告' : `${g.gameName} 公告`
+      body.push(...noticeParas(g.notice, label))
     }
 
     body.push(

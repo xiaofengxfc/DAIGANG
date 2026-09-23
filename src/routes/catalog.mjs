@@ -8,7 +8,7 @@ import { buildDocx } from '../docx.mjs'
 export const games = makeDef({
   table: 'games',
   listOrder: 'sort_order ASC, id ASC',
-  searchColumns: ['name', 'short_name', 'note'],
+  searchColumns: ['name', 'short_name', 'note', 'notice'],
   archiveInstead: true,
   columns: {
     name: { type: 'string', required: true, label: '游戏名', max: 80, unique: true, filter: true, trim: true },
@@ -18,6 +18,9 @@ export const games = makeDef({
     status: { type: 'string', default: 'active', enum: ['active', 'archived'], filter: true },
     sort_order: { type: 'int', default: 0 },
     note: { type: 'text', label: '备注', max: 1000 },
+    // 对外公告：只给客户看。生成价格表图片 / Word 时会放在最上方。
+    // 和 note 分开是有意的 —— note 是自己记账用的，不该发到客户手上。
+    notice: { type: 'text', label: '公告', max: 600 },
   },
 })
 

@@ -259,6 +259,33 @@ const MIGRATIONS = [
   // 留空(NULL) = 跟着它所在的大类走，所以以后往「日常」大类里加服务项不用再设一遍；
   // 1 / 0 = 在这个服务项上强制覆盖大类。
   `ALTER TABLE services ADD COLUMN is_daily INTEGER;`,
+
+  // v6：游客留言板。
+  //
+  // 这一条**必须留在原位、不要删**：游客区那批代码回滚过一次，
+  // 但线上库已经被盖成了 user_version = 6，guest_messages 表也已经建好。
+  // 如果这里留空，新库跑完只有 5 条、老库停在 6，两边版本号就错开了，
+  // 后面所有迁移在「老库」上会被整条跳过。
+  // 用 IF NOT EXISTS 写，两边谁先谁后都不会炸。
+  `
+  CREATE TABLE IF NOT EXISTS guest_messages (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    nickname   TEXT NOT NULL DEFAULT '',
+    contact    TEXT NOT NULL DEFAULT '',
+    game_name  TEXT NOT NULL DEFAULT '',
+    content    TEXT NOT NULL DEFAULT '',
+    status     TEXT NOT NULL DEFAULT 'new',
+    order_id   INTEGER REFERENCES orders (id) ON DELETE SET NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_guest_messages_status ON guest_messages (status, created_at DESC);
+  `,
+
+  // v7：每个游戏的「公告」。
+  // 和 note（自己看的备注）分开：公告是对外给客户看的，
+  // 生成的价格表图片 / Word 文档会把它放在最上方。
+  `ALTER TABLE games ADD COLUMN notice TEXT NOT NULL DEFAULT '';`,
 ]
 
 export function migrate() {

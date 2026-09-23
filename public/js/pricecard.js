@@ -12,6 +12,7 @@ const INK_FAINT = '#948A7A'
 const CINNABAR = '#B33A22'
 const RULE = '#E2DACB'
 const RULE_STRONG = '#C9BFAB'
+const TINT = '#FDF1EA'
 
 const FONT_UI = '"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif'
 const FONT_FIG = 'ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace'
@@ -48,6 +49,39 @@ function fitText(measure, text, f, maxWidth) {
 }
 
 /**
+ * 折行：先按用户敲的换行断开，再按宽度贪心折。
+ * 公告是手打的，可能有好几行，也可能一行很长。
+ * 超过 maxLines 就把最后一行收成省略号，免得一张价目表被公告撑爆。
+ */
+function wrapText(measure, text, f, maxWidth, maxLines = 8) {
+  const out = []
+  for (const para of String(text || '').split(/\r?\n/)) {
+    let rest = para.trim()
+    if (!rest) continue
+    while (rest) {
+      if (out.length >= maxLines) {
+        out[out.length - 1] = fitText(measure, out[out.length - 1] + '…', f, maxWidth)
+        return out
+      }
+      if (measure(rest, f) <= maxWidth) {
+        out.push(rest)
+        break
+      }
+      let lo = 1
+      let hi = rest.length
+      while (lo < hi) {
+        const mid = Math.ceil((lo + hi) / 2)
+        if (measure(rest.slice(0, mid), f) <= maxWidth) lo = mid
+        else hi = mid - 1
+      }
+      out.push(rest.slice(0, lo))
+      rest = rest.slice(lo)
+    }
+  }
+  return out
+}
+
+/**
  * 把导出模型排成一张竖版长图。
  * 只画内容，不做交互；返回值就是 canvas，调用方自己 toBlob 下载。
  */
@@ -63,6 +97,41 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
   const line = (x1, y1, x2, y2, color, width = 1, dash = null) =>
     ops.push({ t: 'line', x1, y1, x2, y2, color, width, dash })
   const rect = (x, y0, w, h, color) => ops.push({ t: 'rect', x, y: y0, w, h, color })
+
+  /* ---------- 公告条 ---------- */
+  // 暖色底 + 左边一道朱砂竖线，和 Word 文档里的排法完全一致。
+  // 顺序要紧：底纹要先推入 ops，文字后推，画的时候才是「先底后字」。
+  const noticeFont = font(23)
+  const noticeLabelFont = font(19, 700)
+  const noticeBlock = (text, label = '公告') => {
+    const raw = String(text || '').trim()
+    if (!raw) return
+    const inner = 30
+    const lines = wrapText(measure, raw, noticeFont, CW - inner * 2 - 6, 8)
+    if (!lines.length) return
+
+    // 高度先算好再铺底 —— ops 是按顺序画的，底纹必须先推入，否则会盖住文字
+    const lead = 28
+    const labelStep = label ? 30 : 0
+    const lineStep = 34
+    const h = lead + labelStep + lines.length * lineStep + 18
+
+    y += 46
+    const top = y
+    rect(PAD, top, CW, h, TINT)
+    rect(PAD, top, 6, h, CINNABAR)
+
+    let base = top + lead
+    if (label) {
+      text(PAD + inner, base, label, noticeLabelFont, CINNABAR)
+      base += labelStep
+    }
+    for (const ln of lines) {
+      base += lineStep
+      text(PAD + inner, base, ln, noticeFont, INK)
+    }
+    y = top + h
+  }
 
   /* ---------- 抬头 ---------- */
   rect(0, 0, W, 7, CINNABAR)
@@ -85,6 +154,9 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
   y += 26
   line(PAD, y, W - PAD, y, RULE_STRONG, 1)
 
+  // 公告放在价格正文最上方（抬头下面、第一个大类上面）
+  noticeBlock(model.notice)
+
   /* ---------- 大类与服务项 ---------- */
   const nameFont = font(25, 500)
   const priceFont = font(27, 600, true)
@@ -103,13 +175,17 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
   let lastGame = null
   for (const g of model.groups) {
     // 导出了多个游戏时，插一条游戏小标题（比大类高一级）
-    if (model.multiGame && g.gameName && g.gameName !== lastGame) {
+    const gameHead = Boolean(model.multiGame && g.gameName && g.gameName !== lastGame)
+    if (gameHead) {
       lastGame = g.gameName
       y += 78
       text(PAD, y, fitText(measure, g.gameName, gameFont, CW), gameFont, INK)
       y += 16
       line(PAD, y, W - PAD, y, RULE_STRONG, 2)
     }
+
+    // 合并导出时，游戏公告跟在它的第一个大类上面（小标题里已经写了游戏名就不重复）
+    if (g.notice) noticeBlock(g.notice, gameHead || !g.gameName ? '公告' : `${g.gameName} 公告`)
 
     y += 62
     rect(PAD, y - 23, 6, 27, CINNABAR)

@@ -9,7 +9,7 @@
    ============================================================ */
 
 import { api, PRICE_TYPE_LABEL } from '../api.js'
-import { h, icon, fmtMoney, fmtQty, debounce, fmtDate, mount } from '../dom.js'
+import { h, icon, fmtMoney, fmtQty, debounce, fmtDate, mount, copyText } from '../dom.js'
 import { gameForm } from './games.js'
 import { renderPriceCard, canvasToBlob, downloadBlob } from '../pricecard.js'
 import {
@@ -24,12 +24,166 @@ import {
   tag,
   sectionHead,
   copyButton,
+  modal,
 } from '../ui.js'
 
 const PRICE_TYPES = Object.entries(PRICE_TYPE_LABEL).map(([value, label]) => ({ value, label }))
 
 function unitOf(s) {
   return s.unit_label || { fixed: '单', daily: '天', per_time: '次', per_unit: '个', package: '套' }[s.price_type] || '单'
+}
+
+/**
+ * 按数量找命中那一档的单价，找不到就退到「起量最大且不超过」那档，再不行用基准价。
+ * 规则跟下单台（pricing.mjs）一样 —— 这里算出来多少，开单就是多少。
+ */
+function tierUnitPrice(s, qty) {
+  const tiers = (s.tiers || []).filter(Boolean)
+  if (tiers.length) {
+    for (const t of tiers) {
+      const lo = Number(t.min_qty) || 0
+      const hi = t.max_qty === null || t.max_qty === undefined || t.max_qty === '' ? Infinity : Number(t.max_qty)
+      if (qty >= lo && qty <= hi) return Number(t.unit_price) || 0
+    }
+    const sorted = [...tiers].sort((a, b) => (Number(a.min_qty) || 0) - (Number(b.min_qty) || 0))
+    let pick = null
+    for (const t of sorted) if (qty >= (Number(t.min_qty) || 0)) pick = t
+    if (pick) return Number(pick.unit_price) || 0
+  }
+  return Number(s.base_price) || 0
+}
+
+/**
+ * 组合报价：把**这一个大类**下勾中的服务项加起来。
+ * 客户说「我要这几个」，点几下就知道一共多少钱，不用自己摁计算器。
+ * 数量能改，会自动套阶梯价 —— 跟开单时算出来的数一模一样。
+ */
+export function sumDialog(cat, services) {
+  const list = (services || []).filter((s) => s.status !== 'archived')
+  const picked = new Set()
+  const rows = []
+  const totalFig = h('span.sumline__v', '¥0')
+  const countNote = h('span.dim.sm', '')
+  let m = null
+
+  function paint() {
+    let total = 0
+    let n = 0
+    for (const r of rows) {
+      const on = picked.has(r.s.id)
+      r.el.classList.toggle('pickrow--on', on)
+      r.qty.disabled = !on
+      r.unit.style.visibility = on ? 'visible' : 'hidden'
+      const q = on ? Math.max(0.01, Number(r.qty.value) || 1) : 1
+      const u = tierUnitPrice(r.s, q)
+      const amt = on ? u * q : 0
+      r.fig.textContent = `¥${fmtMoney(on ? amt : Number(r.s.base_price) || 0)}`
+      if (on) {
+        total += amt
+        n++
+      }
+      r.hint.textContent = on && (r.s.tiers || []).length ? `按 ${fmtQty(q)} ${unitOf(r.s)} 算，单价 ¥${fmtMoney(u)}` : ''
+    }
+    totalFig.textContent = `¥${fmtMoney(total)}`
+    countNote.textContent = n ? `已选 ${n} 项` : '还没勾'
+    if (m && m.setDisabled) m.setDisabled('copy', n === 0)
+  }
+
+  const rowFor = (s) => {
+    const cb = h('input.chk', { type: 'checkbox', 'aria-label': `选择 ${s.name}` })
+    const qty = h('input.inp.inp--fig', { inputmode: 'decimal', style: { width: '64px' }, disabled: true, 'aria-label': `${s.name} 数量` })
+    qty.value = String(Number(s.min_qty) || 1)
+    const unit = h('span.dim.tiny', unitOf(s))
+    const fig = h('span.pickrow__fig', `¥${fmtMoney(Number(s.base_price) || 0)}`)
+    const hint = h('div.hint')
+
+    const toggle = () => {
+      if (picked.has(s.id)) picked.delete(s.id)
+      else picked.add(s.id)
+      cb.checked = picked.has(s.id)
+      paint()
+    }
+    cb.addEventListener('change', toggle)
+    qty.addEventListener('input', paint)
+
+    const el = h(
+      'div.pickrow',
+      h(
+        'div.pickrow__top',
+        cb,
+        h(
+          'button.pickrow__main',
+          { type: 'button', onclick: toggle },
+          h('span.pickrow__line', h('span.pickrow__name', s.name), fig),
+          h(
+            'span.pickrow__meta',
+            [PRICE_TYPE_LABEL[s.price_type] || s.price_type, (s.tiers || []).length ? `${s.tiers.length} 档阶梯价` : null, s.description || null]
+              .filter(Boolean)
+              .join(' · ')
+          )
+        )
+      ),
+      h('div.pickrow__ctrl', h('div.cluster', { style: { gap: '6px' } }, qty, unit, hint))
+    )
+    rows.push({ s, el, cb, qty, fig, unit, hint })
+    return el
+  }
+
+  /** 全勾上 / 全清掉 —— 客户说「整页都要」的时候省得一个个点 */
+  const setAll = (on) => {
+    for (const r of rows) {
+      if (on) picked.add(r.s.id)
+      else picked.delete(r.s.id)
+      r.cb.checked = on
+    }
+    paint()
+  }
+
+  m = modal({
+    title: `组合报价 · ${cat.name}`,
+    wide: true,
+    body: h(
+      'div.stack',
+      h(
+        'div.cluster',
+        h('span.sm.dim', `勾上客户要的服务项${list.some((s) => (s.tiers || []).length) ? '；数量能改，会自动套阶梯价' : ''}。`),
+        h('div', { style: { flex: '1' } }),
+        list.length
+          ? h('button.btn.btn--sm', { type: 'button', onclick: () => setAll(true) }, '全选')
+          : null,
+        list.length
+          ? h('button.btn.btn--sm', { type: 'button', onclick: () => setAll(false) }, '全不选')
+          : null
+      ),
+      list.length ? h('div.picker', h('div.picker__scroll', ...list.map(rowFor))) : h('div.empty', h('div.empty__body', '这个大类下还没有服务项。')),
+      h('div.sumline', h('span.dim', '合计'), countNote, h('div', { style: { flex: '1' } }), totalFig)
+    ),
+    actions: [
+      { label: '关闭' },
+      {
+        label: '复制报价',
+        key: 'copy',
+        onClick: async () => {
+          const lines = []
+          let total = 0
+          for (const r of rows) {
+            if (!picked.has(r.s.id)) continue
+            const q = Math.max(0.01, Number(r.qty.value) || 1)
+            const u = tierUnitPrice(r.s, q)
+            const amt = u * q
+            total += amt
+            lines.push(`${r.s.name}  ${fmtQty(q)}${unitOf(r.s)} × ¥${fmtMoney(u)} = ¥${fmtMoney(amt)}`)
+          }
+          if (!lines.length) return false
+          const okCopy = await copyText([`【${cat.name}】`, ...lines, `合计：¥${fmtMoney(total)}`].join('\n'))
+          toast(okCopy ? '报价已复制' : '复制失败，手动选一下吧', okCopy ? 'ok' : 'err')
+          return false // 复制完不关窗，方便接着调
+        },
+      },
+    ],
+  })
+  paint()
+  return m
 }
 
 /* ---------------- 大类的展开/收起状态 ----------------
@@ -1497,6 +1651,20 @@ export default {
             h(
               'span.pgroup__n',
               q && b.list.length !== b.all.length ? `${b.all.length} 个服务项（命中 ${b.list.length}）` : `${b.all.length} 个服务项`
+            ),
+            // 组合报价：勾几个服务项加一下，客户问「这几个一共多少」的时候用
+            h(
+              'button.btn.btn--sm',
+              {
+                type: 'button',
+                title: '勾几个服务项，算这一组一共多少钱',
+                onclick: (e) => {
+                  e.stopPropagation()
+                  sumDialog(b.cat, b.all)
+                },
+              },
+              icon('price', 14),
+              '组合报价'
             ),
             h(
               'button.btn.btn--sm.btn--primary',

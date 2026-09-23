@@ -10,6 +10,17 @@ import { table, toast, toastErr, formDrawer, imageField, confirmModal, confirmDe
 /* 游戏图标：上传后落到 data/uploads，列表里当图片用。
    具体实现挪到了 ui.js 的 imageField（和客户头像共用一份）。 */
 
+/** 公告可能有好几行、也可能很长，列表里只给一个开头 */
+function firstLine(text, max = 64) {
+  const lines = String(text || '')
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+  if (!lines.length) return ''
+  const head = lines[0].length > max ? `${lines[0].slice(0, max)}…` : lines[0]
+  return lines.length > 1 ? `${head}（共 ${lines.length} 行）` : head
+}
+
 export function gameForm(values = {}) {
   return formDrawer({
     title: values.id ? '改游戏' : '新建游戏',
@@ -31,6 +42,18 @@ export function gameForm(values = {}) {
         hint: '选填。会显示在游戏列表和报价单上。',
       }),
       { name: 'servers', label: '区服列表', type: 'tags', hint: '逗号分隔。例：天空岛, 世界树, 亚服。开单时可以直接选。' },
+      {
+        name: 'notice',
+        label: '公告',
+        type: 'textarea',
+        rows: 3,
+        maxlength: 600,
+        placeholder: '例：本价格表自 9 月 20 日起执行；包月客户送一次活动代打。',
+        hint:
+          '只给客户看的一句话。可以做多行，一行一件事。' +
+          '导出价格表时，它会显示在图片 / Word 的「最上方」——抬头下面、第一个大类上面。' +
+          '和「备注」分开：备注是你自己记账用的，不会出现在导出里。',
+      },
       {
         name: 'status',
         label: '状态',
@@ -106,7 +129,17 @@ export default {
             g.servers?.length ? h('span', `区服：${g.servers.join(' / ')}`) : h('span.dim', '没填区服'),
             g.created_at ? h('span', `建于 ${fmtDate(g.created_at)}`) : null
           ),
-          g.note ? h('div.tbl__meta', g.note) : null
+          g.note ? h('div.tbl__meta', g.note) : null,
+          // 公告会在导出图片 / Word 的最上方出现，所以列表里给一条预览，
+          // 免得改了公告自己都忘了发出去的是哪一版
+          g.notice
+            ? h(
+                'div.tbl__meta',
+                { style: { display: 'flex', gap: '6px', alignItems: 'baseline' } },
+                tag('公告', 'cinnabar'),
+                h('span', { style: { whiteSpace: 'pre-wrap' } }, firstLine(g.notice))
+              )
+            : null
         ),
         h(
           'div.tbl__acts',

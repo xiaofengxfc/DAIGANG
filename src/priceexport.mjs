@@ -69,6 +69,24 @@ export function buildExportModel(opts = {}) {
   const games = db.prepare("SELECT * FROM games WHERE status = 'active' ORDER BY sort_order ASC, id ASC").all()
   const gameById = new Map(games.map((g) => [g.id, g]))
 
+  /* ---------- 公告 ---------- */
+  // 每个游戏一条公告，导出时放在最上方。
+  //
+  // 提到最上方的前提是「这一份导出只面向一个游戏」：
+  //   · 指定了 game_id → 就是它
+  //   · 没指定、但在架游戏只有一个 → 也是它（合并导出其实也只出一份）
+  //   · 多个游戏合并成一份 → 不能都塞最上面，改成跟在各自游戏小标题下面，
+  //     免得「鸣潮的公告」被当成整张表的总说明。
+  const noticeByGame = new Map()
+  for (const g of games) {
+    const t = String(g.notice || '').trim()
+    if (t) noticeByGame.set(String(g.id), t)
+  }
+  let focusKey = ''
+  if (gameId && gameById.has(gameId)) focusKey = String(gameId)
+  else if (!gameId && games.length === 1) focusKey = String(games[0].id)
+  const topNotice = focusKey ? clampStr(noticeByGame.get(focusKey) || '', 600) : ''
+
   let cats = db
     .prepare("SELECT * FROM service_categories WHERE status = 'active' ORDER BY sort_order ASC, id ASC")
     .all()
@@ -125,13 +143,21 @@ export function buildExportModel(opts = {}) {
 
   /* ---------- 排组：按游戏 → 大类顺序，「未分类」放各组最后 ---------- */
   const sections = []
+  const noticeShown = new Set()
   const pushSection = (cat, gameKey, list) => {
     const shown = list.slice(0, perCategory)
+    // 合并导出时，公告挂在这个游戏的第一个大类上面，只出现一次
+    let notice = ''
+    if (gameKey && gameKey !== focusKey && !noticeShown.has(gameKey)) {
+      noticeShown.add(gameKey)
+      notice = clampStr(noticeByGame.get(gameKey) || '', 600)
+    }
     sections.push({
       name: cat ? clampStr(cat.name, 40) : '未分类',
       isOrphan: !cat,
       gameKey,
       gameName: gameKey ? gameById.get(Number(gameKey))?.name || '' : '',
+      notice,
       items: shown.map(makeItem),
       more: list.length - shown.length,
       total: list.length,
@@ -199,6 +225,9 @@ export function buildExportModel(opts = {}) {
     title: clampStr(opts.title || '代肝价目表', 40),
     subtitle,
     date: dateStr,
+    // 公告：整份只面向一个游戏时在最上方显示（图片和 Word 都是）
+    notice: topNotice,
+    noticeGameName: focusKey ? gameById.get(Number(focusKey))?.name || '' : '',
     groups: trimmed,
     // 只有一张价格表时抬头已经写了游戏名；多张时才在正文里插游戏小标题
     multiGame: new Set(trimmed.map((g) => g.gameName).filter(Boolean)).size > 1,
