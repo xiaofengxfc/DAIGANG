@@ -261,7 +261,13 @@ export async function openQuoteComposer(ctx, { existing = null } = {}) {
         }
         const toggle = () => {
           if (picked.has(s.id)) picked.delete(s.id)
-          else picked.set(s.id, { quantity: Number(s.min_qty) || 1, unitPrice: '', optionIds: new Set() })
+          // 价格表里勾了「默认选中」的增项直接带上，跟开单台一个规矩
+          else
+            picked.set(s.id, {
+              quantity: Number(s.min_qty) || 1,
+              unitPrice: '',
+              optionIds: new Set((s.options || []).filter((o) => o.default_selected).map((o) => o.id)),
+            })
           buildOpts()
           paint()
           paintSheet()

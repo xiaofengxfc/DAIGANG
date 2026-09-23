@@ -123,6 +123,37 @@ function unitPriceFor(service, tiers, qty) {
 const defaultUnit = (s) =>
   s.unit_label || { fixed: '单', daily: '天', per_time: '次', per_unit: '个', package: '套' }[s.price_type] || '单'
 
+/**
+ * 这个服务项大概要做多少天。按信息量从大到小推：
+ *   1. 单位写成「30天」这种 → 取那个数 × 数量（你库里日体/精托/全托都是这种）
+ *   2. 单位就是「天 / 日」→ 数量
+ *   3. 按天计价但没写单位 → 数量
+ *   4. 其它（单 / 次 / 层 / 个 / 套）→ 推不出来，返回 0（那就不自动填交付日期）
+ */
+function serviceDays(svc, qty) {
+  const n = Number(qty) || 0
+  if (n <= 0) return 0
+  const unit = String(svc.unit_label || '').trim()
+  const m = /^(\d+(?:\.\d+)?)\s*[天日]$/.exec(unit)
+  if (m) return Number(m[1]) * n
+  if (unit === '天' || unit === '日') return n
+  if (!unit && svc.price_type === 'daily') return n
+  return 0
+}
+
+/** 'YYYY-MM-DD' 往后推 n 天 */
+function addDays(iso, n) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''))
+  if (!m) return ''
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+  d.setDate(d.getDate() + Number(n))
+  const p = (x) => String(x).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
+/** 大类/服务项两级的「每天都做」：服务项自己设了就听它的，没设（null）跟着大类走 */
+const svcIsDaily = (s) => (s.is_daily === null || s.is_daily === undefined ? Boolean(s._catDaily) : Boolean(s.is_daily))
+
 function calcPicked(picked, servicesById) {
   let subtotal = 0
   let addons = 0
@@ -161,9 +192,10 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
   const games = gameRes.items || []
   const allServices = []
   for (const cat of book.categories) {
-    for (const s of cat.services) allServices.push({ ...s, _catName: cat.name, _catId: cat.id })
+    // _catDaily 带上大类的「每天都做」，服务项自己没设时要用它兜底
+    for (const s of cat.services) allServices.push({ ...s, _catName: cat.name, _catId: cat.id, _catDaily: cat.is_daily })
   }
-  for (const s of book.loose) allServices.push({ ...s, _catName: '未分类', _catId: 0 })
+  for (const s of book.loose) allServices.push({ ...s, _catName: '未分类', _catId: 0, _catDaily: false })
   const servicesById = new Map(allServices.map((s) => [s.id, s]))
 
   const picked = new Map()
@@ -207,6 +239,12 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
   const titleInp = h('input.inp', { placeholder: '不填就用服务名拼一个', value: existing?.title || '' })
   const dueInp = h('input.inp', { type: 'date', value: existing?.due_at ? fmtDate(existing.due_at) : '' })
 
+  /* 交付日期：单子里有「每天都做」的服务项时，按它要做的天数自动填
+     （日体套餐 30 天 → 交付 = 下单 + 30）。
+     用户自己改过就撒手不管；把日期清空 = 交回给自动。 */
+  let dueTouched = Boolean(existing?.due_at)
+  let dueAuto = { days: 0, name: '' }
+
   /* 下单日期和交付日期之间：还剩几天。
      「剩余」按今天算（这才是你真正关心的），另外把「下单到交付一共几天」也带上。 */
   const remainBox = h('div.remain')
@@ -228,11 +266,28 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
     }
     remainBox.classList.add(`remain--${info.kind}`)
     remainBox.appendChild(h('span.remain__big', info.text))
-    if (info.span !== null) remainBox.appendChild(h('span.dim.sm', `下单到交付一共 ${info.span + 1} 天`))
+    // 写「下单到交付 30 天」而不是「一共 31 天」：自动填的交付日期就是按服务项
+    // 的天数推出来的，这里再用「算头算尾」的 31 天，跟上面「30 天」自相矛盾。
+    if (info.span !== null) remainBox.appendChild(h('span.dim.sm', `下单到交付 ${info.span} 天`))
+    // 说清楚这个日期是怎么来的，免得以为是手滑填错了
+    if (dueAuto.days > 0) {
+      remainBox.appendChild(
+        h('span.dim.sm', `${dueAuto.name ? `按「${dueAuto.name}」` : ''}${dueAuto.days} 天自动填的，可以直接改`)
+      )
+    }
   }
   dateInp.addEventListener('input', paintRemain)
   dateInp.addEventListener('change', paintRemain)
-  dueInp.addEventListener('input', paintRemain)
+  dateInp.addEventListener('input', () => {
+    if (!dueTouched) paintSummary() // 下单日期改了，自动填的交付日期跟着挪
+  })
+  dueInp.addEventListener('input', () => {
+    // 用户动过就以他填的为准；清空则回到自动。
+    // 不管填没填，只要人动过，这个日期就不再是「自动填的」，提示必须撤掉。
+    dueTouched = dueInp.value !== ''
+    dueAuto = { days: 0, name: '' }
+    paintRemain()
+  })
   dueInp.addEventListener('change', paintRemain)
 
   const noteInp = h('textarea.ta', { rows: 2, placeholder: '给客户看的备注' })
@@ -415,7 +470,9 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
         picked.set(s.id, {
           quantity: Number(s.min_qty) || 1,
           unitPrice: '',
-          optionIds: new Set(),
+          // 价格表里勾了「默认选中」的增项，开单时直接带上 ——
+          // 不然每次都要手动补勾一遍，等于白设。
+          optionIds: new Set((s.options || []).filter((o) => o.default_selected).map((o) => o.id)),
           tiers: s.tiers || [],
           options: s.options || [],
         })
@@ -459,6 +516,22 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
 
   const recordPainters = []
 
+  /** 勾着的「每天都做」服务项里，要做最久的那条要多少天（顺带记下名字好写提示） */
+  function dailyPlan() {
+    let days = 0
+    let name = ''
+    for (const [id, sel] of picked) {
+      const svc = servicesById.get(id)
+      if (!svc || !svcIsDaily(svc)) continue
+      const d = serviceDays(svc, sel.quantity)
+      if (d > days) {
+        days = d
+        name = svc.name
+      }
+    }
+    return { days, name }
+  }
+
   /* —— 汇总 —— */
   function paintSummary() {
     const { lines, subtotal, addons } = calcPicked(picked, servicesById)
@@ -467,6 +540,20 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
     const cost = Math.max(0, Number(costInp.value) || 0)
     const total = Math.max(0, subtotal + addons - discount)
     totalFig.textContent = `¥${fmtMoney(total)}`
+
+    // 单子里有每天都做的服务项 → 交付日期按天数自动填。
+    // 用户自己动过交付日期就不碰了；清空则回到自动。
+    if (!dueTouched) {
+      const plan = dailyPlan()
+      const next = plan.days > 0 ? addDays(dateInp.value, plan.days) : ''
+      if (dueInp.value !== next) {
+        dueInp.value = next
+        dueAuto = plan.days > 0 ? plan : { days: 0, name: '' }
+        paintRemain()
+      } else {
+        dueAuto = plan.days > 0 ? plan : { days: 0, name: '' }
+      }
+    }
     summaryBox.replaceChildren(
       h(
         'div',
