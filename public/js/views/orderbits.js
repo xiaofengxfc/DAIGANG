@@ -4,7 +4,7 @@
    ============================================================ */
 
 import { api, PAY_METHOD_LABEL, PAY_KIND_LABEL, STATUS_TONE } from '../api.js'
-import { h, icon, fmtMoney, fmtDate, fmtDay, todayStr, fmtQty, remainInfo } from '../dom.js'
+import { h, icon, fmtMoney, fmtDate, fmtDay, todayStr, fmtQty, remainInfo, mount } from '../dom.js'
 import { formDrawer, table, toast, toastErr, lamp, tag, orderTrack, copyButton, confirmDelete, emptyState } from '../ui.js'
 
 /* ---------------- 记进度 ---------------- */
@@ -203,7 +203,9 @@ function resourcesField({ before = '', after = '', beforeFrom = '' } = {}) {
         }
         // 认出来的原文也摊开给用户核对 —— 认错的时候一眼能看出来
         const lines = (r.lines || []).filter((l) => l.trim()).slice(0, 8)
-        note.replaceChildren(
+        // mount 会把 null 滤掉；replaceChildren(null) 会显示成文字「null」
+        mount(
+          note,
           h('strong', n ? `认出 ${n} 项，请核对一下再保存` : '这三个资源一个都没认出来，可以手动填'),
           lines.length ? h('div.tiny', { style: { marginTop: '4px', opacity: '.85' } }, `识别到的原文：${lines.join(' ｜ ')}`) : null
         )
@@ -590,7 +592,9 @@ export function orderItemsList(items) {
           h(
             'div.item__fig',
             `${fmtMoney(it.unit_price)}`,
-            h('span.dim', ` × ${fmtQty(it.quantity)}${it.unit_label || ''}`)
+            // 单位要跟数量隔开：以前写成 `× 1` 直接拼单位，单位是「30天」时
+            // 就成了「50 × 130天」，看着像 130 天。
+            h('span.dim', `${it.unit_label ? `/${it.unit_label}` : ''} × ${fmtQty(it.quantity)}`)
           ),
           h('div.tbl__meta', `= ${fmtMoney(it.amount)} 元`)
         )

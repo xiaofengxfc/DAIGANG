@@ -2217,6 +2217,16 @@ pre.plaintext {
   grid-column: 1 / -1;
 }
 
+/* 校验没过 / 填了非数字：输入框自己要看得出来。
+   表单里加的是 .is-bad（配合下面那行红字），开单台的改价输入框也用同一个。 */
+.field.is-bad .inp,
+.field.is-bad .ta,
+.field.is-bad .sel,
+.inp.is-bad {
+  border-color: var(--oxblood);
+  background: var(--oxblood-bg);
+}
+
 /* 交付日期还剩几天的小药丸（订单列表 / 详情都用） */
 .duepill {
   display: inline-block;
@@ -2260,6 +2270,14 @@ pre.plaintext {
   font-size: var(--fs-md);
   font-weight: 600;
   color: var(--ink);
+}
+
+/* 还没填交付日期：不该出现一个空色块杵在那儿，留一行浅提示就够 */
+.remain--none {
+  margin-top: 0;
+  padding: 2px 0;
+  border-left: 0;
+  background: none;
 }
 
 .remain--soon {

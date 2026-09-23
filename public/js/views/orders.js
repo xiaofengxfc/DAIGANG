@@ -4,7 +4,7 @@
    ============================================================ */
 
 import { api, PRICE_TYPE_LABEL, PAY_METHOD_LABEL, PAY_KIND_LABEL, STATUS_TONE } from '../api.js'
-import { h, icon, fmtMoney, fmtQty, fmtDate, fmtDay, fmtDateTime, todayStr, debounce, remainInfo } from '../dom.js'
+import { h, icon, fmtMoney, fmtQty, fmtDate, fmtDay, fmtDateTime, todayStr, debounce, remainInfo, mount } from '../dom.js'
 import {
   toast,
   toastErr,
@@ -215,7 +215,9 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
     remainBox.className = 'remain'
     const info = remainInfo(dateInp.value, dueInp.value)
     if (info.kind === 'none') {
-      remainBox.appendChild(h('span.dim.sm', '填了交付日期，这里会算还剩几天'))
+      // 还没填交付日期：别用一个大色块占着位置，留一行浅提示就行
+      remainBox.classList.add('remain--none')
+      if (!dueInp.value) remainBox.appendChild(h('span.dim.sm', '填了交付日期，这里会算还剩几天'))
       return
     }
     if (info.kind === 'invalid') {
@@ -295,7 +297,10 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
   /** 「已选 N 项 + 共多少钱」，顺带一个清空 */
   function paintPickerFoot() {
     const n = picked.size
-    pickerFoot.replaceChildren(
+    // 用 mount 而不是 replaceChildren：replaceChildren(null) 会把 null
+    // 变成文字「null」挂在界面上（这里以前就会显示「还没勾服务项 null」）。
+    mount(
+      pickerFoot,
       n
         ? h('span.cluster', { style: { gap: '6px' } }, h('span.pickcount', String(n)), h('span', '已选'))
         : h('span.dim', '还没勾服务项'),
@@ -423,14 +428,26 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
     qty.addEventListener('input', () => {
       const cur = picked.get(s.id)
       if (!cur) return
-      cur.quantity = Number(qty.value) || 0
+      const raw = qty.value.trim()
+      const v = Number(raw)
+      const bad = raw !== '' && !Number.isFinite(v)
+      // 空着当 1（金额那边也是 || 1）；填了非数字就标红，并且按 0 存 ——
+      // 绝不能让 NaN 流进金额，那会把整单算成 ¥0 还存下去。
+      qty.classList.toggle('is-bad', bad)
+      cur.quantity = raw === '' || bad ? 0 : v
       paintRow()
       paintSummary()
     })
     price.addEventListener('input', () => {
       const cur = picked.get(s.id)
       if (!cur) return
-      cur.unitPrice = price.value === '' ? '' : Number(price.value)
+      const raw = price.value.trim()
+      const v = Number(raw)
+      const bad = raw !== '' && !Number.isFinite(v)
+      // 填了非数字：标红，并且这一行退回「按基准单价算」。
+      // 以前是直接 Number() → NaN，合计会静默变成 ¥0，保存还真的把单价写成 0。
+      price.classList.toggle('is-bad', bad)
+      cur.unitPrice = raw === '' || bad ? '' : v
       paintSummary()
     })
 
@@ -518,16 +535,28 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
   paintRemain()
 
   /* —— 抽屉 —— */
+  // 两列排：日期成对、金额成对。以前每一栏都写 field--full，
+  // 760 宽的抽屉里一路全宽控件排到天边，找个「成本」要滚半天。
   const body = h(
     'div.stack',
     h(
       'div.formgrid',
-      h('div.field.field--full', h('label.lbl', '客户 *'), h('div.cluster', { style: { gap: '6px' } }, custSel, addCustomerBtn())),
-      h('div.field.field--full', h('label.lbl', '游戏'), gameSel),
-      h('div.field.field--full', h('label.lbl', '下单日期'), dateInp),
-      // 夹在两个日期中间：还剩几天
+      h(
+        'div.field',
+        h('label.lbl', '客户 *'),
+        // nowrap + 让 select 自己缩：不然 select 的 width:100% 会把「新客户」挤到下一行
+        h(
+          'div.cluster',
+          { style: { gap: '6px', flexWrap: 'nowrap' } },
+          h('div', { style: { flex: '1 1 auto', minWidth: '0' } }, custSel),
+          addCustomerBtn()
+        )
+      ),
+      h('div.field', h('label.lbl', '游戏'), gameSel),
+      h('div.field', h('label.lbl', '下单日期'), dateInp),
+      h('div.field', h('label.lbl', '交付日期'), dueInp),
+      // 两个日期下面：还剩几天
       h('div.field.field--full', remainBox),
-      h('div.field.field--full', h('label.lbl', '交付日期'), dueInp),
       h('div.field.field--full', h('label.lbl', '订单标题'), titleInp)
     ),
     h('div', h('div.sechead', h('h3', '挑服务'), h('span.sechead__note', '勾上就进单子，数量可以改'))),
@@ -536,9 +565,9 @@ export async function openComposer(ctx, { existing = null, presetCustomer = null
     h('div', h('div.sechead', h('h3', '金额'))),
     h(
       'div.formgrid',
-      h('div.field.field--full', h('label.lbl', '折扣（元）'), discountInp),
-      h('div.field.field--full', h('label.lbl', '平台手续费（元）'), feeInp),
-      h('div.field.field--full', h('label.lbl', '成本（元）'), costInp)
+      h('div.field', h('label.lbl', '折扣（元）'), discountInp),
+      h('div.field', h('label.lbl', '平台手续费（元）'), feeInp),
+      h('div.field', h('label.lbl', '成本（元）'), costInp)
     ),
     summaryBox,
     unmappable.length

@@ -4,7 +4,7 @@
    ============================================================ */
 
 import { api, PRICE_TYPE_LABEL } from '../api.js'
-import { h, icon, fmtMoney, fmtQty, fmtDate, copyText, todayStr, debounce } from '../dom.js'
+import { h, icon, fmtMoney, fmtQty, fmtDate, copyText, todayStr, debounce, mount } from '../dom.js'
 import { drawer, toast, toastErr, confirmDelete, emptyState, table, tag, sectionHead, copyButton, modal } from '../ui.js'
 
 const defaultUnit = (s) =>
@@ -182,7 +182,9 @@ export async function openQuoteComposer(ctx, { existing = null } = {}) {
   /** 「已选 N 项 + 清空」，固定在挑服务框底部 */
   function paintFoot() {
     const n = picked.size
-    pickerFoot.replaceChildren(
+    // 用 mount：replaceChildren(null) 会把 null 变成文字「null」挂上去
+    mount(
+      pickerFoot,
       n ? h('span.cluster', { style: { gap: '6px' } }, h('span.pickcount', String(n)), h('span', '已选')) : h('span.dim', '还没勾服务项'),
       h('div', { style: { flex: '1' } }),
       n
