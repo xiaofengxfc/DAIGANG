@@ -658,6 +658,35 @@ async function main() {
   ok('文档里有服务名', docTexts.includes('每日委托'), docTexts.slice(0, 8).join(' | '))
   ok('文档里有价格文本', docTexts.some((t) => t.startsWith('¥')))
 
+  /* 公告：每个游戏一条，导出时放在最上方（图片和 Word 共用一个模型） */
+  const NOTICE = '冒烟测试公告：周一到周五下单送一天'
+  r = await api('PATCH', `/api/games/${gameId}`, { notice: NOTICE })
+  ok('游戏能存公告', r.body.notice === NOTICE, r.body.notice)
+
+  r = await api('GET', `/api/pricebook/export-model?game_id=${gameId}`)
+  ok('单游戏导出把公告取到了', r.body.notice === NOTICE, r.body.notice)
+  ok('公告提到最上方后，大类上就不再重复', (r.body.groups || []).every((g) => !g.notice))
+
+  const noticeRes = await fetch(`${BASE}/api/pricebook/export.docx?game_id=${gameId}`, {
+    headers: cookie ? { cookie } : {},
+  })
+  const noticeXml =
+    readZip(Buffer.from(await noticeRes.arrayBuffer()))
+      ?.find((e) => e.name === 'word/document.xml')
+      ?.data.toString('utf8') || ''
+  const noticeTexts = [...noticeXml.matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)].map((m) => m[1])
+  const iLabel = noticeTexts.indexOf('公告')
+  const iNotice = noticeTexts.indexOf(NOTICE)
+  const iFirstCat = noticeTexts.indexOf('日常')
+  ok('docx 里有「公告」标签', iLabel >= 0, noticeTexts.slice(0, 8).join(' | '))
+  ok('docx 里公告排在第一个大类之前', iLabel >= 0 && iNotice > iLabel && iFirstCat > iNotice, `公告@${iNotice} 大类@${iFirstCat}`)
+  ok('公告带暖色底纹和朱砂竖线', noticeXml.includes('w:fill="FDF1EA"') && noticeXml.includes('w:color="B33A22"'))
+
+  // 清空之后不能有残留（老游戏的 notice 默认是空串）
+  await api('PATCH', `/api/games/${gameId}`, { notice: '' })
+  r = await api('GET', `/api/pricebook/export-model?game_id=${gameId}`)
+  ok('公告清空后导出里就没有了', !r.body.notice && (r.body.groups || []).every((g) => !g.notice), r.body.notice)
+
   /* ---------- 财务 ---------- */
   section('财务')
   r = await api('GET', '/api/finance/summary?from=2020-01-01&to=2099-01-01')

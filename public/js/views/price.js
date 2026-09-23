@@ -186,6 +186,17 @@ export function sumDialog(cat, services) {
   return m
 }
 
+/* ---------------- 价格区间 ----------------
+   大类收起的时候，光看到「7 项」不知道这一节要多少钱。
+   把区间写在栏线右边，收着也能扫一遍价位。同一价就不写两遍。 */
+function priceRange(list) {
+  const vals = (list || []).map((s) => Number(s.base_price)).filter((v) => Number.isFinite(v))
+  if (!vals.length) return ''
+  const lo = Math.min(...vals)
+  const hi = Math.max(...vals)
+  return lo === hi ? `¥${fmtMoney(lo)}` : `¥${fmtMoney(lo)} – ¥${fmtMoney(hi)}`
+}
+
 /* ---------------- 大类的展开/收起状态 ----------------
    必须放在模块这一层，不能放在 render() 里面：
    存完一个表单会 app.reload() → 重新跑一遍 render()，
@@ -1548,7 +1559,11 @@ export default {
             h('span.pitem__grip', icon('drag', 14)),
             h('span.pitem__name', s.name),
             h('span.pitem__leader'),
-            h('span.pitem__fig', `¥${fmtMoney(s.base_price)}`, h('em.pitem__unit', ` / ${unitOf(s)}`)),
+            h(
+              'span.pitem__amount',
+              h('span.pitem__fig', `¥${fmtMoney(s.base_price)}`),
+              h('em.pitem__unit', `/${unitOf(s)}`)
+            ),
             acts
           )
         : h(
@@ -1584,12 +1599,21 @@ export default {
                   )
                 : null
             ),
-            h('div.pitem__price', h('div.pitem__fig', `¥${fmtMoney(s.base_price)}`), h('div.pitem__unit', `/${unitOf(s)}`), acts)
+            h(
+              'div.pitem__price',
+              h('span.pitem__amount', h('span.pitem__fig', `¥${fmtMoney(s.base_price)}`), h('em.pitem__unit', `/${unitOf(s)}`)),
+              acts
+            )
           )
 
       wireRow(row, s)
       return row
     }
+
+    // 「全部展开 / 全部收起」这个按钮在 paint 之后才建出来，
+    // 但 paint 里要顺手把它的文案刷新一下（手动折叠一个之后文案就该变），
+    // 所以先占个位，按钮建好再换成真的。
+    let syncExpandNow = () => {}
 
     function paint() {
       const q = filterQ.trim().toLowerCase()
@@ -1643,58 +1667,67 @@ export default {
             'div.pcat__head',
             { title: '按住可以调整大类顺序，拖到别的游戏/通用组里就是换归属' },
             h('span.pcat__name', b.cat.name),
-            // 每天都要做的大类，在价格表里也标一下
-            b.cat.is_daily ? tag('每天做', 'jade') : null,
+            // 每天都要做的大类，在价格表里也标一下。
+            // 用中性描边而不是绿色：这一页的强调色只留朱砂一个。
+            b.cat.is_daily ? tag('每天做', 'outline') : null,
             b.cat.status === 'archived' ? tag('大类已归档', 'oxblood') : null,
-            b.cat.note ? h('span.dim.tiny', b.cat.note) : null,
-            h('span.pgroup__grow'),
+            b.cat.note ? h('span.pcat__note', b.cat.note) : null,
+            // 名字和数字之间拉一条栏线：大类看起来才像账簿里的一节
+            h('span.pcat__rule'),
+            // 收着也能看出这一节大概多少钱
+            priceRange(b.list) ? h('span.pcat__range', priceRange(b.list)) : null,
             h(
-              'span.pgroup__n',
-              q && b.list.length !== b.all.length ? `${b.all.length} 个服务项（命中 ${b.list.length}）` : `${b.all.length} 个服务项`
+              'span.pcat__n',
+              q && b.list.length !== b.all.length ? `${b.all.length} 项（命中 ${b.list.length}）` : `${b.all.length} 项`
             ),
-            // 组合报价：勾几个服务项加一下，客户问「这几个一共多少」的时候用
+            // 管理操作收在一组里，鼠标进这一行才出现 —— 正文要像一张能直接读的价目表
             h(
-              'button.btn.btn--sm',
-              {
-                type: 'button',
-                title: '勾几个服务项，算这一组一共多少钱',
-                onclick: (e) => {
-                  e.stopPropagation()
-                  sumDialog(b.cat, b.all)
+              'span.pcat__acts',
+              // 组合报价：勾几个服务项加一下，客户问「这几个一共多少」的时候用
+              h(
+                'button.btn.btn--sm',
+                {
+                  type: 'button',
+                  title: '勾几个服务项，算这一组一共多少钱',
+                  onclick: (e) => {
+                    e.stopPropagation()
+                    sumDialog(b.cat, b.all)
+                  },
                 },
-              },
-              icon('price', 14),
-              '组合报价'
-            ),
-            h(
-              'button.btn.btn--sm.btn--primary',
-              {
-                type: 'button',
-                title: '在这个大类下加服务项',
-                onclick: (e) => {
-                  e.stopPropagation()
-                  newService(b.cat.id)
+                icon('price', 14),
+                '组合报价'
+              ),
+              h(
+                'button.btn.btn--sm.btn--primary',
+                {
+                  type: 'button',
+                  title: '在这个大类下加服务项',
+                  onclick: (e) => {
+                    e.stopPropagation()
+                    newService(b.cat.id)
+                  },
                 },
-              },
-              icon('plus', 14),
-              '加服务项'
-            ),
-            h(
-              'button.btn.btn--sm.btn--quiet',
-              {
-                type: 'button',
-                title: '改大类',
-                onclick: (e) => {
-                  e.stopPropagation()
-                  editCategory(b.cat)
+                icon('plus', 14),
+                '加服务项'
+              ),
+              h(
+                'button.btn.btn--sm.btn--quiet',
+                {
+                  type: 'button',
+                  title: '改大类',
+                  onclick: (e) => {
+                    e.stopPropagation()
+                    editCategory(b.cat)
+                  },
                 },
-              },
-              icon('edit', 14)
+                icon('edit', 14)
+              )
             )
           )
 
-          // 展开/收起状态记在 catOpen 里，刷新不会丢；
-          // 第一次见到某个大类时：空的或不超过 8 项的默认展开，多的默认收起
+          // 展开/收起状态记在 catOpen 里，刷新不会丢。
+          // 默认全部收起（见 isCatOpen 上面的说明）；右侧那条价格区间
+          // 就是为了让收起状态也能看出这一节大概多少钱。
           const open = isCatOpen(b.cat.id)
           catBody.style.display = open ? '' : 'none'
           catHead.setAttribute('aria-expanded', open ? 'true' : 'false')
@@ -1703,6 +1736,8 @@ export default {
             catBody.style.display = next ? '' : 'none'
             catHead.setAttribute('aria-expanded', next ? 'true' : 'false')
             setCatOpen(b.cat.id, next)
+            // 手动折叠一个之后，「全部展开」的文案要跟着变
+            syncExpandNow()
           })
           const pcatEl = h('div.pcat', catHead, catBody)
           wireCatHead(catHead, pcatEl, b.cat)
@@ -1723,8 +1758,9 @@ export default {
                 'div.pcat__head',
                 h('span.pcat__name', '未分类'),
                 tag('这些服务项还没归到大类', 'amber'),
-                h('span.pgroup__grow'),
-                h('span.pgroup__n', `${loose.length} 个`)
+                h('span.pcat__rule'),
+                priceRange(loose) ? h('span.pcat__range', priceRange(loose)) : null,
+                h('span.pcat__n', `${loose.length} 项`)
               ),
               looseBody
             )
@@ -1763,7 +1799,24 @@ export default {
           )
         )
 
-        listBox.appendChild(h('div.pgroup', groupHead, groupBody))
+        // 这个游戏的公告：和导出图片 / Word 最上方那条是同一份内容。
+        // 在价格表里也露一下，改完能立刻看到发给客户的是什么。
+        const gameNotice = String(grp.game?.notice || '').trim()
+
+        listBox.appendChild(
+          h(
+            'div.pgroup',
+            groupHead,
+            gameNotice
+              ? h(
+                  'div.pgroup__notice',
+                  h('span.pgroup__notice-k', '公告'),
+                  h('span', gameNotice)
+                )
+              : null,
+            groupBody
+          )
+        )
       }
 
       if (!shownGroups) {
@@ -1780,6 +1833,8 @@ export default {
           )
         )
       }
+
+      syncExpandNow()
     }
 
     const searchInput = h('input.inp', { type: 'search', placeholder: '搜服务名 / 说明', style: { maxWidth: '240px' } })
@@ -1828,6 +1883,33 @@ export default {
 
     paint()
 
+    // 十来个大类一个个点开太费事，给一个总开关
+    const expandIco = icon('down', 14)
+    const expandTxt = h('span', '全部展开')
+    const allExpanded = () => categories.length > 0 && categories.every((c) => isCatOpen(c.id))
+    const syncExpand = () => {
+      const on = allExpanded()
+      expandIco.style.transform = on ? 'rotate(180deg)' : ''
+      expandTxt.textContent = on ? '全部收起' : '全部展开'
+    }
+    const expandBtn = h(
+      'button.btn.btn--sm',
+      {
+        type: 'button',
+        title: '把所有大类一次展开或收起',
+        onclick: () => {
+          const on = !allExpanded()
+          for (const c of categories) setCatOpen(c.id, on)
+          paint()
+          syncExpand()
+        },
+      },
+      expandIco,
+      expandTxt
+    )
+    syncExpandNow = syncExpand
+    syncExpand()
+
     const focused = ctx.query.get('s')
     if (focused) {
       const s = services.find((x) => String(x.id) === String(focused))
@@ -1847,8 +1929,8 @@ export default {
           )
         )
       ),
-      h('div.toolbar', statusSeg, gameSel, h('div.toolbar__grow'), searchInput),
-      h('section.panel', listBox),
+      h('div.toolbar', statusSeg, gameSel, expandBtn, h('div.toolbar__grow'), searchInput),
+      h('section.sheet', listBox),
       h(
         'div.note',
         '结构是「游戏（一张价格表）→ 大类 → 服务项」。服务项必须挂在大类里。' +

@@ -1506,55 +1506,95 @@ button.cell:hover {
    价格表
    ============================================================ */
 
+/* 价格表用自己的一层「纸」。
+   不能用 .panel：.panel 是 overflow:hidden，会让里面的大类标题吸不了顶。 */
+.sheet {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+}
+
 .pricelist {
   display: flex;
   flex-direction: column;
 }
 
+/* ---------- 一张价格表（一个游戏）---------- */
+
 .pgroup {
-  border-bottom: 1px solid var(--line);
-}
-
-.pgroup:last-child {
-  border-bottom: 0;
-}
-
-.pgroup__head {
   display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-4);
-  background: var(--surface-2);
-  cursor: pointer;
-  border: 0;
-  width: 100%;
-  text-align: left;
-  color: var(--ink);
+  flex-direction: column;
+}
+
+.pgroup + .pgroup {
+  margin-top: var(--sp-5);
+}
+
+/* 表头：游戏名当作价目表的抬头，下面压一条账簿双线。
+   吸在顶栏下面 —— 长表一路滚下去也知道自己在哪个游戏里。 */
+.pgroup__head {
+  position: sticky;
+  top: var(--topbar-h);
+  z-index: 4;
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-4) 11px;
   flex-wrap: wrap;
+  background: var(--surface);
+  border-bottom: 3px double var(--ink);
 }
 
-.pgroup__head:hover {
-  background: var(--surface-3);
+.pgroup__name {
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
 }
 
-/* 一张价格表（游戏）下面的「大类」 */
+/* 公告：和导出图片 / Word 最上方那条是同一份内容，在这里也看一眼 */
+.pgroup__notice {
+  display: flex;
+  gap: 9px;
+  align-items: baseline;
+  padding: 10px var(--sp-4);
+  background: var(--cinnabar-bg);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+}
+
+.pgroup__notice-k {
+  flex: none;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--cinnabar);
+}
+
+/* ---------- 大类：账簿里的一节 ----------
+   左边一个小朱砂刻度，名字后面一条栏线拉到底，
+   数字（价格区间 / 项数）坐在栏线右边，操作按钮藏起来。
+   这样一眼能看出「哪些服务项属于这个大类」，而不是一排排等重的方块。 */
+
 .pcat {
   border-top: 1px solid var(--line);
 }
 
-/* 大类：比服务项高一级，所以要「重」得看得出来 ——
-   更大的字、更实的底色、一条完整的朱砂竖条，服务项则退回轻底色。 */
 .pcat__head {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  padding: 11px var(--sp-4) 11px var(--sp-3);
+  gap: 10px;
+  padding: 11px var(--sp-4);
   cursor: pointer;
   color: var(--ink);
-  flex-wrap: wrap;
-  background: var(--surface-2);
-  border-top: 1px solid var(--line-strong);
-  border-bottom: 1px solid var(--line);
+  background: transparent;
+  border: 0;
+  width: 100%;
+  text-align: left;
 }
 
 /* 大类标题也能拖：抓住标题拖动 = 调大类顺序 */
@@ -1562,45 +1602,110 @@ button.cell:hover {
   cursor: grabbing;
 }
 
-.pcat__head:hover {
-  background: var(--surface-3);
-}
-
-/* 整块左侧一条朱砂轨，一眼看出「这些服务项都属于它」 */
-.pcat {
-  border-left: 3px solid var(--cinnabar-line);
-  margin-left: 2px;
+.pcat__head:hover,
+.pcat__head:focus-within {
+  background: var(--surface-2);
 }
 
 .pcat__name {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: none;
   font-weight: 600;
-  font-size: var(--fs-md);
-  letter-spacing: -0.01em;
+  font-size: var(--fs-lg);
+  letter-spacing: -0.015em;
 }
 
 .pcat__name::before {
   content: '';
-  display: inline-block;
-  width: 4px;
-  height: 15px;
+  flex: none;
+  width: 3px;
+  height: 16px;
   border-radius: 2px;
   background: var(--cinnabar);
-  margin-right: 9px;
-  vertical-align: -2px;
 }
 
-/* 服务项：轻底色 + 缩进，跟大类拉开层次 */
+.pcat__note {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+
+/* 名字和数字之间那条栏线：大类看起来才像「一节」。
+   太淡等于没有，只剩一片说不清的空白；line-strong 刚好是一条账簿线。 */
+.pcat__rule {
+  flex: 1 1 20px;
+  min-width: 20px;
+  height: 1px;
+  background: var(--line-strong);
+}
+
+.pcat__range,
+.pcat__n {
+  flex: none;
+  font-family: var(--font-fig);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-sm);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.pcat__range {
+  color: var(--ink-2);
+}
+
+/* 管理按钮收起来：正文要像一张能直接读的价目表。
+   用绝对定位而不是占位隐藏 —— 这样「价格区间 / 项数」才能贴着右边排成一列。 */
+.pcat__acts {
+  position: absolute;
+  right: var(--sp-4);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 6px;
+  padding-left: 26px;
+  background: linear-gradient(to right, transparent 0, var(--surface-2) 24px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s;
+}
+
+.pcat__head:hover .pcat__acts,
+.pcat__head:focus-within .pcat__acts {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 触屏没有 hover：一直显示，并且退回成占位排布，别压在数字上 */
+@media (hover: none) {
+  .pcat__acts {
+    position: static;
+    transform: none;
+    padding-left: 0;
+    background: none;
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* 服务项：退回纸面本身，靠缩进和栏线跟大类分层 */
 .pcat__body {
   background: var(--surface);
 }
 
+/* 缩进对齐到大类名字（刻度 3px + 间距，见 .pitem 的 padding-left） */
 .pcat__body .pitem {
-  padding-left: var(--sp-5);
+  padding-left: 34px;
 }
 
 /* 大类之间空开一点，别糊成一片 */
 .pcat + .pcat {
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 /* ============================================================
@@ -1667,27 +1772,26 @@ button.cell:hover {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 10px 30px -12px rgba(0, 0, 0, 0.5);
 }
 
-.pgroup__name {
-  font-weight: 600;
-  font-size: var(--fs-md);
-}
-
+/* 表头右边的数字：小号等宽，和价格用同一个字体家族 */
 .pgroup__n {
   font-family: var(--font-fig);
+  font-variant-numeric: tabular-nums;
   font-size: var(--fs-sm);
   color: var(--ink-3);
 }
 
 .pgroup__grow {
-  flex: 1;
+  flex: 1 1 auto;
 }
 
+/* ---------- 服务项：一行账目 ---------- */
 .pitem {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--sp-3);
   align-items: start;
-  padding: var(--sp-3) var(--sp-4);
+  padding: 10px var(--sp-4) 10px 34px;
   border-top: 1px solid var(--line);
   cursor: grab;
 }
@@ -1703,26 +1807,34 @@ button.cell:hover {
 /* 没填备注、没填套餐内容的服务项：压成一行，别在下面留一片空白 */
 .pitem--slim {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 7px var(--sp-4) 7px var(--sp-2);
+  align-items: center;
+  gap: 10px;
+  padding-top: 9px;
+  padding-bottom: 9px;
 }
 
+/* 拖拽把手固定站在左边那一列（不占名字的位置），
+   这样所有服务项的名字都对齐在 34px，和大类名一个起点。 */
 .pitem__grip {
+  position: absolute;
+  left: 12px;
+  top: 0;
+  bottom: 0;
+  margin: auto 0;
+  height: 16px;
   display: inline-flex;
   align-items: center;
   color: var(--ink-3);
   opacity: 0;
   transition: opacity 0.12s;
-  flex: none;
 }
 
 .pitem:hover .pitem__grip,
 .pitem:focus-within .pitem__grip {
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
-/* 名字和价格之间那串点线 */
+/* 名字和金额之间那串点线 —— 菜单式价目表的老办法，一眼连得上 */
 .pitem__leader {
   flex: 1;
   min-width: 14px;
@@ -1732,8 +1844,8 @@ button.cell:hover {
 }
 
 .pitem--slim .pitem__name {
-  flex: none;
-  max-width: 62%;
+  flex: 0 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1742,37 +1854,30 @@ button.cell:hover {
 
 .pitem--slim .pitem__fig {
   flex: none;
-  font-family: var(--font-fig);
-  font-size: var(--fs-md);
-  font-weight: 600;
-  color: var(--cinnabar);
   white-space: nowrap;
 }
 
 .pitem--slim .pitem__unit {
   font-family: var(--font-ui);
-  font-size: var(--fs-sm);
   font-weight: 400;
   font-style: normal;
-  color: var(--ink-3);
 }
 
-/* 平时把操作收起来，鼠标放上去才露出来 —— 一行行全是按钮太吵 */
-.pitem--slim .pitem__acts {
+/* 平时把操作收起来，鼠标放到这一行才露出来 —— 一行行全是按钮太吵。
+   用 opacity 不是为了省地方（位置一直留着），是为了别让按钮抢走价格的注意力。 */
+.pitem .pitem__acts {
   opacity: 0;
-  transition: opacity 0.12s;
-  flex: none;
-  align-self: center;
+  transition: opacity 0.13s;
 }
 
-.pitem--slim:hover .pitem__acts,
-.pitem--slim:focus-within .pitem__acts {
+.pitem:hover .pitem__acts,
+.pitem:focus-within .pitem__acts {
   opacity: 1;
 }
 
 /* 触屏没有 hover，一直显示，否则等于没有入口 */
 @media (hover: none) {
-  .pitem--slim .pitem__acts,
+  .pitem .pitem__acts,
   .pitem__grip {
     opacity: 1;
   }
@@ -1811,15 +1916,28 @@ button.cell:hover {
 .pitem__desc {
   color: var(--ink-2);
   font-size: var(--fs-sm);
-  margin-top: 2px;
+  margin-top: 3px;
   line-height: 1.55;
 }
 
+/* 金额那一列：金额 + 操作排在同一行，
+   操作的位置一直留着，所以一列金额的右边缘是齐的。 */
 .pitem__price {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
   text-align: right;
   white-space: nowrap;
+  min-width: 104px;
 }
 
+.pitem__amount {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+/* 金额是这一行除名字以外最该被看见的东西：等宽、加粗、墨色（不抢朱砂） */
 .pitem__fig {
   display: inline;
   font-family: var(--font-fig);
@@ -1827,20 +1945,22 @@ button.cell:hover {
   font-size: var(--fs-lg);
   font-weight: 600;
   letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
 .pitem__unit {
   display: inline;
+  font-family: var(--font-ui);
+  font-style: normal;
   font-size: var(--fs-sm);
   color: var(--ink-3);
-  margin-left: 1px;
+  margin-left: 2px;
 }
 
 .pitem__acts {
   display: flex;
   gap: 6px;
   justify-content: flex-end;
-  margin-top: 6px;
 }
 
 .subitems {
@@ -1861,6 +1981,49 @@ button.cell:hover {
 .subitem__k {
   color: var(--ink-3);
   flex: none;
+}
+
+/* ---------- 价格表在窄屏上 ----------
+   手机上横向空间不够，栏线和备注先让路，名字和金额排得下最要紧；
+   按钮那一组会自己折到第二行（触屏一直是显示的）。 */
+@media (max-width: 700px) {
+  .pgroup__name {
+    font-size: var(--fs-xl);
+  }
+
+  .pcat__note,
+  .pcat__rule {
+    display: none;
+  }
+
+  .pcat__head {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+
+  /* 没有栏线拉开了，就让数字自己靠右站 */
+  .pcat__range {
+    margin-left: auto;
+  }
+
+  .pcat__head .pcat__acts {
+    flex: 1 0 100%;
+    justify-content: flex-end;
+  }
+
+  .pitem,
+  .pcat__body .pitem {
+    padding-left: 26px;
+  }
+
+  .pitem__grip {
+    left: 4px;
+  }
+
+  .pitem__price {
+    min-width: 0;
+    gap: 8px;
+  }
 }
 
 /* ============================================================
@@ -2772,16 +2935,11 @@ img.avatar--lg {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  /* 很窄的手机上，满行服务项折成一列：名字和说明要占满整行。
+     但仍然靠右排 —— 一列金额对齐着看才像价目表（原来这里是左对齐，
+     那是给旧的小号价格写的，现在金额是主体，左对齐就散了）。 */
   .pitem {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .pitem__price {
-    text-align: left;
-  }
-
-  .pitem__acts {
-    justify-content: flex-start;
   }
 }
 
