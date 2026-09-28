@@ -11,7 +11,7 @@ import { isSetUp, setPassword, verifyPassword, createSession, destroySession, de
 import { lock, status as vaultStatus, isConfigured, configure, auditLog } from '../vault.mjs'
 import { STATUS_LABEL } from './orders.mjs'
 import { erpNextStatus, testERPNext, ERPNextError } from '../erpnext.mjs'
-import { buildERPNextPreview } from '../erpnext-map.mjs'
+import { buildERPNextPreview, buildERPNextBundle } from '../erpnext-map.mjs'
 
 const SETTING_KEYS = [
   'business_name',
@@ -340,6 +340,8 @@ export function register() {
   /* ===== ERPNext 兼容层 ===== */
   get('/api/integrations/erpnext/status', () => erpNextStatus())
   get('/api/integrations/erpnext/preview', () => buildERPNextPreview())
+  // 只读迁移包：包含客户、目录、报价、订单和收款草稿，不向 ERPNext 写入。
+  get('/api/integrations/erpnext/bundle', () => buildERPNextBundle())
   post('/api/integrations/erpnext/test', async () => {
     try {
       return await testERPNext()
