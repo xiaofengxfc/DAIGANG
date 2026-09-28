@@ -108,7 +108,7 @@ function shellNodes() {
     'div.rail__brand',
     h('div.rail__mark', '代'),
     h(
-      'div',
+      'div.rail__txt',
       { style: { minWidth: '0' } },
       h('div.rail__name', '代肝运营台'),
       h('div.rail__sub', { id: 'rail-sub' }, '本机私有')
@@ -141,14 +141,15 @@ function shellNodes() {
       'div.rail__foot',
       h(
         'div',
-        { style: { display: 'flex', gap: '6px', padding: '0 4px 6px' } },
+        { style: { display: 'flex', gap: '6px', padding: '0 0 3px' } },
         h(
-          'button.btn.btn--sm',
+          'button.btn.btn--sm.quick',
           {
             type: 'button',
             onclick: () => navigate('/quotes'),
             style: { flex: '1' },
           },
+          h('span.navitem__ico', icon('quotes', 15)),
           '做报价单'
         )
       ),
