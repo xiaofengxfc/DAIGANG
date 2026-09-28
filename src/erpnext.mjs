@@ -13,6 +13,7 @@ export function erpNextStatus() {
   const configured = Boolean(ERPNEXT.url && ERPNEXT.apiKey && ERPNEXT.apiSecret)
   return {
     enabled: ERPNEXT.enabled,
+    sync_enabled: ERPNEXT.syncEnabled,
     configured,
     ready: ERPNEXT.enabled && configured,
     url: ERPNEXT.url,
@@ -83,6 +84,7 @@ const REQUIRED_CUSTOM_FIELDS = {
     'custom_xfc_package_items',
     'custom_xfc_status',
   ],
+  'Item Price': ['custom_xfc_service_id', 'custom_xfc_status'],
   Customer: ['custom_xfc_customer_id', 'custom_xfc_wechat', 'custom_xfc_qq', 'custom_xfc_source', 'custom_xfc_tags', 'custom_xfc_note', 'custom_xfc_status'],
   Quotation: ['custom_xfc_quote_id', 'custom_xfc_quote_no', 'custom_xfc_game_id', 'custom_xfc_local_total', 'custom_xfc_note'],
   'Sales Order': [
@@ -186,5 +188,98 @@ export async function preflightERPNext() {
     missing: missing.map((check) => ({ key: check.key, target: check.target, code: check.code, missing: check.missing || [] })),
     warnings: warnings.map((check) => ({ key: check.key, target: check.target, code: check.code })),
     note: '预检只读；Payment Entry 的 paid_from / paid_to 仍需按实际账套配置后才能安全双写。',
+  }
+}
+
+const MASTER_SYNC_PLAN = [
+  { key: 'item_groups', doctype: 'Item Group' },
+  { key: 'items', doctype: 'Item' },
+  { key: 'item_prices', doctype: 'Item Price' },
+  { key: 'customers', doctype: 'Customer' },
+]
+
+function syncIdentity(doc, doctype) {
+  if (doctype === 'Item Group') {
+    if (doc.custom_xfc_game_id) return { field: 'custom_xfc_game_id', value: doc.custom_xfc_game_id }
+    if (doc.custom_xfc_category_id) return { field: 'custom_xfc_category_id', value: doc.custom_xfc_category_id }
+  }
+  if (doctype === 'Item') return { field: 'custom_xfc_service_id', value: doc.custom_xfc_service_id }
+  if (doctype === 'Item Price') return { field: 'custom_xfc_service_id', value: doc.custom_xfc_service_id }
+  if (doctype === 'Customer') return { field: 'custom_xfc_customer_id', value: doc.custom_xfc_customer_id }
+  return null
+}
+
+function syncPayload(doc) {
+  const payload = { ...doc }
+  delete payload.doctype
+  delete payload.source_id
+  return payload
+}
+
+async function findRemoteDocument(doctype, identity) {
+  if (!identity?.value) return null
+  const response = await erpNextRequest(`/api/resource/${encodeURIComponent(doctype)}`, {
+    query: {
+      filters: JSON.stringify([[identity.field, '=', identity.value]]),
+      fields: JSON.stringify(['name']),
+      limit_page_length: 2,
+    },
+  })
+  const rows = Array.isArray(response?.data) ? response.data : []
+  if (rows.length > 1) {
+    throw new ERPNextError(`ERPNext 中 ${doctype} 的 ${identity.field}=${identity.value} 出现重复记录，已停止同步以避免覆盖错误对象`, 'erpnext_duplicate_identity', 409)
+  }
+  return rows[0]?.name || null
+}
+
+/**
+ * 幂等同步第一阶段主数据。
+ * 默认 dry-run；apply 只做创建/更新，不做删除，不改本地数据库。
+ */
+export async function syncERPNextMaster({ mode = 'dry-run', confirm = '' } = {}, bundle) {
+  if (mode !== 'dry-run' && mode !== 'apply') throw new ERPNextError('同步模式只能是 dry-run 或 apply', 'erpnext_bad_sync_mode', 400)
+  if (mode === 'apply') {
+    if (!ERPNEXT.syncEnabled) throw new ERPNextError('远程同步开关未启用，请先设置 XFC_ERPNEXT_SYNC_ENABLED=1', 'erpnext_sync_disabled', 409)
+    if (confirm !== 'APPLY') throw new ERPNextError('远程写入需要 confirm=APPLY', 'erpnext_apply_not_confirmed', 409)
+  }
+
+  const preflight = await preflightERPNext()
+  if (!preflight.write_ready) {
+    return { ok: false, mode, write_ready: false, preflight, actions: [], note: '预检未通过，未执行任何远程写入。' }
+  }
+
+  const actions = []
+  for (const plan of MASTER_SYNC_PLAN) {
+    for (const doc of bundle?.doctypes?.[plan.key] || []) {
+      const identity = syncIdentity(doc, plan.doctype)
+      if (!identity?.value) {
+        actions.push({ doctype: plan.doctype, source_id: doc.source_id, action: 'blocked', reason: 'missing_identity' })
+        continue
+      }
+      const existing = await findRemoteDocument(plan.doctype, identity)
+      if (mode === 'dry-run') {
+        actions.push({ doctype: plan.doctype, source_id: doc.source_id, identity, action: existing ? 'update' : 'create', remote_name: existing || null })
+        continue
+      }
+      const payload = syncPayload(doc)
+      const response = existing
+        ? await erpNextRequest(`/api/resource/${encodeURIComponent(plan.doctype)}/${encodeURIComponent(existing)}`, { method: 'PUT', body: payload })
+        : await erpNextRequest(`/api/resource/${encodeURIComponent(plan.doctype)}`, { method: 'POST', body: payload })
+      actions.push({ doctype: plan.doctype, source_id: doc.source_id, identity, action: existing ? 'updated' : 'created', remote_name: response?.data?.name || existing || null })
+    }
+  }
+
+  return {
+    ok: true,
+    mode,
+    write_ready: true,
+    preflight: { ok: true, checked_at: preflight.checked_at },
+    summary: {
+      create: actions.filter((row) => row.action === 'create' || row.action === 'created').length,
+      update: actions.filter((row) => row.action === 'update' || row.action === 'updated').length,
+      blocked: actions.filter((row) => row.action === 'blocked').length,
+    },
+    actions,
+    note: mode === 'dry-run' ? '这是预演，没有写入 ERPNext。' : '已完成主数据创建/更新；未删除任何 ERPNext 记录。',
   }
 }

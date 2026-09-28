@@ -86,6 +86,7 @@ export const SESSION_COOKIE = 'xfc_sid'
  */
 export const ERPNEXT = {
   enabled: process.env.XFC_ERPNEXT_ENABLED === '1',
+  syncEnabled: process.env.XFC_ERPNEXT_SYNC_ENABLED === '1',
   url: String(process.env.XFC_ERPNEXT_URL || '').replace(/\/+$/, ''),
   apiKey: String(process.env.XFC_ERPNEXT_API_KEY || ''),
   apiSecret: String(process.env.XFC_ERPNEXT_API_SECRET || ''),
