@@ -14,6 +14,7 @@ import { erpNextStatus, testERPNext, preflightERPNext, syncERPNextMaster, syncER
 import { buildERPNextPreview, buildERPNextBundle } from '../erpnext-map.mjs'
 import { listOutbox, outboxSummary, retryOutbox } from '../outbox.mjs'
 import { buildERPNextOutboxPlan, syncERPNextOutbox } from '../erpnext-outbox.mjs'
+import { erpNextScopeSummary } from '../erpnext-scope.mjs'
 
 const SETTING_KEYS = [
   'business_name',
@@ -341,6 +342,7 @@ export function register() {
 
   /* ===== ERPNext 兼容层 ===== */
   get('/api/integrations/erpnext/status', () => erpNextStatus())
+  get('/api/integrations/erpnext/scope', () => erpNextScopeSummary())
   get('/api/integrations/erpnext/preview', () => buildERPNextPreview())
   // 只读迁移包：包含客户、目录、报价、订单和收款草稿，不向 ERPNext 写入。
   get('/api/integrations/erpnext/bundle', () => buildERPNextBundle())

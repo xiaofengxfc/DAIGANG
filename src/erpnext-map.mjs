@@ -1,4 +1,5 @@
 import { db } from './db.mjs'
+import { erpNextScopeSummary } from './erpnext-scope.mjs'
 
 const ORDER_STATUS = {
   pending_confirm: 'Draft',
@@ -116,6 +117,7 @@ export function buildERPNextBundle() {
   const quotes = db.prepare('SELECT * FROM quotes ORDER BY id').all()
   const orders = db.prepare('SELECT * FROM orders ORDER BY id').all()
   const orderItems = db.prepare('SELECT * FROM order_items ORDER BY order_id, sort_order, id').all()
+  const orderProgress = db.prepare('SELECT * FROM order_progress ORDER BY order_id, happened_on, id').all()
   const payments = db.prepare('SELECT * FROM payments ORDER BY id').all()
 
   const issues = []
@@ -264,6 +266,31 @@ export function buildERPNextBundle() {
     }
   })
 
+  const taskDocs = orderProgress.map((row) => {
+    const order = orderById.get(row.order_id)
+    const orderLabel = order?.order_no || `本地订单 ${row.order_id || ''}`.trim()
+    const content = String(row.content || '').trim() || '订单进度记录'
+    const resources = [row.resources_before ? `之前：${row.resources_before}` : '', row.resources_after ? `之后：${row.resources_after}` : '']
+      .filter(Boolean)
+      .join('\n')
+    const note = String(row.note || '').trim()
+    return {
+      doctype: 'Task',
+      source_id: row.id,
+      subject: `${orderLabel}：${content}`.slice(0, 140),
+      description: [content, resources, note ? `备注：${note}` : ''].filter(Boolean).join('\n\n'),
+      status: 'Open',
+      exp_start_date: dateOnly(row.happened_on),
+      custom_xfc_progress_id: String(row.id),
+      custom_xfc_order_id: row.order_id ? String(row.order_id) : '',
+      custom_xfc_order_no: order?.order_no || '',
+      custom_xfc_happened_on: dateOnly(row.happened_on),
+      custom_xfc_resources_before: row.resources_before || '',
+      custom_xfc_resources_after: row.resources_after || '',
+      custom_xfc_note: row.note || '',
+    }
+  })
+
   if (paymentDocs.length) {
     issues.push({ level: 'info', code: 'payment_accounts_required', source: 'payments', message: 'Payment Entry 的 paid_from / paid_to 需要按 ERPNext 账套配置，当前只生成安全的待配置草稿。' })
   }
@@ -271,6 +298,7 @@ export function buildERPNextBundle() {
   return {
     version: 2,
     generated_at: new Date().toISOString(),
+    scope: erpNextScopeSummary(),
     source: {
       games: games.length,
       categories: categories.length,
@@ -279,6 +307,7 @@ export function buildERPNextBundle() {
       quotes: quotes.length,
       orders: orders.length,
       order_items: orderItems.length,
+      order_progress: orderProgress.length,
       payments: payments.length,
     },
     doctypes: {
@@ -289,6 +318,7 @@ export function buildERPNextBundle() {
       quotations: quotationDocs,
       sales_orders: salesOrderDocs,
       payment_entries: paymentDocs,
+      tasks: taskDocs,
     },
     issues,
     prerequisites: [

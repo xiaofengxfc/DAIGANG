@@ -457,8 +457,10 @@ export function register() {
       // 5. 进度：整批留在原单，或整批跟到新单
       let progressMoved = 0
       if (progressMode === 'move') {
-        const c = db.prepare('SELECT COUNT(*) AS c FROM order_progress WHERE order_id = ?').get(id).c
+        const progressRows = db.prepare('SELECT id FROM order_progress WHERE order_id = ?').all(id)
+        const c = progressRows.length
         db.prepare('UPDATE order_progress SET order_id = ? WHERE order_id = ?').run(newId, id)
+        for (const progress of progressRows) enqueueERPNextChange('order_progress', progress.id, 'upsert')
         progressMoved = c
       }
 
@@ -715,6 +717,7 @@ export function register() {
     // 第一次记进度，顺手把「待付款」推进到「进行中」之外的单子也标一下
     db.prepare('UPDATE orders SET updated_at = ? WHERE id = ?').run(stamp(), orderId)
     const row = db.prepare('SELECT * FROM order_progress WHERE id = ?').get(Number(info.lastInsertRowid))
+    enqueueERPNextChange('order_progress', Number(info.lastInsertRowid), 'upsert')
     return { ...row, media: toStringArray(ctx.body.media, 30) }
   })
 
@@ -737,11 +740,16 @@ export function register() {
     if (!sets.length) return row
     values.push(id)
     db.prepare(`UPDATE order_progress SET ${sets.join(', ')} WHERE id = ?`).run(...values)
+    enqueueERPNextChange('order_progress', id, 'upsert')
     return db.prepare('SELECT * FROM order_progress WHERE id = ?').get(id)
   })
 
   del('/api/progress/:id', (ctx) => {
-    db.prepare('DELETE FROM order_progress WHERE id = ?').run(int(ctx.params.id))
+    const id = int(ctx.params.id)
+    const row = db.prepare('SELECT id FROM order_progress WHERE id = ?').get(id)
+    if (!row) notFound('这条进度不存在')
+    db.prepare('DELETE FROM order_progress WHERE id = ?').run(id)
+    enqueueERPNextChange('order_progress', id, 'delete')
     return { deleted: true }
   })
 

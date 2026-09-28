@@ -10,7 +10,7 @@ function activeRows() {
 
 function rowGroup(row) {
   if (['game', 'category', 'service', 'customer'].includes(row.entity_type)) return 'master'
-  if (['quotation', 'sales_order', 'payment'].includes(row.entity_type)) return 'transactions'
+  if (['quotation', 'sales_order', 'payment', 'task'].includes(row.entity_type)) return 'transactions'
   return 'unsupported'
 }
 
@@ -20,6 +20,7 @@ function transactionScope(rows) {
     if (row.entity_type === 'quotation') scopes.add('quotations')
     if (row.entity_type === 'sales_order') scopes.add('orders')
     if (row.entity_type === 'payment') scopes.add('payments')
+    if (row.entity_type === 'task') scopes.add('tasks')
   }
   return [...scopes]
 }
@@ -41,6 +42,7 @@ export function filterERPNextBundleForOutbox(bundle, rows) {
   const quoteIds = selectedIds(rows, 'quotation')
   const orderIds = selectedIds(rows, 'sales_order')
   const paymentIds = selectedIds(rows, 'payment')
+  const taskIds = selectedIds(rows, 'task')
   const source = { ...(bundle?.source || {}) }
   const doctypes = bundle?.doctypes || {}
   const filtered = {
@@ -57,6 +59,7 @@ export function filterERPNextBundleForOutbox(bundle, rows) {
       quotations: (doctypes.quotations || []).filter((doc) => quoteIds.has(Number(doc.source_id))),
       sales_orders: (doctypes.sales_orders || []).filter((doc) => orderIds.has(Number(doc.source_id))),
       payment_entries: (doctypes.payment_entries || []).filter((doc) => paymentIds.has(Number(doc.source_id))),
+      tasks: (doctypes.tasks || []).filter((doc) => taskIds.has(Number(doc.source_id))),
     },
   }
   for (const [key, rowsForType] of Object.entries(filtered.doctypes)) source[key] = rowsForType.length
@@ -98,6 +101,7 @@ function actionEntity(action) {
   if (action.doctype === 'Quotation') return 'quotation'
   if (action.doctype === 'Sales Order') return 'sales_order'
   if (action.doctype === 'Payment Entry') return 'payment'
+  if (action.doctype === 'Task') return 'task'
   return ''
 }
 

@@ -321,6 +321,10 @@ const MIGRATIONS = [
   CREATE INDEX idx_outbox_status ON integration_outbox (provider, status, next_attempt_at, id);
   CREATE INDEX idx_outbox_source ON integration_outbox (provider, entity_type, source_id);
   `,
+
+  // v11：清理已经回滚、且当前代码完全不再使用的游客留言板遗留表。
+  // v6 的历史迁移仍保留，避免老库版本号错乱；这里只删除当前确认为空的废弃表。
+  `DROP TABLE IF EXISTS guest_messages;`,
 ]
 
 export function migrate() {

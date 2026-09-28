@@ -70,7 +70,7 @@ export async function testERPNext() {
   return { ok: true, user: response?.message || '' }
 }
 
-const REQUIRED_DOCTYPES = ['Item Group', 'Item', 'Item Price', 'Customer', 'Quotation', 'Sales Order', 'Payment Entry']
+const REQUIRED_DOCTYPES = ['Item Group', 'Item', 'Item Price', 'Customer', 'Quotation', 'Sales Order', 'Payment Entry', 'Task']
 
 const REQUIRED_CUSTOM_FIELDS = {
   'Item Group': ['custom_xfc_game_id', 'custom_xfc_category_id', 'custom_xfc_status'],
@@ -99,6 +99,7 @@ const REQUIRED_CUSTOM_FIELDS = {
     'custom_xfc_internal_note',
   ],
   'Payment Entry': ['custom_xfc_payment_id', 'custom_xfc_order_id', 'custom_xfc_order_no', 'custom_xfc_kind', 'custom_xfc_local_status'],
+  Task: ['custom_xfc_progress_id', 'custom_xfc_order_id', 'custom_xfc_order_no', 'custom_xfc_happened_on', 'custom_xfc_resources_before', 'custom_xfc_resources_after', 'custom_xfc_note'],
 }
 
 async function checkDocType(doctype) {
@@ -288,6 +289,7 @@ const TRANSACTION_SYNC_PLAN = [
   { key: 'quotations', doctype: 'Quotation', identityField: 'custom_xfc_quote_id' },
   { key: 'sales_orders', doctype: 'Sales Order', identityField: 'custom_xfc_order_id' },
   { key: 'payment_entries', doctype: 'Payment Entry', identityField: 'custom_xfc_payment_id' },
+  { key: 'tasks', doctype: 'Task', identityField: 'custom_xfc_progress_id' },
 ]
 
 function transactionPayload(doc, doctype) {
@@ -319,8 +321,8 @@ async function findRemoteTransaction(doctype, identityField, identityValue) {
 function transactionScope(scope) {
   if (!scope || scope === 'all') return TRANSACTION_SYNC_PLAN
   const wanted = new Set(String(scope).split(',').map((value) => value.trim()).filter(Boolean))
-  const plans = TRANSACTION_SYNC_PLAN.filter((plan) => wanted.has(plan.key) || (plan.key === 'sales_orders' && wanted.has('orders')) || (plan.key === 'payment_entries' && wanted.has('payments')))
-  if (!plans.length) throw new ERPNextError('scope 只能是 all、quotations、orders、payments，或逗号分隔的组合', 'erpnext_bad_sync_scope', 400)
+  const plans = TRANSACTION_SYNC_PLAN.filter((plan) => wanted.has(plan.key) || (plan.key === 'sales_orders' && wanted.has('orders')) || (plan.key === 'payment_entries' && wanted.has('payments')) || (plan.key === 'tasks' && wanted.has('progress')))
+  if (!plans.length) throw new ERPNextError('scope 只能是 all、quotations、orders、payments、tasks，或逗号分隔的组合', 'erpnext_bad_sync_scope', 400)
   return plans
 }
 
@@ -334,6 +336,7 @@ function transactionBlockReason(doc, doctype, mode) {
     if (!(numberValue(doc.paid_amount) > 0)) return 'invalid_amount'
     if (mode === 'apply' && (!ERPNEXT.paidFrom || !ERPNEXT.paidTo)) return 'payment_accounts_not_configured'
   }
+  if (doctype === 'Task' && !doc.subject) return 'missing_subject'
   return ''
 }
 
@@ -434,6 +437,7 @@ const RECONCILE_TRANSACTION_PLAN = [
   { key: 'quotations', doctype: 'Quotation', identityField: 'custom_xfc_quote_id', fields: ['name', 'docstatus', 'customer', 'valid_till', 'custom_xfc_quote_id', 'custom_xfc_local_total', 'items'] },
   { key: 'sales_orders', doctype: 'Sales Order', identityField: 'custom_xfc_order_id', fields: ['name', 'docstatus', 'customer', 'custom_xfc_order_id', 'custom_xfc_local_status', 'custom_xfc_local_total', 'items'] },
   { key: 'payment_entries', doctype: 'Payment Entry', identityField: 'custom_xfc_payment_id', fields: ['name', 'docstatus', 'party', 'paid_amount', 'paid_from', 'paid_to', 'custom_xfc_payment_id', 'custom_xfc_order_no'] },
+  { key: 'tasks', doctype: 'Task', identityField: 'custom_xfc_progress_id', fields: ['name', 'subject', 'description', 'exp_start_date', 'custom_xfc_progress_id', 'custom_xfc_order_id', 'custom_xfc_happened_on'] },
 ]
 
 async function findRemoteRecord(doctype, identityField, identityValue, fields) {
@@ -494,6 +498,12 @@ function reconcileDiffs(doc, remote, doctype) {
     compare('paid_amount', doc.paid_amount, remote.paid_amount)
     compare('paid_from', ERPNEXT.paidFrom, remote.paid_from)
     compare('paid_to', ERPNEXT.paidTo, remote.paid_to)
+  }
+  if (doctype === 'Task') {
+    compare('subject', doc.subject, remote.subject)
+    compare('description', doc.description, remote.description)
+    compare('exp_start_date', doc.exp_start_date, remote.exp_start_date)
+    compare('custom_xfc_order_id', doc.custom_xfc_order_id, remote.custom_xfc_order_id)
   }
   return diffs
 }

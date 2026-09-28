@@ -1,5 +1,6 @@
 import { db } from '../src/db.mjs'
 import { buildERPNextBundle } from '../src/erpnext-map.mjs'
+import { ERPNEXT_ALLOWED_DOCTYPES } from '../src/erpnext-scope.mjs'
 
 const bundle = buildERPNextBundle()
 const expected = {
@@ -10,6 +11,7 @@ const expected = {
   quotes: db.prepare('SELECT COUNT(*) AS c FROM quotes').get().c,
   orders: db.prepare('SELECT COUNT(*) AS c FROM orders').get().c,
   order_items: db.prepare('SELECT COUNT(*) AS c FROM order_items').get().c,
+  order_progress: db.prepare('SELECT COUNT(*) AS c FROM order_progress').get().c,
   payments: db.prepare('SELECT COUNT(*) AS c FROM payments').get().c,
 }
 
@@ -23,6 +25,13 @@ if (new Set(itemCodes).size !== itemCodes.length) throw new Error('duplicate ERP
 const serialized = JSON.stringify(bundle.doctypes)
 if (serialized.includes('payload_enc') || serialized.includes('credentials')) {
   throw new Error('migration bundle contains credential data')
+}
+
+const allowed = new Set(ERPNEXT_ALLOWED_DOCTYPES)
+for (const [key, rows] of Object.entries(bundle.doctypes)) {
+  for (const row of rows) {
+    if (row.doctype && !allowed.has(row.doctype)) throw new Error(`${key} contains out-of-scope doctype: ${row.doctype}`)
+  }
 }
 
 console.log(JSON.stringify({

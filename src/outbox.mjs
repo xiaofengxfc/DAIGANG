@@ -8,6 +8,7 @@ const TABLE_TO_ENTITY = Object.freeze({
   quotes: 'quotation',
   orders: 'sales_order',
   payments: 'payment',
+  order_progress: 'task',
 })
 
 const EVENT_TYPES = new Set(['upsert', 'delete'])
