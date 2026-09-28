@@ -18,6 +18,7 @@
 - `GET /api/integrations/erpnext/bundle`：导出完整的 ERPNext 迁移包预览，不执行远程写入。
 - `GET /api/integrations/erpnext/preflight`：只读检查 ERPNext 的 DocType、基础数据和自定义字段。
 - `POST /api/integrations/erpnext/sync/master`：主数据幂等同步，默认 dry-run；apply 只创建/更新，不删除。
+- `POST /api/integrations/erpnext/sync/transactions`：报价、订单、收款幂等同步；发现阻断项时整批不写入。
 - `POST /api/integrations/erpnext/test`：显式测试连接，不会写 ERPNext。
 
 ## 环境变量
@@ -68,5 +69,21 @@ npm run erpnext:sync
 ```
 
 只有明确执行 `npm run erpnext:sync -- --mode apply --confirm=APPLY` 才会写入 ERPNext。同步使用 `custom_xfc_*` 主键查找远程记录，发现重复身份会立即停止；不会删除远程记录，不会修改本地 SQLite。
+
+业务单据同步：
+
+```powershell
+npm run erpnext:sync:transactions -- --scope all
+npm run erpnext:sync:transactions -- --scope all --mode apply --confirm=APPLY
+```
+
+收款同步还需要配置目标账套科目：
+
+```text
+XFC_ERPNEXT_PAID_FROM=应收账款 - 公司
+XFC_ERPNEXT_PAID_TO=微信收款 - 公司
+```
+
+报价单、订单和收款只会写入草稿或未提交记录；发现远程单据已经提交、客户缺失、明细为空或收款科目缺失时，整批停止，不产生部分写入。
 
 在没有完成字段创建、数据对账和回滚演练前，适配层只允许 status、preview、test 三类只读/测试动作。

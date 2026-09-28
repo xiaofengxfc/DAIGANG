@@ -90,6 +90,8 @@ export const ERPNEXT = {
   url: String(process.env.XFC_ERPNEXT_URL || '').replace(/\/+$/, ''),
   apiKey: String(process.env.XFC_ERPNEXT_API_KEY || ''),
   apiSecret: String(process.env.XFC_ERPNEXT_API_SECRET || ''),
+  paidFrom: String(process.env.XFC_ERPNEXT_PAID_FROM || ''),
+  paidTo: String(process.env.XFC_ERPNEXT_PAID_TO || ''),
   timeoutMs: Math.max(1000, Number(process.env.XFC_ERPNEXT_TIMEOUT_MS || 8000)),
 }
 

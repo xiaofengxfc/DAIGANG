@@ -15,7 +15,8 @@
     "erpnext:bundle": "node scripts/erpnext-preview.mjs",
     "erpnext:check": "node scripts/erpnext-bundle-check.mjs",
     "erpnext:preflight": "node scripts/erpnext-preflight.mjs",
-    "erpnext:sync": "node scripts/erpnext-sync.mjs"
+    "erpnext:sync": "node scripts/erpnext-sync.mjs",
+    "erpnext:sync:transactions": "node scripts/erpnext-sync-transactions.mjs"
   },
   "engines": {
     "node": ">=22.5.0"

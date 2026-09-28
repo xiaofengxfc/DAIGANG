@@ -283,3 +283,142 @@ export async function syncERPNextMaster({ mode = 'dry-run', confirm = '' } = {},
     note: mode === 'dry-run' ? '这是预演，没有写入 ERPNext。' : '已完成主数据创建/更新；未删除任何 ERPNext 记录。',
   }
 }
+
+const TRANSACTION_SYNC_PLAN = [
+  { key: 'quotations', doctype: 'Quotation', identityField: 'custom_xfc_quote_id' },
+  { key: 'sales_orders', doctype: 'Sales Order', identityField: 'custom_xfc_order_id' },
+  { key: 'payment_entries', doctype: 'Payment Entry', identityField: 'custom_xfc_payment_id' },
+]
+
+function transactionPayload(doc, doctype) {
+  const payload = syncPayload(doc)
+  // ERPNext 根据工作流计算 status，不能把本地状态硬写进标准只读字段。
+  if (doctype === 'Sales Order') delete payload.status
+  if (doctype === 'Payment Entry') {
+    payload.paid_from = ERPNEXT.paidFrom
+    payload.paid_to = ERPNEXT.paidTo
+  }
+  return payload
+}
+
+async function findRemoteTransaction(doctype, identityField, identityValue) {
+  const response = await erpNextRequest(`/api/resource/${encodeURIComponent(doctype)}`, {
+    query: {
+      filters: JSON.stringify([[identityField, '=', identityValue]]),
+      fields: JSON.stringify(['name', 'docstatus']),
+      limit_page_length: 2,
+    },
+  })
+  const rows = Array.isArray(response?.data) ? response.data : []
+  if (rows.length > 1) {
+    throw new ERPNextError(`ERPNext 中 ${doctype} 的 ${identityField}=${identityValue} 出现重复记录，已停止同步以避免覆盖错误对象`, 'erpnext_duplicate_identity', 409)
+  }
+  return rows[0] || null
+}
+
+function transactionScope(scope) {
+  if (!scope || scope === 'all') return TRANSACTION_SYNC_PLAN
+  const wanted = new Set(String(scope).split(',').map((value) => value.trim()).filter(Boolean))
+  const plans = TRANSACTION_SYNC_PLAN.filter((plan) => wanted.has(plan.key) || (plan.key === 'sales_orders' && wanted.has('orders')) || (plan.key === 'payment_entries' && wanted.has('payments')))
+  if (!plans.length) throw new ERPNextError('scope 只能是 all、quotations、orders、payments，或逗号分隔的组合', 'erpnext_bad_sync_scope', 400)
+  return plans
+}
+
+function transactionBlockReason(doc, doctype, mode) {
+  if (doctype === 'Quotation' || doctype === 'Sales Order') {
+    if (!doc.customer) return 'missing_customer'
+    if (!Array.isArray(doc.items) || !doc.items.length) return 'missing_items'
+  }
+  if (doctype === 'Payment Entry') {
+    if (!doc.party) return 'missing_customer'
+    if (!(numberValue(doc.paid_amount) > 0)) return 'invalid_amount'
+    if (mode === 'apply' && (!ERPNEXT.paidFrom || !ERPNEXT.paidTo)) return 'payment_accounts_not_configured'
+  }
+  return ''
+}
+
+function numberValue(value) {
+  const n = Number(value)
+  return Number.isFinite(n) ? n : 0
+}
+
+/**
+ * 幂等同步报价、订单和收款。
+ * apply 前会先完整预检这一批，存在阻断项时一条也不写，避免半同步。
+ */
+export async function syncERPNextTransactions({ scope = 'all', mode = 'dry-run', confirm = '' } = {}, bundle) {
+  if (mode !== 'dry-run' && mode !== 'apply') throw new ERPNextError('同步模式只能是 dry-run 或 apply', 'erpnext_bad_sync_mode', 400)
+  if (mode === 'apply') {
+    if (!ERPNEXT.syncEnabled) throw new ERPNextError('远程同步开关未启用，请先设置 XFC_ERPNEXT_SYNC_ENABLED=1', 'erpnext_sync_disabled', 409)
+    if (confirm !== 'APPLY') throw new ERPNextError('远程写入需要 confirm=APPLY', 'erpnext_apply_not_confirmed', 409)
+  }
+
+  const plans = transactionScope(scope)
+  const preflight = await preflightERPNext()
+  if (!preflight.write_ready) return { ok: false, mode, scope, write_ready: false, preflight, actions: [], note: '预检未通过，未执行任何远程写入。' }
+
+  const prepared = []
+  for (const plan of plans) {
+    for (const doc of bundle?.doctypes?.[plan.key] || []) {
+      const identityValue = doc[plan.identityField]
+      const base = { doctype: plan.doctype, source_id: doc.source_id, identity: { field: plan.identityField, value: identityValue } }
+      if (!identityValue) {
+        prepared.push({ ...base, action: 'blocked', reason: 'missing_identity' })
+        continue
+      }
+      const remote = await findRemoteTransaction(plan.doctype, plan.identityField, identityValue)
+      const reason = transactionBlockReason(doc, plan.doctype, mode)
+      if (reason) {
+        prepared.push({ ...base, action: 'blocked', reason, remote_name: remote?.name || null })
+      } else if (remote?.docstatus && remote.docstatus !== 0) {
+        prepared.push({ ...base, action: 'blocked', reason: 'submitted_remote_record', remote_name: remote.name, remote_docstatus: remote.docstatus })
+      } else {
+        prepared.push({ ...base, action: remote ? 'update' : 'create', remote_name: remote?.name || null })
+      }
+    }
+  }
+
+  const blocked = prepared.filter((row) => row.action === 'blocked')
+  if (mode === 'dry-run' || blocked.length) {
+    return {
+      ok: blocked.length === 0,
+      mode,
+      scope,
+      write_ready: blocked.length === 0,
+      preflight: { ok: true, checked_at: preflight.checked_at },
+      summary: {
+        create: prepared.filter((row) => row.action === 'create').length,
+        update: prepared.filter((row) => row.action === 'update').length,
+        blocked: blocked.length,
+      },
+      actions: prepared,
+      note: mode === 'dry-run' ? '这是预演，没有写入 ERPNext。' : '发现阻断项，整批未写入 ERPNext。',
+    }
+  }
+
+  const actions = []
+  for (const row of prepared) {
+    const plan = plans.find((candidate) => candidate.doctype === row.doctype)
+    const doc = bundle.doctypes[plan.key].find((candidate) => candidate.source_id === row.source_id)
+    const payload = transactionPayload(doc, plan.doctype)
+    const response = row.remote_name
+      ? await erpNextRequest(`/api/resource/${encodeURIComponent(plan.doctype)}/${encodeURIComponent(row.remote_name)}`, { method: 'PUT', body: payload })
+      : await erpNextRequest(`/api/resource/${encodeURIComponent(plan.doctype)}`, { method: 'POST', body: payload })
+    actions.push({ ...row, action: row.remote_name ? 'updated' : 'created', remote_name: response?.data?.name || row.remote_name || null })
+  }
+
+  return {
+    ok: true,
+    mode,
+    scope,
+    write_ready: true,
+    preflight: { ok: true, checked_at: preflight.checked_at },
+    summary: {
+      create: actions.filter((row) => row.action === 'created').length,
+      update: actions.filter((row) => row.action === 'updated').length,
+      blocked: 0,
+    },
+    actions,
+    note: '已完成报价、订单、收款的创建/更新；未删除任何 ERPNext 记录。',
+  }
+}
