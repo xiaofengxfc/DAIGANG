@@ -59,6 +59,14 @@ function onboarding(ctx) {
 export default {
   title: '总览',
   async render(ctx) {
+    ctx.setActions(
+      h(
+        'button.btn.btn--sm.btn--primary',
+        { type: 'button', onclick: () => ctx.navigate('/orders?new=1') },
+        icon('plus', 14),
+        '开新单'
+      )
+    )
     const d = await api.get('/api/dashboard')
     const c = d.counts
     const today = todayStr()

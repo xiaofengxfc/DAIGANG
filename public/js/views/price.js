@@ -1788,7 +1788,7 @@ export default {
             { title: '按住可以调整大类顺序，拖到别的游戏/通用组里就是换归属' },
             h('span.pcat__name', b.cat.name),
             // 每天都要做的大类，在价格表里也标一下。
-            // 用中性描边而不是绿色：这一页的强调色只留朱砂一个。
+            // 用中性描边而不是绿色：这一页的品牌强调色只留一个。
             b.cat.is_daily ? tag('每天做', 'outline') : null,
             b.cat.status === 'archived' ? tag('大类已归档', 'oxblood') : null,
             b.cat.note ? h('span.pcat__note', b.cat.note) : null,
@@ -1940,7 +1940,7 @@ export default {
           h(
             'div.pgroup',
             groupHead,
-            // 不带「公告」两个字：左边那道朱砂竖线 + 暖色底已经说明它是提示了，
+            // 不带「公告」两个字：左边那道品牌色竖线 + 浅色底已经说明它是提示了，
             // 而且它跟导出图片 / Word 最上方那条是同一份内容，两边长得一样。
             gameNotice ? h('div.pgroup__notice', h('span', gameNotice)) : null,
             groupBody

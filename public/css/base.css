@@ -386,7 +386,7 @@ input[type='month'] {
   text-align: right;
 }
 
-/* 复选框：方形，朱砂选中 */
+/* 复选框：方形，品牌色选中 */
 .chk {
   appearance: none;
   width: 17px;

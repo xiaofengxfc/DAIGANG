@@ -10,7 +10,8 @@
     "local": "node server.mjs --local",
     "check": "node scripts/check.mjs",
     "migration:check": "node scripts/migration-check.mjs",
-    "migration:export": "node scripts/migration-export.mjs"
+    "migration:export": "node scripts/migration-export.mjs",
+    "erpnext:preview": "node scripts/erpnext-preview.mjs"
   },
   "engines": {
     "node": ">=22.5.0"

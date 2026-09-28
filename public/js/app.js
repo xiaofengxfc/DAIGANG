@@ -238,7 +238,7 @@ function applyTheme(mode) {
   else document.documentElement.removeAttribute('data-theme')
   const dark = mode !== 'light'
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', dark ? '#100e0b' : '#f3efe7')
+  if (meta) meta.setAttribute('content', dark ? '#0b0d10' : '#f7f8fa')
   for (const paint of themePainters) {
     try {
       paint(dark)
@@ -458,10 +458,20 @@ function buildNav() {
   clear(tabsNav)
   paints = []
 
-  for (const item of NAV) {
-    const { btn, paint } = navButton(item, { compact: false })
-    railNav.appendChild(btn)
-    paints.push(paint)
+  const groups = [
+    { label: '工作台', items: NAV.filter((item) => ['', 'orders'].includes(item.seg)) },
+    { label: '业务', items: NAV.filter((item) => ['customers', 'price', 'games'].includes(item.seg)) },
+    { label: '工具', items: NAV.filter((item) => ['vault', 'finance', 'quotes', 'settings'].includes(item.seg)) },
+  ]
+
+  for (const group of groups) {
+    const section = h('div.navgroup', h('div.navgroup__label', group.label))
+    for (const item of group.items) {
+      const { btn, paint } = navButton(item, { compact: false })
+      section.appendChild(btn)
+      paints.push(paint)
+    }
+    railNav.appendChild(section)
   }
 
   paints.forEach((p) => p())

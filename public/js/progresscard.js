@@ -1,16 +1,16 @@
 /* ============================================================
    订单进度 → 一张可以直接发微信的图
-   和价格表那张图同一套视觉：暖纸底 + 朱砂 + 栏线。
+   和价格表那张图同一套视觉：雾白底 + 靛蓝 + 结构线。
    ============================================================ */
 
-const PAPER = '#FBF8F2'
-const PAPER_EDGE = '#EDE5D6'
-const INK = '#221E18'
-const INK_GRAY = '#6F6759'
-const INK_FAINT = '#948A7A'
-const CINNABAR = '#B33A22'
-const RULE = '#E2DACB'
-const RULE_STRONG = '#C9BFAB'
+const PAPER = '#FFFFFF'
+const PAPER_EDGE = '#E2E7ED'
+const INK = '#20242B'
+const INK_GRAY = '#5F6B7A'
+const INK_FAINT = '#7F8A98'
+const CINNABAR = '#5C54C7'
+const RULE = '#E2E7ED'
+const RULE_STRONG = '#CBD3DE'
 
 const FONT_UI = '"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif'
 const FONT_FIG = 'ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace'

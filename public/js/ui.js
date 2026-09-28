@@ -715,7 +715,7 @@ export function copyButton(text, label = '复制', { size = 'sm', onCopied } = {
   )
 }
 
-/** 金额显示：正数是墨色，负数（退款）走丹色 */
+/** 金额显示：正数是主文字色，负数（退款）走语义色 */
 export function moneyEl(n, { strong = false, tone = null } = {}) {
   const v = Number(n) || 0
   const t = tone || (v < 0 ? 'oxblood' : null)

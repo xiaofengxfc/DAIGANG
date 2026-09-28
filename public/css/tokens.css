@@ -1,58 +1,58 @@
 /* ============================================================
-   夜班帐桌 · 设计变量
-   深色是承诺世界（夜里在台灯下对账），浅色是白天手机用的第二主题。
-   颜料是墨与朱砂，不是光：没有发光边缘，没有霓虹。
+   运营台 · 现代中性色板
+   深色是默认工作台，浅色是白天和手机用的第二主题。
+   颜色使用中性石墨 + 靛蓝品牌色，状态色只承担语义，不做装饰。
    ============================================================ */
 
 :root {
   color-scheme: dark;
 
-  /* —— 纸面层次 —— */
-  --bg: #100e0b;
-  --surface: #181511;
-  --surface-2: #211d17;
-  --surface-3: #2a251d;
-  --surface-inset: #14110d;
+  /* —— 石墨层次 —— */
+  --bg: #0b0d10;
+  --surface: #111418;
+  --surface-2: #171b21;
+  --surface-3: #20262e;
+  --surface-inset: #0e1115;
 
-  /* —— 栏线（账簿发丝线）—— */
-  --line: #2c261f;
-  --line-strong: #3b332a;
+  /* —— 结构线 —— */
+  --line: #252b34;
+  --line-strong: #343c48;
 
-  /* —— 墨色 —— */
-  --ink: #efe8db;
-  --ink-2: #a79b88;
-  --ink-3: #948a7a;
-  --ink-inverse: #17130f;
+  /* —— 文本 —— */
+  --ink: #f3f5f7;
+  --ink-2: #a7b0bc;
+  --ink-3: #737e8b;
+  --ink-inverse: #0b0d10;
 
-  /* —— 朱砂：唯一强调色 —— */
-  --cinnabar: #e2543a;
-  --cinnabar-strong: #c9452c;
-  --cinnabar-solid: #b8402a;
-  --cinnabar-solid-hover: #c9482f;
-  --cinnabar-bg: rgba(226, 84, 58, 0.13);
-  --cinnabar-line: rgba(226, 84, 58, 0.4);
-  --on-cinnabar: #fff6f2;
+  /* —— 靛蓝品牌色：保留 cinnabar 变量名，兼容现有组件 —— */
+  --cinnabar: #8b83ff;
+  --cinnabar-strong: #756de8;
+  --cinnabar-solid: #655bd1;
+  --cinnabar-solid-hover: #7168e0;
+  --cinnabar-bg: rgba(139, 131, 255, 0.14);
+  --cinnabar-line: rgba(139, 131, 255, 0.42);
+  --on-cinnabar: #ffffff;
 
   /* —— 状态语义 —— */
-  --jade: #4e9e7a;
-  --jade-ink: #6cc79c;
-  --jade-bg: rgba(87, 177, 137, 0.14);
+  --jade: #3fa77e;
+  --jade-ink: #67d2a4;
+  --jade-bg: rgba(63, 167, 126, 0.15);
 
-  --amber: #b9862f;
-  --amber-ink: #e0ad4e;
-  --amber-bg: rgba(217, 160, 60, 0.14);
+  --amber: #c38a2d;
+  --amber-ink: #e4b35b;
+  --amber-bg: rgba(195, 138, 45, 0.15);
 
-  --slate: #5d7d9b;
-  --slate-ink: #86a8c6;
-  --slate-bg: rgba(111, 144, 174, 0.14);
+  --slate: #5c8fc1;
+  --slate-ink: #8db9e3;
+  --slate-bg: rgba(92, 143, 193, 0.15);
 
-  --oxblood: #9c4234;
-  --oxblood-ink: #db8070;
-  --oxblood-bg: rgba(176, 74, 60, 0.15);
+  --oxblood: #b6546a;
+  --oxblood-ink: #e58a9d;
+  --oxblood-bg: rgba(182, 84, 106, 0.16);
 
   /* —— 阴影：一次声明，配合栏线用，不做幽灵卡 —— */
-  --shadow-pop: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 32px -12px rgba(0, 0, 0, 0.7);
-  --shadow-drawer: -1px 0 0 var(--line), -18px 0 48px -24px rgba(0, 0, 0, 0.8);
+  --shadow-pop: 0 1px 2px rgba(0, 0, 0, 0.34), 0 12px 32px -12px rgba(0, 0, 0, 0.62);
+  --shadow-drawer: -1px 0 0 var(--line), -18px 0 48px -24px rgba(0, 0, 0, 0.72);
 
   /* —— 字体 —— */
   --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
@@ -109,46 +109,46 @@
 :root[data-theme='light'] {
   color-scheme: light;
 
-  --bg: #f3efe7;
-  --surface: #fbf8f2;
-  --surface-2: #ebe5d9;
-  --surface-3: #e0d8c8;
-  --surface-inset: #f0ebe1;
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --surface-2: #f1f3f6;
+  --surface-3: #e7ebf0;
+  --surface-inset: #f8fafc;
 
-  --line: #ded6c6;
-  --line-strong: #c9bfab;
+  --line: #e2e7ed;
+  --line-strong: #cbd3de;
 
-  --ink: #221e18;
-  --ink-2: #5c544a;
-  --ink-3: #6f6759;
-  --ink-inverse: #fbf8f2;
+  --ink: #20242b;
+  --ink-2: #5f6b7a;
+  --ink-3: #7f8a98;
+  --ink-inverse: #ffffff;
 
-  --cinnabar: #b33a22;
-  --cinnabar-strong: #9b3019;
-  --cinnabar-solid: #a8331d;
-  --cinnabar-solid-hover: #932c18;
-  --cinnabar-bg: rgba(179, 58, 34, 0.09);
-  --cinnabar-line: rgba(179, 58, 34, 0.35);
-  --on-cinnabar: #fff8f5;
+  --cinnabar: #5c54c7;
+  --cinnabar-strong: #4d46b1;
+  --cinnabar-solid: #5c54c7;
+  --cinnabar-solid-hover: #4f48b8;
+  --cinnabar-bg: rgba(92, 84, 199, 0.1);
+  --cinnabar-line: rgba(92, 84, 199, 0.3);
+  --on-cinnabar: #ffffff;
 
-  --jade: #2f7a58;
-  --jade-ink: #26654a;
-  --jade-bg: rgba(47, 122, 88, 0.11);
+  --jade: #26835f;
+  --jade-ink: #196b4c;
+  --jade-bg: rgba(38, 131, 95, 0.1);
 
-  --amber: #8a6216;
-  --amber-ink: #7a5612;
-  --amber-bg: rgba(138, 98, 22, 0.12);
+  --amber: #a16d13;
+  --amber-ink: #82550c;
+  --amber-bg: rgba(161, 109, 19, 0.1);
 
-  --slate: #3d6584;
-  --slate-ink: #33566f;
-  --slate-bg: rgba(61, 101, 132, 0.11);
+  --slate: #3a76ad;
+  --slate-ink: #2c6093;
+  --slate-bg: rgba(58, 118, 173, 0.1);
 
-  --oxblood: #8e3a2c;
-  --oxblood-ink: #7c3125;
-  --oxblood-bg: rgba(142, 58, 44, 0.11);
+  --oxblood: #a83f59;
+  --oxblood-ink: #8d3047;
+  --oxblood-bg: rgba(168, 63, 89, 0.1);
 
-  --shadow-pop: 0 1px 2px rgba(80, 62, 40, 0.08), 0 12px 28px -14px rgba(80, 62, 40, 0.35);
-  --shadow-drawer: -1px 0 0 var(--line), -18px 0 44px -26px rgba(80, 62, 40, 0.4);
+  --shadow-pop: 0 1px 2px rgba(31, 43, 58, 0.08), 0 12px 28px -14px rgba(31, 43, 58, 0.18);
+  --shadow-drawer: -1px 0 0 var(--line), -18px 0 44px -26px rgba(31, 43, 58, 0.24);
 }
 
 /* 用户没手动选过主题时，跟随系统 */
@@ -156,45 +156,45 @@
   :root:not([data-theme]) {
     color-scheme: light;
 
-    --bg: #f3efe7;
-    --surface: #fbf8f2;
-    --surface-2: #ebe5d9;
-    --surface-3: #e0d8c8;
-    --surface-inset: #f0ebe1;
+    --bg: #f7f8fa;
+    --surface: #ffffff;
+    --surface-2: #f1f3f6;
+    --surface-3: #e7ebf0;
+    --surface-inset: #f8fafc;
 
-    --line: #ded6c6;
-    --line-strong: #c9bfab;
+    --line: #e2e7ed;
+    --line-strong: #cbd3de;
 
-    --ink: #221e18;
-    --ink-2: #5c544a;
-    --ink-3: #6f6759;
-    --ink-inverse: #fbf8f2;
+    --ink: #20242b;
+    --ink-2: #5f6b7a;
+    --ink-3: #7f8a98;
+    --ink-inverse: #ffffff;
 
-    --cinnabar: #b33a22;
-    --cinnabar-strong: #9b3019;
-    --cinnabar-solid: #a8331d;
-    --cinnabar-solid-hover: #932c18;
-    --cinnabar-bg: rgba(179, 58, 34, 0.09);
-    --cinnabar-line: rgba(179, 58, 34, 0.35);
-    --on-cinnabar: #fff8f5;
+    --cinnabar: #5c54c7;
+    --cinnabar-strong: #4d46b1;
+    --cinnabar-solid: #5c54c7;
+    --cinnabar-solid-hover: #4f48b8;
+    --cinnabar-bg: rgba(92, 84, 199, 0.1);
+    --cinnabar-line: rgba(92, 84, 199, 0.3);
+    --on-cinnabar: #ffffff;
 
-    --jade: #2f7a58;
-    --jade-ink: #26654a;
-    --jade-bg: rgba(47, 122, 88, 0.11);
+    --jade: #26835f;
+    --jade-ink: #196b4c;
+    --jade-bg: rgba(38, 131, 95, 0.1);
 
-    --amber: #8a6216;
-    --amber-ink: #7a5612;
-    --amber-bg: rgba(138, 98, 22, 0.12);
+    --amber: #a16d13;
+    --amber-ink: #82550c;
+    --amber-bg: rgba(161, 109, 19, 0.1);
 
-    --slate: #3d6584;
-    --slate-ink: #33566f;
-    --slate-bg: rgba(61, 101, 132, 0.11);
+    --slate: #3a76ad;
+    --slate-ink: #2c6093;
+    --slate-bg: rgba(58, 118, 173, 0.1);
 
-    --oxblood: #8e3a2c;
-    --oxblood-ink: #7c3125;
-    --oxblood-bg: rgba(142, 58, 44, 0.11);
+    --oxblood: #a83f59;
+    --oxblood-ink: #8d3047;
+    --oxblood-bg: rgba(168, 63, 89, 0.1);
 
-    --shadow-pop: 0 1px 2px rgba(80, 62, 40, 0.08), 0 12px 28px -14px rgba(80, 62, 40, 0.35);
-    --shadow-drawer: -1px 0 0 var(--line), -18px 0 44px -26px rgba(80, 62, 40, 0.4);
+    --shadow-pop: 0 1px 2px rgba(31, 43, 58, 0.08), 0 12px 28px -14px rgba(31, 43, 58, 0.18);
+    --shadow-drawer: -1px 0 0 var(--line), -18px 0 44px -26px rgba(31, 43, 58, 0.24);
   }
 }

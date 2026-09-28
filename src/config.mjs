@@ -80,6 +80,18 @@ export const UPLOAD_DIR = path.join(DATA_DIR, 'uploads')
 export const DB_FILE = path.join(DATA_DIR, 'console.db')
 export const SESSION_COOKIE = 'xfc_sid'
 
+/**
+ * ERPNext 作为第二阶段后端时使用的只读连接配置。
+ * 默认关闭；密钥只从环境变量读取，不写入 SQLite 或前端响应。
+ */
+export const ERPNEXT = {
+  enabled: process.env.XFC_ERPNEXT_ENABLED === '1',
+  url: String(process.env.XFC_ERPNEXT_URL || '').replace(/\/+$/, ''),
+  apiKey: String(process.env.XFC_ERPNEXT_API_KEY || ''),
+  apiSecret: String(process.env.XFC_ERPNEXT_API_SECRET || ''),
+  timeoutMs: Math.max(1000, Number(process.env.XFC_ERPNEXT_TIMEOUT_MS || 8000)),
+}
+
 /** 保险箱多久没操作就自动落锁（毫秒） */
 export const VAULT_IDLE_MS = 20 * 60 * 1000
 export const SESSION_TTL_MS = 14 * 24 * 60 * 60 * 1000

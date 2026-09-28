@@ -10,6 +10,8 @@ import { recognizeScreenOnce, SCREEN_RESOURCES, MIN_SCORE } from '../screen.mjs'
 import { isSetUp, setPassword, verifyPassword, createSession, destroySession, destroyAllSessions, actorName, assertNotThrottled, noteFailure, clearFailures } from '../auth.mjs'
 import { lock, status as vaultStatus, isConfigured, configure, auditLog } from '../vault.mjs'
 import { STATUS_LABEL } from './orders.mjs'
+import { erpNextStatus, testERPNext, ERPNextError } from '../erpnext.mjs'
+import { buildERPNextPreview } from '../erpnext-map.mjs'
 
 const SETTING_KEYS = [
   'business_name',
@@ -333,6 +335,18 @@ export function register() {
     const to = clampStr(ctx.query.to, 10) || localDate()
     const from = clampStr(ctx.query.from, 10) || `${localMonth()}-01`
     return buildFinance(from, to)
+  })
+
+  /* ===== ERPNext 兼容层 ===== */
+  get('/api/integrations/erpnext/status', () => erpNextStatus())
+  get('/api/integrations/erpnext/preview', () => buildERPNextPreview())
+  post('/api/integrations/erpnext/test', async () => {
+    try {
+      return await testERPNext()
+    } catch (err) {
+      if (err instanceof ERPNextError) fail(err.status, err.message, err.code)
+      throw err
+    }
   })
 
   /* ===== 设置 ===== */

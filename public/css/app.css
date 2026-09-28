@@ -178,6 +178,42 @@
   color: var(--on-cinnabar);
 }
 
+/* ---------- 现代工作区导航：借鉴 Twenty 的分组与留白，保留业务识别 ---------- */
+.navgroup {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.navgroup + .navgroup {
+  margin-top: var(--sp-4);
+  padding-top: var(--sp-3);
+  border-top: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+}
+
+.navgroup__label {
+  padding: 0 10px 5px;
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.navitem {
+  height: 38px;
+  border-radius: 10px;
+}
+
+.navitem[aria-current='page'] {
+  background: var(--surface-3);
+  border-color: transparent;
+  box-shadow: inset 2px 0 0 var(--cinnabar);
+}
+
+.navitem[aria-current='page'] .navitem__label {
+  font-weight: 600;
+}
+
 /* ---------- 顶栏 ---------- */
 
 .topbar {
@@ -189,8 +225,7 @@
   align-items: center;
   gap: var(--sp-3);
   padding: 0 var(--sp-4);
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(10px);
+  background: var(--bg);
   border-bottom: 1px solid var(--line);
 }
 
@@ -319,15 +354,15 @@
   min-width: 0;
   /* 兜底：任何一页都不该把整页撑出横向滚动 */
   overflow-x: clip;
-  padding: var(--sp-5) var(--sp-4) var(--sp-7);
+  padding: 28px 32px 56px;
 }
 
 .main__inner {
-  max-width: 1180px;
+  max-width: 1320px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-5);
+  gap: 24px;
 }
 
 /* ---------- 手机底部标签 ---------- */
@@ -344,7 +379,7 @@
   background: var(--surface);
   border: 1px solid var(--line);
   border-top: 2px solid var(--cinnabar);
-  border-radius: var(--r-card);
+  border-radius: 12px;
   overflow: hidden;
 }
 
@@ -459,6 +494,7 @@ button.cell:hover {
   align-items: flex-end;
   gap: var(--sp-3);
   flex-wrap: wrap;
+  min-height: 44px;
 }
 
 .pagehead__txt {
@@ -507,12 +543,12 @@ button.cell:hover {
 .panel {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--r-card);
+  border-radius: 12px;
   overflow: hidden;
 }
 
 .panel__body {
-  padding: var(--sp-4);
+  padding: 20px;
 }
 
 .panel__body--flush {
@@ -530,8 +566,8 @@ button.cell:hover {
 
 .split {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-  gap: var(--sp-5);
+  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.9fr);
+  gap: 24px;
   align-items: start;
 }
 
@@ -1609,7 +1645,7 @@ button.cell:hover {
 }
 
 /* 公告：和导出图片 / Word 最上方那条是同一份内容，在这里也看一眼。
-   不带「公告」标题，靠左边那道朱砂竖线 + 暖色底说明它是提示 ——
+   不带「公告」标题，靠左边那道品牌色竖线 + 浅色底说明它是提示 ——
    和导出图里那一块长得一样，所见即所得。 */
 .pgroup__notice {
   display: flex;
@@ -1625,7 +1661,7 @@ button.cell:hover {
   white-space: pre-wrap;
 }
 
-/* 游戏列表里那条公告预览的记号：一道小朱砂竖条，代替「公告」两个字 */
+/* 游戏列表里那条公告预览的记号：一道小品牌色竖条，代替「公告」两个字 */
 .notice-tick {
   flex: none;
   align-self: center;
@@ -1636,7 +1672,7 @@ button.cell:hover {
 }
 
 /* ---------- 大类：账簿里的一节 ----------
-   左边一个小朱砂刻度，名字后面一条栏线拉到底，
+   左边一个小品牌色刻度，名字后面一条栏线拉到底，
    数字（价格区间 / 项数）坐在栏线右边，操作按钮藏起来。
    这样一眼能看出「哪些服务项属于这个大类」，而不是一排排等重的方块。 */
 
@@ -1765,7 +1801,7 @@ button.cell:hover {
 }
 
 /* 大类自己的提示：排在这个大类的名字下面、服务项上面。
-   缩进对齐服务项的名字，暖色底 + 朱砂竖线，比游戏那条顶部提示低一级 ——
+   缩进对齐服务项的名字，浅色底 + 品牌色竖线，比游戏那条顶部提示低一级 ——
    和导出图片 / Word 里那一块长得一样。 */
 .pcat__notice {
   display: flex;
@@ -2013,7 +2049,7 @@ button.cell:hover {
   align-items: baseline;
 }
 
-/* 金额是这一行除名字以外最该被看见的东西：等宽、加粗、墨色（不抢朱砂） */
+/* 金额是这一行除名字以外最该被看见的东西：等宽、加粗、主文字色（不抢品牌色） */
 .pitem__fig {
   display: inline;
   font-family: var(--font-fig);
@@ -2857,6 +2893,10 @@ img.avatar--lg {
   .shell {
     grid-template-columns: 200px minmax(0, 1fr);
   }
+
+  .main {
+    padding-inline: 24px;
+  }
 }
 
 @media (max-width: 860px) {
@@ -2887,8 +2927,7 @@ img.avatar--lg {
     right: 0;
     bottom: 0;
     z-index: var(--z-tabs);
-    background: color-mix(in srgb, var(--surface-2) 94%, transparent);
-    backdrop-filter: blur(12px);
+    background: var(--surface-2);
     border-top: 1px solid var(--line);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }

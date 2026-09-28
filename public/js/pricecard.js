@@ -1,18 +1,18 @@
 /* ============================================================
    价格表 → 一张可以直接发微信的图片
    用 canvas 画，不依赖任何库。
-   走的是应用同一套「夜班帐桌」的浅色面：暖纸底 + 朱砂 + 栏线。
+   走的是应用同一套现代浅色面：雾白底 + 靛蓝 + 结构线。
    ============================================================ */
 
-const PAPER = '#FBF8F2'
-const PAPER_EDGE = '#EDE5D6'
-const INK = '#221E18'
-const INK_GRAY = '#6F6759'
-const INK_FAINT = '#948A7A'
-const CINNABAR = '#B33A22'
-const RULE = '#E2DACB'
-const RULE_STRONG = '#C9BFAB'
-const TINT = '#FDF1EA'
+const PAPER = '#FFFFFF'
+const PAPER_EDGE = '#E2E7ED'
+const INK = '#20242B'
+const INK_GRAY = '#5F6B7A'
+const INK_FAINT = '#7F8A98'
+const CINNABAR = '#5C54C7'
+const RULE = '#E2E7ED'
+const RULE_STRONG = '#CBD3DE'
+const TINT = '#F1F2FF'
 
 const FONT_UI = '"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif'
 const FONT_FIG = 'ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace'
@@ -99,11 +99,11 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
   const rect = (x, y0, w, h, color) => ops.push({ t: 'rect', x, y: y0, w, h, color })
 
   /* ---------- 提示条 ---------- */
-  // 暖色底 + 左边一道朱砂竖线，和 Word 文档里的排法完全一致。
+  // 浅色底 + 左边一道靛蓝竖线，和 Word 文档里的排法完全一致。
   // 顺序要紧：底纹要先推入 ops，文字后推，画的时候才是「先底后字」。
   // 参数千万别叫 text —— 会把外面那个画字的 text() 遮住，
   // 结果就是「预览画不出来：text is not a function」。
-  // label 默认空着：价目表是发给客户的，暖色底那一条自己就说明白了，
+  // label 默认空着：价目表是发给客户的，提示块自己就说明白了，
   // 不用在上面再压一个「公告」的标题。
   // indent / size 是给「大类提示」用的：缩进一格、字小一号，层级低一级。
   const noticeBlock = (notice, label = '', { indent = 0, size = 23 } = {}) => {

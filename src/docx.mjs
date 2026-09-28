@@ -106,12 +106,12 @@ const esc = (s) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;')
 
-const INK = '221E18'
-const GRAY = '6F6759'
-const CINNABAR = 'B33A22'
-const RULE = 'DED6C6'
-const RULE_STRONG = 'C9BFAB'
-const TINT = 'FDF1EA'
+const INK = '20242B'
+const GRAY = '5F6B7A'
+const CINNABAR = '5C54C7'
+const RULE = 'E2E7ED'
+const RULE_STRONG = 'CBD3DE'
+const TINT = 'F1F2FF'
 const FONT = '微软雅黑'
 
 const PAGE_W = 11906 // A4 宽（twips）
@@ -142,10 +142,10 @@ const bottomRule = (color = RULE, sz = 8) =>
 const rightTab = (leader = 'dot') => `<w:tabs><w:tab w:val="right" w:leader="${leader}" w:pos="${TEXT_W}"/></w:tabs>`
 
 /**
- * 提示块：暖色底 + 左边一道朱砂竖线，就是应用里那个提示条的样子。
+ * 提示块：浅色底 + 左边一道靛蓝竖线，就是应用里那个提示条的样子。
  * 每行一个段落（Word 不认 \n），相邻段落边框设置相同，Word 会自动接成一个整块。
  *
- * label 默认空着：这份文档是发给客户的，暖色块自己就说明白了，
+ * label 默认空着：这份文档是发给客户的，浅色块自己就说明白了，
  * 不用在上面再压一个「公告」的标题。
  * 大类的提示会传更小的 size 和更大的 left —— 层级低一级，缩进一格。
  */
@@ -195,7 +195,7 @@ export function buildDocx(model) {
   body.push(para('', { pPr: bottomRule(CINNABAR, 18) + spacing(0, 160, 240) }))
 
   /* —— 公告：只面向一个游戏时放在最上方 —— */
-  // 抬头那行已经写了游戏名，暖色块也够显眼，所以不带任何标题文字
+  // 抬头那行已经写了游戏名，提示块也够显眼，所以不带任何标题文字
   if (model.notice) {
     body.push(...noticeParas(model.notice))
   }
