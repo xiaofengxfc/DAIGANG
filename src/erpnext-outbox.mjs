@@ -24,6 +24,45 @@ function transactionScope(rows) {
   return [...scopes]
 }
 
+function selectedIds(rows, entityType) {
+  return new Set(rows.filter((row) => row.entity_type === entityType && row.event_type !== 'delete').map((row) => Number(row.source_id)))
+}
+
+/**
+ * 把完整迁移包裁剪成当前队列涉及的对象，避免「改一个客户却把全部客户都写一遍」。
+ * 订单明细仍然随订单一起保留在 Sales Order 文档内；ERPNext 是否已存在依赖项
+ * 由已有的幂等同步器和预检规则判断，缺失时会阻断，不会猜测创建。
+ */
+export function filterERPNextBundleForOutbox(bundle, rows) {
+  const gameIds = selectedIds(rows, 'game')
+  const categoryIds = selectedIds(rows, 'category')
+  const serviceIds = selectedIds(rows, 'service')
+  const customerIds = selectedIds(rows, 'customer')
+  const quoteIds = selectedIds(rows, 'quotation')
+  const orderIds = selectedIds(rows, 'sales_order')
+  const paymentIds = selectedIds(rows, 'payment')
+  const source = { ...(bundle?.source || {}) }
+  const doctypes = bundle?.doctypes || {}
+  const filtered = {
+    ...bundle,
+    source,
+    doctypes: {
+      item_groups: (doctypes.item_groups || []).filter((doc) =>
+        (doc.custom_xfc_game_id && gameIds.has(Number(doc.custom_xfc_game_id))) ||
+        (doc.custom_xfc_category_id && categoryIds.has(Number(doc.custom_xfc_category_id)))
+      ),
+      items: (doctypes.items || []).filter((doc) => serviceIds.has(Number(doc.custom_xfc_service_id))),
+      item_prices: (doctypes.item_prices || []).filter((doc) => serviceIds.has(Number(doc.custom_xfc_service_id))),
+      customers: (doctypes.customers || []).filter((doc) => customerIds.has(Number(doc.custom_xfc_customer_id))),
+      quotations: (doctypes.quotations || []).filter((doc) => quoteIds.has(Number(doc.source_id))),
+      sales_orders: (doctypes.sales_orders || []).filter((doc) => orderIds.has(Number(doc.source_id))),
+      payment_entries: (doctypes.payment_entries || []).filter((doc) => paymentIds.has(Number(doc.source_id))),
+    },
+  }
+  for (const [key, rowsForType] of Object.entries(filtered.doctypes)) source[key] = rowsForType.length
+  return filtered
+}
+
 /**
  * 只根据本地队列生成同步计划，不访问 ERPNext，也不修改本地数据。
  */
@@ -107,9 +146,11 @@ export async function syncERPNextOutbox({ mode = 'plan', confirm = '' } = {}) {
   const masterRows = rows.filter((row) => rowGroup(row) === 'master' && row.event_type !== 'delete')
   const transactionRows = rows.filter((row) => rowGroup(row) === 'transactions' && row.event_type !== 'delete')
   const bundle = buildERPNextBundle()
-  const masterResult = masterRows.length ? await syncERPNextMaster({ mode, confirm }, bundle) : null
+  const masterBundle = filterERPNextBundleForOutbox(bundle, masterRows)
+  const transactionBundle = filterERPNextBundleForOutbox(bundle, transactionRows)
+  const masterResult = masterRows.length ? await syncERPNextMaster({ mode, confirm }, masterBundle) : null
   const scopes = transactionScope(transactionRows)
-  const transactionResult = scopes.length ? await syncERPNextTransactions({ scope: scopes.join(','), mode, confirm }, bundle) : null
+  const transactionResult = scopes.length ? await syncERPNextTransactions({ scope: scopes.join(','), mode, confirm }, transactionBundle) : null
 
   if (mode === 'dry-run') {
     return {
