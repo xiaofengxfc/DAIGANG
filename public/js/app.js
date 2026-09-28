@@ -667,7 +667,7 @@ function showStaleNotice(stale) {
   staleBar = h(
     'div.stalebar',
     h('span.stalebar__ico', '!'),
-    h('span', '程序改过但还没重启 —— 新加的字段现在存不进去。关掉启动窗口、重新双击 start.cmd 就好。'),
+    h('span', '程序改过但还没重启 —— 新加的字段现在存不进去。请在启动控制台里点击“重启”。'),
     h('button.stalebar__x', { type: 'button', title: '知道了', onclick: close }, '×')
   )
   document.body.appendChild(staleBar)

@@ -15,8 +15,8 @@
 
 | 系统 | 怎么做 |
 | --- | --- |
-| Windows | 双击 **`start.cmd`** |
-| Windows（只给本机用） | 双击 **`start-local.cmd`** |
+| Windows | 双击 **`DaiganLauncher.exe`** |
+| Windows（只给本机用） | `DaiganLauncher.exe --local` |
 | macOS / Linux | 终端里 `./start.sh`，或 `./start.sh --local` |
 
 启动后窗口里会打印两个网址：
@@ -26,9 +26,9 @@
 手机打开：   http://192.168.1.7:8787     （手机要和这台电脑连同一个 WiFi）
 ```
 
-**保持那个窗口开着**——关掉窗口就等于关掉后台。按 `Ctrl+C` 退出。
+启动器里可以直接启动、停止、重启后台，也可以设置当前用户开机自启动。
 
-端口被占用了就换一个：`start.cmd --port 8888`。
+端口被占用了就换一个：`DaiganLauncher.exe --port 8888`。
 
 ---
 
@@ -463,7 +463,7 @@ DH260922-002  30天日体（拆出）        ¥80     ← 自己走完成 / 收�
 所以：
 
 - 只在自家或信得过的 WiFi 下用手机访问；
-- 在陌生网络里就用 `start-local.cmd` 只开本机；
+- 在陌生网络里就用 `DaiganLauncher.exe --local` 只开本机；
 - 后台对登录和保险箱解锁都做了失败限速（10 分钟内错 8 次就锁一段时间）。
 
 ---
@@ -546,14 +546,9 @@ XFC_DATA_DIR=./data-smoke node server.mjs --port 8790 --local
 
 ## 七、常见问题
 
-**双击 `start.cmd` 后窗口里刷出一堆 `'xxx' 不是内部或外部命令`？**
-那是旧版启动脚本的编码问题，已经修好了——现在的 `start.cmd` 是**纯 ASCII** 的。
-如果你手里还是会报错的那版，重新拿一份就行。
-
-> 顺带说明启动脚本里为什么一个中文都没有：Windows 的 `cmd.exe` 按**系统代码页**读取 `.cmd` 文件，
-> 文件里的 UTF-8 中文会被解错，错出来的字节还会把后面的行一起撕碎，
-> 于是每个残片都被当成命令去执行。带 BOM 也一样救不了（实测过）。
-> 所以中文提示全部交给 Node 打印——那部分是正常的 UTF-8 输出，显示完全没问题。
+**Windows 怎么启动、停止或重启？**
+双击 `DaiganLauncher.exe`，在控制台里使用对应按钮；也可以直接带参数启动。
+启动器会自动寻找 Node.js，并把日志写入 `launcher-data/server.log`。
 
 **窗口一闪就没了 / 提示需要 Node.js？**
 说明这台电脑上没找到 Node.js。去 <https://nodejs.org> 下载 LTS 版本装上。
@@ -567,7 +562,7 @@ XFC_DATA_DIR=./data-smoke node server.mjs --port 8790 --local
 它是标准的 `.docx`，Word 和 WPS 都能开。如果被手机当成未知文件，先存下来再用 WPS 打开。
 
 **提示端口被占用？**
-换一个端口：`start.cmd --port 8888`。
+换一个端口：`DaiganLauncher.exe --port 8888`。
 
 **手机打不开那个局域网网址？**
 确认手机和电脑连的是同一个 WiFi；Windows 防火墙第一次会弹窗，要选「允许访问」；
@@ -592,7 +587,7 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 备份文件里的凭证是密文，必须用**同一套保险箱密码**才能解开。
 换了密码就不行了。
 
-**想只在自己电脑上用？** 用 `start-local.cmd` / `./start.sh --local`。
+**想只在自己电脑上用？** 用 `DaiganLauncher.exe --local` / `./start.sh --local`。
 
 ---
 
