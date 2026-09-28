@@ -19,6 +19,7 @@
 - `GET /api/integrations/erpnext/preflight`：只读检查 ERPNext 的 DocType、基础数据和自定义字段。
 - `POST /api/integrations/erpnext/sync/master`：主数据幂等同步，默认 dry-run；apply 只创建/更新，不删除。
 - `POST /api/integrations/erpnext/sync/transactions`：报价、订单、收款幂等同步；发现阻断项时整批不写入。
+- `GET /api/integrations/erpnext/reconcile`：只读对账本地迁移包与 ERPNext 远程记录。
 - `POST /api/integrations/erpnext/test`：显式测试连接，不会写 ERPNext。
 
 ## 环境变量
@@ -85,5 +86,13 @@ XFC_ERPNEXT_PAID_TO=微信收款 - 公司
 ```
 
 报价单、订单和收款只会写入草稿或未提交记录；发现远程单据已经提交、客户缺失、明细为空或收款科目缺失时，整批停止，不产生部分写入。
+
+同步后对账：
+
+```powershell
+npm run erpnext:reconcile -- --scope all
+```
+
+对账会报告 `missing / matched / different` 三类结果，并比较客户、金额、状态、明细数量和收款科目；对账本身完全只读。
 
 在没有完成字段创建、数据对账和回滚演练前，适配层只允许 status、preview、test 三类只读/测试动作。

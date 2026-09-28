@@ -422,3 +422,124 @@ export async function syncERPNextTransactions({ scope = 'all', mode = 'dry-run',
     note: '已完成报价、订单、收款的创建/更新；未删除任何 ERPNext 记录。',
   }
 }
+
+const RECONCILE_MASTER_PLAN = [
+  { key: 'item_groups', doctype: 'Item Group', identity: (doc) => (doc.custom_xfc_game_id ? { field: 'custom_xfc_game_id', value: doc.custom_xfc_game_id } : { field: 'custom_xfc_category_id', value: doc.custom_xfc_category_id }), fields: ['name', 'item_group_name', 'custom_xfc_game_id', 'custom_xfc_category_id', 'custom_xfc_status'] },
+  { key: 'items', doctype: 'Item', identity: (doc) => ({ field: 'custom_xfc_service_id', value: doc.custom_xfc_service_id }), fields: ['name', 'item_name', 'disabled', 'stock_uom', 'custom_xfc_status', 'custom_xfc_service_id'] },
+  { key: 'item_prices', doctype: 'Item Price', identity: (doc) => ({ field: 'custom_xfc_service_id', value: doc.custom_xfc_service_id }), fields: ['name', 'price_list_rate', 'price_list', 'currency', 'custom_xfc_service_id', 'custom_xfc_status'] },
+  { key: 'customers', doctype: 'Customer', identity: (doc) => ({ field: 'custom_xfc_customer_id', value: doc.custom_xfc_customer_id }), fields: ['name', 'customer_name', 'mobile_no', 'disabled', 'custom_xfc_customer_id', 'custom_xfc_status'] },
+]
+
+const RECONCILE_TRANSACTION_PLAN = [
+  { key: 'quotations', doctype: 'Quotation', identityField: 'custom_xfc_quote_id', fields: ['name', 'docstatus', 'customer', 'valid_till', 'custom_xfc_quote_id', 'custom_xfc_local_total', 'items'] },
+  { key: 'sales_orders', doctype: 'Sales Order', identityField: 'custom_xfc_order_id', fields: ['name', 'docstatus', 'customer', 'custom_xfc_order_id', 'custom_xfc_local_status', 'custom_xfc_local_total', 'items'] },
+  { key: 'payment_entries', doctype: 'Payment Entry', identityField: 'custom_xfc_payment_id', fields: ['name', 'docstatus', 'party', 'paid_amount', 'paid_from', 'paid_to', 'custom_xfc_payment_id', 'custom_xfc_order_no'] },
+]
+
+async function findRemoteRecord(doctype, identityField, identityValue, fields) {
+  const response = await erpNextRequest(`/api/resource/${encodeURIComponent(doctype)}`, {
+    query: {
+      filters: JSON.stringify([[identityField, '=', identityValue]]),
+      fields: JSON.stringify(fields),
+      limit_page_length: 2,
+    },
+  })
+  const rows = Array.isArray(response?.data) ? response.data : []
+  if (rows.length > 1) {
+    throw new ERPNextError(`ERPNext 中 ${doctype} 的 ${identityField}=${identityValue} 出现重复记录，已停止对账`, 'erpnext_duplicate_identity', 409)
+  }
+  return rows[0] || null
+}
+
+function sameNumber(left, right) {
+  return Math.abs(numberValue(left) - numberValue(right)) <= 0.001
+}
+
+function reconcileDiffs(doc, remote, doctype) {
+  const diffs = []
+  const compare = (field, localValue, remoteValue) => {
+    if (localValue === undefined || localValue === null || localValue === '') return
+    if (typeof localValue === 'number' || typeof remoteValue === 'number') {
+      if (!sameNumber(localValue, remoteValue)) diffs.push({ field, local: localValue, remote: remoteValue })
+    } else if (String(localValue) !== String(remoteValue ?? '')) {
+      diffs.push({ field, local: localValue, remote: remoteValue ?? '' })
+    }
+  }
+
+  if (doctype === 'Item Group') compare('item_group_name', doc.item_group_name, remote.item_group_name)
+  if (doctype === 'Item') {
+    compare('item_name', doc.item_name, remote.item_name)
+    compare('disabled', doc.disabled, remote.disabled)
+    compare('stock_uom', doc.stock_uom, remote.stock_uom)
+  }
+  if (doctype === 'Item Price') {
+    compare('price_list_rate', doc.price_list_rate, remote.price_list_rate)
+    compare('price_list', doc.price_list, remote.price_list)
+    compare('currency', doc.currency, remote.currency)
+  }
+  if (doctype === 'Customer') {
+    compare('customer_name', doc.customer_name, remote.customer_name)
+    compare('mobile_no', doc.mobile_no, remote.mobile_no)
+    compare('disabled', doc.disabled, remote.disabled)
+  }
+  if (doctype === 'Quotation' || doctype === 'Sales Order') {
+    compare('customer', doc.customer, remote.customer)
+    compare('custom_xfc_local_total', doc.custom_xfc_local_total, remote.custom_xfc_local_total)
+    const localItems = Array.isArray(doc.items) ? doc.items.length : 0
+    const remoteItems = Array.isArray(remote.items) ? remote.items.length : 0
+    if (localItems !== remoteItems) diffs.push({ field: 'items.length', local: localItems, remote: remoteItems })
+  }
+  if (doctype === 'Payment Entry') {
+    compare('party', doc.party, remote.party)
+    compare('paid_amount', doc.paid_amount, remote.paid_amount)
+    compare('paid_from', ERPNEXT.paidFrom, remote.paid_from)
+    compare('paid_to', ERPNEXT.paidTo, remote.paid_to)
+  }
+  return diffs
+}
+
+function reconcileScope(scope) {
+  if (!scope || scope === 'all') return [...RECONCILE_MASTER_PLAN, ...RECONCILE_TRANSACTION_PLAN]
+  if (scope === 'master') return RECONCILE_MASTER_PLAN
+  if (scope === 'transactions') return RECONCILE_TRANSACTION_PLAN
+  throw new ERPNextError('scope 只能是 all、master 或 transactions', 'erpnext_bad_reconcile_scope', 400)
+}
+
+/** 只读对账：读取 ERPNext，比较本地迁移包与远程记录，不执行写入。 */
+export async function reconcileERPNext({ scope = 'all' } = {}, bundle) {
+  const preflight = await preflightERPNext()
+  if (!preflight.write_ready) return { ok: false, scope, preflight, summary: { missing: 0, matched: 0, different: 0 }, records: [], note: '预检未通过，未执行对账。' }
+
+  const records = []
+  for (const plan of reconcileScope(scope)) {
+    for (const doc of bundle?.doctypes?.[plan.key] || []) {
+      const identity = plan.identity ? plan.identity(doc) : { field: plan.identityField, value: doc[plan.identityField] }
+      const base = { doctype: plan.doctype, source_id: doc.source_id, identity }
+      if (!identity?.value) {
+        records.push({ ...base, state: 'different', reason: 'missing_identity' })
+        continue
+      }
+      const remote = await findRemoteRecord(plan.doctype, identity.field, identity.value, plan.fields)
+      if (!remote) {
+        records.push({ ...base, state: 'missing' })
+        continue
+      }
+      const diffs = reconcileDiffs(doc, remote, plan.doctype)
+      records.push({ ...base, state: diffs.length ? 'different' : 'matched', remote_name: remote.name, remote_docstatus: remote.docstatus, diffs })
+    }
+  }
+
+  return {
+    ok: records.every((record) => record.state === 'matched'),
+    scope,
+    checked_at: new Date().toISOString(),
+    preflight: { ok: true, checked_at: preflight.checked_at },
+    summary: {
+      missing: records.filter((record) => record.state === 'missing').length,
+      matched: records.filter((record) => record.state === 'matched').length,
+      different: records.filter((record) => record.state === 'different').length,
+    },
+    records,
+    note: '只读对账，没有修改本地或 ERPNext 数据。',
+  }
+}

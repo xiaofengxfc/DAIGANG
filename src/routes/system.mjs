@@ -10,7 +10,7 @@ import { recognizeScreenOnce, SCREEN_RESOURCES, MIN_SCORE } from '../screen.mjs'
 import { isSetUp, setPassword, verifyPassword, createSession, destroySession, destroyAllSessions, actorName, assertNotThrottled, noteFailure, clearFailures } from '../auth.mjs'
 import { lock, status as vaultStatus, isConfigured, configure, auditLog } from '../vault.mjs'
 import { STATUS_LABEL } from './orders.mjs'
-import { erpNextStatus, testERPNext, preflightERPNext, syncERPNextMaster, syncERPNextTransactions, ERPNextError } from '../erpnext.mjs'
+import { erpNextStatus, testERPNext, preflightERPNext, syncERPNextMaster, syncERPNextTransactions, reconcileERPNext, ERPNextError } from '../erpnext.mjs'
 import { buildERPNextPreview, buildERPNextBundle } from '../erpnext-map.mjs'
 
 const SETTING_KEYS = [
@@ -368,6 +368,14 @@ export function register() {
         { scope: ctx.body?.scope || 'all', mode: ctx.body?.mode || 'dry-run', confirm: ctx.body?.confirm || '' },
         buildERPNextBundle()
       )
+    } catch (err) {
+      if (err instanceof ERPNextError) fail(err.status, err.message, err.code)
+      throw err
+    }
+  })
+  get('/api/integrations/erpnext/reconcile', async (ctx) => {
+    try {
+      return await reconcileERPNext({ scope: ctx.query.scope || 'all' }, buildERPNextBundle())
     } catch (err) {
       if (err instanceof ERPNextError) fail(err.status, err.message, err.code)
       throw err
