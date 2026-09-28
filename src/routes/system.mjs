@@ -10,7 +10,7 @@ import { recognizeScreenOnce, SCREEN_RESOURCES, MIN_SCORE } from '../screen.mjs'
 import { isSetUp, setPassword, verifyPassword, createSession, destroySession, destroyAllSessions, actorName, assertNotThrottled, noteFailure, clearFailures } from '../auth.mjs'
 import { lock, status as vaultStatus, isConfigured, configure, auditLog } from '../vault.mjs'
 import { STATUS_LABEL } from './orders.mjs'
-import { erpNextStatus, testERPNext, ERPNextError } from '../erpnext.mjs'
+import { erpNextStatus, testERPNext, preflightERPNext, ERPNextError } from '../erpnext.mjs'
 import { buildERPNextPreview, buildERPNextBundle } from '../erpnext-map.mjs'
 
 const SETTING_KEYS = [
@@ -342,6 +342,15 @@ export function register() {
   get('/api/integrations/erpnext/preview', () => buildERPNextPreview())
   // 只读迁移包：包含客户、目录、报价、订单和收款草稿，不向 ERPNext 写入。
   get('/api/integrations/erpnext/bundle', () => buildERPNextBundle())
+  // 只读远程预检：确认目标 ERPNext 的 DocType、基础数据和自定义字段是否齐全。
+  get('/api/integrations/erpnext/preflight', async () => {
+    try {
+      return await preflightERPNext()
+    } catch (err) {
+      if (err instanceof ERPNextError) fail(err.status, err.message, err.code)
+      throw err
+    }
+  })
   post('/api/integrations/erpnext/test', async () => {
     try {
       return await testERPNext()

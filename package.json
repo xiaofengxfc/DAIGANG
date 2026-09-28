@@ -13,7 +13,8 @@
     "migration:export": "node scripts/migration-export.mjs",
     "erpnext:preview": "node scripts/erpnext-preview.mjs",
     "erpnext:bundle": "node scripts/erpnext-preview.mjs",
-    "erpnext:check": "node scripts/erpnext-bundle-check.mjs"
+    "erpnext:check": "node scripts/erpnext-bundle-check.mjs",
+    "erpnext:preflight": "node scripts/erpnext-preflight.mjs"
   },
   "engines": {
     "node": ">=22.5.0"

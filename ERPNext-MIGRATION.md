@@ -16,6 +16,7 @@
 - `GET /api/integrations/erpnext/status`：只返回连接状态，不泄露密钥。
 - `GET /api/integrations/erpnext/preview`：查看本地数据将映射成哪些 ERPNext 文档。
 - `GET /api/integrations/erpnext/bundle`：导出完整的 ERPNext 迁移包预览，不执行远程写入。
+- `GET /api/integrations/erpnext/preflight`：只读检查 ERPNext 的 DocType、基础数据和自定义字段。
 - `POST /api/integrations/erpnext/test`：显式测试连接，不会写 ERPNext。
 
 ## 环境变量
@@ -50,5 +51,7 @@ XFC_ERPNEXT_API_SECRET=...
 - `payment_entries`
 
 这个阶段仍然是只读导出。包里会列出重复名称、缺少服务关联、缺少客户关联和 ERPNext 科目未配置等问题；没有通过对账和回滚演练前，不会自动调用 ERPNext 写接口。
+
+配置好环境变量后，可执行 `npm run erpnext:preflight` 做远程预检。预检只读，不会创建字段或写入业务单据；返回 `write_ready: true` 只代表结构满足要求，收款科目仍需要按目标账套人工确认。
 
 在没有完成字段创建、数据对账和回滚演练前，适配层只允许 status、preview、test 三类只读/测试动作。
