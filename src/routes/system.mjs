@@ -15,6 +15,7 @@ import { buildERPNextPreview, buildERPNextBundle } from '../erpnext-map.mjs'
 import { listOutbox, outboxSummary, retryOutbox } from '../outbox.mjs'
 import { buildERPNextOutboxPlan, syncERPNextOutbox } from '../erpnext-outbox.mjs'
 import { erpNextScopeSummary } from '../erpnext-scope.mjs'
+import { resticStatus, listResticSnapshots, createResticBackup } from '../restic.mjs'
 
 const SETTING_KEYS = [
   'business_name',
@@ -491,7 +492,27 @@ export function register() {
     }
   })
 
-  /* ===== 备份 ===== */
+  /* ===== 可选 restic 加密增量备份 ===== */
+  get('/api/backup/restic/status', () => resticStatus())
+  get('/api/backup/restic/snapshots', async () => {
+    try {
+      return await listResticSnapshots()
+    } catch (err) {
+      if (err instanceof ERPNextError) fail(err.status, err.message, err.code)
+      throw err
+    }
+  })
+  post('/api/backup/restic/backup', async (ctx) => {
+    if (ctx.body?.confirm !== 'BACKUP') bad('创建 restic 备份需要 confirm=BACKUP', 'need_confirm')
+    try {
+      return await createResticBackup()
+    } catch (err) {
+      if (err instanceof ERPNextError) fail(err.status, err.message, err.code)
+      throw err
+    }
+  })
+
+  /* ===== JSON 备份 ===== */
   const BACKUP_TABLES = [
     'settings',
     'games',

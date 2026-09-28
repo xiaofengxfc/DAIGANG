@@ -95,6 +95,18 @@ export const ERPNEXT = {
   timeoutMs: Math.max(1000, Number(process.env.XFC_ERPNEXT_TIMEOUT_MS || 8000)),
 }
 
+/**
+ * 可选 restic 外接备份。密码只允许通过 password-file 提供，不能进入 SQLite、日志或接口响应。
+ * 默认关闭，现有 JSON 备份不受影响。
+ */
+export const RESTIC = {
+  enabled: process.env.XFC_RESTIC_ENABLED === '1',
+  binary: String(process.env.XFC_RESTIC_BIN || 'restic'),
+  repository: String(process.env.XFC_RESTIC_REPOSITORY || ''),
+  passwordFile: String(process.env.XFC_RESTIC_PASSWORD_FILE || ''),
+  timeoutMs: Math.max(5000, Number(process.env.XFC_RESTIC_TIMEOUT_MS || 120000)),
+}
+
 /** 保险箱多久没操作就自动落锁（毫秒） */
 export const VAULT_IDLE_MS = 20 * 60 * 1000
 export const SESSION_TTL_MS = 14 * 24 * 60 * 60 * 1000

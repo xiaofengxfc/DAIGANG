@@ -18,7 +18,8 @@
     "erpnext:sync": "node scripts/erpnext-sync.mjs",
     "erpnext:sync:transactions": "node scripts/erpnext-sync-transactions.mjs",
     "erpnext:sync:outbox": "node scripts/erpnext-outbox.mjs",
-    "erpnext:reconcile": "node scripts/erpnext-reconcile.mjs"
+    "erpnext:reconcile": "node scripts/erpnext-reconcile.mjs",
+    "backup:restic": "node scripts/restic-backup.mjs"
   },
   "engines": {
     "node": ">=22.5.0"
