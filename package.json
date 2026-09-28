@@ -17,6 +17,7 @@
     "erpnext:preflight": "node scripts/erpnext-preflight.mjs",
     "erpnext:sync": "node scripts/erpnext-sync.mjs",
     "erpnext:sync:transactions": "node scripts/erpnext-sync-transactions.mjs",
+    "erpnext:sync:outbox": "node scripts/erpnext-outbox.mjs",
     "erpnext:reconcile": "node scripts/erpnext-reconcile.mjs"
   },
   "engines": {

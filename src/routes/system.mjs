@@ -13,6 +13,7 @@ import { STATUS_LABEL } from './orders.mjs'
 import { erpNextStatus, testERPNext, preflightERPNext, syncERPNextMaster, syncERPNextTransactions, reconcileERPNext, ERPNextError } from '../erpnext.mjs'
 import { buildERPNextPreview, buildERPNextBundle } from '../erpnext-map.mjs'
 import { listOutbox, outboxSummary, retryOutbox } from '../outbox.mjs'
+import { buildERPNextOutboxPlan, syncERPNextOutbox } from '../erpnext-outbox.mjs'
 
 const SETTING_KEYS = [
   'business_name',
@@ -395,11 +396,20 @@ export function register() {
     items: listOutbox({ status: clampStr(ctx.query.status, 20), limit: int(ctx.query.limit, 200) }),
   }))
   get('/api/integrations/erpnext/outbox/summary', () => outboxSummary())
+  get('/api/integrations/erpnext/outbox/plan', () => buildERPNextOutboxPlan())
   post('/api/integrations/erpnext/outbox/retry', (ctx) => ({
     ok: true,
     retried: retryOutbox(ctx.body?.id),
     summary: outboxSummary(),
   }))
+  post('/api/integrations/erpnext/outbox/sync', async (ctx) => {
+    try {
+      return await syncERPNextOutbox({ mode: ctx.body?.mode || 'plan', confirm: ctx.body?.confirm || '' })
+    } catch (err) {
+      if (err instanceof ERPNextError) fail(err.status, err.message, err.code)
+      throw err
+    }
+  })
 
   /* ===== 设置 ===== */
   get('/api/settings', () => readSettings())

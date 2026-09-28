@@ -88,10 +88,10 @@ export function markOutboxStatus(id, status, { error = '', nextAttemptAt = null 
   const info = db
     .prepare(
       `UPDATE integration_outbox
-       SET status = ?, last_error = ?, next_attempt_at = ?, updated_at = ?, processed_at = ?
+       SET status = ?, attempts = attempts + ?, last_error = ?, next_attempt_at = ?, updated_at = ?, processed_at = ?
        WHERE id = ? AND provider = 'erpnext'`
     )
-    .run(status, String(error || '').slice(0, 2000), nextAttemptAt, now, processedAt, n)
+    .run(status, status === 'processing' ? 1 : 0, String(error || '').slice(0, 2000), nextAttemptAt, now, processedAt, n)
   return Number(info.changes) > 0
 }
 
