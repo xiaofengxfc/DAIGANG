@@ -8,7 +8,9 @@
   "scripts": {
     "start": "node server.mjs",
     "local": "node server.mjs --local",
-    "check": "node scripts/check.mjs"
+    "check": "node scripts/check.mjs",
+    "migration:check": "node scripts/migration-check.mjs",
+    "migration:export": "node scripts/migration-export.mjs"
   },
   "engines": {
     "node": ">=22.5.0"
