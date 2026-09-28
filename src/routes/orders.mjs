@@ -2,6 +2,7 @@ import { db, stamp, nextSerialNo } from '../db.mjs'
 import { get, post, patch, del } from '../http.mjs'
 import { bad, notFound, int, num, money, clampStr, stringifyJSON, parseJSON, localDate, bizDate, nowISO, toStringArray } from '../util.mjs'
 import { computeItems, computeTotals } from '../pricing.mjs'
+import { enqueueERPNextChange } from '../outbox.mjs'
 
 /* ---------------- 状态机 ---------------- */
 
@@ -290,6 +291,7 @@ export function register() {
         )
       const orderId = Number(info.lastInsertRowid)
       insertOrderItems(orderId, computed.items)
+      enqueueERPNextChange('orders', orderId, 'upsert')
       db.exec('COMMIT')
       return orderDetail(orderId)
     } catch (err) {
@@ -402,6 +404,7 @@ export function register() {
           now
         )
       const newId = Number(info.lastInsertRowid)
+      enqueueERPNextChange('orders', newId, 'upsert')
 
       // 2. 把选中的明细挪过去（保留原来的 sort_order，顺序不变）
       const upd = db.prepare('UPDATE order_items SET order_id = ? WHERE id = ?')
@@ -421,6 +424,7 @@ export function register() {
         now,
         id
       )
+      enqueueERPNextChange('orders', id, 'upsert')
 
       // 4. 收款：按金额比例把每一笔拆成两份，各自结清
       let paymentsMoved = 0
@@ -436,10 +440,16 @@ export function register() {
           // 尾差留在原单，避免两边加起来跟原来对不上
           const share = money(money(p.amount) * ratio)
           if (share <= 0.005) continue
-          ins.run(newId, p.customer_id, p.kind, share, p.method, p.status, p.paid_at, clampStr(`${p.note ? p.note + ' · ' : ''}拆自 ${order.order_no}`, 400), now)
+          const movedInfo = ins.run(newId, p.customer_id, p.kind, share, p.method, p.status, p.paid_at, clampStr(`${p.note ? p.note + ' · ' : ''}拆自 ${order.order_no}`, 400), now)
+          enqueueERPNextChange('payments', Number(movedInfo.lastInsertRowid), 'upsert')
           const rest = money(money(p.amount) - share)
-          if (rest <= 0.005) db.prepare('DELETE FROM payments WHERE id = ?').run(p.id)
-          else db.prepare('UPDATE payments SET amount = ? WHERE id = ?').run(rest, p.id)
+          if (rest <= 0.005) {
+            db.prepare('DELETE FROM payments WHERE id = ?').run(p.id)
+            enqueueERPNextChange('payments', p.id, 'delete')
+          } else {
+            db.prepare('UPDATE payments SET amount = ? WHERE id = ?').run(rest, p.id)
+            enqueueERPNextChange('payments', p.id, 'upsert')
+          }
           paymentsMoved += 1
         }
       }
@@ -596,6 +606,7 @@ export function register() {
         db.prepare('DELETE FROM order_items WHERE order_id = ?').run(id)
         insertOrderItems(id, recomputed.items)
       }
+      enqueueERPNextChange('orders', id, 'upsert')
       db.exec('COMMIT')
     } catch (err) {
       db.exec('ROLLBACK')
@@ -626,6 +637,7 @@ export function register() {
          VALUES (?, ?, ?, '', '', '[]', '', ?)`
       ).run(int(ctx.params.id), localDate(), `状态改为「${STATUS_LABEL[next]}」：${clampStr(ctx.body.note, 400)}`, now)
     }
+    enqueueERPNextChange('orders', int(ctx.params.id), 'upsert')
     return orderDetail(ctx.params.id)
   })
 
@@ -644,6 +656,7 @@ export function register() {
     }
     const done = ctx.body.done !== false
     db.prepare('UPDATE orders SET daily_done_on = ?, updated_at = ? WHERE id = ?').run(done ? bizDate() : null, stamp(), id)
+    enqueueERPNextChange('orders', id, 'upsert')
     return orderDetail(id)
   })
 
@@ -657,6 +670,7 @@ export function register() {
       bad('这张单已经记过收款，删除会让账目对不上。建议改成「已取消」，或加 force=1 强制删除。', 'has_payments')
     }
     db.prepare('DELETE FROM orders WHERE id = ?').run(id)
+    enqueueERPNextChange('orders', id, 'delete')
     return { deleted: true, id }
   })
 
@@ -808,6 +822,8 @@ export function register() {
         advancedTo = 'in_progress'
       }
     }
+    enqueueERPNextChange('payments', Number(info.lastInsertRowid), 'upsert')
+    if (orderId) enqueueERPNextChange('orders', orderId, 'upsert')
     const row = db.prepare('SELECT * FROM payments WHERE id = ?').get(Number(info.lastInsertRowid))
     return { ...row, advanced_to: advancedTo }
   })
@@ -831,11 +847,18 @@ export function register() {
     if (!sets.length) return row
     values.push(id)
     db.prepare(`UPDATE payments SET ${sets.join(', ')} WHERE id = ?`).run(...values)
+    enqueueERPNextChange('payments', id, 'upsert')
+    if (row.order_id) enqueueERPNextChange('orders', row.order_id, 'upsert')
     return db.prepare('SELECT * FROM payments WHERE id = ?').get(id)
   })
 
   del('/api/payments/:id', (ctx) => {
-    db.prepare('DELETE FROM payments WHERE id = ?').run(int(ctx.params.id))
+    const id = int(ctx.params.id)
+    const row = db.prepare('SELECT * FROM payments WHERE id = ?').get(id)
+    if (!row) notFound('这条收款记录不存在')
+    db.prepare('DELETE FROM payments WHERE id = ?').run(id)
+    enqueueERPNextChange('payments', id, 'delete')
+    if (row.order_id) enqueueERPNextChange('orders', row.order_id, 'upsert')
     return { deleted: true }
   })
 

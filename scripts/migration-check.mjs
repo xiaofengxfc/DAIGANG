@@ -31,6 +31,7 @@ const tables = [
   'payments',
   'quotes',
   'vault_audit',
+  'integration_outbox',
 ]
 
 const count = (table) => Number(db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get().n)

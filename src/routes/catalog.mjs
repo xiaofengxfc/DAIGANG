@@ -4,6 +4,7 @@ import { bad, notFound, int, clampStr, nextSortOrder } from '../util.mjs'
 import { makeDef, registerCrud, getRow, createRow, updateRow, removeRow, listRows, shapeRow } from './_helpers.mjs'
 import { buildExportModel } from '../priceexport.mjs'
 import { buildDocx } from '../docx.mjs'
+import { enqueueERPNextChange } from '../outbox.mjs'
 
 export const games = makeDef({
   table: 'games',
@@ -182,6 +183,16 @@ export function register() {
       const svc = new Map(db.prepare('SELECT id, name FROM services').all().map((r) => [r.id, r.name]))
       return rows.map((r) => ({ ...r, service_name: r.service_id ? svc.get(r.service_id) || '' : '通用增项' }))
     },
+    afterCreate: (row) => {
+      if (row.service_id) enqueueERPNextChange('services', row.service_id, 'upsert')
+    },
+    afterUpdate: (row, before) => {
+      if (before?.service_id) enqueueERPNextChange('services', before.service_id, 'upsert')
+      if (row.service_id) enqueueERPNextChange('services', row.service_id, 'upsert')
+    },
+    afterDelete: (_result, before) => {
+      if (before?.service_id) enqueueERPNextChange('services', before.service_id, 'upsert')
+    },
   })
 
   /* 阶梯价：按服务挂载 */
@@ -194,10 +205,23 @@ export function register() {
   post('/api/services/:id/tiers', (ctx) => {
     const sid = int(ctx.params.id)
     if (!getRow(services, sid)) notFound('服务不存在')
-    return createRow(tiers, { ...ctx.body, service_id: sid })
+    const result = createRow(tiers, { ...ctx.body, service_id: sid })
+    enqueueERPNextChange('services', sid, 'upsert')
+    return result
   })
-  patch('/api/tiers/:id', (ctx) => updateRow(tiers, ctx.params.id, ctx.body))
-  del('/api/tiers/:id', (ctx) => removeRow(tiers, ctx.params.id))
+  patch('/api/tiers/:id', (ctx) => {
+    const before = getRow(tiers, ctx.params.id)
+    const result = updateRow(tiers, ctx.params.id, ctx.body)
+    if (before?.service_id) enqueueERPNextChange('services', before.service_id, 'upsert')
+    if (result.service_id && result.service_id !== before?.service_id) enqueueERPNextChange('services', result.service_id, 'upsert')
+    return result
+  })
+  del('/api/tiers/:id', (ctx) => {
+    const before = getRow(tiers, ctx.params.id)
+    const result = removeRow(tiers, ctx.params.id)
+    if (before?.service_id) enqueueERPNextChange('services', before.service_id, 'upsert')
+    return result
+  })
 
   /* 服务的增项/套餐 */
   get('/api/services/:id/options', (ctx) => ({
@@ -252,7 +276,17 @@ export function register() {
     const ts = stamp()
     db.exec('BEGIN')
     try {
-      ids.forEach((id, i) => stmt.run((i + 1) * 10, ts, int(id)))
+      ids.forEach((id, i) => {
+        const numericId = int(id)
+        stmt.run((i + 1) * 10, ts, numericId)
+        if (table === 'games') enqueueERPNextChange(table, numericId, 'upsert')
+        else if (table === 'services') enqueueERPNextChange(table, numericId, 'upsert')
+        else if (table === 'categories') enqueueERPNextChange('service_categories', numericId, 'upsert')
+        else if (table === 'options') {
+          const option = db.prepare('SELECT service_id FROM service_options WHERE id = ?').get(numericId)
+          if (option?.service_id) enqueueERPNextChange('services', option.service_id, 'upsert')
+        }
+      })
       db.exec('COMMIT')
     } catch (err) {
       db.exec('ROLLBACK')

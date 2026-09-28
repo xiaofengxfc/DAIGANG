@@ -1,4 +1,5 @@
 import { db, stamp } from '../db.mjs'
+import { enqueueERPNextChange } from '../outbox.mjs'
 import { get, post, patch, del } from '../http.mjs'
 import {
   bad,
@@ -152,7 +153,9 @@ export function createRow(def, body = {}) {
   const info = db
     .prepare(`INSERT INTO ${def.table} (${cols.join(', ')}) VALUES (${marks.join(', ')})`)
     .run(...values)
-  return getRow(def, Number(info.lastInsertRowid))
+  const id = Number(info.lastInsertRowid)
+  enqueueERPNextChange(def.table, id, 'upsert')
+  return getRow(def, id)
 }
 
 export function updateRow(def, id, body = {}) {
@@ -182,6 +185,7 @@ export function updateRow(def, id, body = {}) {
   }
   values.push(int(id))
   db.prepare(`UPDATE ${def.table} SET ${sets.join(', ')} WHERE id = ?`).run(...values)
+  enqueueERPNextChange(def.table, int(id), 'upsert')
   return getRow(def, id)
 }
 
@@ -229,14 +233,16 @@ export function removeRow(def, id, { hard = false } = {}) {
   if (!existing) notFound()
   if (def.archiveInstead && !hard) {
     db.prepare(`UPDATE ${def.table} SET status = 'archived', updated_at = ? WHERE id = ?`).run(stamp(), int(id))
+    enqueueERPNextChange(def.table, int(id), 'upsert')
     return { archived: true, id: int(id) }
   }
   db.prepare(`DELETE FROM ${def.table} WHERE id = ?`).run(int(id))
+  enqueueERPNextChange(def.table, int(id), 'delete')
   return { deleted: true, id: int(id) }
 }
 
 /** 通用 REST 五件套 */
-export function registerCrud(prefix, def, { afterList, onDelete } = {}) {
+export function registerCrud(prefix, def, { afterList, onDelete, afterCreate, afterUpdate, afterDelete } = {}) {
   get(`${prefix}`, (ctx) => {
     let rows = listRows(def, ctx.query)
     if (afterList) rows = afterList(rows, ctx)
@@ -247,11 +253,23 @@ export function registerCrud(prefix, def, { afterList, onDelete } = {}) {
     if (!row) notFound()
     return row
   })
-  post(`${prefix}`, (ctx) => createRow(def, ctx.body))
-  patch(`${prefix}/:id`, (ctx) => updateRow(def, ctx.params.id, ctx.body))
-  del(`${prefix}/:id`, (ctx) =>
-    onDelete ? onDelete(ctx, def) : removeRow(def, ctx.params.id, { hard: ctx.query.hard === '1' })
-  )
+  post(`${prefix}`, (ctx) => {
+    const result = createRow(def, ctx.body)
+    if (afterCreate) afterCreate(result, ctx)
+    return result
+  })
+  patch(`${prefix}/:id`, (ctx) => {
+    const before = getRow(def, ctx.params.id)
+    const result = updateRow(def, ctx.params.id, ctx.body)
+    if (afterUpdate) afterUpdate(result, before, ctx)
+    return result
+  })
+  del(`${prefix}/:id`, (ctx) => {
+    const before = getRow(def, ctx.params.id)
+    const result = onDelete ? onDelete(ctx, def) : removeRow(def, ctx.params.id, { hard: ctx.query.hard === '1' })
+    if (afterDelete) afterDelete(result, before, ctx)
+    return result
+  })
 }
 
 export { coerceValue, toDB, fromDB }

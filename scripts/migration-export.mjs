@@ -38,6 +38,7 @@ const tables = [
   'order_progress',
   'payments',
   'quotes',
+  'integration_outbox',
 ]
 
 const redactSetting = (key) => {

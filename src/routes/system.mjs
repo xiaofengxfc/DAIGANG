@@ -12,6 +12,7 @@ import { lock, status as vaultStatus, isConfigured, configure, auditLog } from '
 import { STATUS_LABEL } from './orders.mjs'
 import { erpNextStatus, testERPNext, preflightERPNext, syncERPNextMaster, syncERPNextTransactions, reconcileERPNext, ERPNextError } from '../erpnext.mjs'
 import { buildERPNextPreview, buildERPNextBundle } from '../erpnext-map.mjs'
+import { listOutbox, outboxSummary, retryOutbox } from '../outbox.mjs'
 
 const SETTING_KEYS = [
   'business_name',
@@ -389,6 +390,16 @@ export function register() {
       throw err
     }
   })
+  // 本地 Outbox 只读查看与重试标记；这里不会触发远程 ERPNext 写入。
+  get('/api/integrations/erpnext/outbox', (ctx) => ({
+    items: listOutbox({ status: clampStr(ctx.query.status, 20), limit: int(ctx.query.limit, 200) }),
+  }))
+  get('/api/integrations/erpnext/outbox/summary', () => outboxSummary())
+  post('/api/integrations/erpnext/outbox/retry', (ctx) => ({
+    ok: true,
+    retried: retryOutbox(ctx.body?.id),
+    summary: outboxSummary(),
+  }))
 
   /* ===== 设置 ===== */
   get('/api/settings', () => readSettings())
@@ -484,6 +495,7 @@ export function register() {
     'payments',
     'quotes',
     'vault_audit',
+    'integration_outbox',
   ]
 
   get('/api/backup/export', () => {
@@ -535,7 +547,7 @@ export function register() {
   /* ===== 清空业务数据（保留登录与保险箱设置） ===== */
   post('/api/system/reset', (ctx) => {
     if (ctx.body?.confirm !== 'CLEAR') bad('需要确认才可清空', 'need_confirm')
-    const tables = ['orders', 'order_items', 'order_progress', 'payments', 'quotes', 'credentials', 'customers', 'services', 'service_tiers', 'service_options', 'service_categories', 'games', 'vault_audit']
+    const tables = ['integration_outbox', 'orders', 'order_items', 'order_progress', 'payments', 'quotes', 'credentials', 'customers', 'services', 'service_tiers', 'service_options', 'service_categories', 'games', 'vault_audit']
     db.exec('BEGIN')
     try {
       for (const t of tables) db.prepare(`DELETE FROM ${t}`).run()

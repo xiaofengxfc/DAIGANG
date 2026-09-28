@@ -297,6 +297,30 @@ const MIGRATIONS = [
   // 一个游戏一种，留空表示这个游戏没配货币，服务项上那个数就不显示。
   `ALTER TABLE games ADD COLUMN currency TEXT NOT NULL DEFAULT '';
    ALTER TABLE services ADD COLUMN currency_amount REAL;`,
+
+  // v10：ERPNext 本地变更队列。
+  // 业务写入先落本地队列，ERPNext 离线、未配置或稍后切换时也不会丢变更。
+  // 队列只保存来源表和 ID，不保存 credentials 等敏感字段。
+  `
+  CREATE TABLE integration_outbox (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    provider        TEXT NOT NULL DEFAULT 'erpnext',
+    entity_type     TEXT NOT NULL,
+    source_id       INTEGER NOT NULL,
+    event_type      TEXT NOT NULL DEFAULT 'upsert',
+    status          TEXT NOT NULL DEFAULT 'pending',
+    attempts        INTEGER NOT NULL DEFAULT 0,
+    payload         TEXT NOT NULL DEFAULT '{}',
+    last_error      TEXT NOT NULL DEFAULT '',
+    next_attempt_at TEXT,
+    created_at      TEXT NOT NULL,
+    updated_at      TEXT NOT NULL,
+    processed_at    TEXT,
+    UNIQUE(provider, entity_type, source_id)
+  );
+  CREATE INDEX idx_outbox_status ON integration_outbox (provider, status, next_attempt_at, id);
+  CREATE INDEX idx_outbox_source ON integration_outbox (provider, entity_type, source_id);
+  `,
 ]
 
 export function migrate() {
