@@ -246,6 +246,72 @@ function pickNumberBlock(blocks, icon, tplImg, scale, { gapRatio = 4.5 } = {}) {
 }
 
 /**
+ * 图标模板只覆盖了固定 HUD 皮肤；有些页面会把资源图标换成另一套绘制，
+ * 但数字格式仍然稳定。这里只接管两个很明确的格式：体力的「当前/上限」
+ * 和贝币的长整数，再用同一排剩余数字推断星声。结果标成 ocr-layout，
+ * 让前端明确提示用户核对，不把它伪装成一次高置信度的模板命中。
+ */
+function ocrLayoutFallback(blocks, existing, img) {
+  const used = new Set(existing.map((h) => h.key))
+  const valid = (b) => {
+    if (!b || !b.text || (b.score !== null && b.score !== undefined && b.score < 0.55)) return false
+    const value = parseNumber(b.text)
+    return value !== null && value > 0
+  }
+  const list = blocks.filter(valid).map((b) => ({ block: b, value: parseNumber(b.text) }))
+  const fraction = list
+    .map((x) => {
+      const m = String(x.block.text).replace(/[／]/g, '/').match(/^(\d+)\s*\/\s*(\d+)$/)
+      return m ? { ...x, current: Number(m[1]), limit: Number(m[2]) } : null
+    })
+    .filter((x) => x && x.current > 0 && x.current <= x.limit && x.limit >= 100 && x.limit <= 300 && x.block.x > img.width * 0.55)
+    .sort((a, b) => b.block.x - a.block.x)[0]
+  const out = []
+  const make = (key, item, warn) => ({
+    key,
+    value: item.value,
+    text: item.block.text,
+    score: +Math.max(0.55, Math.min(0.74, Number(item.block.score) || 0.62)).toFixed(3),
+    x: Math.max(0, Math.round(item.block.x - item.block.h * 0.9)),
+    y: Math.max(0, Math.round(item.block.y)),
+    scale: 1,
+    anchored: false,
+    digit_h: Math.round(item.block.h || 0),
+    warn,
+    source: 'ocr-layout',
+    block: { x: item.block.x, y: item.block.y, w: item.block.w, h: item.block.h, text: item.block.text, parts: item.block.parts },
+    from: 'ocr',
+  })
+  if (fraction && !used.has('体力')) {
+    out.push(make('体力', fraction, '按当前/上限格式识别，请核对'))
+    used.add('体力')
+  }
+
+  const plain = list
+    .filter((x) => !/[\/／]/.test(String(x.block.text)))
+    .filter((x) => x.block.x > img.width * 0.45)
+    .sort((a, b) => a.block.x - b.block.x)
+  const shell = plain.filter((x) => String(Math.trunc(x.value)).length >= 6).sort((a, b) => b.value - a.value)[0]
+  if (shell && !used.has('贝币')) {
+    out.push(make('贝币', shell, '按长整数识别，请核对'))
+    used.add('贝币')
+  }
+  if (!used.has('星声')) {
+    const candidates = plain.filter((x) => x !== shell)
+    // 只有一个短数字时，要求它在 HUD 右侧或同排确实看到了体力格式，
+    // 避免把关卡等级、页码之类的数字写进资源栏。
+    const star =
+      candidates.length > 1 || fraction
+        ? candidates[candidates.length - 1]
+        : plain.length === 1 && plain[0].block.x > img.width * 0.62
+          ? plain[0]
+          : null
+    if (star) out.push(make('星声', star, '按同排数字识别，请核对'))
+  }
+  return out
+}
+
+/**
  * 认一帧。img 是 {width,height,px}，words 是 OCR 的词框。
  * 返回 { hits, seen, size, ms, anchor }：
  *   hits   = [{ key, value, score, x, y, scale, block }] 只含分数达标的
@@ -294,7 +360,9 @@ export function recognizeFrame(img, words, {
   // 锚点定不出来，数字就读错（实测那两种比例全错）。
   // 游戏 UI 是按横向分辨率缩放的，所以宽度才是那个不变量。
   const expectedIconW = Math.max(8, img.width * ICON_W_RATIO)
-  const scalesFor = (tplImg) => sweepScales((expectedIconW / tplImg.width) * 1.1, 1.5, 9)
+  // 不同页面的 HUD 不一定按同一个轴缩放：武器页图标接近 80px，地图页
+  // 同一套资源可能只有 45px。放宽搜索档位，避免模板尺寸正确却完全错过。
+  const scalesFor = (tplImg) => sweepScales((expectedIconW / tplImg.width) * 1.1, 2.35, 11)
 
   /* ---- 工作图：只裁顶栏那条带 ----
      「任何分辨率都跑得动」的关键就在这一步：4K 截图整张缩一遍要 200ms 以上，
@@ -477,6 +545,16 @@ export function recognizeFrame(img, words, {
     }
     seen.push(rec)
     if (picked) hits.push(rec)
+  }
+
+  // 模板完全没有覆盖到的 HUD 皮肤仍可能有可靠的 OCR 数字格式。
+  // 只在对应资源尚未命中时补入，模板命中始终优先。
+  const fallback = ocrLayoutFallback(blocks, hits, img)
+  for (const rec of fallback) {
+    if (!hits.some((h) => h.key === rec.key)) {
+      hits.push(rec)
+      seen.push(rec)
+    }
   }
 
   // 同一个 key 认到多个就留分最高的那个（详情页里也可能有同款图标）
@@ -663,7 +741,7 @@ export async function recognizeImageFile(filePath, { lang = 'zh-Hans-CN', minSco
     seen: r.seen,
     anchor: r.anchor,
     pixel: true,
-    candidates: r.hits.map((h) => ({ text: h.text, value: h.value, key: h.key, score: h.score, x: h.x, y: h.y, iconAt: h.x })),
+    candidates: r.hits.map((h) => ({ text: h.text, value: h.value, key: h.key, score: h.score, source: h.source || 'icon', warn: h.warn || '', x: h.x, y: h.y, iconAt: h.x })),
     size: r.size,
     lines: ocr.lines,
     engine: ocr.engine || 'windows',

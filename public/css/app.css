@@ -1560,13 +1560,15 @@ button.cell:hover {
 .timeline {
   display: flex;
   flex-direction: column;
+  gap: 0;
 }
 
 .tl {
   display: grid;
-  grid-template-columns: 12px minmax(0, 1fr);
-  gap: var(--sp-3);
-  padding-bottom: var(--sp-4);
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 14px;
+  position: relative;
+  padding-bottom: 14px;
 }
 
 .tl:last-child {
@@ -1577,25 +1579,28 @@ button.cell:hover {
   position: relative;
   display: flex;
   justify-content: center;
+  min-height: 36px;
 }
 
 .tl__dot {
-  width: 9px;
-  height: 9px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
-  background: var(--cinnabar);
-  margin-top: 5px;
+  background: var(--surface);
+  border: 2px solid var(--cinnabar);
+  margin-top: 18px;
   flex: none;
   z-index: 1;
+  box-shadow: 0 0 0 4px var(--cinnabar-bg);
 }
 
 .tl__rail::after {
   content: '';
   position: absolute;
-  top: 16px;
-  bottom: -18px;
-  width: 1px;
-  background: var(--line-strong);
+  top: 34px;
+  bottom: -14px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--cinnabar-line), var(--line));
 }
 
 .tl:last-child .tl__rail::after {
@@ -1606,23 +1611,34 @@ button.cell:hover {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface-2);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
 }
 
 .tl__head {
   display: flex;
   align-items: baseline;
-  gap: var(--sp-2);
+  gap: 9px;
   flex-wrap: wrap;
+  min-height: 28px;
 }
 
 .tl__date {
-  font-family: var(--font-fig);
-  font-size: var(--fs-sm);
-  color: var(--ink-2);
   display: inline-flex;
   align-items: baseline;
-  gap: 5px;
+  gap: 8px;
+  font-family: var(--font-fig);
+  font-size: var(--fs-md);
+  color: var(--ink-2);
+}
+
+.tl__date strong {
+  color: var(--ink);
+  font-weight: 650;
 }
 
 /* 相对日期（今天/昨天）后面跟一个绝对日期，两个都要有：
@@ -1632,14 +1648,23 @@ button.cell:hover {
   color: var(--ink-3);
 }
 
+.tl__step {
+  padding: 3px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+
 /* 最新一条：点实心、条目本身比别的重一档，一眼看出「现在做到这」 */
 .tl--now .tl__dot {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cinnabar) 22%, transparent);
+  background: var(--cinnabar);
+  box-shadow: 0 0 0 4px var(--cinnabar-bg);
 }
 
 .tl:not(.tl--now) .tl__dot {
   background: var(--surface);
-  border: 1.5px solid var(--cinnabar);
 }
 
 /* 本次消耗 / 增长：带正负色的数字片。
@@ -1649,6 +1674,7 @@ button.cell:hover {
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+  padding-top: 2px;
 }
 
 .tl__delta {
@@ -1676,8 +1702,24 @@ button.cell:hover {
 }
 
 .tl__content {
-  line-height: 1.65;
+  font-size: var(--fs-md);
+  line-height: 1.7;
   white-space: pre-wrap;
+  color: var(--ink);
+}
+
+.tl__resrow {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.tl__reslabel {
+  flex: none;
+  padding-top: 3px;
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
 }
 
 .tl__res {
@@ -1687,11 +1729,35 @@ button.cell:hover {
   font-family: var(--font-fig);
   font-size: var(--fs-sm);
   color: var(--ink-2);
-  background: var(--surface-2);
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-ctl);
   padding: 2px 8px;
   flex-wrap: wrap;
+  line-height: 1.5;
+}
+
+.tl__arrow {
+  color: var(--cinnabar);
+  font-weight: 600;
+}
+
+.tl__note {
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--amber);
+  background: var(--amber-bg);
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.tl__note-label {
+  flex: none;
+  color: var(--amber-ink);
+  font-weight: 600;
 }
 
 .tl__shots {

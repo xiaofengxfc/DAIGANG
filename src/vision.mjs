@@ -135,30 +135,47 @@ export function subImage(img, x, y, w, h) {
  */
 export function buildIntegral(img) {
   const { width: w, height: h } = img
-  const lum = new Float64Array(w * h) // 颜色比例用：(R-S/3)
+  // 两个颜色比例特征：(R-S/3, G-S/3)。旧实现只建了第一张积分图，
+  // matchAt 却把模板的两个分量都乘到了同一个亮度值上，导致星声和体力
+  // 这种亮度接近、色相不同的图标互相串位。
+  const a = new Float64Array(w * h)
+  const b = new Float64Array(w * h)
   for (let i = 0, p = 0; i < w * h; i++, p += 3) {
-    lum[i] = img.px[p] - (img.px[p] + img.px[p + 1] + img.px[p + 2]) / 3
+    const s = (img.px[p] + img.px[p + 1] + img.px[p + 2]) / 3
+    a[i] = img.px[p] - s
+    b[i] = img.px[p + 1] - s
   }
-  return makeIntegral(w, h, lum)
+  return makeIntegral(w, h, a, b)
 }
 
-/** 从已经算好的 lum 数组建积分图（省一次全图扫描） */
-export function makeIntegral(w, h, lum) {
+/** 从已经算好的颜色比例数组建积分图（省一次全图扫描） */
+export function makeIntegral(w, h, a, b = null) {
   const stride = w + 1
   const sum = new Float64Array(stride * (h + 1))
   const sq = new Float64Array(stride * (h + 1))
+  const sumB = b ? new Float64Array(stride * (h + 1)) : null
+  const sqB = b ? new Float64Array(stride * (h + 1)) : null
   for (let y = 0; y < h; y++) {
     let rowS = 0
     let rowQ = 0
+    let rowSB = 0
+    let rowQB = 0
     for (let x = 0; x < w; x++) {
-      const v = lum[y * w + x]
+      const v = a[y * w + x]
       rowS += v
       rowQ += v * v
       sum[(y + 1) * stride + (x + 1)] = sum[y * stride + (x + 1)] + rowS
       sq[(y + 1) * stride + (x + 1)] = sq[y * stride + (x + 1)] + rowQ
+      if (b) {
+        const vb = b[y * w + x]
+        rowSB += vb
+        rowQB += vb * vb
+        sumB[(y + 1) * stride + (x + 1)] = sumB[y * stride + (x + 1)] + rowSB
+        sqB[(y + 1) * stride + (x + 1)] = sqB[y * stride + (x + 1)] + rowQB
+      }
     }
   }
-  return { sum, sq, stride, lum, width: w, height: h }
+  return { sum, sq, sumB, sqB, stride, lum: a, a, b, width: w, height: h }
 }
 
 /** 窗口的和 / 平方和（4 次查表） */
@@ -169,6 +186,18 @@ export function rectSum(ii, x0, y0, x1, y1) {
 export function rectSqSum(ii, x0, y0, x1, y1) {
   const s = ii.stride
   return ii.sq[y1 * s + x1] - ii.sq[y0 * s + x1] - ii.sq[y1 * s + x0] + ii.sq[y0 * s + x0]
+}
+
+function rectSumB(ii, x0, y0, x1, y1) {
+  if (!ii.sumB) return 0
+  const s = ii.stride
+  return ii.sumB[y1 * s + x1] - ii.sumB[y0 * s + x1] - ii.sumB[y1 * s + x0] + ii.sumB[y0 * s + x0]
+}
+
+function rectSqSumB(ii, x0, y0, x1, y1) {
+  if (!ii.sqB) return 0
+  const s = ii.stride
+  return ii.sqB[y1 * s + x1] - ii.sqB[y0 * s + x1] - ii.sqB[y1 * s + x0] + ii.sqB[y0 * s + x0]
 }
 
 /* ---------------- 模板 ---------------- */
@@ -268,7 +297,8 @@ export function matchAt(img, ii, region, tpl, { step = 2, deadline = 0, exclude 
   const res = { score: -2, x: x0, y: y0 }
   if (x1 - x0 < tw || y1 - y0 < th) return res
   // 积分图和 img 必须同尺寸（粗筛阶段是缩过的图，精修阶段是条带）
-  const lum = ii.lum
+  const featureA = ii.a || ii.lum
+  const featureB = ii.b
   const W = ii.width
   const n = tw * th
   const count = tpl.count
@@ -282,16 +312,23 @@ export function matchAt(img, ii, region, tpl, { step = 2, deadline = 0, exclude 
     for (let x = x0; x <= x1 - tw; x += step) {
       if (deadline && (++guard & 63) === 0 && Date.now() > deadline) return res
       if (exclude && excluded(exclude, x, y, tw, th)) continue
-      const s = rectSum(ii, x, y, x + tw, y + th)
-      const q = rectSqSum(ii, x, y, x + tw, y + th)
-      const mean = s / n
-      const varr = q - n * mean * mean
+      const sA = rectSum(ii, x, y, x + tw, y + th)
+      const qA = rectSqSum(ii, x, y, x + tw, y + th)
+      const meanA = sA / n
+      let varr = qA - n * meanA * meanA
+      if (featureB) {
+        const sB = rectSumB(ii, x, y, x + tw, y + th)
+        const qB = rectSqSumB(ii, x, y, x + tw, y + th)
+        const meanB = sB / n
+        varr += qB - n * meanB * meanB
+      }
       if (varr <= 1e-6) continue
       let num = 0
       const base = y * W + x
       for (let k = 0; k < count; k++) {
-        const v = lum[base + corePy[k] * W + corePx[k]]
-        num += ta[k] * v + tb[k] * v
+        const i = base + corePy[k] * W + corePx[k]
+        num += ta[k] * featureA[i]
+        if (featureB) num += tb[k] * featureB[i]
       }
       const score = num / Math.sqrt(varr)
       if (score > res.score) {
@@ -543,7 +580,18 @@ export function groupNumberBlocks(words, { gapRatio = 0.45, lineRatio = 0.6 } = 
     const y = Math.min(...group.map((g) => g.y))
     const w = Math.max(...group.map((g) => g.x + g.w)) - x
     const h = Math.max(...group.map((g) => g.y + g.h)) - y
-    blocks.push({ text, x, y, w, h, cx: x + w / 2, cy: y + h / 2, parts: group.length })
+    const scores = group.map((g) => Number(g.score)).filter((v) => Number.isFinite(v) && v > 0)
+    blocks.push({
+      text,
+      x,
+      y,
+      w,
+      h,
+      cx: x + w / 2,
+      cy: y + h / 2,
+      parts: group.length,
+      score: scores.length ? scores.reduce((s, v) => s + v, 0) / scores.length : null,
+    })
   }
   return blocks
 }

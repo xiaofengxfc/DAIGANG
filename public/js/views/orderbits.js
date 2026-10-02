@@ -143,6 +143,7 @@ function resourcesField({ before = '', after = '', beforeFrom = '' } = {}) {
       const pending = {}
       const seenIcons = []
       const smallText = {}
+      const layoutFallback = {}
       let engine = ''
       const deadline = Date.now() + 90000
       const paintProgress = (extra) => {
@@ -179,13 +180,16 @@ function resourcesField({ before = '', after = '', beforeFrom = '' } = {}) {
           if (r.engine) engine = r.engine
           if (Array.isArray(r.hits)) {
             for (const hit of r.hits) {
-              const label = `${hit.key}(分${hit.score}${hit.warn ? '·字太小' : ''})`
+              const label = `${hit.key}(分${hit.score}${hit.source === 'ocr-layout' ? '·格式兜底' : hit.warn ? '·字太小' : ''})`
               if (!seenIcons.includes(label)) seenIcons.push(label)
             }
           }
           // 字太小的读法单独记一句，收尾时一起提醒
           if (Array.isArray(r.hits)) {
-            for (const hit of r.hits) if (hit.warn) smallText[hit.key] = true
+            for (const hit of r.hits) {
+              if (hit.source === 'ocr-layout') layoutFallback[hit.key] = hit.warn || '按数字格式识别'
+              else if (hit.warn) smallText[hit.key] = true
+            }
           }
           for (const [k, v] of Object.entries(r.agreed || {})) {
             got[k] = v.value
@@ -210,6 +214,9 @@ function resourcesField({ before = '', after = '', beforeFrom = '' } = {}) {
                 { style: { marginTop: '2px' } },
                 `${small.join('、')} 这几个字太小（顶栏文字不到 21px），自带 OCR 有时会读错位数 —— 这 ${small.length} 个请对着游戏核一遍。想要更准就装一个本地 OCR 引擎（设置页有指引）。`
               )
+            : null,
+          Object.keys(layoutFallback).length
+            ? h('div.tiny.tone-amber', { style: { marginTop: '2px' } }, `${Object.keys(layoutFallback).join('、')} 是按数字格式补出的，请对照截图核对。`)
             : null,
           h(
             'div.tiny',
@@ -257,13 +264,18 @@ function resourcesField({ before = '', after = '', beforeFrom = '' } = {}) {
         // 认出来的原文也摊开给用户核对 —— 认错的时候一眼能看出来
         const lines = (r.lines || []).filter((l) => l.trim()).slice(0, 8)
         // 「看到了图标但没配上数字」也要说出来，不然用户不知道为什么留空
-        const weak = (r.seen || []).filter((s) => s.value === undefined || s.value === null).map((s) => `${s.key}${s.score ? `(分${s.score})` : ''}`)
+        const gotKeys = new Set((r.hits || []).map((s) => s.key))
+        const weak = (r.seen || [])
+          .filter((s) => (s.value === undefined || s.value === null) && !gotKeys.has(s.key))
+          .map((s) => `${s.key}${s.score ? `(分${s.score})` : ''}`)
+        const fallback = (r.hits || []).filter((s) => s.source === 'ocr-layout').map((s) => s.key)
         // mount 会把 null 滤掉；replaceChildren(null) 会显示成文字「null」
         mount(
           note,
           h('strong', n ? `认出 ${n} 项，请核对一下再保存` : '这三个资源一个都没认出来，可以手动填'),
           r.warning ? h('div.tiny', { style: { marginTop: '2px', opacity: '.85' } }, r.warning) : null,
           r.engine ? h('div.tiny', { style: { marginTop: '2px', opacity: '.85' } }, `引擎：${r.engine}${r.anchor ? ` · 定标图标：${r.anchor.key}(分${r.anchor.score})` : ''}`) : null,
+          fallback.length ? h('div.tiny.tone-amber', { style: { marginTop: '2px' } }, `${fallback.join('、')} 是按数字格式补出的，请对照截图核对。`) : null,
           weak.length ? h('div.tiny', { style: { marginTop: '2px', opacity: '.85' } }, `没配上数字的：${weak.join('、')}`) : null,
           lines.length ? h('div.tiny', { style: { marginTop: '4px', opacity: '.85' } }, `识别到的原文：${lines.join(' ｜ ')}`) : null
         )
@@ -739,16 +751,9 @@ export function progressTimeline(list, { onEdit, onDelete } = {}) {
           'div.tl__body',
           h(
             'div.tl__head',
-            h('span.tl__date', relDay(p.happened_on), h('span.tl__datefull', fmtDay(p.happened_on))),
+            h('div.tl__date', h('strong', relDay(p.happened_on)), h('span.tl__datefull', fmtDay(p.happened_on))),
             i === lastIdx ? tag('最新', 'slate') : null,
-            p.resources_before || p.resources_after
-              ? h(
-                  'span.tl__res',
-                  p.resources_before ? h('span', p.resources_before) : null,
-                  h('span.dim', '→'),
-                  p.resources_after ? h('span', p.resources_after) : null
-                )
-              : null,
+            h('span.tl__step', `第 ${i + 1} 条`),
             h('div', { style: { flex: '1' } }),
             onEdit
               ? h('button.btn.btn--sm.btn--quiet', { type: 'button', title: '编辑', onclick: () => onEdit(p) }, icon('edit', 13))
@@ -758,6 +763,18 @@ export function progressTimeline(list, { onEdit, onDelete } = {}) {
               : null
           ),
           h('div.tl__content', p.content),
+          p.resources_before || p.resources_after
+            ? h(
+                'div.tl__resrow',
+                h('span.tl__reslabel', '资源变化'),
+                h(
+                  'span.tl__res',
+                  p.resources_before ? h('span', p.resources_before) : h('span.dim', '未记录'),
+                  h('span.tl__arrow', '→'),
+                  p.resources_after ? h('span', p.resources_after) : h('span.dim', '未记录')
+                )
+              )
+            : null,
           chips.length ? h('div.tl__deltas', h('span.dim.tiny', '本次消耗'), ...chips) : null,
           shots.length
             ? h(
@@ -771,7 +788,7 @@ export function progressTimeline(list, { onEdit, onDelete } = {}) {
                 links.map((m) => h('a.shot-link', { href: m, target: '_blank', rel: 'noreferrer noopener' }, icon('link', 12), '录屏 / 链接'))
               )
             : null,
-          p.note ? h('div.tbl__meta', { style: { marginTop: '6px' } }, p.note) : null
+          p.note ? h('div.tl__note', h('span.tl__note-label', '备注'), p.note) : null
         )
       )
     })

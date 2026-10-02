@@ -915,7 +915,7 @@ function resourceDeltaText(beforeText, afterText) {
         delta: resourceDeltaText(p.resources_before, p.resources_after),
         note: p.note || '',
         shots: (p.media || []).filter((m) => /\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(m)).length,
-        links: (p.media || []).length,
+        links: (p.media || []).filter((m) => !/\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(m)).length,
       }))
 
     const report = {
@@ -954,7 +954,7 @@ function resourceDeltaText(beforeText, afterText) {
         if (e.delta) lines.push(`  本次消耗：${e.delta}`)
         lines.push(`  ${e.content}`)
         if (e.shots) lines.push(`  （附 ${e.shots} 张截图）`)
-        else if (e.links) lines.push(`  （附 ${e.links} 个链接）`)
+        if (e.links) lines.push(`  （附 ${e.links} 个链接）`)
         if (e.note) lines.push(`  备注：${e.note}`)
       }
     }
