@@ -59,10 +59,12 @@ const ANCHOR_MIN_SCORE = 0.85
 
 /**
  * 字高低于这个值就提醒用户核对。
- * 实测：常规比例下 15~17px 的字（1152~1366 宽）认得出，而超宽比例下
- * 20~22px 的字反而读错 —— 因为超宽屏是把 UI 按高度缩小后再插值出来的，
- * 笔画被糊掉了。所以单看「字高」判断不准，这里索性把线放宽到 26：
- * 宁可多提醒一句（用户看一眼游戏就知道对不对），也不要悄悄填一个错的数字进去。
+ *
+ * **只对 Windows 自带 OCR 生效**：实测它在字高 ≤22px 时会读错位数
+ * （超宽屏下 `2174` 读成 `21`），而 PP-OCR 系的引擎（Umi-OCR / PaddleOCR-json /
+ * RapidOCR-json）在同样的字高下是全对的 —— 实测装上 RapidOCR-json 之后
+ * 超宽那三档从 2/6 变成 6/6。所以这条提醒跟着当前引擎走，
+ * 免得用好引擎时也一直提示「字太小」白白增加噪音。
  */
 const SMALL_DIGIT_H = 26
 
@@ -454,9 +456,11 @@ export function recognizeFrame(img, words, {
     }
     calibIcons[r.key] = { x: hit.x, y: hit.y, scale: hit.scale }
     const picked = pickNumberBlock(blocks, hit, r.img, hit.scale)
-    // 字太小就标出来让人多看一眼。实测 Windows 自带 OCR 在字高 ≤20px 时
-    // 会读错位数（`2174` 读成 `21`），超宽分辨率下游戏 UI 按高度缩就会到这个尺寸。
+    // 字太小就标出来让人多看一眼 —— 但只对 Windows 自带 OCR 标：
+    // 它在字高 ≤22px 时会读错位数，PP-OCR 系的引擎不会（见 SMALL_DIGIT_H 的注释）。
+    const engineId = ocrStatus().engine
     const digitH = picked ? picked.block.h : 0
+    const smallText = digitH > 0 && digitH < SMALL_DIGIT_H && engineId === 'windows'
     const rec = {
       key: r.key,
       value: picked ? picked.value : null,
@@ -467,7 +471,7 @@ export function recognizeFrame(img, words, {
       scale: +hit.scale.toFixed(3),
       anchored: Boolean(anchor && r !== anchorR),
       digit_h: Math.round(digitH),
-      warn: digitH > 0 && digitH < SMALL_DIGIT_H ? '字太小，务必核对' : '',
+      warn: smallText ? '字太小，务必核对' : '',
       block: picked ? { x: picked.block.x, y: picked.block.y, w: picked.block.w, h: picked.block.h, text: picked.block.text, parts: picked.block.parts } : null,
       from: r.from || 'bundled',
     }

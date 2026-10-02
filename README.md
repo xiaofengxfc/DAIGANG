@@ -618,23 +618,35 @@ XFC_DATA_DIR=./data-smoke node server.mjs --port 8790 --local
 > 把这十一种分辨率过一遍，能立刻看出哪一档退化了。
 > 没有样例图它会自己跳过，不会让 `node scripts/check.mjs` 失败。
 
-### 想认得更全，装一个本地 OCR 引擎（可选）
+### 想认得更全，装一个本地 OCR 引擎（推荐，能一键装）
 
-不装也能用（走 Windows 自带的 OCR）。装了会明显更准，尤其是中文和糊字。
-程序会自动探测，装了哪个用哪个，按这个顺序：
+不装也能用（走 Windows 自带的 OCR），但**装了差距很大**：同一批截图，
+自带 OCR 在超宽分辨率下会把 `2174` 读成 `21`，换上 RapidOCR-json 之后
+**十一种分辨率全对**（22/22，含 2560×1080 / 1920×822 / 3440×1440 这些超宽比例）。
 
-| 顺序 | 引擎 | 怎么装 |
-| --- | --- | --- |
-| 1 | **Umi-OCR** | 从 <https://github.com/hiroi-sora/Umi-OCR> 下 Release 解压即用，**设置里把「HTTP 服务」打开**（默认端口 1224） |
-| 2 | **PaddleOCR-json** | <https://github.com/hiroi-sora/PaddleOCR-json> 的 Windows 包解压到 `tools\ocr\`（或设环境变量 `PADDLEOCR_JSON_BIN`）。约 88MB，要 CPU 支持 AVX |
-| 3 | **RapidOCR-json** | <https://github.com/hiroi-sora/RapidOCR-json> 同上，约 30MB，不需要 AVX |
-| 4 | **Tesseract** | <https://github.com/UB-Mannheim/tesseract> 安装时勾上 `chi_sim` 中文语言包 |
-| 5 | **Windows 自带 OCR** | 不用装，兜底 |
+**怎么装：设置 → 屏幕识别 → 安装选项 → 点「自动安装」。**
+它会自己从 GitHub 官方 Release 下载、解压到 `tools\ocr\`、然后自动切过去用，
+界面上有下载进度和日志（70MB 的包看网络，可能要几分钟）。装完点「自检一下」
+可以确认它真的跑得起来。
+
+| 顺序 | 引擎 | 能不能一键装 | 说明 |
+| --- | --- | --- | --- |
+| 1 | **Umi-OCR** | ✋ 要手动 | <https://github.com/hiroi-sora/Umi-OCR> 官方包是自解压 exe，装完还要在它自己的设置里打开「HTTP 服务」（默认端口 1224）—— 最后一步得你点，所以这里只给下载页 |
+| 2 | **PaddleOCR-json** | ✅ 能 | 约 88MB 包 / 展开 250MB，**要 CPU 支持 AVX**（老机器可能跑不起来） |
+| 3 | **RapidOCR-json** | ✅ 能 | 约 70MB 包 / 展开 95MB，**不需要 AVX** —— 最省事的一个，推荐先装这个 |
+| 4 | **Tesseract** | 自己装 | <https://github.com/UB-Mannheim/tesseract> 安装时勾上 `chi_sim` 中文语言包 |
+| 5 | **Windows 自带 OCR** | 不用装 | 兜底，永远在 |
+
+自动安装需要这台机器上有**能解 .7z 的解压器**（7-Zip / NanaZip 之类）。
+设置页会先探测并告诉你有没有；没有的话它会说清楚，并给出下载页让你手动解压到
+`tools\ocr\`。想装到别处也行 —— 每个引擎都支持用环境变量指路径
+（`RAPIDOCR_JSON_BIN` / `PADDLEOCR_JSON_BIN` / `TESSERACT_BIN`）。
 
 装完回到 **设置 → 屏幕识别 → 重新检测**，它会告诉你现在用的是哪个。
 五个全都没有才会告诉你「用不了」，不会因为缺一个就罢工。
 
 > 引擎都是**本机跑**的，截图不出这台电脑，和凭证保险箱一个立场。
+> 装到 `tools/` 里的东西不进版本库（.gitignore 里排除了），换机器重新点一次就行。
 
 ### 图标变了怎么办（换了游戏版本）
 
@@ -652,6 +664,10 @@ XFC_DATA_DIR=./data-smoke node server.mjs --port 8790 --local
 | `POST /api/ocr/screen` | 认当前屏幕并投票，同一 `session` 连续调用会累计票数 |
 | `POST /api/ocr/screen/reset` | 清掉这次投票记录 |
 | `GET/POST /api/ocr/icons` | 列出 / 上传自备图标模板 |
+| `GET /api/ocr/install` | 安装选项清单 + 解压器探测结果 |
+| `POST /api/ocr/install` | 开始一键安装（后台跑，立刻返回 job id） |
+| `GET /api/ocr/install/status?job=` | 查安装进度（百分比 + 日志） |
+| `POST /api/ocr/install/health` | 环境自检：真跑一张小图确认引擎能用 |
 
 ### 技术上的取舍（几句话）
 
@@ -694,9 +710,10 @@ XFC_DATA_DIR=./data-smoke node server.mjs --port 8790 --local
 按这三步看：
 
 1. **先去 设置 → 屏幕识别 看它用的是哪个引擎。** 只有「Windows 自带 OCR」的话，
-   装一个本地引擎（那一页有指引和链接）会明显更准，尤其是小字。
-2. **看提示里有没有「字太小，务必核对」。** 有这句说明顶栏文字不到 26px 高
-   （超宽分辨率下常见），自带 OCR 在这个尺寸会读错位数 —— 对着游戏核一遍。
+   在「安装选项」里点一下 **RapidOCR-json 的「自动安装」**（约 70MB，不需要 AVX）——
+   实测装完之后十一种分辨率全对，而自带 OCR 在超宽分辨率下会把 `2174` 读成 `21`。
+2. **看提示里有没有「字太小，务必核对」。** 有这句说明当前是自带 OCR 且顶栏文字
+   不到 26px 高（超宽分辨率下常见），对着游戏核一遍；装了上面那个引擎就不会再提示。
 3. **换了游戏大版本、图标重画了？** 设置 → 屏幕识别 → 自备一个图标模板，
    给一张顶栏截图 + 图标所在的方框（x/y/宽/高），它会当场抠出来存下。
 
@@ -743,9 +760,11 @@ src/
   pricing.mjs         计价引擎（报价单和订单共用同一套）
   vision.mjs          屏幕识别的眼睛：积分图 NCC、多尺度搜索、数字块合并
   screen.mjs          界面识别：图标当锚点定标、跨帧投票、图标模板
-  ocr.mjs             五种 OCR 引擎的探测链与适配
+  ocr.mjs             五种 OCR 引擎的探测链、命令行适配、记录文件
+  ocr-install.mjs     引擎自动安装：下载 Release → 解压 → 落位 → 重新探测
   imgmatch.mjs        PNG 解码 / 老的模板匹配（新逻辑已迁到 vision.mjs）
   routes/             各模块接口
 public/               前端（原生 JS + CSS）
 data/                 运行时生成：console.db + uploads/ + resource-icons/
+tools/ocr/            自动安装的本地 OCR 引擎（不进版本库）
 ```

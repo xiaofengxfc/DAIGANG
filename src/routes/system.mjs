@@ -1,4 +1,4 @@
-﻿import fs from 'node:fs'
+import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { db, getSetting, setSetting, stamp, nextSerialNo } from '../db.mjs'
@@ -6,6 +6,7 @@ import { get, post, patch, del, saveDataURL, setBodyLimit } from '../http.mjs'
 import { UPLOAD_DIR, needsRestart, ROOT, MAX_OCR_IMAGE_BYTES } from '../config.mjs'
 import { bad, notFound, fail, int, num, money, clampStr, nowISO, localDate, localMonth, bizDate, parseJSON } from '../util.mjs'
 import { ocrAvailable, ocrImage, extractResources, ocrStatus, probeEngines, ocrEngines } from '../ocr.mjs'
+import { installOptions, installEngine, installStatus, extractorStatus, releasePage, INSTALL_SPECS, engineHealth, cleanupTmp } from '../ocr-install.mjs'
 import { recognizeScreenOnce, recognizeImageFile, resetVotes, screenAvailable, templateStatus, loadTemplates, extractIconTemplate, TEMPLATE_FILE, SCREEN_RESOURCES, MIN_SCORE } from '../screen.mjs'
 import { decodePNG, encodePNG } from '../imgmatch.mjs'
 import { isSetUp, setPassword, verifyPassword, createSession, destroySession, destroyAllSessions, actorName, assertNotThrottled, noteFailure, clearFailures } from '../auth.mjs'
@@ -510,6 +511,48 @@ export function register() {
       want: SCREEN_RESOURCES,
       min_votes: Math.max(1, Math.min(6, int(ctx.body.min_votes, 2) || 2)),
     }
+  })
+
+  /* ===== OCR 引擎安装选项（设置页「安装选项」那一块） ===== */
+
+  /**
+   * 安装选项清单：还没装的引擎各自能给什么、怎么装、能不能自动装。
+   * 顺带把解压器状态带出去（自动安装要靠它解 .7z）。
+   */
+  get('/api/ocr/install', async () => {
+    const r = await installOptions()
+    return { ...r, extractor: extractorStatus(), engines: ocrEngines().engines }
+  })
+
+  /** 开始自动安装（后台跑，立刻返回 job；进度轮询下面那个接口） */
+  post('/api/ocr/install', async (ctx) => {
+    const id = clampStr(ctx.body.engine, 20)
+    if (!INSTALL_SPECS[id]) fail(400, `不认识的引擎：${id}`, 'bad_engine')
+    const r = await installEngine(id)
+    if (!r.ok) fail(400, r.error, 'install_failed')
+    return r
+  })
+
+  /** 查安装进度 */
+  get('/api/ocr/install/status', (ctx) => {
+    const r = installStatus(clampStr(ctx.query.job, 60))
+    if (!r.ok) fail(404, r.error, 'no_job')
+    return r
+  })
+
+  /** 环境自检：这个引擎的可执行文件到底跑不跑得起来 */
+  post('/api/ocr/install/health', (ctx) => {
+    const id = clampStr(ctx.body.engine, 20)
+    if (!INSTALL_SPECS[id]) fail(400, `不认识的引擎：${id}`, 'bad_engine')
+    return engineHealth(id)
+  })
+
+  /** 装完之后可以只重新探测，不用整页刷新 */
+  get('/api/ocr/install/release', (ctx) => {
+    const id = clampStr(ctx.query.engine, 20)
+    const spec = INSTALL_SPECS[id]
+    if (!spec) fail(400, `不认识的引擎：${id}`, 'bad_engine')
+    return { engine: id, name: spec.name, page: releasePage(spec), license: spec.license, size: spec.size, note: spec.note }
   })
 
   /** 清掉一次「看屏幕」的投票记录（换了一张单、或者用户点了重来） */

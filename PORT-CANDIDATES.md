@@ -90,6 +90,29 @@
 只做探测 + 引导用户自己装。PaddleOCR-json / RapidOCR-json / Tesseract 许可宽松，
 用户自己解压到 `tools\ocr\` 或设环境变量 `PADDLEOCR_JSON_BIN` / `RAPIDOCR_JSON_BIN` / `TESSERACT_BIN` 即可。
 
+**又加了「一键安装」（2026-10）**：`src/ocr-install.mjs`，设置页点一下就装
+（下载官方 Release → 解压 → 落位到 `tools\ocr\<引擎>\` → 重新探测），
+带进度条和日志，装完还有「自检一下」（真跑一张小图，比看文件在不在可靠）。
+
+三个实测踩出来的坑，都写进代码注释了：
+
+1. **`.7z` 解不了的问题**：Node 标准库没有 LZMA，Windows 自带的 `tar.exe`（bsdtar）
+   实测也报 `LZMA codec is unsupported`。所以解压必须靠系统上的 7z 系工具 ——
+   但**不能只看文件在不在**：Microsoft Store 的占位符
+   （`%LOCALAPPDATA%\Microsoft\WindowsApps\7z.exe`，0 字节）调用时只会弹应用商店；
+   而且那次连 `where.exe 7z.exe` 都查不到它，反而是直接按名字调 `7z` 能出
+   `NanaZip 6.0` 的版本输出。所以探测改成「候选列表 + 真跑一次看有没有版本输出」。
+2. **RapidOCR-json 的参数不是文档里那套**：它认 `--image=`（不是 `-image_path=`），
+   结果打在 **stdout**（不是 `-write_json=`），而且**图片路径带中文时它自己 dump JSON 会失败**
+   （`code:300 JSON dump failed`）。而这个项目的目录本身就叫「代肝价格查询」……
+   解法：`--ensureAscii=1` 管输出，输入路径则先复制到纯 ASCII 临时路径。
+   stdout 怎么读：沙箱里不能给子进程接管道（EPERM），但 **stdio[1] 指向一个文件描述符是允许的**，
+   跑完读回来，效果和抓管道一样。
+3. **装上之后识别质量的变化（这才是加安装选项的真正理由）**：
+   同一批截图、同样的识别逻辑，只换引擎 ——
+   Windows 自带 OCR：常规比例 16/16，超宽比例 2/6；
+   换上 RapidOCR-json：**常规 16/16 + 超宽 6/6 = 22/22 全对**。
+
 ---
 
 ### A2. 价格表图片导出 → snapdom 或 modern-screenshot（形态 A）

@@ -154,9 +154,229 @@ function ocrPanel(st, onRefresh, onRefreshDone) {
             '自备一个图标模板'
           ),
           h('span.dim.tiny', '换了游戏版本、图标变了样子时用：给一张顶栏截图 + 图标所在的方框，程序当场抠出来存下。')
-        )
+        ),
+        installSection(onRefreshDone)
       )
     )
+  )
+}
+
+/* ============================================================
+   安装选项：一键把本地 OCR 引擎装到 tools\ocr\
+   后端负责下载官方 Release + 解压 + 落位（见 src/ocr-install.mjs），
+   这里只负责发起、轮询进度、装完自检。
+   ============================================================ */
+
+function fileSizeText(n) {
+  if (!n) return ''
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)}KB`
+  return `${(n / 1024 / 1024).toFixed(1)}MB`
+}
+
+/** 一个安装选项一张卡 */
+function installOptionCard(o, { onChanged }) {
+  const status = h('div.tiny.dim')
+  const bar = h('div.install__bar', h('div.install__fill'))
+  const logBox = h('div.install__log', { hidden: true })
+  const actions = h('div.cluster', { style: { gap: '6px', flexWrap: 'wrap' } })
+
+  const paint = (state) => {
+    status.replaceChildren()
+    if (state === 'idle') {
+      bar.hidden = true
+      logBox.hidden = true
+      status.textContent = o.installed ? `已装好：${o.path || '探测到了'}` : o.blocked_reason || ''
+    }
+  }
+  paint('idle')
+
+  const watch = async (jobId) => {
+    let dots = 0
+    let last = null
+    for (;;) {
+      let r
+      try {
+        r = await api.get('/api/ocr/install/status', { job: jobId })
+      } catch (err) {
+        status.textContent = `查进度失败：${err.message || err}`
+        break
+      }
+      const j = r.job
+      last = j
+      if (!bar.hidden) {
+        const pct = j.state === 'downloading' ? j.percent : j.state === 'extracting' ? 100 : 0
+        bar.firstElementChild.style.width = `${Math.max(4, pct)}%`
+      }
+      const elapsed = Math.round(j.elapsed_ms / 1000)
+      status.textContent =
+        `${j.step}${j.state === 'downloading' && j.total ? ` · ${fileSizeText(j.received)} / ${fileSizeText(j.total)}（${j.percent}%）` : ''}` +
+        ` · 已用 ${elapsed}s` +
+        (j.state === 'downloading' && j.percent > 2 && elapsed > 6 ? ` · 预计还要 ${Math.max(1, Math.round((elapsed * (100 - j.percent)) / j.percent / 60))} 分钟` : '')
+      if (j.log && j.log.length) {
+        logBox.hidden = false
+        logBox.textContent = j.log.join('\n')
+      }
+      if (j.state === 'done' || j.state === 'error') {
+        if (j.state === 'done') {
+          status.textContent = j.result && j.result.available ? `装好了 —— 现在用的是 ${j.result.name}` : '文件装好了，但探测没认出来'
+        } else {
+          status.textContent = `装失败：${j.error}`
+        }
+        break
+      }
+      dots++
+      await new Promise((res) => setTimeout(res, dots < 3 ? 700 : 1200))
+    }
+    return last
+  }
+
+  if (o.installed) {
+    actions.appendChild(
+      h(
+        'button.btn.btn--sm',
+        {
+          type: 'button',
+          onclick: async (ev) => {
+            const btn = ev.currentTarget
+            btn.setAttribute('data-loading', '1')
+            try {
+              const r = await api.post('/api/ocr/install/health', { engine: o.id })
+              status.textContent = r.ok ? `自检：${r.verdict}` : `自检不了：${r.error}`
+              status.className = `tiny${r.ok && !r.crashed ? ' tone-jade' : ' tone-amber'}`
+            } catch (err) {
+              toastErr(err)
+            } finally {
+              btn.removeAttribute('data-loading')
+            }
+          },
+        },
+        icon('check', 14),
+        '自检一下'
+      )
+    )
+  } else if (o.can_auto) {
+    actions.appendChild(
+      h(
+        'button.btn.btn--sm.btn--primary',
+        {
+          type: 'button',
+          onclick: async (ev) => {
+            const btn = ev.currentTarget
+            btn.disabled = true
+            btn.setAttribute('data-loading', '1')
+            try {
+              const r = await api.post('/api/ocr/install', { engine: o.id })
+              bar.hidden = false
+              toast(`开始安装 ${o.name}，下载可能要几分钟`, 'ok', 4200)
+              const last = await watch(r.job.id)
+              if (last && last.state === 'done' && last.result && last.result.available) {
+                toast(`${o.name} 装好了，识别会自动用它`, 'ok', 5200)
+                onChanged()
+              } else if (last && last.state === 'error') {
+                toast(`安装失败：${last.error}`, 'err', 8000)
+              } else {
+                toast('装完了，但探测没认出来 —— 看下面日志', 'err', 8000)
+                onChanged()
+              }
+            } catch (err) {
+              toastErr(err)
+            } finally {
+              btn.disabled = false
+              btn.removeAttribute('data-loading')
+            }
+          },
+        },
+        icon('download', 14),
+        `自动安装（${shortSize(o.size)}）`
+      )
+    )
+  } else {
+    actions.appendChild(
+      h('a.btn.btn--sm', { href: o.release_page, target: '_blank', rel: 'noreferrer noopener' }, icon('download', 14), '去下载页'))
+  }
+  if (!o.can_auto && !o.installed) {
+    actions.appendChild(h('span.tiny.dim', o.blocked_reason || '需要手动装'))
+  }
+  if (o.env_key) {
+    actions.appendChild(h('span.tiny.dim', `装到别处也可以在环境变量里设 ${o.env_key}`))
+  }
+
+  return h(
+    'div.install',
+    h(
+      'div.install__head',
+      h('span.install__name', o.name),
+      o.installed ? tag('已装好', 'jade') : tag('未安装', 'muted'),
+      h('span.tiny.dim', o.license),
+      h('div', { style: { flex: '1' } }),
+      o.installed ? null : h('span.tiny.dim', o.size)
+    ),
+    h('div.tiny.dim', { style: { marginTop: '2px' } }, o.note),
+    actions,
+    bar,
+    status,
+    logBox
+  )
+}
+
+function shortSize(s) {
+  // 后端给的是「约 70MB 下载 / 展开约 95MB」这种整句，直接显示
+  return String(s || '').replace(/^约\s*/, '').split(' ')[0] || '自动'
+}
+
+function installSection(onChanged) {
+  const box = h('div.stack.stack--tight')
+  const exBox = h('div.tiny.dim')
+  let loaded = false
+
+  async function load() {
+    box.replaceChildren(h('div.tiny.dim', '正在查安装选项…'))
+    try {
+      const r = await api.get('/api/ocr/install')
+      const opts = r.options || []
+      const ex = r.extractor || {}
+      exBox.replaceChildren(
+        ex.can_auto
+          ? h('span.tone-jade', `解压器：${ex.bin || ex.kind}（能解 .7z，可以直接自动安装）`)
+          : h('span.tone-amber', ex.hint || ex.note || '这台机器上没有能解 .7z 的解压器')
+      )
+      const rest = opts.filter((o) => !o.installed)
+      box.replaceChildren(
+        exBox,
+        rest.length
+          ? h('div.tiny.dim', '还没装的：')
+          : h('div.tiny.dim', '这几个都已经装好了 —— 上面「图标模板」那块可以自备模板，引擎不用再装。'),
+        ...rest.map((o) => installOptionCard(o, { onChanged: () => { load(); onChanged() } })),
+        opts.some((o) => o.installed)
+          ? h(
+              'div',
+              { style: { marginTop: 'var(--sp-3)' } },
+              h('div.tiny.dim', '已经装好的：'),
+              ...opts
+                .filter((o) => o.installed)
+                .map((o) => installOptionCard(o, { onChanged: () => { load(); onChanged() } }))
+            )
+          : null
+      )
+      loaded = true
+    } catch (err) {
+      box.replaceChildren(h('div.note.note--alert', `拿不到安装选项：${err.message || err}`))
+    }
+  }
+  void load()
+
+  return h(
+    'div',
+    { style: { marginTop: 'var(--sp-4)' } },
+    h(
+      'div.cluster',
+      { style: { marginBottom: '6px' } },
+      h('strong.sm', '安装选项'),
+      h('span.tiny.dim', '装完自动就能用，图标模板不用重做'),
+      h('div', { style: { flex: '1' } }),
+      h('button.btn.btn--sm.btn--quiet', { type: 'button', onclick: () => load() }, icon('refresh', 13), loaded ? '重新查' : '查一下')
+    ),
+    box
   )
 }
 

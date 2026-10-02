@@ -20,6 +20,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
+import { DATA_DIR } from './config.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 // resolve 一下把 '..' 消掉：powershell -File 拿到带 '..' 的路径会直接失败
@@ -382,24 +383,28 @@ async function umiOCR(imagePath, { timeoutMs = 20000, port } = {}) {
  */
 const CONSOLE_OCR = {
   paddleocr: {
+    id: 'paddleocr',
     name: 'PaddleOCR-json',
     repo: 'github.com/hiroi-sora/PaddleOCR-json',
     license: 'Apache-2.0',
     envKey: 'PADDLEOCR_JSON_BIN',
     exeNames: ['PaddleOCR-json.exe', 'PaddleOCR_json.exe'],
-    install: '下载 PaddleOCR-json 的 Windows 包解压到 tools\\ocr\\，或设 PADDLEOCR_JSON_BIN 指到 exe',
+    install: '设置页里点「自动安装」；或者自己下载 Windows 包解压到 tools\\ocr\\，或设 PADDLEOCR_JSON_BIN 指到 exe',
     approx: '约 88MB 包 / 展开 250MB，需要 CPU 支持 AVX',
   },
   rapidocr: {
+    id: 'rapidocr',
     name: 'RapidOCR-json',
     repo: 'github.com/hiroi-sora/RapidOCR-json',
     license: 'MIT',
     envKey: 'RAPIDOCR_JSON_BIN',
     exeNames: ['RapidOCR-json.exe', 'RapidOCR_json.exe'],
-    install: '下载 RapidOCR-json 的 Windows 包解压到 tools\\ocr\\，或设 RAPIDOCR_JSON_BIN 指到 exe',
-    approx: '约 30MB，不需要 AVX',
+    install: '设置页里点「自动安装」；或者自己下载 Windows 包解压到 tools\\ocr\\，或设 RAPIDOCR_JSON_BIN 指到 exe',
+    approx: '约 70MB 包 / 展开 95MB，不需要 AVX',
   },
 }
+
+export { CONSOLE_OCR }
 
 /** PATH / 环境变量 / 几个常见目录里找可执行文件（照抄 restic 的探测样板） */
 function whichSync(cmd) {
@@ -419,6 +424,10 @@ function whichSync(cmd) {
 function findConsoleOcr(spec) {
   const cands = []
   if (process.env[spec.envKey]) cands.push(process.env[spec.envKey])
+  // 自动安装器装完会把 exe 绝对路径记进 data/ocr-engines.json，这里优先信它 ——
+  // 用户可能把 tools 目录挪到别处（数据目录跟着走，所以记录是可靠的）
+  const recorded = spec.id ? recordedEngineBin(spec.id) : null
+  if (recorded) cands.push(recorded)
   const roots = [
     path.resolve(HERE, '..', 'tools', 'ocr'),
     path.resolve(HERE, '..', 'tools'),
@@ -429,8 +438,10 @@ function findConsoleOcr(spec) {
     process.env.LOCALAPPDATA && path.join(process.env.LOCALAPPDATA, 'Programs', 'Umi-OCR', 'UmiOCR-data', 'plugins'),
   ].filter(Boolean)
   for (const root of roots) {
+    // 自动安装器会落到 tools\ocr\<引擎id>\<包名>\，所以往下多找一层
     for (const n of spec.exeNames) cands.push(path.join(root, n))
     for (const n of spec.exeNames) cands.push(path.join(root, 'PaddleOCR-json', n))
+    if (spec.id) for (const n of spec.exeNames) cands.push(path.join(root, spec.id, n))
   }
   for (const c of cands) {
     try {
@@ -439,11 +450,73 @@ function findConsoleOcr(spec) {
       /* 忽略 */
     }
   }
+  // 自动安装的目录里再往下找一层（包名那一级）
+  if (spec.id) {
+    const hit = findExeUnder(path.join(HERE, '..', 'tools', 'ocr', spec.id), spec.exeNames)
+    if (hit) return hit
+  }
   for (const n of spec.exeNames) {
     const hit = whichSync(n)
     if (hit) return hit
   }
   return null
+}
+
+/** 在有界深度内找一个指定文件名的文件（自动安装的目录结构不固定，靠这个兜住） */
+function findExeUnder(dir, names, depth = 0) {
+  if (depth > 4) return null
+  let list = []
+  try {
+    list = fs.readdirSync(dir, { withFileTypes: true })
+  } catch {
+    return null
+  }
+  for (const e of list) {
+    if (e.isFile() && names.includes(e.name)) return path.join(dir, e.name)
+  }
+  for (const e of list) {
+    if (!e.isDirectory()) continue
+    const hit = findExeUnder(path.join(dir, e.name), names, depth + 1)
+    if (hit) return hit
+  }
+  return null
+}
+
+/* ---------------- 自动安装的记录文件 ---------------- */
+
+const BIN_CONFIG_FILE = path.join(DATA_DIR, 'ocr-engines.json')
+
+function readBinConfig() {
+  try {
+    const j = JSON.parse(fs.readFileSync(BIN_CONFIG_FILE, 'utf8'))
+    return j && typeof j === 'object' ? j : {}
+  } catch {
+    return {}
+  }
+}
+
+/** 自动安装器的输出：记下这个引擎的 exe 在哪（探测链会读它） */
+export function rememberEngineBin(engineId, binPath) {
+  const cfg = readBinConfig()
+  cfg[engineId] = { bin: binPath, at: new Date().toISOString() }
+  try {
+    fs.mkdirSync(path.dirname(BIN_CONFIG_FILE), { recursive: true })
+    fs.writeFileSync(BIN_CONFIG_FILE, JSON.stringify(cfg, null, 2))
+  } catch {
+    /* 写不进去就算了 —— PATH 和 tools 目录那几条路还能兜住 */
+  }
+  return cfg[engineId]
+}
+
+/** 取出记录过的 exe 路径（文件真的还在才算，用户删了就当没装） */
+export function recordedEngineBin(engineId) {
+  const rec = readBinConfig()[engineId]
+  if (!rec || !rec.bin) return null
+  try {
+    return fs.existsSync(rec.bin) ? rec.bin : null
+  } catch {
+    return null
+  }
 }
 
 /** PaddleOCR-json / RapidOCR-json 的 JSON → 统一的词框 */
@@ -469,21 +542,94 @@ function consoleJSONToWords(json) {
   return words
 }
 
-function consoleOCR(id, bin, imagePath, { timeoutMs = 30000 } = {}) {
-  return new Promise((resolve) => {
-    const outPath = path.join(os.tmpdir(), `xfc-${id}-${process.pid}-${Date.now()}.json`)
-    const logPath = `${outPath}.log`
-    let logFd = null
+/**
+ * 各引擎的命令行差异表。**这是实测出来的，不是看文档猜的**：
+ *
+ *   · PaddleOCR-json  —— 单短横线 `-image_path=` / `-write_json=`，结果写成文件；
+ *   · RapidOCR-json   —— 双短横线 `--image=` / `--ensureAscii=1`，结果打在 **stdout**。
+ *
+ * RapidOCR-json 那条还有个坑：**图片路径带中文时它自己 dump JSON 会失败**
+ * （返回 `code:300 JSON dump failed`，因为它的中文编码处理有问题）。
+ * 我们用 `--ensureAscii=1` 让它把非 ASCII 转成 `\uXXXX`，就绕过去了。
+ *
+ * stdout 怎么读：沙箱里不能给子进程接管道（EPERM），但**把 stdout 直接重定向到
+ * 一个文件描述符是允许的**，所以 spawn 时 stdio[1] 指向一个临时文件，
+ * 跑完再读回来 —— 效果和抓管道一样。
+ */
+export const CONSOLE_CLI = {
+  paddleocr: {
+    args: (imagePath, outPath) => [`-image_path=${imagePath}`, `-write_json=${outPath}`],
+    from: 'file',
+  },
+  rapidocr: {
+    args: (imagePath) => [`--image=${imagePath}`, '--ensureAscii=1'],
+    from: 'stdout',
+    asciiPath: true,
+  },
+}
+
+/** 从一段输出里挑出 JSON（引擎会先打印版本行和 `OCR init completed.`） */
+function pickJSON(text) {
+  const s = String(text || '').replace(/^\uFEFF/, '')
+  for (const line of s.split(/\r?\n/).reverse()) {
+    const t = line.trim()
+    if (!t.startsWith('{')) continue
     try {
-      logFd = fs.openSync(logPath, 'w')
+      return JSON.parse(t)
     } catch {
-      /* 没有就没有 */
+      /* 这一行不是完整 JSON，往上继续找 */
     }
-    let done = false
+  }
+  // 整段就是一个 JSON 的情况
+  try {
+    return JSON.parse(s.trim())
+  } catch {
+    return null
+  }
+}
+
+/**
+ * 跑一次免 Python 的控制台 OCR。
+ *
+ * RapidOCR-json 读**输入**路径也过不了中文（返回 `code=300 JSON dump failed`；
+ * `--ensureAscii=1` 只管输出）。而这个项目的目录本身就叫「代肝价格查询」，
+ * 所以凡是这类引擎，都先把图复制到一个纯 ASCII 的临时路径再喂进去。
+ */
+function consoleOCR(id, bin, imagePath, opts) {
+  const cli = CONSOLE_CLI[id]
+  let usePath = imagePath
+  let asciiCopy = ''
+  if (cli && cli.asciiPath && /[^\x20-\x7e]/.test(path.resolve(imagePath))) {
+    try {
+      asciiCopy = path.join(os.tmpdir(), `xfc-ascii-${id}-${process.pid}-${Date.now()}.png`)
+      fs.copyFileSync(imagePath, asciiCopy)
+      usePath = asciiCopy
+    } catch {
+      /* 复制不了就用原路径，让它自己报错 */
+    }
+  }
+  return consoleOCRRun(id, bin, usePath, opts).finally(() => {
+    if (asciiCopy) {
+      try {
+        fs.unlinkSync(asciiCopy)
+      } catch {
+        /* 清不掉就算了 */
+      }
+    }
+  })
+}
+
+function consoleOCRRun(id, bin, imagePath, { timeoutMs = 60000 } = {}) {
+  return new Promise((resolve) => {
+    const cli = CONSOLE_CLI[id] || CONSOLE_CLI.paddleocr
+    const stamp = `${process.pid}-${Date.now()}`
+    const outPath = path.join(os.tmpdir(), `xfc-${id}-${stamp}.json`)
+    const stdoutPath = path.join(os.tmpdir(), `xfc-${id}-${stamp}.stdout`)
+    const logPath = path.join(os.tmpdir(), `xfc-${id}-${stamp}.log`)
+    const cleanup = [outPath, stdoutPath, logPath]
+    let fd = null
     const finish = (r) => {
-      if (done) return
-      done = true
-      for (const p of [outPath, logPath]) {
+      for (const p of cleanup) {
         try {
           fs.unlinkSync(p)
         } catch {
@@ -491,16 +637,24 @@ function consoleOCR(id, bin, imagePath, { timeoutMs = 30000 } = {}) {
         }
       }
       try {
-        if (logFd !== null) fs.closeSync(logFd)
+        if (fd !== null) fs.closeSync(fd)
       } catch {
         /* 已经关了 */
       }
       resolve(r)
     }
-    const args = [`-image_path=${path.resolve(imagePath)}`, `-write_json=${outPath}`]
+
+    // stdout（或 stderr 日志）都重定向到文件；不能用管道（沙箱里 EPERM）
+    const sinkPath = cli.from === 'stdout' ? stdoutPath : logPath
+    try {
+      fd = fs.openSync(sinkPath, 'w')
+    } catch {
+      /* 打不开就让子进程自己继承，下面会因为没有输出而报错 */
+    }
+    const args = cli.args(path.resolve(imagePath), outPath)
     let child
     try {
-      child = spawn(bin, args, { stdio: ['ignore', 'ignore', logFd], windowsHide: true, cwd: path.dirname(bin) })
+      child = spawn(bin, args, { stdio: ['ignore', fd === null ? 'ignore' : fd, fd === null ? 'ignore' : fd], windowsHide: true, cwd: path.dirname(bin) })
     } catch (err) {
       return finish({ ok: false, error: `起不了 ${id}：${err.message}` })
     }
@@ -510,7 +664,7 @@ function consoleOCR(id, bin, imagePath, { timeoutMs = 30000 } = {}) {
       } catch {
         /* 已经退了 */
       }
-      finish({ ok: false, error: `${id} 超时` })
+      finish({ ok: false, error: `${id} 超时（${Math.round(timeoutMs / 1000)}秒）` })
     }, timeoutMs)
     child.on('error', (err) => {
       clearTimeout(timer)
@@ -520,23 +674,19 @@ function consoleOCR(id, bin, imagePath, { timeoutMs = 30000 } = {}) {
       clearTimeout(timer)
       let raw = ''
       try {
-        raw = fs.readFileSync(outPath, 'utf8')
+        raw = fs.readFileSync(cli.from === 'stdout' ? stdoutPath : outPath, 'utf8')
       } catch {
         let log = ''
         try {
-          log = fs.readFileSync(logPath, 'utf8').trim()
+          log = fs.readFileSync(logPath, 'utf8').trim() || fs.readFileSync(stdoutPath, 'utf8').trim()
         } catch {
           /* 没有就没有 */
         }
         return finish({ ok: false, error: log ? `${id} 没输出：${log.slice(0, 200)}` : `${id} 没输出（参数名可能和这个版本不一致）` })
       }
-      let json = null
-      try {
-        json = JSON.parse(raw)
-      } catch {
-        return finish({ ok: false, error: `${id} 的输出不是 JSON` })
-      }
-      if (json && json.code !== undefined && Number(json.code) !== 100) {
+      const json = pickJSON(raw)
+      if (!json) return finish({ ok: false, error: `${id} 的输出不是 JSON：${raw.trim().slice(0, 160) || '(空)'}` })
+      if (json.code !== undefined && Number(json.code) !== 100) {
         return finish({ ok: false, error: `${id} 返回 code=${json.code}${json.data ? `：${String(json.data).slice(0, 120)}` : ''}` })
       }
       const words = consoleJSONToWords(json)
