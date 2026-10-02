@@ -3,7 +3,7 @@
    ============================================================ */
 
 import { api } from '../api.js'
-import { h, icon, fmtDateTime, fmtMoney, fmtDate } from '../dom.js'
+import { h, icon, fmtDateTime, fmtMoney, fmtDate, mount } from '../dom.js'
 import { toast, toastErr, formDrawer, modal, confirmModal, sectionHead, tag, emptyState } from '../ui.js'
 import { vaultState, refreshVault, ensureVaultReady, syncVault } from '../vaultgate.js'
 
@@ -64,6 +64,187 @@ function vaultPasswordForm() {
   })
 }
 
+/* ============================================================
+   屏幕识别：引擎状态 + 图标模板
+   引擎是本机程序，装了就用、没装就往下退，探测链写在后端 src/ocr.mjs 里。
+   ============================================================ */
+
+const OCR_ENGINE_ORDER = ['umi', 'paddleocr', 'rapidocr', 'tesseract', 'windows']
+
+function engineRow(eng, preferred) {
+  const live = eng.id === preferred
+  return h(
+    'div.item',
+    { style: { cursor: 'default', alignItems: 'flex-start' } },
+    h(
+      'div.item__main',
+      h(
+        'div.item__title',
+        eng.name,
+        live ? tag('正在用', 'jade') : eng.available ? tag('可用', 'jade') : tag('未安装', 'muted'),
+        eng.license ? h('span.dim.tiny', { style: { marginLeft: '6px' } }, eng.license) : null
+      ),
+      h('div.tbl__meta', { style: { marginTop: '2px' } }, eng.available ? eng.note || '已就绪' : eng.note || ''),
+      !eng.available && eng.install ? h('div.tbl__meta', { style: { marginTop: '2px', opacity: '.75' } }, `怎么装：${eng.install}`) : null
+    )
+  )
+}
+
+function ocrPanel(st, onRefresh, onRefreshDone) {
+  const engines = [...(st.engines || [])].sort((a, b) => OCR_ENGINE_ORDER.indexOf(a.id) - OCR_ENGINE_ORDER.indexOf(b.id))
+  const tpl = st.templates || { items: [], missing: [] }
+  const rows = h('div.itemlist')
+  for (const e of engines) rows.appendChild(engineRow(e, st.engine))
+
+  return h(
+    'section.panel',
+    h(
+      'div.panel__body',
+      sectionHead(
+        '屏幕识别',
+        st.available ? `当前引擎：${st.engine_name || st.engine}` : '这台机器上还没有可用的 OCR',
+        h(
+          'button.btn.btn--sm',
+          {
+            type: 'button',
+            onclick: async (ev) => {
+              const btn = ev.currentTarget
+              btn.setAttribute('data-loading', '1')
+              try {
+                const fresh = await api.get('/api/ocr/status', { probe: 1 })
+                toast(fresh.available ? `检测完成，现在用 ${fresh.engine_name || fresh.engine}` : '还是没检测到可用的引擎', fresh.available ? 'ok' : 'err', 4200)
+                onRefresh(fresh)
+              } catch (err) {
+                toastErr(err)
+              } finally {
+                btn.removeAttribute('data-loading')
+              }
+            },
+          },
+          icon('refresh', 14),
+          '重新检测'
+        )
+      )
+    ),
+    rows,
+    h(
+      'div.panel__body',
+      { style: { paddingTop: '0' } },
+      h(
+        'div.note',
+        '识别用到的东西全部在这台电脑上跑，截图不出本机。按顺序试：Umi-OCR（装了并打开 HTTP 服务最好用）→ PaddleOCR-json / RapidOCR-json（解压到 tools\\ocr\\ 或设环境变量）→ Tesseract → Windows 自带。装了哪个用哪个，没装就往下退，不会因为缺一个就用不了。'
+      ),
+      h(
+        'div',
+        { style: { marginTop: 'var(--sp-3)' } },
+        h('div.tbl__meta', `图标模板（认出「哪个图标是星声/体力/贝币」靠它们）：共 ${tpl.items.length} 个`),
+        h(
+          'div.cluster',
+          { style: { marginTop: '4px', flexWrap: 'wrap' } },
+          ...tpl.items.map((it) => tag(`${it.key}${it.from === 'custom' ? ' · 自备' : ''}`, it.from === 'custom' ? 'jade' : 'muted')),
+          tpl.missing && tpl.missing.length ? tag(`缺 ${tpl.missing.join('、')}`, 'amber') : null
+        ),
+        h(
+          'div.cluster',
+          { style: { marginTop: 'var(--sp-3)' } },
+          h(
+            'button.btn.btn--sm',
+            { type: 'button', onclick: () => iconTemplateForm(st, onRefreshDone) },
+            icon('upload', 14),
+            '自备一个图标模板'
+          ),
+          h('span.dim.tiny', '换了游戏版本、图标变了样子时用：给一张顶栏截图 + 图标所在的方框，程序当场抠出来存下。')
+        )
+      )
+    )
+  )
+}
+
+function iconTemplateForm(st, onDone) {
+  const file = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp', style: { display: 'none' } })
+  const preview = h('img', { alt: '截图预览', style: { maxWidth: '100%', borderRadius: '8px', marginTop: '6px' } })
+  const keySel = h(
+    'select.sel',
+    ...(st.resources || []).map((k) => h('option', { value: k }, k))
+  )
+  const box = { x: 0, y: 0, w: 200, h: 80 }
+  const num = (k, d) =>
+    h('input.inp.inp--fig', {
+      inputmode: 'numeric',
+      value: String(d),
+      style: { width: '76px' },
+      oninput: (ev) => {
+        box[k] = Number(ev.currentTarget.value) || 0
+      },
+      'aria-label': k,
+    })
+  let dataUrl = ''
+  file.addEventListener('change', () => {
+    const f = file.files && file.files[0]
+    if (!f) return
+    const fr = new FileReader()
+    fr.onload = () => {
+      dataUrl = String(fr.result)
+      preview.src = dataUrl
+      const im = new Image()
+      im.onload = () => {
+        // 默认框按画面比例给一个（顶栏那条带里偏左一点），用户自己挪
+        box.x = Math.round(im.naturalWidth * 0.25)
+        box.y = Math.round(im.naturalHeight * 0.02)
+        box.w = Math.round(im.naturalWidth * 0.06)
+        box.h = Math.round(im.naturalHeight * 0.05)
+        for (const [k, v] of Object.entries(box)) if (inputs[k]) inputs[k].value = String(v)
+      }
+      im.src = dataUrl
+    }
+    fr.readAsDataURL(f)
+  })
+  const inputs = { x: num('x', box.x), y: num('y', box.y), w: num('w', box.w), h: num('h', box.h) }
+
+  const d = formDrawer({
+    title: '自备图标模板',
+    subtitle: '游戏版本更新、图标改了样子，就自己抠一个',
+    submitLabel: '抠出来存下',
+    fields: [
+      { name: '__key', label: '图标类型', type: 'custom', render: () => keySel },
+      {
+        name: '__img',
+        label: '游戏截图（顶栏那张）',
+        type: 'custom',
+        render: () =>
+          h(
+            'div.stack.stack--tight',
+            h('button.btn.btn--sm', { type: 'button', onclick: () => file.click() }, icon('upload', 14), '选一张图'),
+            file,
+            preview,
+            h('div.tbl__meta', '选完图之后程序会给一个默认的方框；把下面四个数改成图标本体所在的位置。')
+          ),
+      },
+      {
+        name: '__box',
+        label: '图标所在的方框（像素）',
+        type: 'custom',
+        render: () =>
+          h(
+            'div.cluster',
+            { style: { gap: '8px', flexWrap: 'wrap' } },
+            h('label.inline', h('span.dim.tiny', 'x'), inputs.x),
+            h('label.inline', h('span.dim.tiny', 'y'), inputs.y),
+            h('label.inline', h('span.dim.tiny', '宽'), inputs.w),
+            h('label.inline', h('span.dim.tiny', '高'), inputs.h)
+          ),
+      },
+    ],
+    onSubmit: async () => {
+      if (!dataUrl) throw new Error('先选一张截图')
+      const r = await api.post('/api/ocr/icons', { key: keySel.value, data_url: dataUrl, box })
+      toast(`${r.key} 的模板已存下（${r.size[0]}×${r.size[1]}）`, 'ok', 4200)
+      onDone()
+    },
+  })
+  return d
+}
+
 async function exportBackup() {
   const data = await api.get('/api/backup/export')
   const text = JSON.stringify(data, null, 2)
@@ -118,9 +299,10 @@ export default {
   title: '设置',
   async render(ctx) {
     await refreshVault()
-    const [settings, counts] = await Promise.all([api.get('/api/settings'), api.get('/api/backup/counts')])
+    const [settings, counts, ocr] = await Promise.all([api.get('/api/settings'), api.get('/api/backup/counts'), api.get('/api/ocr/status').catch(() => null)])
     const me = ctx.app.state.me
     const LAN = location.hostname !== '127.0.0.1' && location.hostname !== 'localhost'
+    let ocrState = ocr
 
     const importInput = importBackup(() => ctx.app.reload())
 
@@ -131,6 +313,21 @@ export default {
         h('div.item__main', h('div.item__title', title, extra), desc ? h('div.tbl__meta', { style: { marginTop: '2px' } }, desc) : null),
         action || null
       )
+
+    const ocrBox = h('div.stack.stack--tight')
+    const paintOcr = () => {
+      mount(
+        ocrBox,
+        ocrState ? ocrPanel(ocrState, (fresh) => {
+          ocrState = fresh
+          paintOcr()
+        }, async () => {
+          ocrState = await api.get('/api/ocr/status').catch(() => ocrState)
+          paintOcr()
+        }) : h('section.panel', h('div.panel__body', sectionHead('屏幕识别'), h('div.note', '拿不到识别状态（后端可能还没重启到新版）。')))
+      )
+    }
+    paintOcr()
 
     return h(
       'div.stack',
@@ -189,10 +386,11 @@ export default {
         )
       ),
 
+      ocrBox,
+
       h(
         'section.panel',
-        h('div.panel__body', sectionHead('数据')),
-        h(
+        h('div.panel__body', sectionHead('数据')),        h(
           'div.itemlist',
           row(
             '当前数据量',

@@ -24,10 +24,22 @@ export function route(method, pattern, handler) {
       return seg.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     })
     .join('/')
-  const entry = { method: m, pattern: norm, rx: new RegExp(`^${body}/?$`), keys, handler }
+  const entry = { method: m, pattern: norm, rx: new RegExp(`^${body}/?$`), keys, handler, maxBytes: 0 }
   const at = routes.findIndex((r) => r.method === m && r.pattern === norm)
   if (at >= 0) routes[at] = entry
   else routes.push(entry)
+}
+
+/**
+ * 给某个路由单独放宽请求体上限（0 表示用默认的 MAX_JSON_BYTES）。
+ * 目前只有截图识别那几个接口需要：一张 2K 游戏截图 PNG 转 base64 就到 4MB 以上，
+ * 拿默认上限去卡它，用户就得先压图才能用。
+ */
+export function setBodyLimit(pattern, maxBytes) {
+  const norm = pattern.replace(/\/+$/, '') || '/'
+  const hit = routes.find((r) => r.pattern === norm)
+  if (hit) hit.maxBytes = maxBytes
+  return hit
 }
 
 export const get = (p, h) => route('GET', p, h)
@@ -45,7 +57,7 @@ export function match(method, pathname) {
     r.keys.forEach((k, i) => {
       params[k] = decodeURIComponent(m[i + 1])
     })
-    return { handler: r.handler, params }
+    return { handler: r.handler, params, maxBytes: r.maxBytes || 0 }
   }
   return null
 }
@@ -97,12 +109,12 @@ export const clearCookie = () => `${SESSION_COOKIE}=; Path=/; HttpOnly; SameSite
 
 /* ---------------- 请求体 ---------------- */
 
-export async function readJSON(req) {
+export async function readJSON(req, { maxBytes = MAX_JSON_BYTES } = {}) {
   const chunks = []
   let size = 0
   for await (const chunk of req) {
     size += chunk.length
-    if (size > MAX_JSON_BYTES) fail(413, '提交内容过大', 'payload_too_large')
+    if (size > maxBytes) fail(413, '提交内容过大', 'payload_too_large')
     chunks.push(chunk)
   }
   if (!size) return {}
@@ -113,13 +125,17 @@ export async function readJSON(req) {
   }
 }
 
-/** 读取 multipart 太麻烦，图片走 base64 data URL 提交，这里落盘 */
-export function saveDataURL(dataURL, prefix = 'img') {
+/**
+ * 读取 multipart 太麻烦，图片走 base64 data URL 提交，这里落盘。
+ * maxBytes 可以放宽：截图识别收的是整张游戏截图（2K 就有 3MB），
+ * 而上传头像/游戏图标那种小图还是按 1.5MB 卡。
+ */
+export function saveDataURL(dataURL, prefix = 'img', { maxBytes = 1.5 * 1024 * 1024 } = {}) {
   const m = /^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);base64,([A-Za-z0-9+/=]+)$/.exec(String(dataURL || ''))
   if (!m) fail(400, '只支持 PNG / JPEG / WebP / GIF / SVG 图片', 'bad_image')
   const ext = m[1] === 'jpeg' ? 'jpg' : m[1] === 'svg+xml' ? 'svg' : m[1]
   const buf = Buffer.from(m[2], 'base64')
-  if (buf.length > 1.5 * 1024 * 1024) fail(413, '图片请压到 1.5MB 以内', 'image_too_large')
+  if (buf.length > maxBytes) fail(413, `图片请压到 ${Math.round(maxBytes / 1024 / 1024)}MB 以内`, 'image_too_large')
   const name = `${prefix}-${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}.${ext}`
   return { name, buf }
 }

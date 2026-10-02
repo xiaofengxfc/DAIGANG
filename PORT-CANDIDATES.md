@@ -51,7 +51,12 @@
 
 ## 2. A 级：建议移植
 
-### A1. OCR → Umi-OCR（形态 B，守住零依赖）★ 最值得做
+> **落地情况（2026-10 更新）**：下面 A1 / A3 / C5 三条已经做完了，做法和当初的设想有出入，
+> 实测数据记在各条末尾的「已落地」里。**新加的 `src/vision.mjs` 就是 C5 说的
+> 「移植思路而不是库」**：积分图 ZNCC + 由粗到细金字塔 + 锚点定标 + 数字块合并，
+> 全部手写、零依赖。OCR 引擎链在 `src/ocr.mjs`，图标模板与识别调度在 `src/screen.mjs`。
+
+### A1. OCR → 本地引擎探测链（形态 B，守住零依赖）★ 最值得做
 
 **现状的痛**（`src/ocr.mjs` 注释里你自己也记了）：
 
@@ -60,38 +65,30 @@
 - **拿不到置信度**。`parseNumber()` 只能靠「有没有非法字符」猜，认糊了只好返回 `null` 让你手填；
 - 每次识别 spawn 一个 `powershell.exe`，还要处理 `stdio` 不能给 `ignore` 的坑。
 
-**候选项：**
+**已落地（2026-10）**：改成**五级探测链**，装了谁用谁，没装一路往下退，全部本机跑：
 
-- **[hiroi-sora/Umi-OCR](https://github.com/hiroi-sora/Umi-OCR)** — MIT（LICENSE 已核对），PaddleOCR 内核，完全离线。
-  **关键点：它带一个本地 HTTP 服务**，默认 `http://127.0.0.1:1224`：
+| 顺序 | 引擎 | 仓库 / 许可证 | 怎么接的 |
+| --- | --- | --- | --- |
+| 1 | **Umi-OCR** | [hiroi-sora/Umi-OCR](https://github.com/hiroi-sora/Umi-OCR) · MIT（内含 Apache-2.0 的 PaddleOCR-json 与 LGPL 的 Qt 组件） | 本地 HTTP：`GET 127.0.0.1:1224/api/ocr/get_options` 当心跳，识别走 `POST /api/ocr`，返回 `{text, score, box}` |
+| 2 | **PaddleOCR-json** | [hiroi-sora/PaddleOCR-json](https://github.com/hiroi-sora/PaddleOCR-json) · Apache-2.0 | 免 Python 的控制台 exe，一次性调用 `-image_path=… -write_json=…` |
+| 3 | **RapidOCR-json** | [hiroi-sora/RapidOCR-json](https://github.com/hiroi-sora/RapidOCR-json) · MIT | 同上，onnxruntime 版，不需要 AVX |
+| 4 | **Tesseract** | [UB-Mannheim/tesseract](https://github.com/UB-Mannheim/tesseract) · Apache-2.0 | `tesseract x.png out -l chi_sim+eng --psm 6 tsv` |
+| 5 | **Windows.Media.Ocr** | 随系统 | 原来的 `scripts/ocr.ps1` 兜底，永远不为空 |
 
-  ```
-  POST /api/ocr
-  { "base64": "<不带 data: 前缀的 base64>",
-    "options": { "ocr.language": "models/config_chinese.txt", "data.format": "dict" } }
-  ```
+几个实现上的取舍（都是实测逼出来的）：
 
-  成功返回 `code: 100`，`data` 是数组，每项 `{ text, score, box: [[x,y]×4], end }`
-  —— **置信度、四角坐标全都有**。这正好补上现在缺的两样东西。
-  （[接口文档](https://cdn.jsdelivr.net/gh/hiroi-sora/Umi-OCR@main/docs/http/api_ocr.md)）
+- **不用管道抓子进程输出**：沙箱里 Node 的 `child_process` 拿管道会 EPERM；
+  PaddleOCR-json / RapidOCR-json 都支持 `-write_json=` 直接落盘，走文件最省事。
+- **不挂常驻进程**：这两个官方明说不支持并发，而我们的量级是「用户点了才跑一次」，
+  一次性调用的启动开销（Rapid ~0.1s、Paddle ~2s）比维护一个会卡死、
+  要处理端口握手的常驻进程划算。
+- **探测结果缓存**，`?probe=1` 重新探（用户刚装完引擎时点「重新检测」用）。
+- **能探测就能降级**：`/api/ocr/status` 把五条各自的状态、许可证、安装指引全返回给前端，
+  设置页照着显示「正在用 / 可用 / 未安装」，不会因为缺一个就用不了。
 
-- **[siva-sub/client-ocr](https://github.com/siva-sub/client-ocr)**（`client-side-ocr`，MIT）—— 浏览器内 ONNX Runtime + PP-OCR。
-  同样离线、免费。**但这份项目用不了**，理由在下面 C4 里说（CSP + 模型体积）。
-
-- **[naptha/tesseract.js](https://github.com/naptha/tesseract.js)**（Apache-2.0）—— 能跑，但中文模型 60MB+、速度慢于系统引擎，
-  识别质量也不如 PaddleOCR。**不如 Umi-OCR。**
-
-**怎么落：**
-
-1. `src/ocr.mjs` 里加一个 `ocrViaUmi(imagePath)`，先探 `http://127.0.0.1:1224/api/ocr/get_options` 通不通；
-2. 通 → 用 Umi-OCR，把 `score` 和 `box` 一并返回；不通 → 回落到现在的 `ocr.ps1`。
-   `ocrAvailable()` 改成「Umi-OCR 在线 **或** ocr.ps1 存在」，`/api/ocr/status` 多返回一个 `engine` 字段。
-3. `src/screen.mjs` 收益最大：有了 `box` 就不用靠 `parseWords` 猜行，`TOP_BAND = 150` 这种硬编码的
-   「资源数字永远在 y≈54 / 顶栏 150px 以内」可以换成「识别到标签行再往下看」。
-   `RESOURCE_ALIASES` 那个「结晶波片」别名表大概率也不用维护了。
-4. 前端 `vaultgate.js` 之外，`views/orders.js` 里贴截图识别那两个入口照旧调 `/api/ocr`，不用改。
-
-**代价：** 用户要多装一个软件（可选，不装就降级成现状）。这是**唯一**的代价。
+**没做**：Umi-OCR 整包**不随项目分发**（它内含 PaddleOCR-json + PP-OCR 模型 + LGPL 的 Qt），
+只做探测 + 引导用户自己装。PaddleOCR-json / RapidOCR-json / Tesseract 许可宽松，
+用户自己解压到 `tools\ocr\` 或设环境变量 `PADDLEOCR_JSON_BIN` / `RAPIDOCR_JSON_BIN` / `TESSERACT_BIN` 即可。
 
 ---
 
@@ -141,6 +138,13 @@
 **怎么落：** `src/screen.mjs` 的 `grabScreen()` 加一个 native 分支，失败回落 `grab.ps1`。
 按 `scaleFactor()` 把坐标从逻辑像素换算到物理像素再交给 `matchScreen()`。
 （许可请以仓库 LICENSE 为准，动手前核一眼。）
+
+**已落地（2026-10）：没有引 node-screenshots，改用另一条更省事的路子解决 DPI 问题。**
+那三个痛点的真实影响是「坐标对不对」，而重做后的识别**不依赖任何绝对坐标**：
+图标尺寸就是这一屏的缩放系数（锚点定标），所以 125%/150% 缩放、窗口化、
+16:10 与 21:9 一样能认（实测 1152×720 ~ 3840×2400 十六个数字全对）。
+多显示器仍然只截主屏 —— 这一条还没解决，要用的话得先切到主屏上的游戏窗口。
+留 node-screenshots 作为「以后真需要多屏/窗口截图」的候选。
 
 ---
 
@@ -286,6 +290,39 @@ WebAssembly 实例化需要 `script-src 'wasm-unsafe-eval'`（或 `'unsafe-eval'
 **除非**以后要认旋转过的、被遮挡的、或者几十个图标——那时再上
 [`@techstark/opencv-js`](https://github.com/TechStark/opencv-js)（Apache-2.0）。
 
+**已落地（2026-10）：结论没变 —— 一个库都没引，把思路写成了 `src/vision.mjs`（约 520 行）。**
+做的过程中验证了当初的判断，也踩到了当初没预料到的坑：
+
+| 移植的东西 | 来源 | 实测效果 |
+| --- | --- | --- |
+| 积分图版 ZNCC | OpenCV `matchTemplate` 的 TM_CCOEFF_NORMED 口径 + scikit-image `match_template` 的工程形式（`numerator = xcorr − window_sum·template_mean`，分母 `sqrt(max(window_sum2 − sum²/n, 0)·template_ssd)`） | 老版一次全条带匹配 **21 秒** → 现在同上场景几十毫秒 |
+| 由粗到细多尺度 | OpenCV `pyrDown` + 多尺度模板匹配的常规工程做法 | 冷启动 0.5~2s，热帧 60~130ms |
+| 固定工作分辨率 | 本次自己定的：把搜索图缩到「图标正好 40px 高」再匹配 | 1280 和 4K 花的时间、得到的分数都一样（这是「任意分辨率」的实现方式） |
+| 锚点定标 + 相对布局 | Airtest 的 `record_pos` / `resolution` / `get_predict_area` 思路（Apache-2.0，**只借设计没搬代码**） | 见下面「锚点这一条是必须的」 |
+
+**踩到的三个坑（都写进代码注释了，别重复踩）**：
+
+1. **分数绝对值的量级跟图标本身好不好认有关。** 星声（内部对比强）真位置 0.88~0.93，
+   贝币（一枚银币，内部偏平）真位置只有 0.70~0.77，而界面左边一个完全无关的亮块能刷到 0.697。
+   只取「最高分」会把贝币认到假块上，于是读到隔壁星声的 2174。
+   → 解法：先用最有把握的图标（星声）定标，其余图标只在它那一簇里找。
+   `pickStableCandidate` 只做「分数接近时取最左」这一层保险。
+2. **比例必须以调用方传进来的 `work.scale` 为准。** 调用方给的搜索图是**裁过的顶栏条带**，
+   用 `workImg.height / screen.height` 算比例是错的：搜索区被压扁，命中落到画面外面还给出 0.836 的高分。
+   这个 bug 花了两轮排查才找到。
+3. **`subImage` + 单独建积分图不能放在每档缩放的循环里。** 一帧 9 档 × 3 轮 × 3 个图标，
+   光建小积分图就要 700ms（CPU profile 显示 `matchAt` 占 5.8 秒 / 3 帧）。
+   → 解法：粗筛和精修都直接在工作原图上扫小块，靠 `matchAt` 内部夹取窗口边界。
+
+**「迁移思路」的收益清单**：`matchAt` 每调一次现算核心像素的 (x,y) 要几十万次取模和分配，
+挂到模板上以后再做一次 profile 就看不到它了；`findIconTop` 里排除已命中位置用的洞半径
+必须和匹配在同一坐标系（不换算就会挖错地方，第 2、3 个候选全是同一个图标的重复命中）。
+
+**明确不做的**：FFT 分子（本场景只有 1.5~3×，而 ROI 已经被锚点收到很小）、
+worker_threads 分片（已经够快，多进程反而要处理 SharedArrayBuffer 的复杂度）、
+wasm SIMD、ORB/SIFT（图标是同一个美术资源，只有缩放和背景变化，特征点是过度设计）、
+Hu 矩（会丢掉区分星声/体力的颜色信息）、YOLO/ONNX（违反零依赖）。
+
 ### C6. `src/docx.mjs` 换 `docx` npm 包 —— 收益不明确
 
 手写 ZIP + OOXML 308 行确实重，但：
@@ -337,10 +374,12 @@ WebAssembly 实例化需要 `script-src 'wasm-unsafe-eval'`（或 `'unsafe-eval'
 | --- | --- | --- | --- |
 | 1 | **A4 Playwright 顶上 `smoke.mjs` + `shot.mjs`** | 先有网再动别的。之后每一步改动都有自动化兜底 | C（仅 dev） |
 | 2 | **A6 备份前加 `VACUUM INTO`** | 几行代码，消掉一个真实的数据风险。做任何大改之前都该先做 | 标准库 |
-| 3 | **A1 Umi-OCR 双引擎** | 收益最大、痛点最真，且能降级 | B |
+| 3 | ~~**A1 Umi-OCR 双引擎**~~ | ✅ **已做**（2026-10）：五级引擎探测链，装了谁用谁 | B |
 | 4 | **A2 图片导出换 DOM 渲染** | 消除 double implementation，顺带拿 PDF | A |
-| 5 | **A3 node-screenshots** | 和 A1 配套，解决 DPI/多屏 | B/C |
+| 5 | ~~**A3 node-screenshots**~~ | ⏸️ 部分解决：DPI 问题因为识别不再依赖绝对坐标而消失；多屏仍只截主屏 | B/C |
 | 6 | **A5 Excel 导出** | 纯新增，随时可插 | C |
 
 **不建议动的：** HTTP/路由、`node:sqlite`、保险箱加密、计价引擎、`imgmatch.mjs`、
 前端框架、数据表格。这几块要么已经对了，要么换掉只会更差。
+（`imgmatch.mjs` 现在只当「PNG 解码 + 老接口」用，新的识别逻辑全在 `src/vision.mjs`；
+老文件保留是为了不动已经能用的东西。）

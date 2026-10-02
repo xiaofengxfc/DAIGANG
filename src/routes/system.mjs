@@ -1,12 +1,13 @@
-import fs from 'node:fs'
+﻿import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { db, getSetting, setSetting, stamp, nextSerialNo } from '../db.mjs'
-import { get, post, patch, del, saveDataURL } from '../http.mjs'
-import { UPLOAD_DIR, needsRestart } from '../config.mjs'
+import { get, post, patch, del, saveDataURL, setBodyLimit } from '../http.mjs'
+import { UPLOAD_DIR, needsRestart, ROOT, MAX_OCR_IMAGE_BYTES } from '../config.mjs'
 import { bad, notFound, fail, int, num, money, clampStr, nowISO, localDate, localMonth, bizDate, parseJSON } from '../util.mjs'
-import { ocrAvailable, ocrImage, extractResources } from '../ocr.mjs'
-import { recognizeScreenOnce, SCREEN_RESOURCES, MIN_SCORE } from '../screen.mjs'
+import { ocrAvailable, ocrImage, extractResources, ocrStatus, probeEngines, ocrEngines } from '../ocr.mjs'
+import { recognizeScreenOnce, recognizeImageFile, resetVotes, screenAvailable, templateStatus, loadTemplates, extractIconTemplate, TEMPLATE_FILE, SCREEN_RESOURCES, MIN_SCORE } from '../screen.mjs'
+import { decodePNG, encodePNG } from '../imgmatch.mjs'
 import { isSetUp, setPassword, verifyPassword, createSession, destroySession, destroyAllSessions, actorName, assertNotThrottled, noteFailure, clearFailures } from '../auth.mjs'
 import { lock, status as vaultStatus, isConfigured, configure, auditLog } from '../vault.mjs'
 import { STATUS_LABEL } from './orders.mjs'
@@ -433,19 +434,33 @@ export function register() {
 
   /**
    * 认截图：把游戏截图里的资源数字抠出来（星声 / 体力 / 贝币）。
-   * 用 Windows 自带的 OCR，本机跑，图不出这台电脑。
+   * 顺序是「先找图标（不认坐标、不认分辨率）→ 再由图标推出数字块 → 配 OCR 文本」。
+   * 引擎会自动挑这台机器上最好的那个（Umi-OCR → RapidOCR → Windows 自带）。
    * 认出来的只是「猜」，前端会让人核对后再填，不直接写库。
    */
   post('/api/ocr', async (ctx) => {
-    if (!ocrAvailable()) fail(400, '这台机器上没有可用的 OCR（只支持 Windows）', 'no_ocr')
-    const { name, buf } = saveDataURL(ctx.body.data_url, 'ocr')
-    const tmp = path.join(os.tmpdir(), `xfc-ocr-src-${process.pid}-${Date.now()}-${name}`)
+    if (!ocrAvailable()) fail(400, '这台机器上没有可用的 OCR（Windows 自带引擎或本地 OCR 程序，二者有一即可）', 'no_ocr')
+    const { name, buf } = saveDataURL(ctx.body.data_url, 'ocr', { maxBytes: MAX_OCR_IMAGE_BYTES })
+    const ext = /\.(jpe?g|webp)$/i.test(name) ? path.extname(name) : '.png'
+    const tmp = path.join(os.tmpdir(), `xfc-ocr-src-${process.pid}-${Date.now()}${ext}`)
     fs.writeFileSync(tmp, buf)
     try {
-      const r = await ocrImage(tmp, { lang: clampStr(ctx.body.lang, 20) || 'zh-Hans-CN' })
+      const r = await recognizeImageFile(tmp, { lang: clampStr(ctx.body.lang, 20) || 'zh-Hans-CN' })
       if (!r.ok) fail(400, r.error || '识别失败', 'ocr_failed')
-      const wanted = Array.isArray(ctx.body.wanted) && ctx.body.wanted.length ? ctx.body.wanted.map((w) => clampStr(w, 20)) : undefined
-      return { resources: extractResources(r.words, wanted), lines: r.lines, word_count: r.words.length }
+      return {
+        resources: r.resources,
+        hits: r.hits,
+        seen: r.seen,
+        anchor: r.anchor,
+        pixel: r.pixel !== false,
+        warning: r.warning || '',
+        lines: r.lines,
+        size: r.size,
+        engine: r.engine,
+        ms: r.ms,
+        word_count: (r.candidates || []).length,
+        template: templateStatus(),
+      }
     } finally {
       try {
         fs.unlinkSync(tmp)
@@ -454,20 +469,97 @@ export function register() {
       }
     }
   })
-
-  /** 这台机器能不能用截图识别（前端据此决定要不要显示按钮） */
-  get('/api/ocr/status', () => ({ available: ocrAvailable(), screen: ocrAvailable(), platform: process.platform }))
+  // 截图识别要收整张图，单独放宽请求体上限（其它接口维持默认）
+  setBodyLimit('/api/ocr', MAX_OCR_IMAGE_BYTES)
+  setBodyLimit('/api/uploads', MAX_OCR_IMAGE_BYTES)
 
   /**
-   * 认当前屏幕：截一次屏 → OCR 读数字 → 用图标认出哪个是星声/体力/贝币。
-   * 前端每 1.5 秒调一次，凑齐三个就停 —— 这就是「盯着屏幕直到认到」。
-   * 认不准的宁可不出现在 resources 里，也绝不瞎填。
+   * 这台机器能不能用截图识别 + 现在用的是哪个引擎。
+   * `?probe=1` 会真的发一次请求去探 Umi-OCR（用户刚装完引擎时点「重新检测」用）。
+   */
+  get('/api/ocr/status', async (ctx) => {
+    const probe = String(ctx.query.probe || '') === '1'
+    const st = probe ? await probeEngines({ force: true }) : ocrStatus()
+    return { ...st, screen: process.platform === 'win32', templates: templateStatus(), resources: SCREEN_RESOURCES, min_score: MIN_SCORE }
+  })
+
+  /**
+   * 认当前屏幕并**投票**：同一 id 连续调用，同一个数字要认到 `min_votes` 次（默认 2）才采纳。
+   * 这是「数量要准确」的落点：认一次就写进去的旧行为没有了。
+   * 返回里 agreed 是过了票的、pending 是还在核对的，前端两种都要显示。
    */
   post('/api/ocr/screen', async (ctx) => {
-    if (!ocrAvailable()) fail(400, '这台机器上用不了屏幕识别（只支持 Windows）', 'no_screen')
-    const r = await recognizeScreenOnce({ minScore: num(ctx.body.min_score, MIN_SCORE) || MIN_SCORE })
+    if (!ocrAvailable()) fail(400, '这台机器上用不了屏幕识别（需要有可用的 OCR）', 'no_screen')
+    const r = await recognizeScreenOnce({
+      id: clampStr(ctx.body.session, 40) || 'default',
+      minVotes: Math.max(1, Math.min(6, int(ctx.body.min_votes, 2) || 2)),
+      minScore: num(ctx.body.min_score, MIN_SCORE) || MIN_SCORE,
+    })
     if (!r.ok) fail(400, r.error || '识别失败', 'screen_failed')
-    return { resources: r.resources, candidates: r.candidates, size: r.size, want: SCREEN_RESOURCES }
+    return {
+      resources: r.resources,
+      agreed: r.agreed,
+      pending: r.pending,
+      votes: r.votes,
+      hits: r.hits,
+      seen: r.seen,
+      frames: r.frames,
+      size: r.size,
+      engine: r.engine,
+      ms: r.ms,
+      want: SCREEN_RESOURCES,
+      min_votes: Math.max(1, Math.min(6, int(ctx.body.min_votes, 2) || 2)),
+    }
+  })
+
+  /** 清掉一次「看屏幕」的投票记录（换了一张单、或者用户点了重来） */
+  post('/api/ocr/screen/reset', (ctx) => resetVotes(clampStr(ctx.body.session, 40) || 'default'))
+
+  /**
+   * 图标模板：列出现用的、上传一个自己抠的。
+   * 换了游戏版本、图标美术变了，用户可以自己截一张顶栏图上传，
+   * 程序在给定的小矩形里现场抠出图标本体存成模板（存 data/resource-icons，不动程序自带的）。
+   */
+  get('/api/ocr/icons', () => ({ templates: templateStatus(), resources: SCREEN_RESOURCES }))
+
+  post('/api/ocr/icons', (ctx) => {
+    const key = clampStr(ctx.body.key, 20)
+    const file = TEMPLATE_FILE[key]
+    if (!file || !SCREEN_RESOURCES.includes(key)) fail(400, `只支持这几种资源：${SCREEN_RESOURCES.join(' / ')}`, 'bad_key')
+    const box = ctx.body.box || {}
+    const boxNum = (v, d) => {
+      const n = Number(v)
+      return Number.isFinite(n) ? Math.round(n) : d
+    }
+    const region = { x: boxNum(box.x, 0), y: boxNum(box.y, 0), w: Math.max(8, boxNum(box.w, 120)), h: Math.max(8, boxNum(box.h, 60)) }
+    const { name, buf } = saveDataURL(ctx.body.data_url, 'icon', { maxBytes: MAX_OCR_IMAGE_BYTES })
+    const tmp = path.join(os.tmpdir(), `xfc-icon-src-${process.pid}-${Date.now()}.png`)
+    fs.writeFileSync(tmp, buf)
+    try {
+      let img
+      try {
+        img = decodePNG(buf)
+      } catch (err) {
+        fail(400, `这张图读不了（要 PNG）：${err.message}`, 'bad_image')
+      }
+      if (region.x + region.w > img.width || region.y + region.h > img.height) {
+        fail(400, `抠图区域超出了图片范围（图是 ${img.width}×${img.height}）`, 'bad_box')
+      }
+      const picked = extractIconTemplate(img, region)
+      if (!picked) fail(400, '这个区域里没找到够亮的图标，把区域对准图标本体再试一次', 'empty_box')
+      const dir = path.resolve(ROOT, 'data', 'resource-icons')
+      fs.mkdirSync(dir, { recursive: true })
+      const out = path.join(dir, `${file}.png`)
+      fs.writeFileSync(out, encodePNG(picked.img))
+      loadTemplates({ force: true })
+      return { ok: true, key, file: out, box: picked.box, size: [picked.img.width, picked.img.height], from: name, templates: templateStatus() }
+    } finally {
+      try {
+        fs.unlinkSync(tmp)
+      } catch {
+        /* 清不掉就算了 */
+      }
+    }
   })
 
   /* ===== 全局搜索 ===== */

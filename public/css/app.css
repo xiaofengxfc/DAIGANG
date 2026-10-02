@@ -1562,6 +1562,59 @@ button.cell:hover {
   font-family: var(--font-fig);
   font-size: var(--fs-sm);
   color: var(--ink-2);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+/* 相对日期（今天/昨天）后面跟一个绝对日期，两个都要有：
+   相对日期好扫，绝对日期是证据。 */
+.tl__datefull {
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+
+/* 最新一条：点实心、条目本身比别的重一档，一眼看出「现在做到这」 */
+.tl--now .tl__dot {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cinnabar) 22%, transparent);
+}
+
+.tl:not(.tl--now) .tl__dot {
+  background: var(--surface);
+  border: 1.5px solid var(--cinnabar);
+}
+
+/* 本次消耗 / 增长：带正负色的数字片。
+   消耗是常态（资源变少），所以用 oxblood；增长用 jade；没变用灰。 */
+.tl__deltas {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tl__delta {
+  font-family: var(--font-fig);
+  font-size: var(--fs-xs);
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  white-space: nowrap;
+}
+
+.tl__delta.tone-oxblood {
+  color: var(--oxblood);
+  border-color: color-mix(in srgb, var(--oxblood) 35%, var(--line));
+}
+
+.tl__delta.tone-jade {
+  color: var(--jade);
+  border-color: color-mix(in srgb, var(--jade) 35%, var(--line));
+}
+
+.tl__delta.tone-muted {
+  color: var(--ink-3);
 }
 
 .tl__content {

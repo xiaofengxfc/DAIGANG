@@ -1,16 +1,21 @@
-/* ============================================================
-   OCR：用 Windows 自带的识别引擎读游戏截图，把资源数字抠出来。
+﻿/* ============================================================
+   OCR：读游戏截图里的文字和数字，三种引擎按能力从高到低排。
 
-   为什么用系统自带的：
-     · 不用装任何东西（不 npm install，不带 wasm 模型）；
-     · 完全在本机跑，截图不出这台电脑（跟凭证保险箱一个立场）；
-     · 中文识别是现成的（zh-Hans-CN）。
-
-   识别一定会认错（实测：真机尺寸下数字基本准，小图会认糊），
-   所以这里只负责「猜」，填什么由用户核对后确认。
+   为什么要三种（这是「识别率要足够高」的落点）：
+     1. **Umi-OCR**（github.com/hiroi-sora/Umi-OCR, MIT）—— PaddleOCR 内核，
+        完全离线，自带一个本地 HTTP 服务（默认 127.0.0.1:1224）。
+        它返回的每一项都带 `score` 置信度和四角坐标 `box`，
+        这正是系统引擎缺的两样东西。装了就用它。
+     2. **RapidOCR**（github.com/RapidAI/RapidOCR, Apache-2.0）—— 同一套 PaddleOCR
+        模型，提供免 Python 的 Windows 可执行文件，走命令行，输出 JSON。
+        没装 Umi-OCR 但装了这个就用它。
+     3. **Windows.Media.Ocr**（系统自带，scripts/ocr.ps1）—— 什么外部程序都没有
+        时的兜底。不装任何东西，纯本机，但拿不到置信度。
+   三级都是「本机跑、图不出这台电脑」，和凭证保险箱一个立场。
+   探测结果是缓存的，但可以 force 重探（用户刚装完引擎能立刻生效）。
    ============================================================ */
 
-import { spawn } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
@@ -159,7 +164,11 @@ export function textLines(words) {
  *   · 也不用管道抓输出（沙箱里容易 EPERM），反正结果本来就写文件。
  * stderr 也收进日志文件，失败时能说清原因。
  */
-export function ocrImage(imagePath, { lang = 'zh-Hans-CN', timeoutMs = 30000 } = {}) {
+/* ============================================================
+   引擎 3：Windows 自带 OCR（兜底，不需要装任何东西）
+   ============================================================ */
+
+function windowsOCR(imagePath, { lang = 'zh-Hans-CN', timeoutMs = 30000 } = {}) {
   return new Promise((resolve) => {
     const stamp = `${process.pid}-${Date.now()}`
     const outPath = path.join(os.tmpdir(), `xfc-ocr-${stamp}.tsv`)
@@ -236,17 +245,578 @@ export function ocrImage(imagePath, { lang = 'zh-Hans-CN', timeoutMs = 30000 } =
       }
       if (raw.startsWith('ERROR:')) return finish({ ok: false, error: raw.slice(6).trim() })
       const words = parseWords(raw)
-      finish({ ok: true, words, lines: textLines(words) })
+      finish({ ok: true, engine: 'windows', words, lines: textLines(words) })
     })
   })
 }
 
-/** 这台机器能不能用截图识别 */
-export function ocrAvailable() {
-  if (process.platform !== 'win32') return false
+/* ============================================================
+   引擎 1：Umi-OCR 的本地 HTTP 服务
+   ============================================================ */
+
+const UMI_PORTS = [1224, 1225]
+const UMI_HOST = '127.0.0.1'
+
+/** 带超时的 fetch（不引依赖，用全局 fetch + AbortController） */
+async function fetchJSON(url, { method = 'POST', body, timeoutMs = 4000 } = {}) {
+  const ac = new AbortController()
+  const timer = setTimeout(() => ac.abort(), timeoutMs)
   try {
-    return fs.existsSync(OCR_PS1)
+    const res = await fetch(url, {
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+      signal: ac.signal,
+    })
+    const text = await res.text()
+    let json = null
+    try {
+      json = JSON.parse(text)
+    } catch {
+      /* 不是 JSON 就当没答 */
+    }
+    return { ok: res.ok, status: res.status, json, text }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/** Umi-OCR 的四角 box → 我们的 {x,y,w,h} */
+function umiBoxToWord(item) {
+  const box = item.box || item.pos
+  if (!Array.isArray(box) || box.length < 2) return null
+  let minx = 1e9
+  let miny = 1e9
+  let maxx = -1
+  let maxy = -1
+  for (const p of box) {
+    const px = Array.isArray(p) ? Number(p[0]) : Number(p.x)
+    const py = Array.isArray(p) ? Number(p[1]) : Number(p.y)
+    if (!Number.isFinite(px) || !Number.isFinite(py)) continue
+    if (px < minx) minx = px
+    if (px > maxx) maxx = px
+    if (py < miny) miny = py
+    if (py > maxy) maxy = py
+  }
+  if (maxx < 0) return null
+  const x = Math.round(minx)
+  const y = Math.round(miny)
+  const w = Math.max(1, Math.round(maxx - minx))
+  const h = Math.max(1, Math.round(maxy - miny))
+  return { x, y, w, h, cx: x + w / 2, cy: y + h / 2, text: String(item.text ?? '').trim(), score: Number(item.score) || 0 }
+}
+
+/**
+ * Umi-OCR 的 /api/ocr 一次返回**整行**（end 是行尾）。
+ * 为了和 Windows 引擎的「一个词一段」对齐，这里按空格切开，
+ * 再按字数把行框等分回每一段 —— 粗但够用，识别层只用得到大致区间。
+ */
+function umiItemsToWords(data) {
+  const words = []
+  for (const item of data || []) {
+    const base = umiBoxToWord(item)
+    if (!base || !base.text) continue
+    const parts = base.text.split(/\s+/).filter(Boolean)
+    if (parts.length <= 1) {
+      words.push(base)
+      continue
+    }
+    const total = parts.reduce((s, p) => s + Math.max(1, p.length), 0)
+    let acc = 0
+    for (const p of parts) {
+      const share = Math.max(1, p.length) / total
+      const x = Math.round(base.x + base.w * acc)
+      const w = Math.max(1, Math.round(base.w * share))
+      acc += share
+      words.push({ x, y: base.y, w, h: base.h, cx: x + w / 2, cy: base.y + base.h / 2, text: p, score: base.score })
+    }
+  }
+  return words
+}
+
+async function umiOCR(imagePath, { timeoutMs = 20000, port } = {}) {
+  const buf = fs.readFileSync(imagePath)
+  const base64 = buf.toString('base64')
+  const ports = port ? [port] : UMI_PORTS
+  let lastErr = 'Umi-OCR 没有响应'
+  for (const p of ports) {
+    const url = `http://${UMI_HOST}:${p}/api/ocr`
+    const res = await fetchJSON(url, {
+      body: { base64, options: { 'ocr.language': 'models/config_chinese.txt', 'data.format': 'dict' } },
+      timeoutMs,
+    })
+    if (!res.ok) {
+      lastErr = res.error || `HTTP ${res.status}`
+      continue
+    }
+    const json = res.json || {}
+    if (Number(json.code) !== 100) {
+      lastErr = json.msg || json.data || `Umi-OCR 返回 code=${json.code}`
+      continue
+    }
+    const words = umiItemsToWords(json.data)
+    return { ok: true, engine: 'umi', port: p, words, lines: textLines(words) }
+  }
+  return { ok: false, error: lastErr }
+}
+
+/* ============================================================
+   引擎 2/3：免 Python 的控制台 OCR（PaddleOCR-json / RapidOCR-json）
+   ============================================================ */
+
+/**
+ * 这两个是同一家人做的（hiroi-sora），接口几乎一样：
+ *   · PaddleOCR-json —— Apache-2.0，PP-OCR 内核，解压即用（约 88MB 包 / 展开 250MB），
+ *     要求 CPU 有 AVX；Umi-OCR 里那个 Paddle 插件用的就是同款引擎。
+ *   · RapidOCR-json —— MIT，PP-OCR 的 onnxruntime 版，约 30MB，CPU 没 AVX 也能跑。
+ * 两个都用**一次性调用**：`-image_path="图" -write_json="out.json"`，
+ * 输出 { "code": 100, "data": [ {"text","box":[[x,y]×4],"score"} ] }。
+ *
+ * 为什么不挂常驻进程：这两个官方都明说不支持并发（多客户端会串），
+ * 而我们的识别是「用户点了才跑一次」的量级，一次性调用的启动开销
+ * （Rapid ~0.1s、Paddle ~2s）比维护一个会卡死、要处理端口握手的常驻进程划算。
+ * 为什么不用管道抓 stdout：沙箱里 Node 的 child_process 拿管道会 EPERM，
+ * 而这两个都支持 `-write_json=` 直接落盘，走文件最省事。
+ */
+const CONSOLE_OCR = {
+  paddleocr: {
+    name: 'PaddleOCR-json',
+    repo: 'github.com/hiroi-sora/PaddleOCR-json',
+    license: 'Apache-2.0',
+    envKey: 'PADDLEOCR_JSON_BIN',
+    exeNames: ['PaddleOCR-json.exe', 'PaddleOCR_json.exe'],
+    install: '下载 PaddleOCR-json 的 Windows 包解压到 tools\\ocr\\，或设 PADDLEOCR_JSON_BIN 指到 exe',
+    approx: '约 88MB 包 / 展开 250MB，需要 CPU 支持 AVX',
+  },
+  rapidocr: {
+    name: 'RapidOCR-json',
+    repo: 'github.com/hiroi-sora/RapidOCR-json',
+    license: 'MIT',
+    envKey: 'RAPIDOCR_JSON_BIN',
+    exeNames: ['RapidOCR-json.exe', 'RapidOCR_json.exe'],
+    install: '下载 RapidOCR-json 的 Windows 包解压到 tools\\ocr\\，或设 RAPIDOCR_JSON_BIN 指到 exe',
+    approx: '约 30MB，不需要 AVX',
+  },
+}
+
+/** PATH / 环境变量 / 几个常见目录里找可执行文件（照抄 restic 的探测样板） */
+function whichSync(cmd) {
+  try {
+    const r = spawnSync(process.platform === 'win32' ? 'where.exe' : 'which', [cmd], { encoding: 'utf8', windowsHide: true })
+    if (r.status !== 0) return null
+    const first = String(r.stdout || '')
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter(Boolean)[0]
+    return first || null
+  } catch {
+    return null
+  }
+}
+
+function findConsoleOcr(spec) {
+  const cands = []
+  if (process.env[spec.envKey]) cands.push(process.env[spec.envKey])
+  const roots = [
+    path.resolve(HERE, '..', 'tools', 'ocr'),
+    path.resolve(HERE, '..', 'tools'),
+    process.env.ProgramFiles && path.join(process.env.ProgramFiles, 'PaddleOCR-json'),
+    process.env.LOCALAPPDATA && path.join(process.env.LOCALAPPDATA, 'Programs', 'PaddleOCR-json'),
+    // 用户如果已经装了 Umi-OCR，它自带的插件目录里就有现成的 exe，直接借用
+    process.env.ProgramFiles && path.join(process.env.ProgramFiles, 'Umi-OCR', 'UmiOCR-data', 'plugins'),
+    process.env.LOCALAPPDATA && path.join(process.env.LOCALAPPDATA, 'Programs', 'Umi-OCR', 'UmiOCR-data', 'plugins'),
+  ].filter(Boolean)
+  for (const root of roots) {
+    for (const n of spec.exeNames) cands.push(path.join(root, n))
+    for (const n of spec.exeNames) cands.push(path.join(root, 'PaddleOCR-json', n))
+  }
+  for (const c of cands) {
+    try {
+      if (c && fs.existsSync(c)) return c
+    } catch {
+      /* 忽略 */
+    }
+  }
+  for (const n of spec.exeNames) {
+    const hit = whichSync(n)
+    if (hit) return hit
+  }
+  return null
+}
+
+/** PaddleOCR-json / RapidOCR-json 的 JSON → 统一的词框 */
+function consoleJSONToWords(json) {
+  const arr = Array.isArray(json) ? json : json?.data || json?.result || json?.results || []
+  const words = []
+  for (const it of arr) {
+    if (!it) continue
+    // [box, text, score] 这种紧凑数组形态
+    if (Array.isArray(it)) {
+      const w = umiBoxToWord({ box: it[0], text: it[1] })
+      if (w && w.text) words.push({ ...w, score: Number(it[2]) || 0 })
+      continue
+    }
+    let word = umiBoxToWord({ box: it.box || it.boxes || it.points, text: it.text ?? it.label ?? it.transcription })
+    // xyxy 形态（有些构建直接给 bbox）
+    if (!word && Array.isArray(it.bbox) && it.bbox.length === 4) {
+      const [x0, y0, x1, y1] = it.bbox.map(Number)
+      word = { x: x0, y: y0, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, text: String(it.text ?? ''), score: Number(it.score ?? it.confidence) || 0 }
+    }
+    if (word && word.text) words.push({ ...word, score: Number(it.score ?? it.confidence) || 0 })
+  }
+  return words
+}
+
+function consoleOCR(id, bin, imagePath, { timeoutMs = 30000 } = {}) {
+  return new Promise((resolve) => {
+    const outPath = path.join(os.tmpdir(), `xfc-${id}-${process.pid}-${Date.now()}.json`)
+    const logPath = `${outPath}.log`
+    let logFd = null
+    try {
+      logFd = fs.openSync(logPath, 'w')
+    } catch {
+      /* 没有就没有 */
+    }
+    let done = false
+    const finish = (r) => {
+      if (done) return
+      done = true
+      for (const p of [outPath, logPath]) {
+        try {
+          fs.unlinkSync(p)
+        } catch {
+          /* 没了就算了 */
+        }
+      }
+      try {
+        if (logFd !== null) fs.closeSync(logFd)
+      } catch {
+        /* 已经关了 */
+      }
+      resolve(r)
+    }
+    const args = [`-image_path=${path.resolve(imagePath)}`, `-write_json=${outPath}`]
+    let child
+    try {
+      child = spawn(bin, args, { stdio: ['ignore', 'ignore', logFd], windowsHide: true, cwd: path.dirname(bin) })
+    } catch (err) {
+      return finish({ ok: false, error: `起不了 ${id}：${err.message}` })
+    }
+    const timer = setTimeout(() => {
+      try {
+        child.kill()
+      } catch {
+        /* 已经退了 */
+      }
+      finish({ ok: false, error: `${id} 超时` })
+    }, timeoutMs)
+    child.on('error', (err) => {
+      clearTimeout(timer)
+      finish({ ok: false, error: `起不了 ${id}：${err.message}` })
+    })
+    child.on('close', () => {
+      clearTimeout(timer)
+      let raw = ''
+      try {
+        raw = fs.readFileSync(outPath, 'utf8')
+      } catch {
+        let log = ''
+        try {
+          log = fs.readFileSync(logPath, 'utf8').trim()
+        } catch {
+          /* 没有就没有 */
+        }
+        return finish({ ok: false, error: log ? `${id} 没输出：${log.slice(0, 200)}` : `${id} 没输出（参数名可能和这个版本不一致）` })
+      }
+      let json = null
+      try {
+        json = JSON.parse(raw)
+      } catch {
+        return finish({ ok: false, error: `${id} 的输出不是 JSON` })
+      }
+      if (json && json.code !== undefined && Number(json.code) !== 100) {
+        return finish({ ok: false, error: `${id} 返回 code=${json.code}${json.data ? `：${String(json.data).slice(0, 120)}` : ''}` })
+      }
+      const words = consoleJSONToWords(json)
+      if (!words.length) return finish({ ok: false, error: `${id} 没认到任何文字` })
+      finish({ ok: true, engine: id, words, lines: textLines(words) })
+    })
+  })
+}
+
+/* ============================================================
+   引擎 4：Tesseract（装了就用；中文界面质量不如 PP-OCR 系，所以排在后面）
+   ============================================================ */
+
+function findTesseract() {
+  if (process.env.TESSERACT_BIN) return process.env.TESSERACT_BIN
+  for (const p of [
+    process.env.ProgramFiles && path.join(process.env.ProgramFiles, 'Tesseract-OCR', 'tesseract.exe'),
+    process.env.LOCALAPPDATA && path.join(process.env.LOCALAPPDATA, 'Programs', 'Tesseract-OCR', 'tesseract.exe'),
+  ]) {
+    try {
+      if (p && fs.existsSync(p)) return p
+    } catch {
+      /* 忽略 */
+    }
+  }
+  return whichSync('tesseract.exe') || whichSync('tesseract')
+}
+
+/** Tesseract 的 TSV：只取 level=5（词）那些行 */
+function tesseractTSVToWords(tsv) {
+  const words = []
+  const lines = String(tsv || '').split(/\r?\n/)
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split('\t')
+    if (cols.length < 12) continue
+    if (Number(cols[0]) !== 5) continue
+    const text = cols.slice(11).join('\t').trim()
+    if (!text) continue
+    const conf = Number(cols[10])
+    const x = Number(cols[6])
+    const y = Number(cols[7])
+    const w = Number(cols[8])
+    const h = Number(cols[9])
+    if (![x, y, w, h].every(Number.isFinite)) continue
+    words.push({ x, y, w, h, cx: x + w / 2, cy: y + h / 2, text, score: Number.isFinite(conf) ? Math.max(0, conf / 100) : 0 })
+  }
+  return words
+}
+
+function tesseractOCR(bin, imagePath, { timeoutMs = 30000 } = {}) {
+  return new Promise((resolve) => {
+    const outPath = path.join(os.tmpdir(), `xfc-tess-${process.pid}-${Date.now()}.tsv`)
+    const logPath = `${outPath}.log`
+    let logFd = null
+    try {
+      logFd = fs.openSync(logPath, 'w')
+    } catch {
+      /* 没有就没有 */
+    }
+    let done = false
+    const finish = (r) => {
+      if (done) return
+      done = true
+      for (const p of [outPath, logPath]) {
+        try {
+          fs.unlinkSync(p)
+        } catch {
+          /* 没了就算了 */
+        }
+      }
+      try {
+        if (logFd !== null) fs.closeSync(logFd)
+      } catch {
+        /* 已经关了 */
+      }
+      resolve(r)
+    }
+    // 最后一个位置参数是输出文件名（不带扩展名），tesseract 自己加 .tsv
+    const args = [path.resolve(imagePath), outPath.replace(/\.tsv$/i, ''), '-l', 'chi_sim+eng', '--psm', '6', 'tsv']
+    let child
+    try {
+      child = spawn(bin, args, { stdio: ['ignore', 'ignore', logFd], windowsHide: true })
+    } catch (err) {
+      return finish({ ok: false, error: `起不了 tesseract：${err.message}` })
+    }
+    const timer = setTimeout(() => {
+      try {
+        child.kill()
+      } catch {
+        /* 已经退了 */
+      }
+      finish({ ok: false, error: 'tesseract 超时' })
+    }, timeoutMs)
+    child.on('error', (err) => {
+      clearTimeout(timer)
+      finish({ ok: false, error: `起不了 tesseract：${err.message}` })
+    })
+    child.on('close', () => {
+      clearTimeout(timer)
+      let raw = ''
+      try {
+        raw = fs.readFileSync(outPath, 'utf8')
+      } catch {
+        return finish({ ok: false, error: 'tesseract 没输出（多半是没装 chi_sim 中文语言包）' })
+      }
+      const words = tesseractTSVToWords(raw)
+      if (!words.length) return finish({ ok: false, error: 'tesseract 没认到任何文字' })
+      finish({ ok: true, engine: 'tesseract', words, lines: textLines(words) })
+    })
+  })
+}
+
+/* ============================================================
+   探测链：装了谁就用谁，没装就一路往下退
+   ============================================================ */
+
+let engineCache = null
+
+/**
+ * 探测这台机器上能用的 OCR 引擎。
+ * 除 Umi-OCR 要发请求（异步的 probeEngines）之外都是查文件，同步就能出结果。
+ * 结果缓存；force=true 重探（用户刚装完引擎时用）。
+ */
+export function ocrEngines({ force = false } = {}) {
+  if (engineCache && !force) return engineCache
+  const prev = engineCache || {}
+  const win = process.platform === 'win32' && safeExists(OCR_PS1)
+  const paddleBin = findConsoleOcr(CONSOLE_OCR.paddleocr)
+  const rapidBin = findConsoleOcr(CONSOLE_OCR.rapidocr)
+  const tessBin = findTesseract()
+
+  const engines = [
+    {
+      id: 'umi',
+      name: 'Umi-OCR',
+      available: Boolean(prev.umiOnline),
+      port: prev.umiPort || UMI_PORTS[0],
+      license: 'MIT（内含 Apache-2.0 的 PaddleOCR-json 与 LGPL 的 Qt 组件，按官方方式自行安装）',
+      install: 'github.com/hiroi-sora/Umi-OCR —— 解压即用，设置里打开「HTTP 服务」（默认 127.0.0.1:1224）',
+      note: prev.umiOnline ? `本地服务在线（127.0.0.1:${prev.umiPort}）` : '没检测到本地服务：装了 Umi-OCR 并打开 HTTP 服务后会自动用上',
+      score: 4,
+    },
+    {
+      id: 'paddleocr',
+      name: CONSOLE_OCR.paddleocr.name,
+      available: Boolean(paddleBin),
+      path: paddleBin || '',
+      license: CONSOLE_OCR.paddleocr.license,
+      install: CONSOLE_OCR.paddleocr.install,
+      note: paddleBin ? `已找到：${paddleBin}` : `没找到。${CONSOLE_OCR.paddleocr.install}（${CONSOLE_OCR.paddleocr.approx}）`,
+      score: 3,
+    },
+    {
+      id: 'rapidocr',
+      name: CONSOLE_OCR.rapidocr.name,
+      available: Boolean(rapidBin),
+      path: rapidBin || '',
+      license: CONSOLE_OCR.rapidocr.license,
+      install: CONSOLE_OCR.rapidocr.install,
+      note: rapidBin ? `已找到：${rapidBin}` : `没找到。${CONSOLE_OCR.rapidocr.install}（${CONSOLE_OCR.rapidocr.approx}）`,
+      score: 2,
+    },
+    {
+      id: 'tesseract',
+      name: 'Tesseract',
+      available: Boolean(tessBin),
+      path: tessBin || '',
+      license: 'Apache-2.0',
+      install: 'github.com/UB-Mannheim/tesseract —— 安装时勾上 chi_sim 中文语言包',
+      note: tessBin ? `已找到：${tessBin}` : '没找到。装了就有，但中文界面质量不如 PP-OCR 系，所以排在后面',
+      score: 1,
+    },
+    {
+      id: 'windows',
+      name: 'Windows 自带 OCR',
+      available: win,
+      license: '随系统',
+      install: '不用装（Windows 10/11 自带，需要系统装了中文 OCR 语言包）',
+      note: win ? '系统自带，无需安装；缺点是拿不到置信度' : '只在 Windows 上有',
+      score: 0,
+    },
+  ]
+  const preferred = engines.filter((e) => e.available).sort((a, b) => b.score - a.score)[0]?.id || null
+  engineCache = {
+    engines,
+    preferred,
+    win,
+    paddleBin: paddleBin || null,
+    rapidBin: rapidBin || null,
+    tessBin: tessBin || null,
+    umiOnline: Boolean(prev.umiOnline),
+    umiPort: prev.umiPort || UMI_PORTS[0],
+    checkedAt: Date.now(),
+  }
+  return engineCache
+}
+
+/** 异步探一次 Umi-OCR（真的发请求），结果并回缓存 */
+export async function probeEngines({ force = false, timeoutMs = 1200 } = {}) {
+  if (force) engineCache = null
+  ocrEngines({ force })
+  let online = false
+  let port = null
+  for (const p of UMI_PORTS) {
+    // get_options 不消耗 OCR 算力，正好当心跳用
+    const res = await fetchJSON(`http://${UMI_HOST}:${p}/api/ocr/get_options`, { method: 'GET', timeoutMs })
+    if (res.ok) {
+      online = true
+      port = p
+      break
+    }
+  }
+  engineCache.umiOnline = online
+  engineCache.umiPort = port || UMI_PORTS[0]
+  engineCache.engines = engineCache.engines.map((e) =>
+    e.id === 'umi' ? { ...e, available: online, port: engineCache.umiPort, note: online ? `本地服务在线（127.0.0.1:${engineCache.umiPort}）` : e.note } : e
+  )
+  engineCache.preferred = engineCache.engines.filter((e) => e.available).sort((a, b) => b.score - a.score)[0]?.id || null
+  return engineCache
+}
+
+function safeExists(p) {
+  try {
+    return fs.existsSync(p)
   } catch {
     return false
   }
+}
+
+/** 这台机器能不能用截图识别（沿用老接口名） */
+export function ocrAvailable() {
+  const st = ocrEngines()
+  return Boolean(st.preferred)
+}
+
+/** 详细状态，给 /api/ocr/status 用 */
+export function ocrStatus() {
+  const st = ocrEngines()
+  return {
+    available: Boolean(st.preferred),
+    engine: st.preferred,
+    engine_name: st.engines.find((e) => e.id === st.preferred)?.name || '',
+    engines: st.engines,
+    umi_online: Boolean(st.umiOnline),
+    umi_port: st.umiPort,
+    paddle_bin: st.paddleBin || '',
+    rapid_bin: st.rapidBin || '',
+    tess_bin: st.tessBin || '',
+    platform: process.platform,
+  }
+}
+
+/**
+ * 跑一次 OCR：从能力最高的引擎往下一路试，第一个成功的就用。
+ * 返回 { ok, engine, words, lines, error, tried }
+ *
+ * Umi-OCR 官方明说不支持并发，所以这里不做并发调用 —— 识别是
+ * 「用户点了才跑一次」的量级（一秒一次），够用。
+ */
+export async function ocrImage(imagePath, { lang = 'zh-Hans-CN', timeoutMs = 30000, engine = null } = {}) {
+  const st = ocrEngines()
+  const chain = engine
+    ? [engine]
+    : ['umi', 'paddleocr', 'rapidocr', 'tesseract', 'windows'].filter((id) => st.engines.find((e) => e.id === id)?.available)
+  if (!chain.length) return { ok: false, error: '这台机器上没有可用的 OCR（装一个本地引擎，或者用 Windows 自带的那个）', tried: [] }
+  const tried = []
+  for (const id of chain) {
+    let r
+    if (id === 'umi') r = await umiOCR(imagePath, { timeoutMs: Math.min(timeoutMs, 20000), port: st.umiPort })
+    else if (id === 'paddleocr') r = await consoleOCR('paddleocr', st.paddleBin, imagePath, { timeoutMs })
+    else if (id === 'rapidocr') r = await consoleOCR('rapidocr', st.rapidBin, imagePath, { timeoutMs })
+    else if (id === 'tesseract') r = await tesseractOCR(st.tessBin, imagePath, { timeoutMs })
+    else r = await windowsOCR(imagePath, { lang, timeoutMs })
+    tried.push({ engine: id, ok: r.ok, error: r.error })
+    if (r.ok) return { ...r, tried }
+    // 这次挂了（用户关了 Umi-OCR / 把 exe 挪走了）→ 从链里摘掉，别每次都白等一个超时
+    if (engine) continue
+    if (id === 'umi') engineCache.umiOnline = false
+    if (id === 'paddleocr' && /起不了/.test(String(r.error))) engineCache.paddleBin = null
+    if (id === 'rapidocr' && /起不了/.test(String(r.error))) engineCache.rapidBin = null
+  }
+  return { ok: false, error: tried[tried.length - 1]?.error || '识别失败', tried }
 }

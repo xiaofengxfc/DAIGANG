@@ -111,8 +111,18 @@ export const RESTIC = {
 export const VAULT_IDLE_MS = 20 * 60 * 1000
 export const SESSION_TTL_MS = 14 * 24 * 60 * 60 * 1000
 
-export const MAX_JSON_BYTES = 4 * 1024 * 1024
+export const MAX_JSON_BYTES = 8 * 1024 * 1024
 export const MAX_UPLOAD_BYTES = 3 * 1024 * 1024
+
+/**
+ * 截图识别的上传上限，单独一条。
+ *
+ * 为什么比普通接口大：一张 2560×1600 的游戏截图 PNG 就有 3MB 左右，
+ * 转成 base64 还要再涨三分之一。截完图直接拖进来是最顺手的用法，
+ * 不该逼用户先去压图（以前的提示就是「请压到 1.5MB 以内」，很难用）。
+ * 只放宽这一个接口，其它接口保持 8MB 不变。
+ */
+export const MAX_OCR_IMAGE_BYTES = 12 * 1024 * 1024
 
 /** 订单状态机 —— 顺序即流程顺序 */
 export const ORDER_STATUS = [

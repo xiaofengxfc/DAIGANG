@@ -78,7 +78,7 @@ const server = http.createServer(async (req, res) => {
 
     try {
       if (['POST', 'PATCH', 'PUT', 'DELETE'].includes(req.method)) {
-        ctx.body = await readJSON(req)
+        ctx.body = await readJSON(req, hit.maxBytes ? { maxBytes: hit.maxBytes } : undefined)
       }
       const result = await hit.handler(ctx)
       if (!res.writableEnded) sendJSON(res, 200, result === undefined ? { ok: true } : result)

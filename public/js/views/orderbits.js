@@ -122,28 +122,47 @@ function resourcesField({ before = '', after = '', beforeFrom = '' } = {}) {
     sides.push(rec)
 
     shotBtn.addEventListener('click', () => {
-      if (ocrOk === false) return toast('这台机器上没法识别（只支持 Windows）', 'err', 3600)
+      if (ocrOk === false) return toast('这台机器上没法识别：装一个本地 OCR（设置页有指引），或者用 Windows 自带的那个', 'err', 4200)
       file.click()
     })
 
     /**
-     * 识别画面：切到游戏，程序每 1.5 秒截一次屏，
-     * 三个资源都认到就自动停 —— 不用截图、不用来回切。
+     * 识别画面：切到游戏，程序每不到一秒截一次屏。
+     * 每个数字要**认到两次以上**才采纳（服务端按 session 累计票数），
+     * 所以填进框里的不是「认了一次」的结果，是复核过的。
      */
     let watching = false
+    let sessionSeq = 0
     watchBtn.addEventListener('click', async () => {
       if (watching) return
-      if (ocrOk === false) return toast('这台机器上用不了屏幕识别（只支持 Windows）', 'err', 3600)
+      if (ocrOk === false) return toast('这台机器上用不了屏幕识别：装一个本地 OCR（设置页有指引），或者用 Windows 自带的那个', 'err', 4200)
       watching = true
       watchBtn.setAttribute('data-loading', '1')
+      const session = `w${Date.now()}-${++sessionSeq}`
       const got = {}
+      const pending = {}
+      const seenIcons = []
+      const smallText = {}
+      let engine = ''
       const deadline = Date.now() + 90000
-      const paintProgress = () => {
+      const paintProgress = (extra) => {
         const have = RES_KEYS.filter((k) => got[k] !== undefined)
         note.hidden = false
-        note.replaceChildren(
-          h('strong', `正在看屏幕… 已认到 ${have.length}/3${have.length ? '（' + have.join('、') + '）' : ''}`),
-          h('div.tiny', { style: { marginTop: '4px', opacity: '.85' } }, '切到游戏，走到有这几个资源的界面；三个都认到就自动停。')
+        mount(
+          note,
+          h('strong', `正在看屏幕… 已认到 ${have.length}/${RES_KEYS.length}${have.length ? '（' + have.join('、') + '）' : ''}`),
+          engine ? h('div.tiny', { style: { marginTop: '4px', opacity: '.85' } }, `引擎：${engine}${seenIcons.length ? ` · 图标：${seenIcons.join('、')}` : ''}`) : null,
+          Object.keys(pending).length
+            ? h(
+                'div.tiny',
+                { style: { marginTop: '2px', opacity: '.85' } },
+                '正在复核：' +
+                  Object.entries(pending)
+                    .map(([k, p]) => `${k} ${p.votes}/${p.need}`)
+                    .join(' · ')
+              )
+            : null,
+          h('div.tiny', { style: { marginTop: '4px', opacity: '.85' } }, extra || '切到游戏，停在能看到这几个资源的界面；每个数字要认到两次才采纳。')
         )
       }
       paintProgress()
@@ -151,30 +170,64 @@ function resourcesField({ before = '', after = '', beforeFrom = '' } = {}) {
         while (Date.now() < deadline && RES_KEYS.some((k) => got[k] === undefined)) {
           let r = null
           try {
-            r = await api.post('/api/ocr/screen', {})
+            r = await api.post('/api/ocr/screen', { session, min_votes: 2 })
           } catch (err) {
             // 单次失败（比如切窗口时截到黑屏）不算结束，接着看
-            await new Promise((res) => setTimeout(res, 1200))
+            await new Promise((res) => setTimeout(res, 1000))
             continue
           }
-          for (const k of RES_KEYS) {
-            if (got[k] === undefined && r.resources && r.resources[k] !== undefined) got[k] = r.resources[k]
+          if (r.engine) engine = r.engine
+          if (Array.isArray(r.hits)) {
+            for (const hit of r.hits) {
+              const label = `${hit.key}(分${hit.score}${hit.warn ? '·字太小' : ''})`
+              if (!seenIcons.includes(label)) seenIcons.push(label)
+            }
           }
+          // 字太小的读法单独记一句，收尾时一起提醒
+          if (Array.isArray(r.hits)) {
+            for (const hit of r.hits) if (hit.warn) smallText[hit.key] = true
+          }
+          for (const [k, v] of Object.entries(r.agreed || {})) {
+            got[k] = v.value
+            delete pending[k]
+          }
+          for (const [k, v] of Object.entries(r.pending || {})) pending[k] = v
           for (const k of RES_KEYS) if (got[k] !== undefined) inputs[k].value = String(got[k])
           paintProgress()
           paint()
           if (RES_KEYS.every((k) => got[k] !== undefined)) break
-          await new Promise((res) => setTimeout(res, 1500))
+          await new Promise((res) => setTimeout(res, 850))
         }
         const n = RES_KEYS.filter((k) => got[k] !== undefined).length
-        note.replaceChildren(
-          h('strong', n === RES_KEYS.length ? '三个都认到了，核对一下再保存' : `只认到 ${n} 个，剩下的自己填一下`),
-          h('div.tiny', { style: { marginTop: '4px', opacity: '.85' } }, '认出来的都是「图标 + 数字」对上的，认不准的宁可不填。')
+        const missing = RES_KEYS.filter((k) => got[k] === undefined)
+        const small = Object.keys(smallText)
+        mount(
+          note,
+          h('strong', n === RES_KEYS.length ? '三个都认到了，核对一下再保存' : `认到 ${n} 个${missing.length ? `，${missing.join('、')} 没认到` : ''}`),
+          small.length
+            ? h(
+                'div.tiny.tone-amber',
+                { style: { marginTop: '2px' } },
+                `${small.join('、')} 这几个字太小（顶栏文字不到 21px），自带 OCR 有时会读错位数 —— 这 ${small.length} 个请对着游戏核一遍。想要更准就装一个本地 OCR 引擎（设置页有指引）。`
+              )
+            : null,
+          h(
+            'div.tiny',
+            { style: { marginTop: '4px', opacity: '.85' } },
+            n === RES_KEYS.length
+              ? '每个数字都认到两次以上才填进来的。'
+              : '认不出来就先留空自己填 —— 认不准的时候它不会硬凑一个数字。'
+          )
         )
-        toast(n === RES_KEYS.length ? '三个都认到了' : `认到 ${n} 个`, n ? 'ok' : 'err', 3600)
+        toast(n === RES_KEYS.length ? (small.length ? '认到了，但有几个字太小，请核对' : '三个都认到了') : `认到 ${n} 个`, n ? 'ok' : 'err', small.length ? 5200 : 3600)
       } finally {
         watching = false
         watchBtn.removeAttribute('data-loading')
+        try {
+          await api.post('/api/ocr/screen/reset', { session })
+        } catch {
+          /* 清不掉就算了，服务端也会自己过期 */
+        }
         paint()
       }
     })
@@ -203,10 +256,15 @@ function resourcesField({ before = '', after = '', beforeFrom = '' } = {}) {
         }
         // 认出来的原文也摊开给用户核对 —— 认错的时候一眼能看出来
         const lines = (r.lines || []).filter((l) => l.trim()).slice(0, 8)
+        // 「看到了图标但没配上数字」也要说出来，不然用户不知道为什么留空
+        const weak = (r.seen || []).filter((s) => s.value === undefined || s.value === null).map((s) => `${s.key}${s.score ? `(分${s.score})` : ''}`)
         // mount 会把 null 滤掉；replaceChildren(null) 会显示成文字「null」
         mount(
           note,
           h('strong', n ? `认出 ${n} 项，请核对一下再保存` : '这三个资源一个都没认出来，可以手动填'),
+          r.warning ? h('div.tiny', { style: { marginTop: '2px', opacity: '.85' } }, r.warning) : null,
+          r.engine ? h('div.tiny', { style: { marginTop: '2px', opacity: '.85' } }, `引擎：${r.engine}${r.anchor ? ` · 定标图标：${r.anchor.key}(分${r.anchor.score})` : ''}`) : null,
+          weak.length ? h('div.tiny', { style: { marginTop: '2px', opacity: '.85' } }, `没配上数字的：${weak.join('、')}`) : null,
           lines.length ? h('div.tiny', { style: { marginTop: '4px', opacity: '.85' } }, `识别到的原文：${lines.join(' ｜ ')}`) : null
         )
         note.hidden = false
@@ -621,21 +679,68 @@ export function orderItemsList(items) {
   )
 }
 
+/* ============================================================
+   进度时间线（表现重做）
+   旧版是「一条竖线 + 三个元素」，读起来像日志。现在按「一叠卡片」来做：
+     · 轨道上的圆点按进度顺序点亮（最后一条是当前状态，实心；更早的是空心）；
+     · 日期列固定在左边、用「今天 / 昨天 / 3 天前」这种说法，不用每次心算；
+     · 本次消耗/增长做成带正负色的数字片，比一行小字好扫；
+     · 截图做缩略图网格，点开大图。
+   数据模型没变（还是那一条条进度记录），所以旧记录照常显示。
+   ============================================================ */
+
+/** 「今天 / 昨天 / 3 天前 / 更早写日期」 */
+function relDay(dateStr) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateStr || ''))
+  if (!m) return String(dateStr || '')
+  const then = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const days = Math.round((today - then) / 86400000)
+  if (days === 0) return '今天'
+  if (days === 1) return '昨天'
+  if (days === 2) return '前天'
+  if (days > 2 && days < 8) return `${days} 天前`
+  if (days === -1) return '明天'
+  return `${Number(m[2])}月${Number(m[3])}日`
+}
+
+/** 这条进度相对上一条消耗了多少（有前后两组数才算得出来） */
+function deltaChips(p) {
+  const deltas = resourceDelta(p.resources_before, p.resources_after)
+  const out = []
+  for (const d of deltas) {
+    const tone = d.diff < 0 ? 'oxblood' : d.diff > 0 ? 'jade' : 'muted'
+    const sign = d.diff < 0 ? '−' : d.diff > 0 ? '+' : '±'
+    out.push(h(`span.tl__delta.tone-${tone}`, `${d.key} ${sign}${fmtQty(Math.abs(d.diff))}`))
+  }
+  return out
+}
+
 export function progressTimeline(list, { onEdit, onDelete } = {}) {
   if (!list.length) {
     return h('div.empty', h('div.empty__mark', icon('clock', 20)), h('div.empty__title', '还没有进度记录'), h('p.empty__body', '每做一段就记一条，客户问起来直接发，自己回头看也清楚。'))
   }
+  // 旧的在前、新的在后，和「一条时间线往下走」的直觉一致
+  const sorted = [...list].sort(
+    (a, b) => String(a.happened_on || '').localeCompare(String(b.happened_on || '')) || (a.id || 0) - (b.id || 0)
+  )
+  const lastIdx = sorted.length - 1
   return h(
     'div.timeline',
-    list.map((p) =>
-      h(
-        'div.tl',
+    sorted.map((p, i) => {
+      const chips = deltaChips(p)
+      const shots = (p.media || []).filter((m) => /\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(m))
+      const links = (p.media || []).filter((m) => !/\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(m))
+      return h(
+        `div.tl${i === lastIdx ? '.tl--now' : ''}`,
         h('div.tl__rail', h('div.tl__dot')),
         h(
           'div.tl__body',
           h(
             'div.tl__head',
-            h('span.tl__date', fmtDay(p.happened_on)),
+            h('span.tl__date', relDay(p.happened_on), h('span.tl__datefull', fmtDay(p.happened_on))),
+            i === lastIdx ? tag('最新', 'slate') : null,
             p.resources_before || p.resources_after
               ? h(
                   'span.tl__res',
@@ -653,20 +758,23 @@ export function progressTimeline(list, { onEdit, onDelete } = {}) {
               : null
           ),
           h('div.tl__content', p.content),
-          p.media && p.media.length
+          chips.length ? h('div.tl__deltas', h('span.dim.tiny', '本次消耗'), ...chips) : null,
+          shots.length
             ? h(
                 'div.tl__shots',
-                p.media.map((m) =>
-                  /\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(m)
-                    ? h('a', { href: m, target: '_blank', rel: 'noreferrer noopener' }, h('img.shot', { src: m, alt: '进度截图', loading: 'lazy' }))
-                    : h('a.shot-link', { href: m, target: '_blank', rel: 'noreferrer noopener' }, icon('link', 12), '截图')
-                )
+                shots.map((m) => h('a', { href: m, target: '_blank', rel: 'noreferrer noopener' }, h('img.shot', { src: m, alt: '进度截图', loading: 'lazy' })))
               )
             : null,
-          p.note ? h('div.tbl__meta', p.note) : null
+          links.length
+            ? h(
+                'div.tl__shots',
+                links.map((m) => h('a.shot-link', { href: m, target: '_blank', rel: 'noreferrer noopener' }, icon('link', 12), '录屏 / 链接'))
+              )
+            : null,
+          p.note ? h('div.tbl__meta', { style: { marginTop: '6px' } }, p.note) : null
         )
       )
-    )
+    })
   )
 }
 
