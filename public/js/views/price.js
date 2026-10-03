@@ -939,7 +939,7 @@ export function servicePeek(service, ctx, { onChanged } = {}) {
    发微信和打印都好看。
 ------------------------------------------------------------------ */
 
-async function openExporter(ctx, { games = [] } = {}) {
+export async function openExporter(ctx, { games = [] } = {}) {
   const state = {
     // 默认「每个游戏各出一份」：发给客户时只发他那款游戏，
     // 不要把几个游戏的价目混在同一张图/同一个文档里。
