@@ -29,37 +29,64 @@ const qty = (n) => {
 
 const unitOf = (s) => s.unit_label || PRICE_TYPE_UNIT_LABEL[s.price_type] || '单'
 
-/** 价格主文本 + 阶梯/起订提示 */
+/** 价格主文本 + 阶梯/起订提示。
+ *
+ * price/hint 保留给旧版图片调用；tiers 是新的结构化字段，
+ * 让完整 Word 表格和分页图片可以逐档展示，不再把阶梯价压成一句摘要。
+ */
 function priceOf(service, tiers) {
   const unit = unitOf(service)
-  const list = (tiers || []).filter(Boolean)
+  const list = (tiers || [])
+    .filter(Boolean)
+    .map((t) => ({
+      id: t.id,
+      minQty: num(t.min_qty, 1),
+      maxQty: t.max_qty === null || t.max_qty === undefined || t.max_qty === '' ? null : num(t.max_qty),
+      unitPrice: num(t.unit_price, 0),
+      sortOrder: num(t.sort_order, 0),
+    }))
+    .sort((a, b) => a.minQty - b.minQty || a.sortOrder - b.sortOrder || num(a.id, 0) - num(b.id, 0))
+
+  const tierRange = (t) => {
+    const lo = qty(t.minQty)
+    const hi = t.maxQty === null ? '' : `-${qty(t.maxQty)}`
+    return `${lo}${hi}${unit}`
+  }
 
   if (list.length) {
-    const sorted = [...list].sort((a, b) => num(a.min_qty, 1) - num(b.min_qty, 1))
-    const first = sorted[0]
-    const last = sorted[sorted.length - 1]
-    const lo = num(first.min_qty, 1)
-    const hi = first.max_qty === null || first.max_qty === undefined || first.max_qty === '' ? null : num(first.max_qty)
-    const head = `¥${money(first.unit_price)} / ${unit}`
-    if (sorted.length === 1) {
-      const range = hi ? `${qty(lo)}-${qty(hi)}${unit}` : `${qty(lo)}${unit}起`
-      return { price: head, hint: `${range}` }
+    const first = list[0]
+    const head = `¥${money(first.unitPrice)} / ${unit}`
+    const tierLines = list.map((t) => `${tierRange(t)}：¥${money(t.unitPrice)}/${unit}`)
+    if (list.length === 1) {
+      const range = first.maxQty === null ? `${qty(first.minQty)}${unit}起` : tierRange(first)
+      return { price: head, hint: `${range}`, tiers: list, tierLines }
     }
-    const range = hi ? `${qty(lo)}-${qty(hi)}${unit}` : `${qty(lo)}${unit}起`
-    return { price: head, hint: `${range}，最多到 ¥${money(last.unit_price)}/${unit}` }
+    const range = first.maxQty === null ? `${qty(first.minQty)}${unit}起` : tierRange(first)
+    return { price: head, hint: `阶梯价：${range}，共 ${list.length} 档`, tiers: list, tierLines }
   }
 
   const price = `¥${money(service.base_price)} / ${unit}`
   const min = num(service.min_qty, 1)
-  return { price, hint: min > 1 ? `起订 ${qty(min)}${unit}` : '' }
+  return {
+    price,
+    hint: min > 1 ? `起订 ${qty(min)}${unit}` : '',
+    tiers: [],
+    tierLines: [],
+  }
 }
 
-const addonText = (o) =>
-  `${o.name}${o.price_mode === 'percent' ? ` +${num(o.price)}%` : num(o.price) ? ` +${money(o.price)}元` : ''}`
+const addonText = (o, withDescription = false) => {
+  const price = o.price_mode === 'percent' ? ` +${num(o.price)}%` : num(o.price) ? ` +${money(o.price)}元` : ''
+  const description = withDescription && String(o.description || '').trim() ? `（${String(o.description).trim()}）` : ''
+  return `${o.name}${price}${description}`
+}
 
 export function buildExportModel(opts = {}) {
-  const perCategory = Math.max(1, Math.min(60, num(opts.perCategory, 6)))
-  const maxCategories = Math.max(1, Math.min(80, num(opts.maxCategories, 8)))
+  // 旧调用没有 full 时仍按旧的轻量限制工作；新导出界面传 full=1，
+  // 让 Word 和分页图片拿到完整的分类、服务项和阶梯档位。
+  const full = opts.full === true || opts.mode === 'full' || opts.format === 'full'
+  const perCategory = full ? 10000 : Math.max(1, Math.min(60, num(opts.perCategory, 6)))
+  const maxCategories = full ? 10000 : Math.max(1, Math.min(80, num(opts.maxCategories, 8)))
   const withDesc = opts.withDesc !== false
   const gameId = opts.gameId ? num(opts.gameId) : null
 
@@ -132,19 +159,37 @@ export function buildExportModel(opts = {}) {
 
   /* ---------- 归类 ---------- */
   const makeItem = (s) => {
-    const { price, hint } = priceOf(s, tiersBy.get(s.id))
+    const { price, hint, tiers, tierLines } = priceOf(s, tiersBy.get(s.id))
     const notes = []
-    if (withDesc && s.description) notes.push(clampStr(s.description, 60))
+    if (withDesc && s.description) notes.push(full ? String(s.description).trim() : clampStr(s.description, 60))
     const pkg = parseJSON(s.package_items, [])
-    if (withDesc && Array.isArray(pkg) && pkg.length) notes.push(`含 ${pkg.slice(0, 6).join('、')}`)
+    if (withDesc && Array.isArray(pkg) && pkg.length) {
+      notes.push(`含 ${full ? pkg.join('、') : pkg.slice(0, 6).join('、')}`)
+    }
     if (withDesc) {
       const addons = [...(optsBy.get(s.id) || []), ...(optsBy.get(0) || [])]
-      const payable = addons.filter((o) => num(o.price) > 0)
-      if (payable.length) notes.push(`增项：${payable.slice(0, 5).map(addonText).join('、')}`)
+      const payable = full ? addons : addons.filter((o) => num(o.price) > 0)
+      if (payable.length) {
+        const shown = full ? payable : payable.slice(0, 5)
+        notes.push(`增项：${shown.map((option) => addonText(option, full)).join('、')}`)
+      }
     }
     // 单个服务项的价格说明和「可得货币」都跟 withDesc 无关：
     // 前者是价格本身的一部分，后者是客户最关心的那个数，裁掉就没意义了。
-    return { name: clampStr(s.name, 40), price, hint, notes, gain: gainOf(s) }
+    return {
+      name: full ? String(s.name || '').trim() : clampStr(s.name, 40),
+      price,
+      hint,
+      tierLines,
+      tiers,
+      unit: unitOf(s),
+      minQty: num(s.min_qty, 1),
+      maxQty: s.max_qty === null || s.max_qty === undefined || s.max_qty === '' ? null : num(s.max_qty),
+      basePrice: num(s.base_price, 0),
+      notes,
+      gain: gainOf(s),
+      gainAmount: s.currency_amount === null || s.currency_amount === undefined || s.currency_amount === '' ? null : num(s.currency_amount),
+    }
   }
 
   // 有归属的大类 → 按大类分组；没有的 → 按游戏落到「未分类」
@@ -249,6 +294,8 @@ export function buildExportModel(opts = {}) {
     title: clampStr(opts.title || '代肝价目表', 40),
     subtitle,
     date: dateStr,
+    full,
+    format: full ? 'full' : 'card',
     // 提示：整份只面向一个游戏时在最上方显示（图片和 Word 都是）
     notice: topNotice,
     noticeGameName: focusKey ? gameById.get(Number(focusKey))?.name || '' : '',

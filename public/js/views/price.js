@@ -407,18 +407,28 @@ export function gameCategoryField({ games = [], categories = [], gameId = '', ca
 
 /* ---------------- 服务项表单 ---------------- */
 
-export function serviceForm(values = {}, { games = [], categories = [] } = {}) {
+export function serviceForm(values = {}, { games = [], categories = [] } = {}, { quick = false } = {}) {
   // 货币名字填在游戏上，这里只填数量。先按服务项当前所属的游戏找一下名字，
   // 这样标签上就能直接写「（星声）」而不是干巴巴一个「可获得货币」。
   const gameIdOf = values.game_id || categories.find((c) => String(c.id) === String(values.category_id))?.game_id || ''
   const currency = games.find((g) => String(g.id) === String(gameIdOf))?.currency || ''
+  const quickFields = [
+    { name: 'name', label: '服务名', type: 'text', required: true, placeholder: '例：每日委托 / 深渊 12 层 / 活动全包' },
+    gameCategoryField({ games, categories, gameId: values.game_id, categoryId: values.category_id }),
+    { name: 'price_type', label: '计价方式', type: 'select', required: true, width: 'half', options: PRICE_TYPES },
+    { name: 'unit_label', label: '单位', type: 'text', width: 'half', placeholder: '天 / 次 / 层 / 个 / 套' },
+    { name: 'base_price', label: '基准单价', type: 'money', required: true, width: 'half', suffix: '元' },
+    { name: 'min_qty', label: '起订量', type: 'number', width: 'half' },
+    { name: 'description', label: '说明（可选）', type: 'textarea', rows: 2, placeholder: '客户问到时需要说明的内容' },
+  ]
 
   return formDrawer({
-    title: values.id ? '改服务项' : '新建服务项',
-    submitLabel: '保存',
+    title: values.id ? '改服务项' : '快速添加服务',
+    submitLabel: quick ? '保存服务' : '保存',
     values: { min_qty: 1, price_type: 'fixed', ...values },
     wide: true,
-    fields: [
+    intro: quick ? h('div.hint', '先录入客户最常用的信息；阶梯价、套餐、增项和可获得货币可在保存后从服务行的高级设置补充。') : null,
+    fields: quick ? quickFields : [
       { name: 'name', label: '服务名', type: 'text', required: true, placeholder: '例：每日委托 / 深渊 12 层 / 活动全包' },
       gameCategoryField({ games, categories, gameId: values.game_id, categoryId: values.category_id }),
       {
@@ -825,6 +835,18 @@ export function servicePeek(service, ctx, { onChanged } = {}) {
     ctx.app.reload()
   }
 
+  const tiers = [...(service.tiers || [])].sort((a, b) => (Number(a.min_qty) || 0) - (Number(b.min_qty) || 0))
+  const options = (service.options || []).filter((option) => option.status !== 'archived')
+  const tierLines = tiers.map((tier) => {
+    const range = tier.max_qty === null || tier.max_qty === undefined || tier.max_qty === '' ? `${fmtQty(tier.min_qty || 1)}${unitOf(service)}+` : `${fmtQty(tier.min_qty || 1)}-${fmtQty(tier.max_qty)}${unitOf(service)}`
+    return `${range}：¥${fmtMoney(tier.unit_price)}/${unitOf(service)}`
+  })
+  const optionLines = options.map((option) => {
+    const price = option.price_mode === 'percent' ? ` +${fmtQty(option.price)}%` : Number(option.price) ? ` +¥${fmtMoney(option.price)}` : ''
+    const description = String(option.description || '').trim()
+    return `${option.name || '未命名'}${price}${description ? ` · 说明：${description}` : ''}`
+  })
+
   const priceLine =
     service.price_type === 'per_unit' && service.tiers?.length
       ? h(
@@ -863,6 +885,12 @@ export function servicePeek(service, ctx, { onChanged } = {}) {
             h('div.tbl__meta', '套餐包含'),
             h('div.subitems', ...service.package_items.map((p) => h('div.subitem', h('span', '·'), h('span', p))))
           )
+        : null,
+      tiers.length
+        ? h('div', h('div.tbl__meta', '阶梯价'), h('div.subitems', ...tierLines.map((line) => h('div.subitem', h('span', '·'), h('span', line)))))
+        : null,
+      options.length
+        ? h('div', h('div.tbl__meta', '套餐与增项'), h('div.subitems', ...optionLines.map((line) => h('div.subitem', h('span', '·'), h('span', line)))))
         : null,
       h('hr'),
       h(
@@ -944,8 +972,9 @@ export async function openExporter(ctx, { games = [] } = {}) {
     // 默认「每个游戏各出一份」：发给客户时只发他那款游戏，
     // 不要把几个游戏的价目混在同一张图/同一个文档里。
     scope: 'per-game',
-    perCategory: '6',
-    maxCategories: '8',
+    // 图片生成一张完整长图，Word 使用完整表格；保留字段只为兼容旧调用。
+    perCategory: '99',
+    maxCategories: '99',
     withDesc: true,
     contact: null, // null = 还没动过，用服务端默认值
     footer: null,
@@ -1000,8 +1029,9 @@ export async function openExporter(ctx, { games = [] } = {}) {
   /** 公共查询参数（不含 game_id） */
   function baseQuery() {
     const q = {
-      per_category: state.perCategory,
-      max_categories: state.maxCategories,
+      // full=1 prevents the old preview defaults from silently hiding rows.
+      full: '1',
+      format: 'full',
       with_desc: state.withDesc ? '1' : '0',
     }
     if (state.contact !== null) q.contact = state.contact
@@ -1062,7 +1092,13 @@ export async function openExporter(ctx, { games = [] } = {}) {
       summary.textContent = '预览画不出来：' + (err.message || '')
       return
     }
-    mount(previewBox, h('img', { src: canvas.toDataURL('image/png'), alt: '价格表预览' }))
+    mount(
+      previewBox,
+      h(
+        'div.stack',
+        h('img', { src: canvas.toDataURL('image/png'), alt: '价格表速览卡预览' }),
+      )
+    )
 
     const hidden = preview.hiddenServices + preview.hiddenCategories
     const parts = []
@@ -1122,9 +1158,8 @@ export async function openExporter(ctx, { games = [] } = {}) {
           scopeSel,
           h('div.hint', '默认每个游戏单独出一份，发给客户时只发他那款游戏，不会把几个游戏混在一张图上。')
         ),
-        h('div.field.field--full', h('label.lbl', '每个大类最多列几项'), perSel, h('div.hint', '列不下的会折成「还有 N 项」')),
-        h('div.field.field--full', h('label.lbl', '最多列几个大类'), catSel),
-        h('div.field.field--full', h('label.lbl', '带说明文字'), h('label.inline', { style: { cursor: 'pointer' } }, descChk, h('span.sm', '展示服务项的说明和套餐内容'))),
+        h('div.field.field--full', h('label.lbl', '图片内容'), h('div.hint', '按游戏生成一张完整的客户速览长图；Word 会保留完整服务和阶梯价。')),
+        h('div.field.field--full', h('label.lbl', '带说明文字'), h('label.inline', { style: { cursor: 'pointer' } }, descChk, h('span.sm', '展示服务说明、套餐内容和增项'))),
         h('div.field.field--full', h('label.lbl', '联系方式'), contactInp),
         h('div.field.field--full', h('label.lbl', '页脚说明'), footerInp)
       ),
@@ -1133,8 +1168,7 @@ export async function openExporter(ctx, { games = [] } = {}) {
       summary,
       h(
         'div.note',
-        '导出会自动裁掉多余内容：空的大类不导出，超出条数的服务项折成「还有 N 项」，说明太长会截断。' +
-          '目的是一张图发出去好看、一眼能看完，而不是把整张价格表塞进去。'
+        '图片按游戏生成一张完整长图；Word 是 A4 完整价目册，使用真实表格并逐档列出阶梯价。'
       )
     ),
     footer: [
@@ -1177,7 +1211,8 @@ export async function openExporter(ctx, { games = [] } = {}) {
       if (!jobs.length) return
       let n = 0
       for (const { target, model } of jobs) {
-        const blob = await canvasToBlob(renderPriceCard(model, { scale: 2 }))
+        const canvas = renderPriceCard(model, { scale: 2 })
+        const blob = await canvasToBlob(canvas)
         if (!blob) {
           toast('这个浏览器不支持生成图片，请换 Chrome / Edge / Safari 试试', 'err', 4200)
           return
@@ -1187,7 +1222,7 @@ export async function openExporter(ctx, { games = [] } = {}) {
         // 连着下多个文件，给它一点间隔，免得被浏览器拦掉
         if (n < jobs.length) await new Promise((r) => setTimeout(r, 400))
       }
-      toast(n > 1 ? `已生成 ${n} 张图片，每个游戏一张` : '图片已生成，去下载文件夹看看', 'ok', 3600)
+      toast(n > 1 ? `已生成 ${n} 张完整图片` : '图片已生成，去下载文件夹看看', 'ok', 3600)
     } catch (err) {
       toastErr(err)
     } finally {

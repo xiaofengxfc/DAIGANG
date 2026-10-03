@@ -1,7 +1,7 @@
 // Transitional adapter for the remaining imperative feature flows.
 export { default as ordersView, customerForm } from '../../public/js/views/orders.js'
 export { default as customersView } from '../../public/js/views/customers.js'
-export { default as priceView, categoryForm, openExporter, serviceForm, sumDialog } from '../../public/js/views/price.js'
+export { default as priceView, categoryForm, openExporter, serviceForm, servicePeek, sumDialog } from '../../public/js/views/price.js'
 export { default as gamesView, gameForm } from '../../public/js/views/games.js'
 export { default as vaultView } from '../../public/js/views/vault.js'
 export { default as financeView } from '../../public/js/views/finance.js'

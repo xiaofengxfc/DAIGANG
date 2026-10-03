@@ -220,8 +220,14 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
       const dotTo = W - PAD - priceW - 14
       if (dotTo > dotFrom + 20) line(dotFrom, y - 6, dotTo, y - 6, RULE_STRONG, 1, [2, 7])
 
-      // 阶梯价 / 起订 提示
-      if (it.hint) {
+      // 阶梯价逐档列出；旧模型没有 tierLines 时仍显示原来的摘要。
+      const tierLines = Array.isArray(it.tierLines) ? it.tierLines.filter(Boolean) : []
+      if (tierLines.length > 1) {
+        for (const tier of tierLines) {
+          y += 27
+          text(nameX, y, fitText(measure, tier, hintFont, CW - 18), hintFont, CINNABAR)
+        }
+      } else if (it.hint) {
         y += 27
         text(nameX, y, fitText(measure, it.hint, hintFont, CW - 18), hintFont, CINNABAR)
       }
@@ -305,6 +311,14 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
   canvas.dataset.width = String(W)
   canvas.dataset.height = String(H)
   return canvas
+}
+
+/**
+ * 保留复数接口兼容旧调用，但图片始终输出为一张完整长图。
+ * maxHeight 仅为兼容旧参数保留，不再参与裁切。
+ */
+export function renderPriceCards(model, { scale = 2, maxHeight: _maxHeight = 3000 } = {}) {
+  return [renderPriceCard(model, { scale })]
 }
 
 export function canvasToBlob(canvas) {

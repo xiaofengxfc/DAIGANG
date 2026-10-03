@@ -141,6 +141,163 @@ const bottomRule = (color = RULE, sz = 8) =>
 
 const rightTab = (leader = 'dot') => `<w:tabs><w:tab w:val="right" w:leader="${leader}" w:pos="${TEXT_W}"/></w:tabs>`
 
+const tableBorders =
+  `<w:tblBorders>` +
+  `<w:top w:val="single" w:sz="6" w:color="${RULE_STRONG}"/>` +
+  `<w:left w:val="single" w:sz="6" w:color="${RULE}"/>` +
+  `<w:bottom w:val="single" w:sz="6" w:color="${RULE_STRONG}"/>` +
+  `<w:right w:val="single" w:sz="6" w:color="${RULE}"/>` +
+  `<w:insideH w:val="single" w:sz="4" w:color="${RULE}"/>` +
+  `<w:insideV w:val="single" w:sz="4" w:color="${RULE}"/>` +
+  `</w:tblBorders>`
+
+const TABLE_WIDTHS = [3000, 1500, 1900, 1500, TEXT_W - 3000 - 1500 - 1900 - 1500]
+
+function tableCell(content, width, { shade = '', bold = false, color = INK, align = 'left' } = {}) {
+  const text = Array.isArray(content) ? content : [content]
+  const paragraphs = text
+    .filter((value) => value !== null && value !== undefined && String(value) !== '')
+    .map((value) => {
+      const pAlign = align === 'right' ? '<w:jc w:val="right"/>' : align === 'center' ? '<w:jc w:val="center"/>' : ''
+      return para(run(String(value), { size: 18, bold, color }), { pPr: pAlign + spacing(0, 0, 230) })
+    })
+  const body = paragraphs.length ? paragraphs.join('') : para('', { pPr: spacing(0, 0, 230) })
+  const props = [
+    `<w:tcW w:w="${width}" w:type="dxa"/>`,
+    '<w:vAlign w:val="center"/>',
+    '<w:tcMar><w:top w:w="90" w:type="dxa"/><w:start w:w="110" w:type="dxa"/><w:bottom w:w="90" w:type="dxa"/><w:end w:w="110" w:type="dxa"/></w:tcMar>',
+    shade ? `<w:shd w:val="clear" w:color="auto" w:fill="${shade}"/>` : '',
+  ].join('')
+  return `<w:tc><w:tcPr>${props}</w:tcPr>${body}</w:tc>`
+}
+
+function tableRow(cells, { header = false } = {}) {
+  const trPr = `<w:cantSplit/>${header ? '<w:tblHeader/>' : ''}`
+  return `<w:tr><w:trPr>${trPr}</w:trPr>${cells.join('')}</w:tr>`
+}
+
+function priceTable(group) {
+  const rows = []
+  rows.push(
+    tableRow(
+      [
+        tableCell('服务项目', TABLE_WIDTHS[0], { shade: TINT, bold: true, color: CINNABAR }),
+        tableCell('单位 / 起订', TABLE_WIDTHS[1], { shade: TINT, bold: true, color: CINNABAR, align: 'center' }),
+        tableCell('价格', TABLE_WIDTHS[2], { shade: TINT, bold: true, color: CINNABAR, align: 'right' }),
+        tableCell('可得货币', TABLE_WIDTHS[3], { shade: TINT, bold: true, color: CINNABAR, align: 'right' }),
+        tableCell('说明', TABLE_WIDTHS[4], { shade: TINT, bold: true, color: CINNABAR }),
+      ],
+      { header: true }
+    )
+  )
+
+  for (const it of group.items || []) {
+    const unitStart = `${it.unit || ''}${it.minQty > 1 ? `，${it.minQty} 起` : ''}`
+    const tierLines = Array.isArray(it.tierLines) && it.tierLines.length ? it.tierLines : [it.price || '']
+    const notes = (it.notes || []).filter(Boolean)
+    if (it.hint && !tierLines.length) tierLines.push(it.hint)
+    rows.push(
+      tableRow([
+        tableCell(it.name || '', TABLE_WIDTHS[0]),
+        tableCell(unitStart, TABLE_WIDTHS[1], { align: 'center' }),
+        tableCell(tierLines, TABLE_WIDTHS[2], { color: CINNABAR, align: 'right' }),
+        tableCell(it.gain || '', TABLE_WIDTHS[3], { color: GRAY, align: 'right' }),
+        tableCell(notes, TABLE_WIDTHS[4], { color: GRAY }),
+      ])
+    )
+  }
+
+  const grid = TABLE_WIDTHS.map((width) => `<w:gridCol w:w="${width}"/>`).join('')
+  const props = `<w:tblW w:w="${TEXT_W}" w:type="dxa"/><w:tblLayout w:type="fixed"/>${tableBorders}<w:tblCellMar><w:top w:w="80" w:type="dxa"/><w:start w:w="80" w:type="dxa"/><w:bottom w:w="80" w:type="dxa"/><w:end w:w="80" w:type="dxa"/></w:tblCellMar>`
+  return `<w:tbl><w:tblPr>${props}</w:tblPr><w:tblGrid>${grid}</w:tblGrid>${rows.join('')}</w:tbl>`
+}
+
+function documentPackage(body) {
+  const documentXml =
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+    `<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">` +
+    `<w:body>${body.join('')}` +
+    `<w:sectPr><w:pgSz w:w="${PAGE_W}" w:h="16838"/>` +
+    `<w:pgMar w:top="${MARGIN}" w:right="${MARGIN}" w:bottom="${MARGIN}" w:left="${MARGIN}" w:header="0" w:footer="0" w:gutter="0"/>` +
+    `</w:sectPr></w:body></w:document>`
+
+  const contentTypes =
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+    `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">` +
+    `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>` +
+    `<Default Extension="xml" ContentType="application/xml"/>` +
+    `<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>` +
+    `</Types>`
+
+  const rels =
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+    `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+    `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>` +
+    `</Relationships>`
+
+  return zip([
+    { name: '[Content_Types].xml', data: contentTypes },
+    { name: '_rels/.rels', data: rels },
+    { name: 'word/document.xml', data: documentXml },
+  ])
+}
+
+/** 完整 A4 价目册：每个大类一张真表格，服务、单位起订、价格、货币和说明分列。 */
+function buildFullDocx(model) {
+  const body = []
+  body.push(para(run(model.shopName, { size: 40, bold: true, color: INK }), { pPr: spacing(0, 40) }))
+  const headRight = [model.subtitle, model.date].filter(Boolean).join('    ')
+  body.push(
+    para(run(model.title, { size: 22, color: GRAY }) + (headRight ? run(headRight, { size: 20, color: GRAY, tab: true }) : ''), {
+      pPr: rightTab('none') + spacing(0, 20),
+    })
+  )
+  body.push(para('', { pPr: bottomRule(CINNABAR, 18) + spacing(0, 160, 240) }))
+  if (model.notice) body.push(...noticeParas(model.notice))
+
+  let lastGame = null
+  for (const [gi, g] of (model.groups || []).entries()) {
+    const gameHead = Boolean(model.multiGame && g.gameName && g.gameName !== lastGame)
+    if (gameHead) {
+      lastGame = g.gameName
+      body.push(
+        para(run(g.gameName, { size: 34, bold: true, color: INK }), {
+          pPr: spacing(gi === 0 ? 0 : 320, 40, 240) + bottomRule(RULE_STRONG, 12),
+        })
+      )
+    }
+    if (g.gameNotice) {
+      const label = gameHead || !g.gameName ? '' : g.gameName
+      body.push(...noticeParas(g.gameNotice, label))
+    }
+    body.push(
+      para(run(g.name, { size: 24, bold: true, color: g.isOrphan ? GRAY : CINNABAR }), {
+        pPr: spacing(gi === 0 ? 0 : 200, 60, 240) + bottomRule(RULE, 6),
+      })
+    )
+    if (g.catNotice) body.push(...noticeParas(g.catNotice, '', { left: 360, size: 19, after: 120 }))
+    body.push(priceTable(g))
+    if (g.more > 0) {
+      body.push(
+        para(run(`还有 ${g.more} 项服务未展开`, { size: 18, color: GRAY, italic: true }), {
+          pPr: spacing(40, 0, 240),
+        })
+      )
+    }
+  }
+  if (model.hiddenCategories > 0) {
+    body.push(
+      para(run(`还有 ${model.hiddenCategories} 个大类未展开`, { size: 18, color: GRAY, italic: true }), {
+        pPr: spacing(160, 0, 240),
+      })
+    )
+  }
+  body.push(para('', { pPr: bottomRule(RULE, 6) + spacing(320, 80, 240) }))
+  if (model.contact) body.push(para(run(`联系：${model.contact}`, { size: 19, color: INK }), { pPr: spacing(0, 0, 260) }))
+  if (model.footer) body.push(para(run(model.footer, { size: 17, color: GRAY }), { pPr: spacing(0, 0, 250) }))
+  return documentPackage(body)
+}
+
 /**
  * 提示块：浅色底 + 左边一道靛蓝竖线，就是应用里那个提示条的样子。
  * 每行一个段落（Word 不认 \n），相邻段落边框设置相同，Word 会自动接成一个整块。
@@ -177,6 +334,7 @@ function noticeParas(notice, label = '', { left = 160, size = 20, after = 140 } 
  * 排版用的是「菜单式点线」：服务名 …… 价格。朴素、好读、打印也好看。
  */
 export function buildDocx(model) {
+  if (model?.full || model?.format === 'full') return buildFullDocx(model)
   const body = []
 
   /* —— 抬头 —— */

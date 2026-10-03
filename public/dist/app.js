@@ -11715,7 +11715,7 @@ function createLucideIcon(iconDataOrName, iconNode = [], aliases = []) {
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$39 = {
+var __iconData$42 = {
 	name: "activity",
 	size: 24,
 	node: [["path", {
@@ -11723,8 +11723,48 @@ var __iconData$39 = {
 		key: "169zse"
 	}]]
 };
-__iconData$39.node;
-var Activity = createLucideIcon(__iconData$39);
+__iconData$42.node;
+var Activity = createLucideIcon(__iconData$42);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/archive-restore.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$41 = {
+	name: "archive-restore",
+	size: 24,
+	node: [
+		["rect", {
+			width: "20",
+			height: "5",
+			x: "2",
+			y: "3",
+			rx: "1",
+			key: "1wp1u1"
+		}],
+		["path", {
+			d: "M4 8v11a2 2 0 0 0 2 2h2",
+			key: "tvwodi"
+		}],
+		["path", {
+			d: "M20 8v11a2 2 0 0 1-2 2h-2",
+			key: "1gkqxj"
+		}],
+		["path", {
+			d: "m9 15 3-3 3 3",
+			key: "1pd0qc"
+		}],
+		["path", {
+			d: "M12 12v9",
+			key: "192myk"
+		}]
+	]
+};
+__iconData$41.node;
+var ArchiveRestore = createLucideIcon(__iconData$41);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/archive.mjs
 /**
@@ -11733,7 +11773,7 @@ var Activity = createLucideIcon(__iconData$39);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$38 = {
+var __iconData$40 = {
 	name: "archive",
 	size: 24,
 	node: [
@@ -11755,8 +11795,8 @@ var __iconData$38 = {
 		}]
 	]
 };
-__iconData$38.node;
-var Archive = createLucideIcon(__iconData$38);
+__iconData$40.node;
+var Archive = createLucideIcon(__iconData$40);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/arrow-right.mjs
 /**
@@ -11765,7 +11805,7 @@ var Archive = createLucideIcon(__iconData$38);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$37 = {
+var __iconData$39 = {
 	name: "arrow-right",
 	size: 24,
 	node: [["path", {
@@ -11776,8 +11816,8 @@ var __iconData$37 = {
 		key: "xquz4c"
 	}]]
 };
-__iconData$37.node;
-var ArrowRight = createLucideIcon(__iconData$37);
+__iconData$39.node;
+var ArrowRight = createLucideIcon(__iconData$39);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/arrow-up-right.mjs
 /**
@@ -11786,7 +11826,7 @@ var ArrowRight = createLucideIcon(__iconData$37);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$36 = {
+var __iconData$38 = {
 	name: "arrow-up-right",
 	size: 24,
 	node: [["path", {
@@ -11797,8 +11837,8 @@ var __iconData$36 = {
 		key: "1vkiza"
 	}]]
 };
-__iconData$36.node;
-var ArrowUpRight = createLucideIcon(__iconData$36);
+__iconData$38.node;
+var ArrowUpRight = createLucideIcon(__iconData$38);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/calendar-days.mjs
 /**
@@ -11807,7 +11847,7 @@ var ArrowUpRight = createLucideIcon(__iconData$36);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$35 = {
+var __iconData$37 = {
 	name: "calendar-days",
 	size: 24,
 	node: [
@@ -11857,8 +11897,8 @@ var __iconData$35 = {
 		}]
 	]
 };
-__iconData$35.node;
-var CalendarDays = createLucideIcon(__iconData$35);
+__iconData$37.node;
+var CalendarDays = createLucideIcon(__iconData$37);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/check.mjs
 /**
@@ -11867,7 +11907,7 @@ var CalendarDays = createLucideIcon(__iconData$35);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$34 = {
+var __iconData$36 = {
 	name: "check",
 	size: 24,
 	node: [["path", {
@@ -11875,8 +11915,8 @@ var __iconData$34 = {
 		key: "1gmf2c"
 	}]]
 };
-__iconData$34.node;
-var Check = createLucideIcon(__iconData$34);
+__iconData$36.node;
+var Check = createLucideIcon(__iconData$36);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/chevron-down.mjs
 /**
@@ -11885,7 +11925,7 @@ var Check = createLucideIcon(__iconData$34);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$33 = {
+var __iconData$35 = {
 	name: "chevron-down",
 	size: 24,
 	node: [["path", {
@@ -11893,8 +11933,8 @@ var __iconData$33 = {
 		key: "qrunsl"
 	}]]
 };
-__iconData$33.node;
-var ChevronDown = createLucideIcon(__iconData$33);
+__iconData$35.node;
+var ChevronDown = createLucideIcon(__iconData$35);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/chevron-right.mjs
 /**
@@ -11903,7 +11943,7 @@ var ChevronDown = createLucideIcon(__iconData$33);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$32 = {
+var __iconData$34 = {
 	name: "chevron-right",
 	size: 24,
 	node: [["path", {
@@ -11911,8 +11951,8 @@ var __iconData$32 = {
 		key: "mthhwq"
 	}]]
 };
-__iconData$32.node;
-var ChevronRight = createLucideIcon(__iconData$32);
+__iconData$34.node;
+var ChevronRight = createLucideIcon(__iconData$34);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/circle-alert.mjs
 /**
@@ -11921,7 +11961,7 @@ var ChevronRight = createLucideIcon(__iconData$32);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$31 = {
+var __iconData$33 = {
 	name: "circle-alert",
 	size: 24,
 	node: [
@@ -11948,8 +11988,8 @@ var __iconData$31 = {
 	],
 	aliases: ["alert-circle"]
 };
-__iconData$31.node;
-var CircleAlert = createLucideIcon(__iconData$31);
+__iconData$33.node;
+var CircleAlert = createLucideIcon(__iconData$33);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/circle-dollar-sign.mjs
 /**
@@ -11958,7 +11998,7 @@ var CircleAlert = createLucideIcon(__iconData$31);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$30 = {
+var __iconData$32 = {
 	name: "circle-dollar-sign",
 	size: 24,
 	node: [
@@ -11978,8 +12018,8 @@ var __iconData$30 = {
 		}]
 	]
 };
-__iconData$30.node;
-var CircleDollarSign = createLucideIcon(__iconData$30);
+__iconData$32.node;
+var CircleDollarSign = createLucideIcon(__iconData$32);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/clipboard-list.mjs
 /**
@@ -11988,7 +12028,7 @@ var CircleDollarSign = createLucideIcon(__iconData$30);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$29 = {
+var __iconData$31 = {
 	name: "clipboard-list",
 	size: 24,
 	node: [
@@ -12023,8 +12063,8 @@ var __iconData$29 = {
 		}]
 	]
 };
-__iconData$29.node;
-var ClipboardList = createLucideIcon(__iconData$29);
+__iconData$31.node;
+var ClipboardList = createLucideIcon(__iconData$31);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/clock-3.mjs
 /**
@@ -12033,7 +12073,7 @@ var ClipboardList = createLucideIcon(__iconData$29);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$28 = {
+var __iconData$30 = {
 	name: "clock-3",
 	size: 24,
 	node: [["circle", {
@@ -12046,8 +12086,8 @@ var __iconData$28 = {
 		key: "135r8i"
 	}]]
 };
-__iconData$28.node;
-var Clock3 = createLucideIcon(__iconData$28);
+__iconData$30.node;
+var Clock3 = createLucideIcon(__iconData$30);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/command.mjs
 /**
@@ -12056,7 +12096,7 @@ var Clock3 = createLucideIcon(__iconData$28);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$27 = {
+var __iconData$29 = {
 	name: "command",
 	size: 24,
 	node: [["path", {
@@ -12064,8 +12104,8 @@ var __iconData$27 = {
 		key: "11bfej"
 	}]]
 };
-__iconData$27.node;
-var Command = createLucideIcon(__iconData$27);
+__iconData$29.node;
+var Command = createLucideIcon(__iconData$29);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/contact-round.mjs
 /**
@@ -12074,7 +12114,7 @@ var Command = createLucideIcon(__iconData$27);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$26 = {
+var __iconData$28 = {
 	name: "contact-round",
 	size: 24,
 	node: [
@@ -12107,8 +12147,8 @@ var __iconData$26 = {
 	],
 	aliases: ["contact-2"]
 };
-__iconData$26.node;
-var ContactRound = createLucideIcon(__iconData$26);
+__iconData$28.node;
+var ContactRound = createLucideIcon(__iconData$28);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/copy.mjs
 /**
@@ -12117,7 +12157,7 @@ var ContactRound = createLucideIcon(__iconData$26);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$25 = {
+var __iconData$27 = {
 	name: "copy",
 	size: 24,
 	node: [["rect", {
@@ -12133,8 +12173,8 @@ var __iconData$25 = {
 		key: "zix9uf"
 	}]]
 };
-__iconData$25.node;
-var Copy = createLucideIcon(__iconData$25);
+__iconData$27.node;
+var Copy = createLucideIcon(__iconData$27);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/credit-card.mjs
 /**
@@ -12143,7 +12183,7 @@ var Copy = createLucideIcon(__iconData$25);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$24 = {
+var __iconData$26 = {
 	name: "credit-card",
 	size: 24,
 	node: [
@@ -12168,8 +12208,8 @@ var __iconData$24 = {
 		}]
 	]
 };
-__iconData$24.node;
-var CreditCard = createLucideIcon(__iconData$24);
+__iconData$26.node;
+var CreditCard = createLucideIcon(__iconData$26);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/ellipsis.mjs
 /**
@@ -12178,7 +12218,7 @@ var CreditCard = createLucideIcon(__iconData$24);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$23 = {
+var __iconData$25 = {
 	name: "ellipsis",
 	size: 24,
 	node: [
@@ -12203,8 +12243,31 @@ var __iconData$23 = {
 	],
 	aliases: ["more-horizontal"]
 };
-__iconData$23.node;
-var Ellipsis = createLucideIcon(__iconData$23);
+__iconData$25.node;
+var Ellipsis = createLucideIcon(__iconData$25);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/eye.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$24 = {
+	name: "eye",
+	size: 24,
+	node: [["path", {
+		d: "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0",
+		key: "1nclc0"
+	}], ["circle", {
+		cx: "12",
+		cy: "12",
+		r: "3",
+		key: "1v7zrd"
+	}]]
+};
+__iconData$24.node;
+var Eye = createLucideIcon(__iconData$24);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/file-text.mjs
 /**
@@ -12213,7 +12276,7 @@ var Ellipsis = createLucideIcon(__iconData$23);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$22 = {
+var __iconData$23 = {
 	name: "file-text",
 	size: 24,
 	node: [
@@ -12239,8 +12302,8 @@ var __iconData$22 = {
 		}]
 	]
 };
-__iconData$22.node;
-var FileText = createLucideIcon(__iconData$22);
+__iconData$23.node;
+var FileText = createLucideIcon(__iconData$23);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/folder-plus.mjs
 /**
@@ -12249,7 +12312,7 @@ var FileText = createLucideIcon(__iconData$22);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$21 = {
+var __iconData$22 = {
 	name: "folder-plus",
 	size: 24,
 	node: [
@@ -12267,8 +12330,8 @@ var __iconData$21 = {
 		}]
 	]
 };
-__iconData$21.node;
-var FolderPlus = createLucideIcon(__iconData$21);
+__iconData$22.node;
+var FolderPlus = createLucideIcon(__iconData$22);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/gamepad-2.mjs
 /**
@@ -12277,7 +12340,7 @@ var FolderPlus = createLucideIcon(__iconData$21);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$20 = {
+var __iconData$21 = {
 	name: "gamepad-2",
 	size: 24,
 	node: [
@@ -12315,8 +12378,8 @@ var __iconData$20 = {
 		}]
 	]
 };
-__iconData$20.node;
-var Gamepad2 = createLucideIcon(__iconData$20);
+__iconData$21.node;
+var Gamepad2 = createLucideIcon(__iconData$21);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/layers.mjs
 /**
@@ -12325,7 +12388,7 @@ var Gamepad2 = createLucideIcon(__iconData$20);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$19 = {
+var __iconData$20 = {
 	name: "layers",
 	size: 24,
 	node: [
@@ -12344,8 +12407,8 @@ var __iconData$19 = {
 	],
 	aliases: ["layers-3"]
 };
-__iconData$19.node;
-var Layers = createLucideIcon(__iconData$19);
+__iconData$20.node;
+var Layers = createLucideIcon(__iconData$20);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/layout-dashboard.mjs
 /**
@@ -12354,7 +12417,7 @@ var Layers = createLucideIcon(__iconData$19);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$18 = {
+var __iconData$19 = {
 	name: "layout-dashboard",
 	size: 24,
 	node: [
@@ -12392,8 +12455,8 @@ var __iconData$18 = {
 		}]
 	]
 };
-__iconData$18.node;
-var LayoutDashboard = createLucideIcon(__iconData$18);
+__iconData$19.node;
+var LayoutDashboard = createLucideIcon(__iconData$19);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/list-filter.mjs
 /**
@@ -12402,7 +12465,7 @@ var LayoutDashboard = createLucideIcon(__iconData$18);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$17 = {
+var __iconData$18 = {
 	name: "list-filter",
 	size: 24,
 	node: [
@@ -12420,8 +12483,8 @@ var __iconData$17 = {
 		}]
 	]
 };
-__iconData$17.node;
-var ListFilter = createLucideIcon(__iconData$17);
+__iconData$18.node;
+var ListFilter = createLucideIcon(__iconData$18);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/list-todo.mjs
 /**
@@ -12430,7 +12493,7 @@ var ListFilter = createLucideIcon(__iconData$17);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$16 = {
+var __iconData$17 = {
 	name: "list-todo",
 	size: 24,
 	node: [
@@ -12460,8 +12523,8 @@ var __iconData$16 = {
 		}]
 	]
 };
-__iconData$16.node;
-var ListTodo = createLucideIcon(__iconData$16);
+__iconData$17.node;
+var ListTodo = createLucideIcon(__iconData$17);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/lock-keyhole.mjs
 /**
@@ -12470,7 +12533,7 @@ var ListTodo = createLucideIcon(__iconData$16);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$15 = {
+var __iconData$16 = {
 	name: "lock-keyhole",
 	size: 24,
 	node: [
@@ -12494,8 +12557,8 @@ var __iconData$15 = {
 		}]
 	]
 };
-__iconData$15.node;
-var LockKeyhole = createLucideIcon(__iconData$15);
+__iconData$16.node;
+var LockKeyhole = createLucideIcon(__iconData$16);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/log-out.mjs
 /**
@@ -12504,7 +12567,7 @@ var LockKeyhole = createLucideIcon(__iconData$15);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$14 = {
+var __iconData$15 = {
 	name: "log-out",
 	size: 24,
 	node: [
@@ -12522,8 +12585,8 @@ var __iconData$14 = {
 		}]
 	]
 };
-__iconData$14.node;
-var LogOut = createLucideIcon(__iconData$14);
+__iconData$15.node;
+var LogOut = createLucideIcon(__iconData$15);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/moon.mjs
 /**
@@ -12532,7 +12595,7 @@ var LogOut = createLucideIcon(__iconData$14);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$13 = {
+var __iconData$14 = {
 	name: "moon",
 	size: 24,
 	node: [["path", {
@@ -12540,8 +12603,8 @@ var __iconData$13 = {
 		key: "kfwtm"
 	}]]
 };
-__iconData$13.node;
-var Moon = createLucideIcon(__iconData$13);
+__iconData$14.node;
+var Moon = createLucideIcon(__iconData$14);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/pen-line.mjs
 /**
@@ -12550,7 +12613,7 @@ var Moon = createLucideIcon(__iconData$13);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$12 = {
+var __iconData$13 = {
 	name: "pen-line",
 	size: 24,
 	node: [["path", {
@@ -12562,8 +12625,8 @@ var __iconData$12 = {
 	}]],
 	aliases: ["edit-3"]
 };
-__iconData$12.node;
-var PenLine = createLucideIcon(__iconData$12);
+__iconData$13.node;
+var PenLine = createLucideIcon(__iconData$13);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/pencil.mjs
 /**
@@ -12572,7 +12635,7 @@ var PenLine = createLucideIcon(__iconData$12);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$11 = {
+var __iconData$12 = {
 	name: "pencil",
 	size: 24,
 	node: [["path", {
@@ -12583,8 +12646,8 @@ var __iconData$11 = {
 		key: "1mk7zo"
 	}]]
 };
-__iconData$11.node;
-var Pencil = createLucideIcon(__iconData$11);
+__iconData$12.node;
+var Pencil = createLucideIcon(__iconData$12);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/plus.mjs
 /**
@@ -12593,7 +12656,7 @@ var Pencil = createLucideIcon(__iconData$11);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$10 = {
+var __iconData$11 = {
 	name: "plus",
 	size: 24,
 	node: [["path", {
@@ -12604,8 +12667,8 @@ var __iconData$10 = {
 		key: "s699le"
 	}]]
 };
-__iconData$10.node;
-var Plus = createLucideIcon(__iconData$10);
+__iconData$11.node;
+var Plus = createLucideIcon(__iconData$11);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/refresh-cw.mjs
 /**
@@ -12614,7 +12677,7 @@ var Plus = createLucideIcon(__iconData$10);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$9 = {
+var __iconData$10 = {
 	name: "refresh-cw",
 	size: 24,
 	node: [
@@ -12636,8 +12699,8 @@ var __iconData$9 = {
 		}]
 	]
 };
-__iconData$9.node;
-var RefreshCw = createLucideIcon(__iconData$9);
+__iconData$10.node;
+var RefreshCw = createLucideIcon(__iconData$10);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/search.mjs
 /**
@@ -12646,7 +12709,7 @@ var RefreshCw = createLucideIcon(__iconData$9);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$8 = {
+var __iconData$9 = {
 	name: "search",
 	size: 24,
 	node: [["path", {
@@ -12659,8 +12722,8 @@ var __iconData$8 = {
 		key: "4ej97u"
 	}]]
 };
-__iconData$8.node;
-var Search = createLucideIcon(__iconData$8);
+__iconData$9.node;
+var Search = createLucideIcon(__iconData$9);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/settings-2.mjs
 /**
@@ -12669,7 +12732,7 @@ var Search = createLucideIcon(__iconData$8);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$7 = {
+var __iconData$8 = {
 	name: "settings-2",
 	size: 24,
 	node: [
@@ -12695,8 +12758,8 @@ var __iconData$7 = {
 		}]
 	]
 };
-__iconData$7.node;
-var Settings2 = createLucideIcon(__iconData$7);
+__iconData$8.node;
+var Settings2 = createLucideIcon(__iconData$8);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/shield-check.mjs
 /**
@@ -12705,7 +12768,7 @@ var Settings2 = createLucideIcon(__iconData$7);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$6 = {
+var __iconData$7 = {
 	name: "shield-check",
 	size: 24,
 	node: [["path", {
@@ -12716,8 +12779,60 @@ var __iconData$6 = {
 		key: "dzmm74"
 	}]]
 };
+__iconData$7.node;
+var ShieldCheck = createLucideIcon(__iconData$7);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/sliders-horizontal.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$6 = {
+	name: "sliders-horizontal",
+	size: 24,
+	node: [
+		["path", {
+			d: "M10 5H3",
+			key: "1qgfaw"
+		}],
+		["path", {
+			d: "M12 19H3",
+			key: "yhmn1j"
+		}],
+		["path", {
+			d: "M14 3v4",
+			key: "1sua03"
+		}],
+		["path", {
+			d: "M16 17v4",
+			key: "1q0r14"
+		}],
+		["path", {
+			d: "M21 12h-9",
+			key: "1o4lsq"
+		}],
+		["path", {
+			d: "M21 19h-5",
+			key: "1rlt1p"
+		}],
+		["path", {
+			d: "M21 5h-7",
+			key: "1oszz2"
+		}],
+		["path", {
+			d: "M8 10v4",
+			key: "tgpxqk"
+		}],
+		["path", {
+			d: "M8 12H3",
+			key: "a7s4jb"
+		}]
+	]
+};
 __iconData$6.node;
-var ShieldCheck = createLucideIcon(__iconData$6);
+var SlidersHorizontal = createLucideIcon(__iconData$6);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/sun.mjs
 /**
@@ -15163,7 +15278,12 @@ function renderPriceCard(model, { scale = 2 } = {}) {
 			const dotFrom = nameX + measure(shown, nameFont) + 14;
 			const dotTo = 1008 - priceW - 14;
 			if (dotTo > dotFrom + 20) line(dotFrom, y - 6, dotTo, y - 6, RULE_STRONG, 1, [2, 7]);
-			if (it.hint) {
+			const tierLines = Array.isArray(it.tierLines) ? it.tierLines.filter(Boolean) : [];
+			if (tierLines.length > 1) for (const tier of tierLines) {
+				y += 27;
+				text(nameX, y, fitText(measure, tier, hintFont, 918), hintFont, CINNABAR);
+			}
+			else if (it.hint) {
 				y += 27;
 				text(nameX, y, fitText(measure, it.hint, hintFont, 918), hintFont, CINNABAR);
 			}
@@ -17117,19 +17237,71 @@ function gameCategoryField({ games = [], categories = [], gameId = "", categoryI
 		}
 	};
 }
-function serviceForm(values = {}, { games = [], categories = [] } = {}) {
+function serviceForm(values = {}, { games = [], categories = [] } = {}, { quick = false } = {}) {
 	const gameIdOf = values.game_id || categories.find((c) => String(c.id) === String(values.category_id))?.game_id || "";
 	const currency = games.find((g) => String(g.id) === String(gameIdOf))?.currency || "";
+	const quickFields = [
+		{
+			name: "name",
+			label: "服务名",
+			type: "text",
+			required: true,
+			placeholder: "例：每日委托 / 深渊 12 层 / 活动全包"
+		},
+		gameCategoryField({
+			games,
+			categories,
+			gameId: values.game_id,
+			categoryId: values.category_id
+		}),
+		{
+			name: "price_type",
+			label: "计价方式",
+			type: "select",
+			required: true,
+			width: "half",
+			options: PRICE_TYPES
+		},
+		{
+			name: "unit_label",
+			label: "单位",
+			type: "text",
+			width: "half",
+			placeholder: "天 / 次 / 层 / 个 / 套"
+		},
+		{
+			name: "base_price",
+			label: "基准单价",
+			type: "money",
+			required: true,
+			width: "half",
+			suffix: "元"
+		},
+		{
+			name: "min_qty",
+			label: "起订量",
+			type: "number",
+			width: "half"
+		},
+		{
+			name: "description",
+			label: "说明（可选）",
+			type: "textarea",
+			rows: 2,
+			placeholder: "客户问到时需要说明的内容"
+		}
+	];
 	return formDrawer({
-		title: values.id ? "改服务项" : "新建服务项",
-		submitLabel: "保存",
+		title: values.id ? "改服务项" : "快速添加服务",
+		submitLabel: quick ? "保存服务" : "保存",
 		values: {
 			min_qty: 1,
 			price_type: "fixed",
 			...values
 		},
 		wide: true,
-		fields: [
+		intro: quick ? h$1("div.hint", "先录入客户最常用的信息；阶梯价、套餐、增项和可获得货币可在保存后从服务行的高级设置补充。") : null,
+		fields: quick ? quickFields : [
 			{
 				name: "name",
 				label: "服务名",
@@ -17594,6 +17766,16 @@ function servicePeek(service, ctx, { onChanged } = {}) {
 		if (onChanged) onChanged();
 		ctx.app.reload();
 	};
+	const tiers = [...service.tiers || []].sort((a, b) => (Number(a.min_qty) || 0) - (Number(b.min_qty) || 0));
+	const options = (service.options || []).filter((option) => option.status !== "archived");
+	const tierLines = tiers.map((tier) => {
+		return `${tier.max_qty === null || tier.max_qty === void 0 || tier.max_qty === "" ? `${fmtQty$1(tier.min_qty || 1)}${unitOf$1(service)}+` : `${fmtQty$1(tier.min_qty || 1)}-${fmtQty$1(tier.max_qty)}${unitOf$1(service)}`}：¥${fmtMoney$1(tier.unit_price)}/${unitOf$1(service)}`;
+	});
+	const optionLines = options.map((option) => {
+		const price = option.price_mode === "percent" ? ` +${fmtQty$1(option.price)}%` : Number(option.price) ? ` +¥${fmtMoney$1(option.price)}` : "";
+		const description = String(option.description || "").trim();
+		return `${option.name || "未命名"}${price}${description ? ` · 说明：${description}` : ""}`;
+	});
 	const priceLine = service.price_type === "per_unit" && service.tiers?.length ? h$1("div", h$1("div.pitem__fig", `¥${fmtMoney$1(service.base_price)}`), h$1("div.pitem__unit", `/${unitOf$1(service)} 起`), h$1("div.tbl__meta", `${service.tiers.length} 档阶梯价`)) : h$1("div", h$1("div.pitem__fig", `¥${fmtMoney$1(service.base_price)}`), h$1("div.pitem__unit", `/${unitOf$1(service)}`));
 	const gain = currencyGain(service, ctx.meta?.games || [], ctx.meta?.categories || []);
 	const d = drawer({
@@ -17602,7 +17784,7 @@ function servicePeek(service, ctx, { onChanged } = {}) {
 		body: h$1("div.stack", h$1("div.cluster", { style: {
 			justifyContent: "space-between",
 			alignItems: "flex-start"
-		} }, h$1("div", priceLine), h$1("div.cluster", service.status === "active" ? tag("在架", "jade") : tag("已下架", "oxblood"))), gain ? h$1("div", h$1("span.tag.tag--outline", `可获得 ${gain}`)) : null, service.description ? h$1("p", { style: { lineHeight: "1.7" } }, service.description) : null, service.package_items?.length ? h$1("div", h$1("div.tbl__meta", "套餐包含"), h$1("div.subitems", ...service.package_items.map((p) => h$1("div.subitem", h$1("span", "·"), h$1("span", p))))) : null, h$1("hr"), h$1("div.cluster", h$1("button.btn.btn--sm", {
+		} }, h$1("div", priceLine), h$1("div.cluster", service.status === "active" ? tag("在架", "jade") : tag("已下架", "oxblood"))), gain ? h$1("div", h$1("span.tag.tag--outline", `可获得 ${gain}`)) : null, service.description ? h$1("p", { style: { lineHeight: "1.7" } }, service.description) : null, service.package_items?.length ? h$1("div", h$1("div.tbl__meta", "套餐包含"), h$1("div.subitems", ...service.package_items.map((p) => h$1("div.subitem", h$1("span", "·"), h$1("span", p))))) : null, tiers.length ? h$1("div", h$1("div.tbl__meta", "阶梯价"), h$1("div.subitems", ...tierLines.map((line) => h$1("div.subitem", h$1("span", "·"), h$1("span", line))))) : null, options.length ? h$1("div", h$1("div.tbl__meta", "套餐与增项"), h$1("div.subitems", ...optionLines.map((line) => h$1("div.subitem", h$1("span", "·"), h$1("span", line))))) : null, h$1("hr"), h$1("div.cluster", h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => serviceForm(service, ctx.meta).then(reload)
 		}, icon("edit", 14), "改价格和说明"), h$1("button.btn.btn--sm", {
@@ -17646,8 +17828,8 @@ function servicePeek(service, ctx, { onChanged } = {}) {
 async function openExporter(ctx, { games = [] } = {}) {
 	const state = {
 		scope: "per-game",
-		perCategory: "6",
-		maxCategories: "8",
+		perCategory: "99",
+		maxCategories: "99",
 		withDesc: true,
 		contact: null,
 		footer: null
@@ -17709,8 +17891,8 @@ async function openExporter(ctx, { games = [] } = {}) {
 	/** 公共查询参数（不含 game_id） */
 	function baseQuery() {
 		const q = {
-			per_category: state.perCategory,
-			max_categories: state.maxCategories,
+			full: "1",
+			format: "full",
 			with_desc: state.withDesc ? "1" : "0"
 		};
 		if (state.contact !== null) q.contact = state.contact;
@@ -17768,10 +17950,10 @@ async function openExporter(ctx, { games = [] } = {}) {
 			summary.textContent = "预览画不出来：" + (err.message || "");
 			return;
 		}
-		mount(previewBox, h$1("img", {
+		mount(previewBox, h$1("div.stack", h$1("img", {
 			src: canvas.toDataURL("image/png"),
-			alt: "价格表预览"
-		}));
+			alt: "价格表速览卡预览"
+		})));
 		const hidden = preview.hiddenServices + preview.hiddenCategories;
 		const parts = [];
 		if (state.scope === "per-game") parts.push(list.length > 1 ? `会生成 ${list.length} 份，每个游戏一份（不混在一起）` : "会生成 1 份");
@@ -17810,7 +17992,7 @@ async function openExporter(ctx, { games = [] } = {}) {
 		wide: true,
 		title: "导出价格表",
 		subtitle: "生成能直接发微信的图片，或者能打印、能编辑的 Word 文档",
-		body: h$1("div.stack", h$1("div.formgrid", h$1("div.field.field--full", h$1("label.lbl", "导出范围"), scopeSel, h$1("div.hint", "默认每个游戏单独出一份，发给客户时只发他那款游戏，不会把几个游戏混在一张图上。")), h$1("div.field.field--full", h$1("label.lbl", "每个大类最多列几项"), perSel, h$1("div.hint", "列不下的会折成「还有 N 项」")), h$1("div.field.field--full", h$1("label.lbl", "最多列几个大类"), catSel), h$1("div.field.field--full", h$1("label.lbl", "带说明文字"), h$1("label.inline", { style: { cursor: "pointer" } }, descChk, h$1("span.sm", "展示服务项的说明和套餐内容"))), h$1("div.field.field--full", h$1("label.lbl", "联系方式"), contactInp), h$1("div.field.field--full", h$1("label.lbl", "页脚说明"), footerInp)), h$1("div.sechead", { style: { marginBottom: "0" } }, h$1("h3", "预览"), h$1("span.sechead__note", "这就是生成出来的图片")), previewBox, summary, h$1("div.note", "导出会自动裁掉多余内容：空的大类不导出，超出条数的服务项折成「还有 N 项」，说明太长会截断。目的是一张图发出去好看、一眼能看完，而不是把整张价格表塞进去。")),
+		body: h$1("div.stack", h$1("div.formgrid", h$1("div.field.field--full", h$1("label.lbl", "导出范围"), scopeSel, h$1("div.hint", "默认每个游戏单独出一份，发给客户时只发他那款游戏，不会把几个游戏混在一张图上。")), h$1("div.field.field--full", h$1("label.lbl", "图片内容"), h$1("div.hint", "按游戏生成一张完整的客户速览长图；Word 会保留完整服务和阶梯价。")), h$1("div.field.field--full", h$1("label.lbl", "带说明文字"), h$1("label.inline", { style: { cursor: "pointer" } }, descChk, h$1("span.sm", "展示服务说明、套餐内容和增项"))), h$1("div.field.field--full", h$1("label.lbl", "联系方式"), contactInp), h$1("div.field.field--full", h$1("label.lbl", "页脚说明"), footerInp)), h$1("div.sechead", { style: { marginBottom: "0" } }, h$1("h3", "预览"), h$1("span.sechead__note", "这就是生成出来的图片")), previewBox, summary, h$1("div.note", "图片按游戏生成一张完整长图；Word 是 A4 完整价目册，使用真实表格并逐档列出阶梯价。")),
 		footer: [
 			h$1("button.btn", {
 				type: "button",
@@ -17863,7 +18045,7 @@ async function openExporter(ctx, { games = [] } = {}) {
 				n++;
 				if (n < jobs.length) await new Promise((r) => setTimeout(r, 400));
 			}
-			toast(n > 1 ? `已生成 ${n} 张图片，每个游戏一张` : "图片已生成，去下载文件夹看看", "ok", 3600);
+			toast(n > 1 ? `已生成 ${n} 张完整图片` : "图片已生成，去下载文件夹看看", "ok", 3600);
 		} catch (err) {
 			toastErr(err);
 		} finally {
@@ -21753,9 +21935,29 @@ function priceRange(services) {
 	const high = Math.max(...values);
 	return low === high ? `¥${fmtMoney(low)}` : `¥${fmtMoney(low)} - ¥${fmtMoney(high)}`;
 }
-function ServiceRow({ service, onEdit, onToggle, onDelete }) {
+function tierSummary(tiers, unit) {
+	const ordered = [...tiers].sort((a, b) => (Number(a.min_qty) || 0) - (Number(b.min_qty) || 0));
+	const first = ordered[0];
+	const last = ordered[ordered.length - 1];
+	const firstRange = `${fmtQty(first.min_qty || 1)}${unit}`;
+	const lastRange = last.max_qty === null || last.max_qty === void 0 || last.max_qty === "" ? `${fmtQty(last.min_qty || 1)}${unit}+` : `${fmtQty(last.min_qty || 1)}-${fmtQty(last.max_qty)}${unit}`;
+	const prices = ordered.slice(0, 2).map((tier) => {
+		return `${tier.max_qty === null || tier.max_qty === void 0 || tier.max_qty === "" ? `${fmtQty(tier.min_qty || 1)}${unit}+` : `${fmtQty(tier.min_qty || 1)}-${fmtQty(tier.max_qty)}${unit}`} ¥${fmtMoney(tier.unit_price)}/${unit}`;
+	});
+	return `${tiers.length} 档 · ${firstRange} 起 · ${lastRange}${prices.length ? ` · ${prices.join("；")}${tiers.length > prices.length ? "…" : ""}` : ""}`;
+}
+function optionSummary(options) {
+	const items = options.slice(0, 2).map((option) => {
+		const price = option.price_mode === "percent" ? ` +${fmtQty(option.price)}%` : Number(option.price) ? ` +¥${fmtMoney(option.price)}` : "";
+		const note = String(option.description || "").trim();
+		return `${option.name || "未命名"}${price}${note ? `（说明：${note}）` : ""}`;
+	}).filter(Boolean);
+	return `${options.length} 个${items.length ? ` · ${items.join("、")}${options.length > items.length ? "…" : ""}` : ""}`;
+}
+function ServiceRow({ service, onEdit, onPeek, onAdvanced, onToggle, onDelete }) {
 	const tiers = service.tiers || [];
 	const options = service.options || [];
+	const unit = unitOf(service);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: `price-service${service.status === "archived" ? " is-archived" : ""}`,
 		children: [
@@ -21780,17 +21982,27 @@ function ServiceRow({ service, onEdit, onToggle, onDelete }) {
 							}) : null
 						]
 					}),
-					service.description ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: service.description }) : null,
-					service.package_items?.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: ["套餐含：", service.package_items.join(" · ")] }) : null
+					service.description ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						title: service.description,
+						children: service.description
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "price-service__muted",
+						children: "暂无说明"
+					}),
+					service.package_items?.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", {
+						title: service.package_items.join(" · "),
+						children: ["套餐含：", service.package_items.join(" · ")]
+					}) : null
 				]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "price-service__type",
-				children: [PRICE_TYPE_LABEL[service.price_type] || service.price_type, /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: PRICE_TYPE_LABEL[service.price_type] || service.price_type }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
 					"/",
-					unitOf(service),
+					unit,
 					" · 起订 ",
-					fmtQty(service.min_qty || 1)
+					fmtQty(service.min_qty || 1),
+					service.max_qty ? ` · 上限 ${fmtQty(service.max_qty)}` : ""
 				] })]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -21798,8 +22010,27 @@ function ServiceRow({ service, onEdit, onToggle, onDelete }) {
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("b", { children: ["¥", fmtMoney(service.base_price)] }), service.currency_amount ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: ["可得 ", fmtQty(service.currency_amount)] }) : null]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "price-service__tiers",
+				title: [tiers.length ? tierSummary(tiers, unit) : "", options.length ? optionSummary(options) : ""].filter(Boolean).join(" · "),
+				children: [tiers.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: tierSummary(tiers, unit) }) : null, options.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: optionSummary(options) }) : null]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "price-service__actions",
 				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "查看服务详情",
+						onClick: () => onPeek(service),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eye, { ...iconProps$3(14) })
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "高级设置：阶梯价和增项",
+						onClick: () => onAdvanced(service),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SlidersHorizontal, { ...iconProps$3(14) })
+					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
@@ -21812,7 +22043,7 @@ function ServiceRow({ service, onEdit, onToggle, onDelete }) {
 						type: "button",
 						title: service.status === "active" ? "归档服务" : "恢复服务",
 						onClick: () => onToggle(service),
-						children: service.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronDown, { ...iconProps$3(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronRight, { ...iconProps$3(14) })
+						children: service.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$3(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArchiveRestore, { ...iconProps$3(14) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button price-danger",
@@ -21826,28 +22057,39 @@ function ServiceRow({ service, onEdit, onToggle, onDelete }) {
 		]
 	});
 }
-function CategoryBlock({ category, onEdit, onService, onSum, onToggle, onDelete, onEditService, onToggleService, onDeleteService }) {
-	const [open, setOpen] = (0, import_react.useState)(false);
+function CategoryBlock({ category, open, onOpenChange, onEdit, onService, onSum, onToggle, onDelete, onEditService, onPeekService, onAdvancedService, onToggleService, onDeleteService }) {
 	const services = category.services || [];
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 		className: `price-category${category.status === "archived" ? " is-archived" : ""}`,
+		id: `price-category-${category.id}`,
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
 			className: "price-category__head",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 					className: "price-category__toggle",
 					type: "button",
-					onClick: () => setOpen((value) => !value),
+					"aria-expanded": open,
+					onClick: () => onOpenChange(!open),
 					children: [open ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronDown, { ...iconProps$3(16) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronRight, { ...iconProps$3(16) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: category.name }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
 						services.length,
 						" 项 · ",
 						priceRange(services)
 					] })] })]
 				}),
-				category.notice ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: category.notice }) : null,
+				category.notice ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					title: category.notice,
+					children: category.notice
+				}) : null,
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "price-category__actions",
 					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							className: "react-mini-button react-mini-button--label",
+							type: "button",
+							title: "在此分类添加服务",
+							onClick: () => onService(category),
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$3(14) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "添加服务" })]
+						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 							className: "react-mini-button",
 							type: "button",
@@ -21855,13 +22097,6 @@ function CategoryBlock({ category, onEdit, onService, onSum, onToggle, onDelete,
 							onClick: () => onSum(category),
 							disabled: !services.length,
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Copy, { ...iconProps$3(14) })
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-							className: "react-mini-button",
-							type: "button",
-							title: "新建服务",
-							onClick: () => onService(category),
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$3(14) })
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 							className: "react-mini-button",
@@ -21875,7 +22110,7 @@ function CategoryBlock({ category, onEdit, onService, onSum, onToggle, onDelete,
 							type: "button",
 							title: category.status === "active" ? "归档大类" : "恢复大类",
 							onClick: () => onToggle(category),
-							children: category.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronDown, { ...iconProps$3(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronRight, { ...iconProps$3(14) })
+							children: category.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$3(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArchiveRestore, { ...iconProps$3(14) })
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 							className: "react-mini-button price-danger",
@@ -21887,24 +22122,169 @@ function CategoryBlock({ category, onEdit, onService, onSum, onToggle, onDelete,
 					]
 				})
 			]
-		}), open ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		}), open ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 			className: "price-category__body",
-			children: services.length ? services.map((service) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ServiceRow, {
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "price-service__labels",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "服务项目" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "计价方式" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "基准价" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "阶梯与增项" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "操作" })
+				]
+			}), services.length ? services.map((service) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ServiceRow, {
 				service,
 				onEdit: onEditService,
+				onPeek: onPeekService,
+				onAdvanced: onAdvancedService,
 				onToggle: onToggleService,
 				onDelete: onDeleteService
 			}, service.id)) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "price-category__empty",
-				children: "还没有服务项，点右侧加号添加第一项。"
-			})
+				children: "还没有服务项，点“添加服务”即可使用当前游戏和分类。"
+			})]
 		}) : null]
 	});
+}
+function GroupWorkspace({ group, query, onNewCategory, onService, onEditCategory, onSum, onToggleCategory, onDeleteCategory, onEditService, onPeekService, onAdvancedService, onToggleService, onDeleteService }) {
+	const categories = group.categories || [];
+	const [selected, setSelected] = (0, import_react.useState)("all");
+	const [openMap, setOpenMap] = (0, import_react.useState)(() => new Map(categories.slice(0, 1).map((category) => [String(category.id), true])));
+	const text = query.q.trim();
+	(0, import_react.useEffect)(() => {
+		if (text) setOpenMap(new Map(categories.map((category) => [String(category.id), true])));
+	}, [text, group.key]);
+	const allOpen = categories.length > 0 && categories.every((category) => openMap.get(String(category.id)));
+	const visible = selected === "all" ? categories : categories.filter((category) => String(category.id) === selected);
+	const setCategoryOpen = (id, value) => setOpenMap((current) => new Map(current).set(String(id), value));
+	const selectCategory = (id) => {
+		setSelected(id);
+		if (id !== "all") setCategoryOpen(id, true);
+		requestAnimationFrame(() => document.getElementById(`price-category-${id}`)?.scrollIntoView({
+			behavior: "smooth",
+			block: "nearest"
+		}));
+	};
+	const setAllOpen = () => setOpenMap(new Map(categories.map((category) => [String(category.id), !allOpen])));
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+		className: "price-group",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
+			className: "price-group__head",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "price-group__eyebrow",
+					children: "当前价格表"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: group.game?.name || "通用价格" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
+					categories.length,
+					" 个大类 · ",
+					group.loose.length ? `${group.loose.length} 个未分类服务` : "服务均已归类"
+				] })
+			] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "price-group__head-actions",
+				children: [group.game?.currency ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("em", { children: group.game.currency }) : null, /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "refactor-button refactor-button--compact",
+					type: "button",
+					onClick: () => onNewCategory(group.key || ""),
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderPlus, { ...iconProps$3(14) }), "新建大类"]
+				})]
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "price-workspace",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("aside", {
+				className: "price-directory",
+				"aria-label": `${group.game?.name || "通用价格"}分类目录`,
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "price-directory__head",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "分类目录" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: categories.length })]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: `price-directory__item${selected === "all" ? " is-active" : ""}`,
+						type: "button",
+						onClick: () => selectCategory("all"),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "全部分类" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [categories.reduce((count, category) => count + (category.services || []).length, 0), " 项"] })]
+					}),
+					categories.map((category) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: `price-directory__item${selected === String(category.id) ? " is-active" : ""}`,
+						type: "button",
+						onClick: () => selectCategory(String(category.id)),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: category.name }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: (category.services || []).length })]
+					}, category.id)),
+					!categories.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "price-directory__empty",
+						children: "还没有分类"
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "price-directory__add",
+						type: "button",
+						onClick: () => onNewCategory(group.key || ""),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$3(14) }), "新建分类"]
+					})
+				]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "price-catalog",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "price-catalog__tools",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: selected === "all" ? "全部分类" : categories.find((category) => String(category.id) === selected)?.name }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							className: "refactor-button refactor-button--compact",
+							type: "button",
+							onClick: setAllOpen,
+							disabled: !categories.length,
+							children: [allOpen ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronDown, { ...iconProps$3(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronRight, { ...iconProps$3(14) }), allOpen ? "全部收起" : "全部展开"]
+						}), selected !== "all" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							className: "refactor-button refactor-button--compact",
+							type: "button",
+							onClick: () => onService(categories.find((category) => String(category.id) === selected)),
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$3(14) }), "添加服务"]
+						}) : null] })]
+					}),
+					visible.map((category) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CategoryBlock, {
+						category,
+						open: !!openMap.get(String(category.id)),
+						onOpenChange: (value) => setCategoryOpen(category.id, value),
+						onEdit: onEditCategory,
+						onService,
+						onSum,
+						onToggle: onToggleCategory,
+						onDelete: onDeleteCategory,
+						onEditService,
+						onPeekService,
+						onAdvancedService,
+						onToggleService,
+						onDeleteService
+					}, category.id)),
+					group.loose.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "price-loose",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "price-loose__head",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "未分类服务" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "请编辑服务并选择一个分类" })]
+						}), group.loose.map((service) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ServiceRow, {
+							service,
+							onEdit: onEditService,
+							onPeek: onPeekService,
+							onAdvanced: onAdvancedService,
+							onToggle: onToggleService,
+							onDelete: onDeleteService
+						}, service.id))]
+					}) : null,
+					!visible.length && !group.loose.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "price-category__empty price-category__empty--large",
+						children: "还没有分类，先新建一个分类再添加服务。"
+					}) : null
+				]
+			})]
+		})]
+	}, group.key || "generic");
 }
 function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reloadKey }) {
 	const query = (0, import_react.useMemo)(() => ({
 		game: route.query.get("game") || "",
-		q: route.query.get("q") || ""
+		q: route.query.get("q") || "",
+		status: route.query.get("status") || "active"
 	}), [route.query.toString()]);
 	const [book, setBook] = (0, import_react.useState)(null);
 	const [search, setSearch] = (0, import_react.useState)(query.q);
@@ -21914,7 +22294,7 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 		let active = true;
 		setBook(null);
 		setError("");
-		api.get("/api/pricebook").then((data) => {
+		api.get("/api/pricebook", { status: query.status }).then((data) => {
 			if (active) setBook(data);
 		}).catch((err) => {
 			if (active) {
@@ -21938,6 +22318,7 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 		const params = new URLSearchParams();
 		if (next.game) params.set("game", next.game);
 		if (next.q) params.set("q", next.q);
+		if (next.status && next.status !== "active") params.set("status", next.status);
 		navigate(`/price${params.toString() ? `?${params.toString()}` : ""}`);
 	};
 	const data = book || {
@@ -21946,8 +22327,17 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 		loose: []
 	};
 	const gameMap = new Map((data.games || []).map((game) => [String(game.id), game]));
-	const categories = (data.categories || []).filter((category) => !query.game || String(category.game_id || "") === query.game);
-	const loose = (data.loose || []).filter((service) => !query.game || String(service.game_id || "") === query.game);
+	const gameFilter = query.game === "generic" ? "" : query.game;
+	const categories = (data.categories || []).filter((category) => {
+		if (!query.game) return true;
+		if (query.game === "generic") return !category.game_id;
+		return !category.game_id || String(category.game_id) === gameFilter;
+	});
+	const loose = (data.loose || []).filter((service) => {
+		if (!query.game) return true;
+		if (query.game === "generic") return !service.game_id;
+		return !service.game_id || String(service.game_id) === gameFilter;
+	});
 	const text = query.q.trim().toLowerCase();
 	const match = (value) => !text || String(value || "").toLowerCase().includes(text);
 	const visibleCategories = categories.map((category) => ({
@@ -21977,6 +22367,13 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 		groupMap.get(key).loose.push(service);
 	}
 	const groups = [...groupMap.values()];
+	const createCategory = async (gameId = "") => {
+		try {
+			if (await categoryForm({}, data.games || [], gameId && gameId !== "generic" ? gameId : null)) await onReload();
+		} catch (err) {
+			toastErr(err);
+		}
+	};
 	const editCategory = async (category) => {
 		try {
 			if (await categoryForm(category, data.games || [])) await onReload();
@@ -21985,14 +22382,18 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 		}
 	};
 	const newService = async (category) => {
+		if (!category?.id) {
+			toast("先建一个大类，服务项要挂在大类下面", "err");
+			return createCategory(query.game);
+		}
 		try {
 			if (await serviceForm({
 				category_id: category.id,
-				game_id: category.game_id || ""
+				game_id: category.game_id || (query.game !== "generic" ? query.game : "")
 			}, {
 				games: data.games || [],
 				categories: data.categories || []
-			})) await onReload();
+			}, { quick: true })) await onReload();
 		} catch (err) {
 			toastErr(err);
 		}
@@ -22003,6 +22404,20 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 				games: data.games || [],
 				categories: data.categories || []
 			})) await onReload();
+		} catch (err) {
+			toastErr(err);
+		}
+	};
+	const peekContext = {
+		meta: {
+			games: data.games || [],
+			categories: data.categories || []
+		},
+		app: { reload: () => {} }
+	};
+	const peekService = (service) => {
+		try {
+			servicePeek(service, peekContext, { onChanged: onReload });
 		} catch (err) {
 			toastErr(err);
 		}
@@ -22053,6 +22468,15 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 			toastErr(err);
 		}
 	};
+	const quickAddService = () => {
+		if (!query.game) {
+			toast("请先选择一个游戏或通用价格表，再添加服务", "err");
+			return;
+		}
+		const category = groups.find((item) => item.key === (query.game === "generic" ? "" : query.game))?.categories?.[0];
+		if (category) newService(category);
+		else createCategory(query.game);
+	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "price-page",
 		children: [
@@ -22061,7 +22485,7 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 						className: "refactor-eyebrow",
-						children: "业务目录"
+						children: "业务目录 / 价格工作区"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "价格表" }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", { children: [
@@ -22088,10 +22512,16 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gamepad2, { ...iconProps$3(15) }), "新建价格表"]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							className: "refactor-button",
+							type: "button",
+							onClick: () => createCategory(query.game),
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderPlus, { ...iconProps$3(15) }), "新建大类"]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							className: "refactor-button refactor-button--primary",
 							type: "button",
-							onClick: () => onNewCategory(),
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderPlus, { ...iconProps$3(15) }), "新建大类"]
+							onClick: quickAddService,
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$3(15) }), "添加服务"]
 						})
 					]
 				})]
@@ -22099,19 +22529,55 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 				className: "price-toolbar",
 				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "price-games",
-						children: [...data.games, {
-							id: "",
-							name: "通用"
-						}].map((game) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-							className: `price-game${query.game === String(game.id) ? " is-active" : ""}`,
-							type: "button",
-							onClick: () => update({ game: String(game.id) }),
-							children: game.name
-						}, game.id || "generic"))
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								className: `price-game${!query.game ? " is-active" : ""}`,
+								type: "button",
+								onClick: () => update({ game: "" }),
+								children: "全部价格表"
+							}),
+							data.games.map((game) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								className: `price-game${query.game === String(game.id) ? " is-active" : ""}`,
+								type: "button",
+								onClick: () => update({ game: String(game.id) }),
+								children: game.name
+							}, game.id)),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								className: `price-game${query.game === "generic" ? " is-active" : ""}`,
+								type: "button",
+								onClick: () => update({ game: "generic" }),
+								children: "通用"
+							})
+						]
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "price-toolbar__spacer" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "price-status",
+						role: "group",
+						"aria-label": "价格状态",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								className: query.status === "active" ? "is-active" : "",
+								type: "button",
+								onClick: () => update({ status: "active" }),
+								children: "在架"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								className: query.status === "archived" ? "is-active" : "",
+								type: "button",
+								onClick: () => update({ status: "archived" }),
+								children: "已归档"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								className: query.status === "all" ? "is-active" : "",
+								type: "button",
+								onClick: () => update({ status: "all" }),
+								children: "全部"
+							})
+						]
+					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 						className: "price-search",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$3(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
@@ -22142,37 +22608,20 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
 					]
-				}) : groups.length ? groups.map((group) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
-					className: "price-group",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
-						className: "price-group__head",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: group.game?.name || "通用价格" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
-							group.categories.length,
-							" 个大类 · ",
-							group.loose.length ? `${group.loose.length} 个未分类服务` : "服务均已归类"
-						] })] }), group.game?.currency ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("em", { children: group.game.currency }) : null]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "price-group__body",
-						children: [group.categories.map((category) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CategoryBlock, {
-							category,
-							onEdit: editCategory,
-							onService: newService,
-							onSum: (cat) => sumDialog(cat, cat.services || []),
-							onToggle: toggleCategory,
-							onDelete: deleteCategory,
-							onEditService: editService,
-							onToggleService: toggleService,
-							onDeleteService: deleteService
-						}, category.id)), group.loose.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "price-loose",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "未分类服务" }), group.loose.map((service) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ServiceRow, {
-								service,
-								onEdit: editService,
-								onToggle: toggleService,
-								onDelete: deleteService
-							}, service.id))]
-						}) : null]
-					})]
+				}) : groups.length ? groups.map((group) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GroupWorkspace, {
+					group,
+					query,
+					onNewCategory: createCategory,
+					onService: newService,
+					onEditCategory: editCategory,
+					onSum: (cat) => sumDialog(cat, cat.services || []),
+					onToggleCategory: toggleCategory,
+					onDeleteCategory: deleteCategory,
+					onEditService: editService,
+					onPeekService: peekService,
+					onAdvancedService: peekService,
+					onToggleService: toggleService,
+					onDeleteService: deleteService
 				}, group.key || "generic")) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "price-empty",
 					children: [
@@ -23475,12 +23924,7 @@ function Shell({ me, onLogout }) {
 								type: "button",
 								onClick: createGame,
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps(15) }), "新建游戏"]
-							}) : current.seg === "price" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-								className: "refactor-button refactor-button--primary refactor-top-action",
-								type: "button",
-								onClick: createCategory,
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps(15) }), "新建大类"]
-							}) : current.seg === "quotes" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							}) : current.seg === "price" && !route.sub ? null : current.seg === "quotes" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 								className: "refactor-button refactor-button--primary refactor-top-action",
 								type: "button",
 								onClick: createQuote,

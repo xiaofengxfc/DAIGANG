@@ -303,10 +303,13 @@ export function register() {
   post('/api/options/append', (ctx) => createRow(options, { ...ctx.body, sort_order: nextSortOrder(db, 'service_options') }))
 
   /* 价格总览：报价单和价格查询都用这一份 */
-  get('/api/pricebook', () => {
+  get('/api/pricebook', (ctx) => {
+    const requestedStatus = String(ctx.query?.status || 'active')
+    const listStatus = requestedStatus === 'all' || requestedStatus === 'archived' ? requestedStatus : 'active'
+    const statusWhere = listStatus === 'all' ? "status IN ('active', 'archived')" : `status = '${listStatus}'`
     const map = nameMaps()
     const svcRows = db
-      .prepare("SELECT * FROM services WHERE status = 'active' ORDER BY sort_order ASC, id ASC")
+      .prepare(`SELECT * FROM services WHERE ${statusWhere} ORDER BY sort_order ASC, id ASC`)
       .all()
       .map((r) => shapeRow(services, r))
     const tierRows = db.prepare('SELECT * FROM service_tiers ORDER BY sort_order, min_qty').all().map((r) => shapeRow(tiers, r))
@@ -326,7 +329,7 @@ export function register() {
       optsBy.get(key).push(o)
     }
     const catRows = db
-      .prepare("SELECT * FROM service_categories WHERE status = 'active' ORDER BY sort_order ASC, id ASC")
+      .prepare(`SELECT * FROM service_categories WHERE ${statusWhere} ORDER BY sort_order ASC, id ASC`)
       .all()
       .map((r) => shapeRow(categories, r))
 
@@ -365,6 +368,10 @@ export function register() {
     perCategory: query.per_category ? int(query.per_category, 6) : 6,
     maxCategories: query.max_categories ? int(query.max_categories, 8) : 8,
     withDesc: query.with_desc !== '0',
+    // full=1 / format=full is used by the complete A4 table export.
+    // Older callers can continue sending only per_category/max_categories.
+    full: query.full === '1' || query.mode === 'full' || query.format === 'full',
+    format: query.format || '',
     title: query.title ? clampStr(query.title, 40) : '',
     shopName: query.shop_name ? clampStr(query.shop_name, 40) : '',
     contact: query.contact !== undefined ? clampStr(query.contact, 80) : undefined,
