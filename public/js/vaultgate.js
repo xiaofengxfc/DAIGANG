@@ -3,7 +3,7 @@
    独立密码 + 查看/复制二次验证。这里是唯一盖章的地方。
    ============================================================ */
 
-import { api } from './api.js'
+import { api } from '../../client/lib/api.js'
 import { h, icon } from './dom.js'
 import { modal, toastErr } from './ui.js'
 

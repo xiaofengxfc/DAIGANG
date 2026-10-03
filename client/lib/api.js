@@ -1,6 +1,12 @@
-/* ============================================================
-   接口客户端
-   ============================================================ */
+import {
+  LOGIN_TYPE_LABEL,
+  PAY_KIND_LABEL,
+  PAY_METHOD_LABEL,
+  PRICE_TYPE_LABEL,
+  PRICE_TYPE_UNIT_LABEL,
+  ORDER_STATUS,
+  ORDER_STATUS_LABEL,
+} from '../../shared/domain.js'
 
 export class ApiError extends Error {
   constructor(message, code, status) {
@@ -22,18 +28,18 @@ export function setApiHandlers(next) {
 function buildURL(path, query) {
   const url = new URL(path, window.location.origin)
   if (query) {
-    for (const [k, v] of Object.entries(query)) {
-      if (v === undefined || v === null || v === '') continue
-      url.searchParams.set(k, String(v))
+    for (const [key, value] of Object.entries(query)) {
+      if (value === undefined || value === null || value === '') continue
+      url.searchParams.set(key, String(value))
     }
   }
   return url
 }
 
 async function request(method, path, { body, query } = {}) {
-  let res
+  let response
   try {
-    res = await fetch(buildURL(path, query), {
+    response = await fetch(buildURL(path, query), {
       method,
       headers: body === undefined ? {} : { 'content-type': 'application/json' },
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -43,7 +49,7 @@ async function request(method, path, { body, query } = {}) {
     throw new ApiError('连不上后台，确认一下启动窗口还开着', 'offline', 0)
   }
 
-  const text = await res.text()
+  const text = await response.text()
   let data = null
   if (text) {
     try {
@@ -53,10 +59,10 @@ async function request(method, path, { body, query } = {}) {
     }
   }
 
-  if (!res.ok) {
-    const message = (data && data.error) || `请求失败（${res.status}）`
-    const err = new ApiError(message, data && data.code, res.status)
-    if (res.status === 401) handlers.unauthorized()
+  if (!response.ok) {
+    const message = (data && data.error) || `请求失败（${response.status}）`
+    const err = new ApiError(message, data && data.code, response.status)
+    if (response.status === 401) handlers.unauthorized()
     if (err.code === 'vault_locked') handlers.vaultLocked()
     throw err
   }
@@ -70,50 +76,13 @@ export const api = {
   del: (path, query) => request('DELETE', path, { query }),
 }
 
-/* ---------- 订单状态的展示口径 ---------- */
+export const STATUS_TONE = Object.freeze(Object.fromEntries(ORDER_STATUS.map(({ key, tone }) => [key, key === 'pending_confirm' ? 'cinnabar' : key === 'cancelled' ? 'muted' : tone])))
+export const STATUS_FLOW = ORDER_STATUS.filter((item) => !['after_sale', 'cancelled'].includes(item.key)).map((item) => item.key)
+export { ORDER_STATUS_LABEL }
 
-export const STATUS_TONE = {
-  pending_confirm: 'cinnabar',
-  pending_pay: 'amber',
-  in_progress: 'slate',
-  pending_accept: 'amber',
-  done: 'jade',
-  after_sale: 'oxblood',
-  cancelled: 'muted',
-}
+export { LOGIN_TYPE_LABEL, PAY_KIND_LABEL, PAY_METHOD_LABEL, PRICE_TYPE_LABEL, PRICE_TYPE_UNIT_LABEL }
 
-export const STATUS_FLOW = ['pending_confirm', 'pending_pay', 'in_progress', 'pending_accept', 'done']
-
-export const PRICE_TYPE_LABEL = {
-  fixed: '固定价',
-  daily: '按天',
-  per_time: '按次',
-  per_unit: '按数量',
-  package: '套餐价',
-}
-
-export const PAY_METHOD_LABEL = {
-  wechat: '微信',
-  alipay: '支付宝',
-  bank: '银行卡',
-  cash: '现金',
-  other: '其他',
-}
-
-export const PAY_KIND_LABEL = {
-  deposit: '定金',
-  full: '全款',
-  balance: '尾款',
-  refund: '退款',
-}
-
-export const LOGIN_TYPE_LABEL = {
-  qrcode: '扫码登录',
-  password: '账号密码',
-  other: '其他方式',
-}
-
-export const AUDIT_ACTION_LABEL = {
+export const AUDIT_ACTION_LABEL = Object.freeze({
   'vault.setup': '设置保险箱密码',
   'vault.unlock': '解锁保险箱',
   'vault.lock': '锁定保险箱',
@@ -124,4 +93,4 @@ export const AUDIT_ACTION_LABEL = {
   'credential.delete': '删除凭证',
   'credential.view': '查看凭证',
   'credential.copy': '复制凭证',
-}
+})

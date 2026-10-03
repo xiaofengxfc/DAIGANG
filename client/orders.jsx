@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowUpRight, Check, Clock3, ListFilter, Plus, Search, Users, WalletCards } from 'lucide-react'
-import { api, STATUS_TONE } from '../public/js/api.js'
-import { fmtDay, fmtMoney, remainInfo } from '../public/js/dom.js'
-import { paymentDrawer, progressDrawer } from '../public/js/views/orderbits.js'
+import { api, ORDER_STATUS_LABEL, STATUS_TONE } from './lib/api.js'
+import { fmtDay, fmtMoney, remainInfo } from './lib/formatters.js'
+import { paymentDrawer, progressDrawer } from './lib/legacy-features.js'
 
 const FILTERS = [
   { key: 'open', label: '在做的' },
@@ -23,15 +23,7 @@ const SORTS = [
   { value: 'amount', label: '按金额排' },
 ]
 
-const STATUS_LABEL = {
-  pending_confirm: '待确认',
-  pending_pay: '待付款',
-  in_progress: '进行中',
-  pending_accept: '待验收',
-  done: '已完成',
-  after_sale: '售后',
-  cancelled: '已取消',
-}
+const STATUS_LABEL = ORDER_STATUS_LABEL
 
 const iconProps = (size = 15) => ({ size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true })
 

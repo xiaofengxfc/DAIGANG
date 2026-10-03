@@ -5,6 +5,7 @@ import { makeDef, registerCrud, getRow, createRow, updateRow, removeRow, listRow
 import { buildExportModel } from '../priceexport.mjs'
 import { buildDocx } from '../docx.mjs'
 import { enqueueERPNextChange } from '../outbox.mjs'
+import { transaction } from '../infrastructure/sqlite/transaction.mjs'
 
 export const games = makeDef({
   table: 'games',
@@ -136,12 +137,18 @@ const nameMaps = () => ({
 
 function decorateServices(rows) {
   const map = nameMaps()
+  const tierCounts = new Map(
+    db.prepare('SELECT service_id, COUNT(*) AS c FROM service_tiers GROUP BY service_id').all().map((r) => [r.service_id, r.c])
+  )
+  const optionCounts = new Map(
+    db.prepare('SELECT service_id, COUNT(*) AS c FROM service_options GROUP BY service_id').all().map((r) => [r.service_id, r.c])
+  )
   return rows.map((r) => ({
     ...r,
     game_name: r.game_id ? map.games.get(r.game_id) || '' : '',
     category_name: r.category_id ? map.categories.get(r.category_id) || '' : '',
-    tier_count: db.prepare('SELECT COUNT(*) AS c FROM service_tiers WHERE service_id = ?').get(r.id).c,
-    option_count: db.prepare('SELECT COUNT(*) AS c FROM service_options WHERE service_id = ?').get(r.id).c,
+    tier_count: tierCounts.get(r.id) || 0,
+    option_count: optionCounts.get(r.id) || 0,
   }))
 }
 
@@ -274,8 +281,7 @@ export function register() {
     if (!ids.length) bad('没有收到排序内容', 'empty_ids')
     const stmt = db.prepare(`UPDATE ${table} SET sort_order = ?, updated_at = ? WHERE id = ?`)
     const ts = stamp()
-    db.exec('BEGIN')
-    try {
+    transaction(() => {
       ids.forEach((id, i) => {
         const numericId = int(id)
         stmt.run((i + 1) * 10, ts, numericId)
@@ -287,11 +293,7 @@ export function register() {
           if (option?.service_id) enqueueERPNextChange('services', option.service_id, 'upsert')
         }
       })
-      db.exec('COMMIT')
-    } catch (err) {
-      db.exec('ROLLBACK')
-      throw err
-    }
+    })
     return { ok: true, count: ids.length }
   })
 

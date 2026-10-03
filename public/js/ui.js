@@ -4,7 +4,7 @@
    ============================================================ */
 
 import { h, frag, icon, mount, clear, cls, uid, fmtMoney, fmtQty, copyText } from './dom.js'
-import { api, STATUS_TONE, STATUS_FLOW } from './api.js'
+import { api, STATUS_TONE, STATUS_FLOW } from '../../client/lib/api.js'
 
 /* ============================================================
    吐司

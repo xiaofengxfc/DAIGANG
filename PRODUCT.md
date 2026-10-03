@@ -45,8 +45,8 @@
 
 ## 硬约束
 
-- **零依赖**：只用 Node 内置模块（`node:http` / `node:sqlite` / `node:crypto`）。不需要 `npm install`。
+- **运行时零第三方依赖**：后台只用 Node 内置模块（`node:http` / `node:sqlite` / `node:crypto`）；从源码构建前端时需要按锁文件执行 `npm ci`。
 - **数据在本地**：SQLite 单文件 + `data/` 目录，随时可整体备份/搬走。
 - **手机能用**：局域网内手机浏览器直接打开，布局按手机重排，不是把桌面版缩小。
 - **凭证明文绝不落库**；不存短信验证码、不存临时密码；优先扫码登录。
-- Node 版本要求 ≥ 22.5（依赖内置 `node:sqlite`）。
+- Node 版本要求 ≥ 22.12（依赖内置 `node:sqlite` 和 Vite 8 构建链）。

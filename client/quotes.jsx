@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, FileText, Plus, Search, Trash2 } from 'lucide-react'
-import { api } from '../public/js/api.js'
-import { fmtMoney, h, copyText } from '../public/js/dom.js'
-import { confirmDelete, modal, toast, toastErr } from '../public/js/ui.js'
-import { openQuoteComposer } from '../public/js/views/quotes.js'
+import { api } from './lib/api.js'
+import { fmtMoney, h, copyText } from './lib/dom.js'
+import { confirmDelete, modal, toast, toastErr } from './lib/legacy-ui.js'
+import { openQuoteComposer } from './lib/legacy-features.js'
 
 const iconProps = (size = 15) => ({ size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true })
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowUpRight, ContactRound, Plus, Search, WalletCards } from 'lucide-react'
-import { api } from '../public/js/api.js'
-import { fmtMoney } from '../public/js/dom.js'
+import { api } from './lib/api.js'
+import { fmtMoney } from './lib/formatters.js'
 
 const FILTERS = [
   { key: '', label: '全部' },

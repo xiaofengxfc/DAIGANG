@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { ORDER_STATUS, PRICE_TYPES } from '../shared/domain.js'
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -124,24 +125,7 @@ export const MAX_UPLOAD_BYTES = 3 * 1024 * 1024
  */
 export const MAX_OCR_IMAGE_BYTES = 12 * 1024 * 1024
 
-/** 订单状态机 —— 顺序即流程顺序 */
-export const ORDER_STATUS = [
-  { key: 'pending_confirm', label: '待确认', tone: 'amber' },
-  { key: 'pending_pay', label: '待付款', tone: 'amber' },
-  { key: 'in_progress', label: '进行中', tone: 'slate' },
-  { key: 'pending_accept', label: '待验收', tone: 'amber' },
-  { key: 'done', label: '已完成', tone: 'jade' },
-  { key: 'after_sale', label: '售后', tone: 'oxblood' },
-  { key: 'cancelled', label: '已取消', tone: 'oxblood' },
-]
-
-export const PRICE_TYPES = [
-  { key: 'fixed', label: '固定价', unitLabel: '单' },
-  { key: 'daily', label: '按天', unitLabel: '天' },
-  { key: 'per_time', label: '按次', unitLabel: '次' },
-  { key: 'per_unit', label: '按数量', unitLabel: '个' },
-  { key: 'package', label: '套餐价', unitLabel: '套' },
-]
+export { ORDER_STATUS, PRICE_TYPES }
 
 /** 局域网地址，用来打印手机可访问的网址 */
 export function lanAddresses() {

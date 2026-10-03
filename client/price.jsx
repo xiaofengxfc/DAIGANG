@@ -1,14 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { ChevronDown, ChevronRight, Copy, Edit3, FolderPlus, Gamepad2, Layers3, Plus, Search, Trash2 } from 'lucide-react'
-import { api, PRICE_TYPE_LABEL } from '../public/js/api.js'
-import { fmtMoney, fmtQty } from '../public/js/dom.js'
-import { confirmDelete, toast, toastErr } from '../public/js/ui.js'
-import { categoryForm, openExporter, serviceForm, sumDialog } from '../public/js/views/price.js'
-import { gameForm } from '../public/js/views/games.js'
+import { api, PRICE_TYPE_LABEL, PRICE_TYPE_UNIT_LABEL } from './lib/api.js'
+import { fmtMoney, fmtQty } from './lib/formatters.js'
+import { confirmDelete, toast, toastErr } from './lib/legacy-ui.js'
+import { categoryForm, openExporter, serviceForm, sumDialog, gameForm } from './lib/legacy-features.js'
 
 const iconProps = (size = 15) => ({ size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true })
 
-const unitOf = (service) => service.unit_label || { fixed: '单', daily: '天', per_time: '次', per_unit: '个', package: '套' }[service.price_type] || '单'
+const unitOf = (service) => service.unit_label || PRICE_TYPE_UNIT_LABEL[service.price_type] || '单'
 
 function priceRange(services) {
   const values = services.map((service) => Number(service.base_price)).filter(Number.isFinite)

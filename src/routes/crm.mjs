@@ -5,6 +5,7 @@ import { makeDef, registerCrud, getRow, createRow, updateRow, removeRow, shapeRo
 import { audit, auditLog, configure, decrypt, encrypt, isConfigured, lock, maskHint, status as vaultStatus, unlock, changePassword, requireKey } from '../vault.mjs'
 import { assertNotThrottled, clearFailures, noteFailure } from '../auth.mjs'
 import { computeItems, computeTotals } from '../pricing.mjs'
+import { transaction } from '../infrastructure/sqlite/transaction.mjs'
 
 /* ---------------- 客户 ---------------- */
 
@@ -278,16 +279,18 @@ export function register() {
       masked_hint: maskHint(secret.account, secret.phone),
       status: 'active',
     }
-    const created = createRow(credentials, meta)
-    db.prepare('UPDATE credentials SET payload_enc = ?, updated_at = ? WHERE id = ?').run(encrypt(secret), stamp(), created.id)
-    audit('credential.create', {
-      credentialId: created.id,
-      customerId: created.customer_id,
-      target: `${created.label || created.masked_hint}（新建）`,
-      ip: ctx.ip,
-      ua: ctx.ua,
+    return transaction(() => {
+      const created = createRow(credentials, meta)
+      db.prepare('UPDATE credentials SET payload_enc = ?, updated_at = ? WHERE id = ?').run(encrypt(secret), stamp(), created.id)
+      audit('credential.create', {
+        credentialId: created.id,
+        customerId: created.customer_id,
+        target: `${created.label || created.masked_hint}（新建）`,
+        ip: ctx.ip,
+        ua: ctx.ua,
+      })
+      return { ...getRow(credentials, created.id), has_password: hasPassword(secret) }
     })
-    return { ...getRow(credentials, created.id), has_password: hasPassword(secret) }
   })
 
   patch('/api/credentials/:id', (ctx) => {
@@ -428,8 +431,7 @@ export function register() {
     const order_no = nextSerialNo('DH', 'orders', 'order_no')
     const now = stamp()
     const totals = computeTotals({ items_subtotal: money(q.total), addon_total: 0, discount: 0 })
-    db.exec('BEGIN')
-    try {
+    const result = transaction(() => {
       const info = db
         .prepare(
           `INSERT INTO orders (order_no, customer_id, game_id, title, status, customer_name, game_name,
@@ -461,12 +463,9 @@ export function register() {
         const refId = i.ref_id || guessServiceId(i)
         stmt.run(orderId, refId, i.name, i.spec || '', i.price_type || 'fixed', i.unit_label || '', money(i.unit_price), num(i.quantity, 1), money(i.amount), stringifyJSON(i.snapshot || {}), (idx + 1) * 10)
       })
-      db.exec('COMMIT')
       return { ok: true, order_id: orderId, order_no }
-    } catch (err) {
-      db.exec('ROLLBACK')
-      throw err
-    }
+    })
+    return result
   })
 
   /** 报价单文本，直接粘到微信里 */

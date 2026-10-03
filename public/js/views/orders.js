@@ -3,7 +3,7 @@
    下单那一刻把价格、套餐内容、增项全部冻成快照，以后改价不影响老单。
    ============================================================ */
 
-import { api, PRICE_TYPE_LABEL, PAY_METHOD_LABEL, PAY_KIND_LABEL, STATUS_TONE } from '../api.js'
+import { api, PRICE_TYPE_LABEL, PAY_METHOD_LABEL, PAY_KIND_LABEL, STATUS_TONE } from '../../../client/lib/api.js'
 import { h, icon, fmtMoney, fmtQty, fmtDate, fmtDay, fmtDateTime, todayStr, debounce, remainInfo, mount } from '../dom.js'
 import {
   toast,

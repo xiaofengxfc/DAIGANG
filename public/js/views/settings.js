@@ -2,7 +2,7 @@
    设置：店铺信息、密码、备份、安全须知
    ============================================================ */
 
-import { api } from '../api.js'
+import { api } from '../../../client/lib/api.js'
 import { h, icon, fmtDateTime, fmtMoney, fmtDate, mount } from '../dom.js'
 import { toast, toastErr, formDrawer, modal, confirmModal, sectionHead, tag, emptyState } from '../ui.js'
 import { vaultState, refreshVault, ensureVaultReady, syncVault } from '../vaultgate.js'

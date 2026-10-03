@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { db, getSetting, setSetting, stamp, nextSerialNo } from '../db.mjs'
+import { db, setSetting, stamp, nextSerialNo } from '../db.mjs'
 import { get, post, patch, del, saveDataURL, setBodyLimit } from '../http.mjs'
 import { UPLOAD_DIR, needsRestart, ROOT, MAX_OCR_IMAGE_BYTES } from '../config.mjs'
 import { bad, notFound, fail, int, num, money, clampStr, nowISO, localDate, localMonth, bizDate, parseJSON } from '../util.mjs'
@@ -18,22 +18,8 @@ import { listOutbox, outboxSummary, retryOutbox } from '../outbox.mjs'
 import { buildERPNextOutboxPlan, syncERPNextOutbox } from '../erpnext-outbox.mjs'
 import { erpNextScopeSummary } from '../erpnext-scope.mjs'
 import { resticStatus, listResticSnapshots, createResticBackup } from '../restic.mjs'
-
-const SETTING_KEYS = [
-  'business_name',
-  'admin_name',
-  'contact',
-  'quote_footer',
-  'quote_valid_days',
-  'default_note',
-  'receipt_intro',
-]
-
-function readSettings() {
-  const out = {}
-  for (const k of SETTING_KEYS) out[k] = getSetting(k, '')
-  return out
-}
+import { readSettings, updateSettings, SETTING_KEYS } from '../modules/settings/settings-service.mjs'
+import { transaction } from '../infrastructure/sqlite/transaction.mjs'
 
 /* ---------------- 看板 ---------------- */
 
@@ -419,11 +405,12 @@ export function register() {
   /* ===== 设置 ===== */
   get('/api/settings', () => readSettings())
   patch('/api/settings', (ctx) => {
-    for (const [k, v] of Object.entries(ctx.body || {})) {
-      if (!SETTING_KEYS.includes(k)) continue
-      setSetting(k, clampStr(v, 500))
-    }
-    return readSettings()
+    const values = Object.fromEntries(
+      Object.entries(ctx.body || {})
+        .filter(([key]) => SETTING_KEYS.includes(key))
+        .map(([key, value]) => [key, clampStr(value, 500)])
+    )
+    return updateSettings(values)
   })
 
   /* ===== 上传（游戏图标 / 进度截图） ===== */
@@ -684,8 +671,7 @@ export function register() {
     if (!payload || payload.app !== 'daigan-ops-console' || !payload.data) bad('这不是本后台导出的备份文件', 'bad_backup')
     if (ctx.body?.confirm !== 'REPLACE') bad('导入会覆盖现有全部数据，需要确认', 'need_confirm')
     const data = payload.data
-    db.exec('BEGIN')
-    try {
+    transaction(() => {
       for (const t of [...BACKUP_TABLES].reverse()) db.prepare(`DELETE FROM ${t}`).run()
       for (const t of BACKUP_TABLES) {
         const rows = Array.isArray(data[t]) ? data[t] : []
@@ -695,11 +681,7 @@ export function register() {
           db.prepare(`INSERT INTO ${t} (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`).run(...cols.map((c) => row[c]))
         }
       }
-      db.exec('COMMIT')
-    } catch (err) {
-      db.exec('ROLLBACK')
-      throw err
-    }
+    })
     lock('imported')
     destroyAllSessions()
     ctx.clearSessionCookie()
@@ -716,14 +698,9 @@ export function register() {
   post('/api/system/reset', (ctx) => {
     if (ctx.body?.confirm !== 'CLEAR') bad('需要确认才可清空', 'need_confirm')
     const tables = ['integration_outbox', 'orders', 'order_items', 'order_progress', 'payments', 'quotes', 'credentials', 'customers', 'services', 'service_tiers', 'service_options', 'service_categories', 'games', 'vault_audit']
-    db.exec('BEGIN')
-    try {
+    transaction(() => {
       for (const t of tables) db.prepare(`DELETE FROM ${t}`).run()
-      db.exec('COMMIT')
-    } catch (err) {
-      db.exec('ROLLBACK')
-      throw err
-    }
+    })
     return { ok: true, cleared: tables.length }
   })
 }

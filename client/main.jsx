@@ -23,16 +23,8 @@ import {
   Users,
   WalletCards,
 } from 'lucide-react'
-import { api } from '../public/js/api.js'
-import ordersView, { customerForm } from '../public/js/views/orders.js'
-import customersView from '../public/js/views/customers.js'
-import priceView, { categoryForm } from '../public/js/views/price.js'
-import gamesView, { gameForm } from '../public/js/views/games.js'
-import vaultView from '../public/js/views/vault.js'
-import financeView from '../public/js/views/finance.js'
-import quotesView, { openQuoteComposer } from '../public/js/views/quotes.js'
-import settingsView from '../public/js/views/settings.js'
-import * as vaultgate from '../public/js/vaultgate.js'
+import { api } from './lib/api.js'
+import { ordersView, customerForm, customersView, priceView, categoryForm, gamesView, gameForm, vaultView, financeView, quotesView, openQuoteComposer, settingsView, vaultgate } from './lib/legacy-features.js'
 import DashboardPage from './dashboard.jsx'
 import OrdersPage from './orders.jsx'
 import CustomersPage from './customers.jsx'
@@ -40,7 +32,10 @@ import GamesPage from './games.jsx'
 import PricePage from './price.jsx'
 import FinancePage from './finance.jsx'
 import QuotesPage from './quotes.jsx'
-import { toast, toastErr } from '../public/js/ui.js'
+import { toast, toastErr } from './lib/legacy-ui.js'
+import LegacyPage from './app/legacy-page.jsx'
+import ActionsSlot from './app/actions-slot.jsx'
+import { navigate as go, parseRoute } from './app/router.js'
 import './styles.css'
 
 const NAV = [
@@ -56,24 +51,6 @@ const NAV = [
 ]
 
 const NAV_BY_SEG = new Map(NAV.map((item) => [item.seg, item]))
-
-function parseRoute(hash = window.location.hash) {
-  const raw = String(hash || '#/').replace(/^#/, '')
-  const [path, queryString] = raw.split('?')
-  const parts = path.split('/').filter(Boolean)
-  return {
-    seg: parts[0] || '',
-    sub: parts[1] || '',
-    rest: parts.slice(2),
-    query: new URLSearchParams(queryString || ''),
-  }
-}
-
-function go(to) {
-  const target = String(to).startsWith('#') ? String(to) : `#${to}`
-  if (window.location.hash === target) window.dispatchEvent(new HashChangeEvent('hashchange'))
-  else window.location.hash = target
-}
 
 function iconProps(size = 17) {
   return { size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true }
@@ -174,89 +151,6 @@ function Gate({ setup, onDone }) {
       </section>
     </main>
   )
-}
-
-function ActionsSlot({ nodes }) {
-  const ref = useRef(null)
-  useEffect(() => {
-    const host = ref.current
-    if (!host) return undefined
-    host.replaceChildren()
-    for (const node of nodes) {
-      if (node instanceof Node) host.appendChild(node)
-    }
-    return () => host.replaceChildren()
-  }, [nodes])
-  return <div className="refactor-actions" ref={ref} />
-}
-
-function LegacyPage({ route, setActions, onReload, counts, settings }) {
-  const hostRef = useRef(null)
-  const item = NAV_BY_SEG.get(route.seg) || NAV[0]
-  const [, rerender] = useState(0)
-
-  useEffect(() => {
-    let active = true
-    const host = hostRef.current
-    if (!host) return undefined
-    host.replaceChildren()
-    setActions([])
-    const skeleton = document.createElement('div')
-    skeleton.className = 'refactor-loading'
-    skeleton.innerHTML = '<span></span><span></span><span></span>'
-    host.appendChild(skeleton)
-    const navigate = (to) => go(to)
-    if (!item.view) return undefined
-    const app = {
-      state: { counts, settings },
-      navigate,
-      get route() {
-        return route
-      },
-      reload: async () => {
-        await onReload()
-        rerender((value) => value + 1)
-      },
-      refreshCounts: onReload,
-      setActions,
-      openOrder: (id) => navigate(`/orders/${id}`),
-      openCustomer: (id) => navigate(`/customers/${id}`),
-      openQuoteComposer: null,
-      vault: () => Promise.resolve(vaultgate),
-    }
-    const ctx = {
-      route,
-      seg: route.seg,
-      sub: route.sub,
-      query: route.query,
-      app,
-      navigate,
-      setActions,
-      reload: onReload,
-    }
-    Promise.resolve(item.view.render(ctx))
-      .then((node) => {
-        if (active) {
-          host.replaceChildren()
-          if (node) host.appendChild(node)
-        }
-      })
-      .catch((err) => {
-        if (!active) return
-        toastErr(err)
-        host.replaceChildren()
-        const fallback = document.createElement('div')
-        fallback.className = 'refactor-error'
-        fallback.textContent = err.message || '这一页没打开'
-        host.appendChild(fallback)
-      })
-    return () => {
-      active = false
-      setActions([])
-    }
-  }, [route.seg, route.sub, route.query.toString(), counts, settings, onReload, setActions, item.view])
-
-  return <div className="legacy-host" ref={hostRef} />
 }
 
 function SearchBox({ onNavigate }) {
@@ -464,7 +358,7 @@ function Shell({ me, onLogout }) {
       </header>
       <main className="react-main">
         <div className="react-main__inner">
-          {current.seg === '' ? <DashboardPage data={dashboard} navigate={go} onReload={refresh} /> : current.seg === 'orders' && !route.sub && route.query.get('new') !== '1' ? <OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'customers' && !route.sub ? <CustomersPage route={route} navigate={go} onNew={createCustomer} reloadKey={reloadKey} /> : current.seg === 'games' && !route.sub ? <GamesPage route={route} navigate={go} onNew={createGame} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'price' && !route.sub ? <PricePage route={route} navigate={go} onNewGame={createGame} onNewCategory={createCategory} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'finance' && !route.sub ? <FinancePage route={route} navigate={go} reloadKey={reloadKey} /> : current.seg === 'quotes' && !route.sub ? <QuotesPage route={route} navigate={go} onNew={createQuote} onReload={refresh} reloadKey={reloadKey} /> : <LegacyPage key={`${route.seg}/${route.sub}?${route.query.toString()}-${reloadKey}`} route={route} setActions={updateActions} onReload={refresh} counts={counts} settings={settings} />}
+          {current.seg === '' ? <DashboardPage data={dashboard} navigate={go} onReload={refresh} /> : current.seg === 'orders' && !route.sub && route.query.get('new') !== '1' ? <OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'customers' && !route.sub ? <CustomersPage route={route} navigate={go} onNew={createCustomer} reloadKey={reloadKey} /> : current.seg === 'games' && !route.sub ? <GamesPage route={route} navigate={go} onNew={createGame} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'price' && !route.sub ? <PricePage route={route} navigate={go} onNewGame={createGame} onNewCategory={createCategory} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'finance' && !route.sub ? <FinancePage route={route} navigate={go} reloadKey={reloadKey} /> : current.seg === 'quotes' && !route.sub ? <QuotesPage route={route} navigate={go} onNew={createQuote} onReload={refresh} reloadKey={reloadKey} /> : <LegacyPage key={`${route.seg}/${route.sub}?${route.query.toString()}-${reloadKey}`} route={route} item={current} setActions={updateActions} onReload={refresh} counts={counts} settings={settings} vaultgate={vaultgate} navigate={go} />}
         </div>
       </main>
       <nav className="react-mobile-tabs" aria-label="移动端导航">

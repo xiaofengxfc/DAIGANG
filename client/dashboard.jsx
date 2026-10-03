@@ -1,19 +1,11 @@
 import React from 'react'
 import { ArrowUpRight, Check, Clock3, CreditCard, ListTodo, Plus, WalletCards } from 'lucide-react'
-import { api, PAY_KIND_LABEL, PAY_METHOD_LABEL, STATUS_TONE } from '../public/js/api.js'
-import { fmtDay, fmtDayFull, fmtMoney, todayStr } from '../public/js/dom.js'
-import { confirmDelete, toast, toastErr } from '../public/js/ui.js'
-import { paymentDrawer, progressDrawer } from '../public/js/views/orderbits.js'
+import { api, ORDER_STATUS_LABEL, PAY_KIND_LABEL, PAY_METHOD_LABEL, STATUS_TONE } from './lib/api.js'
+import { fmtDay, fmtDayFull, fmtMoney, todayStr } from './lib/formatters.js'
+import { confirmDelete, toast, toastErr } from './lib/legacy-ui.js'
+import { paymentDrawer, progressDrawer } from './lib/legacy-features.js'
 
-const STATUS_LABEL = {
-  pending_confirm: '待确认',
-  pending_pay: '待付款',
-  in_progress: '进行中',
-  pending_accept: '待验收',
-  done: '已完成',
-  after_sale: '售后',
-  cancelled: '已取消',
-}
+const STATUS_LABEL = ORDER_STATUS_LABEL
 
 const iconProps = (size = 16) => ({ size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true })
 

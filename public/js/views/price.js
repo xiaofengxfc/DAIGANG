@@ -8,7 +8,7 @@
      服务项只能挂在大类里，不能直接挂在游戏上
    ============================================================ */
 
-import { api, PRICE_TYPE_LABEL } from '../api.js'
+import { api, PRICE_TYPE_LABEL } from '../../../client/lib/api.js'
 import { h, icon, fmtMoney, fmtQty, debounce, fmtDate, mount, copyText } from '../dom.js'
 import { gameForm } from './games.js'
 import { renderPriceCard, canvasToBlob, downloadBlob } from '../pricecard.js'

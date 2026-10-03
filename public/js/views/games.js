@@ -3,7 +3,7 @@
    不做物理删除：老订单里冻着游戏名，删了档案就断了。
    ============================================================ */
 
-import { api } from '../api.js'
+import { api } from '../../../client/lib/api.js'
 import { h, icon, fmtDate, fmtMoney } from '../dom.js'
 import { table, toast, toastErr, formDrawer, imageField, confirmModal, confirmDelete, emptyState, tag, copyButton } from '../ui.js'
 

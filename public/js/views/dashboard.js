@@ -2,7 +2,7 @@
    总览 —— 第一屏是一个账簿抬头，不是指标卡
    ============================================================ */
 
-import { api, PAY_METHOD_LABEL, PAY_KIND_LABEL } from '../api.js'
+import { api, PAY_METHOD_LABEL, PAY_KIND_LABEL } from '../../../client/lib/api.js'
 import { h, icon, fmtMoney, fmtDay, fmtDayFull, todayStr } from '../dom.js'
 import { emptyState, orderLamp, confirmDelete, toast, toastErr } from '../ui.js'
 import { orderTable, paymentDrawer } from './orderbits.js'

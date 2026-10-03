@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { ArrowUpRight, CalendarDays, CircleDollarSign, CreditCard, TrendingUp } from 'lucide-react'
-import { api, PAY_METHOD_LABEL, STATUS_TONE } from '../public/js/api.js'
-import { fmtDay, fmtMoney, fmtDate, monthStart, todayStr } from '../public/js/dom.js'
+import { api, PAY_METHOD_LABEL, STATUS_TONE } from './lib/api.js'
+import { fmtDay, fmtMoney, fmtDate, monthStart, todayStr } from './lib/formatters.js'
 
 const iconProps = (size = 16) => ({ size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true })
 

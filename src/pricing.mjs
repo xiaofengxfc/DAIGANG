@@ -1,7 +1,24 @@
 import { db } from './db.mjs'
-import { bad, money, num, clampStr } from './util.mjs'
-import { shapeRow } from './routes/_helpers.mjs'
-import { services as servicesDef, tiers as tiersDef, options as optionsDef } from './routes/catalog.mjs'
+import { bad, money, num, clampStr, parseJSON } from './util.mjs'
+import { PRICE_TYPE_UNIT_LABEL } from '../shared/domain.js'
+
+function normalizeService(row) {
+  if (!row) return null
+  return {
+    ...row,
+    package_items: parseJSON(row.package_items, []),
+    is_daily: row.is_daily === null || row.is_daily === undefined ? null : Boolean(row.is_daily),
+  }
+}
+
+function normalizeTier(row) {
+  return row ? { ...row } : null
+}
+
+function normalizeOption(row) {
+  if (!row) return null
+  return { ...row, default_selected: Boolean(row.default_selected) }
+}
 
 /**
  * 计价引擎 —— 报价单和订单共用同一套算法，保证「报价多少、下单就多少」。
@@ -10,14 +27,14 @@ import { services as servicesDef, tiers as tiersDef, options as optionsDef } fro
 
 export function loadService(id) {
   const row = db.prepare('SELECT * FROM services WHERE id = ?').get(Number(id) || 0)
-  return row ? shapeRow(servicesDef, row) : null
+  return normalizeService(row)
 }
 
 export function loadTiers(serviceId) {
   return db
     .prepare('SELECT * FROM service_tiers WHERE service_id = ? ORDER BY sort_order ASC, min_qty ASC')
     .all(Number(serviceId) || 0)
-    .map((r) => shapeRow(tiersDef, r))
+    .map(normalizeTier)
 }
 
 export function loadOptions(serviceId) {
@@ -28,7 +45,7 @@ export function loadOptions(serviceId) {
        ORDER BY sort_order ASC, id ASC`
     )
     .all(Number(serviceId) || 0)
-    .map((r) => shapeRow(optionsDef, r))
+    .map(normalizeOption)
 }
 
 /** 按数量定价时，先找命中的阶梯，找不到就退到"起量最大且不超过"的那一档 */
@@ -50,7 +67,7 @@ export function unitPriceFor(service, tierList, qty) {
 
 export const defaultUnitLabel = (service) =>
   service.unit_label ||
-  { fixed: '单', daily: '天', per_time: '次', per_unit: '个', package: '套' }[service.price_type] ||
+  PRICE_TYPE_UNIT_LABEL[service.price_type] ||
   '单'
 
 /**

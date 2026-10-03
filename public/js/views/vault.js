@@ -3,7 +3,7 @@
    落库全是密文；看明文要过独立密码；每一次取用都留痕。
    ============================================================ */
 
-import { api, LOGIN_TYPE_LABEL, AUDIT_ACTION_LABEL } from '../api.js'
+import { api, LOGIN_TYPE_LABEL, AUDIT_ACTION_LABEL } from '../../../client/lib/api.js'
 import { h, icon, fmtDateTime, relTime, copyText, fmtDate } from '../dom.js'
 import {
   toast,

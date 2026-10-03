@@ -3,7 +3,7 @@
    简单直白：一张区间账单 + 每日柱 + 按方式/游戏分组 + 未结清清单
    ============================================================ */
 
-import { api, PAY_METHOD_LABEL, STATUS_TONE } from '../api.js'
+import { api, PAY_METHOD_LABEL, STATUS_TONE } from '../../../client/lib/api.js'
 import { h, icon, fmtMoney, fmtDay, todayStr, monthStart, fmtDate } from '../dom.js'
 import { table, toast, toastErr, emptyState, lamp, tag, sectionHead } from '../ui.js'
 import { paymentDrawer } from './orderbits.js'

@@ -1,5 +1,6 @@
 import crypto from 'node:crypto'
 import { db, getSetting, setSetting } from './db.mjs'
+import { transaction } from './infrastructure/sqlite/transaction.mjs'
 import { VAULT_IDLE_MS } from './config.mjs'
 import { bad, fail, nowISO, safeEqual, scryptKey, sha256 } from './util.mjs'
 import { actorName } from './auth.mjs'
@@ -149,11 +150,10 @@ export function changePassword(currentPassword, nextPassword) {
   try {
     const update = db.prepare('UPDATE credentials SET payload_enc = ?, updated_at = ? WHERE id = ?')
     const ts = nowISO()
-    db.exec('BEGIN')
-    for (const row of plain) update.run(encrypt(row.data), ts, row.id)
-    db.exec('COMMIT')
+    transaction(() => {
+      for (const row of plain) update.run(encrypt(row.data), ts, row.id)
+    })
   } catch (err) {
-    db.exec('ROLLBACK')
     activeKey = oldKey
     throw err
   }

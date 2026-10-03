@@ -3,7 +3,7 @@
    看板和订单页共用同一套，保证两处表现一致。
    ============================================================ */
 
-import { api, PAY_METHOD_LABEL, PAY_KIND_LABEL, STATUS_TONE } from '../api.js'
+import { api, PAY_METHOD_LABEL, PAY_KIND_LABEL, STATUS_TONE } from '../../../client/lib/api.js'
 import { h, icon, fmtMoney, fmtDate, fmtDay, todayStr, fmtQty, remainInfo, mount } from '../dom.js'
 import { formDrawer, table, toast, toastErr, lamp, tag, orderTrack, copyButton, confirmDelete, emptyState } from '../ui.js'
 

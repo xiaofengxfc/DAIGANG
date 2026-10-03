@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Archive, Gamepad2, Pencil, Plus, RefreshCw, Search, Trash2 } from 'lucide-react'
-import { api } from '../public/js/api.js'
-import { fmtDate } from '../public/js/dom.js'
-import { confirmDelete, confirmModal, toast, toastErr } from '../public/js/ui.js'
-import { gameForm } from '../public/js/views/games.js'
+import { api } from './lib/api.js'
+import { fmtDate } from './lib/formatters.js'
+import { confirmDelete, confirmModal, toast, toastErr } from './lib/legacy-ui.js'
+import { gameForm } from './lib/legacy-features.js'
 
 const iconProps = (size = 16) => ({ size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true })
 

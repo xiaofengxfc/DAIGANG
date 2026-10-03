@@ -3,7 +3,7 @@
    这是"代肝价格查询"对外的另一半。
    ============================================================ */
 
-import { api, PRICE_TYPE_LABEL } from '../api.js'
+import { api, PRICE_TYPE_LABEL } from '../../../client/lib/api.js'
 import { h, icon, fmtMoney, fmtQty, fmtDate, copyText, todayStr, debounce, mount } from '../dom.js'
 import { drawer, toast, toastErr, confirmDelete, emptyState, table, tag, sectionHead, copyButton, modal } from '../ui.js'
 

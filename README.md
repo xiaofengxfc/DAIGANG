@@ -759,10 +759,14 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 - 附 `PRODUCT.md` 和 `DESIGN.md`：前者是产品定义，后者是视觉与交互的规则书。
 
 ```
-server.mjs            服务入口：路由分发、静态文件、启动信息
+server.mjs            服务入口：应用启动
+shared/
+  domain.js           前后端共用的订单状态、计价方式和业务标签
 src/
-  config.mjs          端口、路径、状态机、计价方式等常量
+  config.mjs          端口、路径和运行时配置
   db.mjs              SQLite 连接、表结构迁移、单号生成
+  infrastructure/     SQLite 事务和外部基础设施边界
+  modules/            可独立演进的业务模块（设置、订单状态/快照/仓储/计价）
   http.mjs            路由表、JSON、Cookie、静态文件、图片落盘
   auth.mjs            登录密码、会话、失败限速
   vault.mjs           保险箱：密钥推导、加解密、审计、改密重加密
@@ -774,8 +778,8 @@ src/
   imgmatch.mjs        PNG 解码 / 老的模板匹配（新逻辑已迁到 vision.mjs）
   routes/             各模块接口
   server/app.mjs      应用工厂、鉴权、静态资源和生命周期
-client/               React 壳层、登录态、导航、搜索和适配器
-public/               构建产物、旧业务视图与 CSS
+client/               React 壳层、页面、共享客户端工具和过渡适配器
+public/               构建产物、旧业务模块与静态资源
 data/                 运行时生成：console.db + uploads/ + resource-icons/
 tools/ocr/            自动安装的本地 OCR 引擎（不进版本库）
 ```

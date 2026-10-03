@@ -12928,8 +12928,124 @@ var __iconData = {
 __iconData.node;
 var WalletCards = createLucideIcon(__iconData);
 //#endregion
-//#region public/js/api.js
+//#region shared/domain.js
 var import_client = require_client();
+/**
+* 业务层共享契约。这里不放任何浏览器或 Node 专属代码，前后端都可以直接引用。
+*/
+var ORDER_STATUS = [
+	{
+		key: "pending_confirm",
+		label: "待确认",
+		tone: "amber"
+	},
+	{
+		key: "pending_pay",
+		label: "待付款",
+		tone: "amber"
+	},
+	{
+		key: "in_progress",
+		label: "进行中",
+		tone: "slate"
+	},
+	{
+		key: "pending_accept",
+		label: "待验收",
+		tone: "amber"
+	},
+	{
+		key: "done",
+		label: "已完成",
+		tone: "jade"
+	},
+	{
+		key: "after_sale",
+		label: "售后",
+		tone: "oxblood"
+	},
+	{
+		key: "cancelled",
+		label: "已取消",
+		tone: "oxblood"
+	}
+];
+var ORDER_STATUS_LABEL = Object.freeze(Object.fromEntries(ORDER_STATUS.map(({ key, label }) => [key, label])));
+Object.freeze({
+	pending_confirm: [
+		"pending_pay",
+		"in_progress",
+		"cancelled"
+	],
+	pending_pay: [
+		"in_progress",
+		"pending_confirm",
+		"cancelled"
+	],
+	in_progress: [
+		"pending_accept",
+		"done",
+		"after_sale",
+		"cancelled"
+	],
+	pending_accept: [
+		"done",
+		"in_progress",
+		"after_sale"
+	],
+	done: ["after_sale"],
+	after_sale: ["done", "cancelled"],
+	cancelled: ["pending_confirm"]
+});
+var PRICE_TYPES$1 = [
+	{
+		key: "fixed",
+		label: "固定价",
+		unitLabel: "单"
+	},
+	{
+		key: "daily",
+		label: "按天",
+		unitLabel: "天"
+	},
+	{
+		key: "per_time",
+		label: "按次",
+		unitLabel: "次"
+	},
+	{
+		key: "per_unit",
+		label: "按数量",
+		unitLabel: "个"
+	},
+	{
+		key: "package",
+		label: "套餐价",
+		unitLabel: "套"
+	}
+];
+var PRICE_TYPE_LABEL = Object.freeze(Object.fromEntries(PRICE_TYPES$1.map(({ key, label }) => [key, label])));
+var PRICE_TYPE_UNIT_LABEL = Object.freeze(Object.fromEntries(PRICE_TYPES$1.map(({ key, unitLabel }) => [key, unitLabel])));
+var PAY_METHOD_LABEL = Object.freeze({
+	wechat: "微信",
+	alipay: "支付宝",
+	bank: "银行卡",
+	cash: "现金",
+	other: "其他"
+});
+var PAY_KIND_LABEL = Object.freeze({
+	deposit: "定金",
+	full: "全款",
+	balance: "尾款",
+	refund: "退款"
+});
+var LOGIN_TYPE_LABEL = Object.freeze({
+	qrcode: "扫码登录",
+	password: "账号密码",
+	other: "其他方式"
+});
+//#endregion
+//#region client/lib/api.js
 var ApiError = class extends Error {
 	constructor(message, code, status) {
 		super(message);
@@ -12943,16 +13059,16 @@ var handlers = {
 };
 function buildURL(path, query) {
 	const url = new URL(path, window.location.origin);
-	if (query) for (const [k, v] of Object.entries(query)) {
-		if (v === void 0 || v === null || v === "") continue;
-		url.searchParams.set(k, String(v));
+	if (query) for (const [key, value] of Object.entries(query)) {
+		if (value === void 0 || value === null || value === "") continue;
+		url.searchParams.set(key, String(value));
 	}
 	return url;
 }
 async function request(method, path, { body, query } = {}) {
-	let res;
+	let response;
 	try {
-		res = await fetch(buildURL(path, query), {
+		response = await fetch(buildURL(path, query), {
 			method,
 			headers: body === void 0 ? {} : { "content-type": "application/json" },
 			body: body === void 0 ? void 0 : JSON.stringify(body),
@@ -12961,16 +13077,16 @@ async function request(method, path, { body, query } = {}) {
 	} catch {
 		throw new ApiError("连不上后台，确认一下启动窗口还开着", "offline", 0);
 	}
-	const text = await res.text();
+	const text = await response.text();
 	let data = null;
 	if (text) try {
 		data = JSON.parse(text);
 	} catch {
 		data = text;
 	}
-	if (!res.ok) {
-		const err = new ApiError(data && data.error || `请求失败（${res.status}）`, data && data.code, res.status);
-		if (res.status === 401) handlers.unauthorized();
+	if (!response.ok) {
+		const err = new ApiError(data && data.error || `请求失败（${response.status}）`, data && data.code, response.status);
+		if (response.status === 401) handlers.unauthorized();
 		if (err.code === "vault_locked") handlers.vaultLocked();
 		throw err;
 	}
@@ -12982,48 +13098,9 @@ var api = {
 	patch: (path, body) => request("PATCH", path, { body: body || {} }),
 	del: (path, query) => request("DELETE", path, { query })
 };
-var STATUS_TONE = {
-	pending_confirm: "cinnabar",
-	pending_pay: "amber",
-	in_progress: "slate",
-	pending_accept: "amber",
-	done: "jade",
-	after_sale: "oxblood",
-	cancelled: "muted"
-};
-var STATUS_FLOW = [
-	"pending_confirm",
-	"pending_pay",
-	"in_progress",
-	"pending_accept",
-	"done"
-];
-var PRICE_TYPE_LABEL = {
-	fixed: "固定价",
-	daily: "按天",
-	per_time: "按次",
-	per_unit: "按数量",
-	package: "套餐价"
-};
-var PAY_METHOD_LABEL = {
-	wechat: "微信",
-	alipay: "支付宝",
-	bank: "银行卡",
-	cash: "现金",
-	other: "其他"
-};
-var PAY_KIND_LABEL = {
-	deposit: "定金",
-	full: "全款",
-	balance: "尾款",
-	refund: "退款"
-};
-var LOGIN_TYPE_LABEL = {
-	qrcode: "扫码登录",
-	password: "账号密码",
-	other: "其他方式"
-};
-var AUDIT_ACTION_LABEL = {
+var STATUS_TONE = Object.freeze(Object.fromEntries(ORDER_STATUS.map(({ key, tone }) => [key, key === "pending_confirm" ? "cinnabar" : key === "cancelled" ? "muted" : tone])));
+var STATUS_FLOW = ORDER_STATUS.filter((item) => !["after_sale", "cancelled"].includes(item.key)).map((item) => item.key);
+var AUDIT_ACTION_LABEL = Object.freeze({
 	"vault.setup": "设置保险箱密码",
 	"vault.unlock": "解锁保险箱",
 	"vault.lock": "锁定保险箱",
@@ -13034,17 +13111,17 @@ var AUDIT_ACTION_LABEL = {
 	"credential.delete": "删除凭证",
 	"credential.view": "查看凭证",
 	"credential.copy": "复制凭证"
-};
+});
 //#endregion
 //#region public/js/dom.js
 var SVG_NS = "http://www.w3.org/2000/svg";
-function appendChildren(el, children) {
+function appendChildren$1(el, children) {
 	for (const c of children.flat(Infinity)) {
 		if (c === null || c === void 0 || c === false || c === true || c === "") continue;
 		el.appendChild(c instanceof Node ? c : document.createTextNode(String(c)));
 	}
 }
-function h(spec, props, ...children) {
+function h$1(spec, props, ...children) {
 	const parts = String(spec).split(".");
 	const tag = parts[0] || "div";
 	const el = document.createElement(tag);
@@ -13070,7 +13147,7 @@ function h(spec, props, ...children) {
 			else el.setAttribute(k, v === true ? "" : String(v));
 		}
 	}
-	appendChildren(el, children);
+	appendChildren$1(el, children);
 	return el;
 }
 function svg(paths, { size = 18, fill = "none" } = {}) {
@@ -13128,18 +13205,18 @@ var ICONS = {
 function icon(name, size = 18) {
 	return svg(ICONS[name] || ICONS.dashboard, { size });
 }
-function fmtMoney(n) {
+function fmtMoney$1(n) {
 	return (Number(n) || 0).toLocaleString("zh-CN", {
 		minimumFractionDigits: 0,
 		maximumFractionDigits: 2
 	});
 }
-function fmtQty(n) {
+function fmtQty$1(n) {
 	const v = Number(n) || 0;
 	return Number.isInteger(v) ? String(v) : String(Math.round(v * 100) / 100);
 }
 /** 后端存的是 UTC ISO，这里按本机时区显示 */
-function fmtDate(iso) {
+function fmtDate$1(iso) {
 	if (!iso) return "";
 	const d = new Date(iso);
 	if (Number.isNaN(d.getTime())) return String(iso);
@@ -13151,22 +13228,13 @@ function fmtDateTime(iso) {
 	if (Number.isNaN(d.getTime())) return String(iso);
 	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
-var WEEK = [
-	"周日",
-	"周一",
-	"周二",
-	"周三",
-	"周四",
-	"周五",
-	"周六"
-];
 /**
 * 从日期里取出年月日。
 * 只认字面量，不过 Date —— 免得时区把日期挪一天。
 * 既接受纯日期 `2026-09-12`，也接受带时间的 `2026-09-12T04:28:42.000Z`
 * （后端存 ordered_at 时是「本地日期 + UTC 时间」，所以取前面那段字面量才对）。
 */
-function ymd(dateStr) {
+function ymd$1(dateStr) {
 	const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ]|$)/.exec(String(dateStr || ""));
 	return m ? {
 		y: Number(m[1]),
@@ -13175,26 +13243,20 @@ function ymd(dateStr) {
 	} : null;
 }
 /** 纯日期字符串按字面显示，不要过 Date 以免时区偏移 */
-function fmtDay(dateStr) {
-	const v = ymd(dateStr);
+function fmtDay$1(dateStr) {
+	const v = ymd$1(dateStr);
 	return v ? `${v.m}月${v.d}日` : String(dateStr || "");
 }
-function fmtDayFull(dateStr) {
-	const v = ymd(dateStr);
-	if (!v) return String(dateStr || "");
-	const d = new Date(v.y, v.m - 1, v.d);
-	return `${v.y}-${String(v.m).padStart(2, "0")}-${String(v.d).padStart(2, "0")} ${WEEK[d.getDay()]}`;
-}
-function todayStr() {
+function todayStr$1() {
 	const d = /* @__PURE__ */ new Date();
 	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
-function monthStart() {
+function monthStart$1() {
 	const d = /* @__PURE__ */ new Date();
 	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-01`;
 }
 /** 两个日期相差几天（to - from）；读不出来返回 null */
-function dayDiff(from, to) {
+function dayDiff$1(from, to) {
 	if (!from || !to) return null;
 	const f = /* @__PURE__ */ new Date(`${String(from).slice(0, 10)}T00:00:00`);
 	const t = /* @__PURE__ */ new Date(`${String(to).slice(0, 10)}T00:00:00`);
@@ -13207,19 +13269,19 @@ function dayDiff(from, to) {
 * text: 「剩余 7 天」「今天到期」「已逾期 3 天」
 * span: 下单到交付跨了几天（null = 算不出来）
 */
-function remainInfo(orderedAt, dueAt) {
+function remainInfo$1(orderedAt, dueAt) {
 	if (!dueAt) return {
 		kind: "none",
 		text: "",
 		span: null
 	};
-	const span = dayDiff(orderedAt, dueAt);
+	const span = dayDiff$1(orderedAt, dueAt);
 	if (span !== null && span < 0) return {
 		kind: "invalid",
 		text: "",
 		span
 	};
-	const left = dayDiff(todayStr(), dueAt);
+	const left = dayDiff$1(todayStr$1(), dueAt);
 	if (left === null) return {
 		kind: "none",
 		text: "",
@@ -13244,7 +13306,7 @@ function relTime(iso) {
 	if (hr < 24) return `${hr} 小时前`;
 	const day = Math.floor(hr / 24);
 	if (day < 30) return `${day} 天前`;
-	return fmtDate(iso);
+	return fmtDate$1(iso);
 }
 function pad(n) {
 	return String(n).padStart(2, "0");
@@ -13262,14 +13324,14 @@ function clear(node) {
 }
 function mount(node, ...children) {
 	clear(node);
-	appendChildren(node, children);
+	appendChildren$1(node, children);
 	return node;
 }
 /**
 * 复制文本。局域网走 http 时 navigator.clipboard 不可用，
 * 所以留一条 execCommand 的老路，保证手机上一定能复制。
 */
-async function copyText(text) {
+async function copyText$1(text) {
 	const value = String(text ?? "");
 	try {
 		if (navigator.clipboard && window.isSecureContext) {
@@ -13302,7 +13364,7 @@ var uid = (p = "x") => `${p}-${++uidCounter}`;
 var toastHost = null;
 function ensureToastHost() {
 	if (!toastHost) {
-		toastHost = h("div.toasts", {
+		toastHost = h$1("div.toasts", {
 			role: "status",
 			"aria-live": "polite"
 		});
@@ -13312,7 +13374,7 @@ function ensureToastHost() {
 }
 function toast(message, tone = "info", ms = 2600) {
 	const host = ensureToastHost();
-	const el = h(`div.toast${tone === "err" ? ".toast--err" : tone === "ok" ? ".toast--ok" : ""}`, h("span.toast__ico", tone === "err" ? "!" : tone === "ok" ? "✓" : "·"), h("span", message));
+	const el = h$1(`div.toast${tone === "err" ? ".toast--err" : tone === "ok" ? ".toast--ok" : ""}`, h$1("span.toast__ico", tone === "err" ? "!" : tone === "ok" ? "✓" : "·"), h$1("span", message));
 	host.appendChild(el);
 	requestAnimationFrame(() => el.setAttribute("data-show", "1"));
 	setTimeout(() => {
@@ -13348,15 +13410,15 @@ function openDialog({ node, onClose }) {
 	return finish;
 }
 function modal({ title, body, actions = [], wide = false, onClose }) {
-	const foot = h("div.modal__foot");
+	const foot = h$1("div.modal__foot");
 	const buttons = /* @__PURE__ */ new Map();
-	const dlg = h(`dialog.modal${wide ? ".modal--wide" : ""}`, h("div.modal__body", title ? h("h2.modal__title", title) : null, body), actions.length ? foot : null);
+	const dlg = h$1(`dialog.modal${wide ? ".modal--wide" : ""}`, h$1("div.modal__body", title ? h$1("h2.modal__title", title) : null, body), actions.length ? foot : null);
 	const finish = openDialog({
 		node: dlg,
 		onClose
 	});
 	for (const a of actions) {
-		const btn = h(`button.btn${a.tone === "primary" ? ".btn--primary" : a.tone === "danger" ? ".btn--danger" : ""}`, {
+		const btn = h$1(`button.btn${a.tone === "primary" ? ".btn--primary" : a.tone === "danger" ? ".btn--danger" : ""}`, {
 			type: "button",
 			onclick: async () => {
 				if (a.onClick) {
@@ -13383,7 +13445,7 @@ function confirmModal({ title, message, confirmLabel = "确定", tone = "primary
 		let answer = false;
 		return modal({
 			title,
-			body: h("div.stack.stack--tight", h("p.muted", message), extra),
+			body: h$1("div.stack.stack--tight", h$1("p.muted", message), extra),
 			actions: [{
 				label: "取消",
 				onClick: () => resolve(false)
@@ -13440,23 +13502,23 @@ function choiceDialog({ title, message, archiveLabel, archiveHint, deleteLabel, 
 		modal({
 			title,
 			wide: true,
-			body: h("div.stack.stack--tight", h("p", { style: { lineHeight: "1.75" } }, message), archiveLabel && archiveHint ? h("div.note.note--ok", h("strong", `${archiveLabel}：`), h("span", archiveHint)) : null, deleteHint ? h("div.note.note--alert", h("strong", `${deleteLabel}：`), h("span", deleteHint)) : null),
+			body: h$1("div.stack.stack--tight", h$1("p", { style: { lineHeight: "1.75" } }, message), archiveLabel && archiveHint ? h$1("div.note.note--ok", h$1("strong", `${archiveLabel}：`), h$1("span", archiveHint)) : null, deleteHint ? h$1("div.note.note--alert", h$1("strong", `${deleteLabel}：`), h$1("span", deleteHint)) : null),
 			actions,
 			onClose: () => finish(null)
 		});
 	});
 }
 function drawer({ title, subtitle, body, footer, wide = false, onClose }) {
-	const bodyEl = h("div.drawer__body");
+	const bodyEl = h$1("div.drawer__body");
 	mount(bodyEl, body);
-	const dlg = h(`dialog.drawer${wide ? ".drawer--wide" : ""}`, h("div.drawer__head", h("div", { style: {
+	const dlg = h$1(`dialog.drawer${wide ? ".drawer--wide" : ""}`, h$1("div.drawer__head", h$1("div", { style: {
 		minWidth: "0",
 		flex: "1"
-	} }, h("div.drawer__title", title || ""), subtitle ? h("div.sm.dim", subtitle) : null), h("button.btn.btn--icon.btn--quiet", {
+	} }, h$1("div.drawer__title", title || ""), subtitle ? h$1("div.sm.dim", subtitle) : null), h$1("button.btn.btn--icon.btn--quiet", {
 		type: "button",
 		"aria-label": "关闭",
 		onclick: () => finish()
-	}, icon("close"))), bodyEl, footer ? h("div.drawer__foot", footer) : null);
+	}, icon("close"))), bodyEl, footer ? h$1("div.drawer__foot", footer) : null);
 	const finish = openDialog({
 		node: dlg,
 		onClose
@@ -13468,9 +13530,9 @@ function drawer({ title, subtitle, body, footer, wide = false, onClose }) {
 	};
 }
 function fieldShell(f, control) {
-	const errEl = h("div.err", { hidden: true });
+	const errEl = h$1("div.err", { hidden: true });
 	return {
-		el: h(`div.field${f.width === "half" ? "" : ".field--full"}`, f.label ? h("label.lbl", { for: control.id }, f.label, f.required ? h("span.req", "*") : null, f.suffix ? h("span.dim.tiny", `（${f.suffix}）`) : null) : null, control, f.hint ? h("div.hint", f.hint) : null, errEl),
+		el: h$1(`div.field${f.width === "half" ? "" : ".field--full"}`, f.label ? h$1("label.lbl", { for: control.id }, f.label, f.required ? h$1("span.req", "*") : null, f.suffix ? h$1("span.dim.tiny", `（${f.suffix}）`) : null) : null, control, f.hint ? h$1("div.hint", f.hint) : null, errEl),
 		errEl
 	};
 }
@@ -13484,7 +13546,7 @@ function buildControl(f, initial) {
 		autocomplete: f.autocomplete || "off"
 	};
 	if (f.type === "textarea") {
-		const ta = h("textarea.ta", {
+		const ta = h$1("textarea.ta", {
 			...common,
 			rows: f.rows || 3,
 			maxlength: f.maxlength || 4e3
@@ -13497,13 +13559,13 @@ function buildControl(f, initial) {
 		};
 	}
 	if (f.type === "select") {
-		const sel = h("select.sel", common);
+		const sel = h$1("select.sel", common);
 		const raw = initial === null || initial === void 0 ? "" : String(initial);
 		const alias = raw === "true" ? "1" : raw === "false" ? "0" : raw;
 		const wanted = alias !== raw && (f.options || []).some((o) => String(o.value) === alias) ? alias : raw;
 		let matched = false;
 		for (const opt of f.options || []) {
-			const o = h("option", { value: opt.value }, opt.label);
+			const o = h$1("option", { value: opt.value }, opt.label);
 			if (String(opt.value) === wanted) {
 				o.selected = true;
 				matched = true;
@@ -13511,7 +13573,7 @@ function buildControl(f, initial) {
 			sel.appendChild(o);
 		}
 		if (!matched) {
-			sel.insertBefore(h("option", { value: wanted }, wanted ? `（原值：${wanted}）` : "（未指定）"), sel.firstChild);
+			sel.insertBefore(h$1("option", { value: wanted }, wanted ? `（原值：${wanted}）` : "（未指定）"), sel.firstChild);
 			sel.value = wanted;
 		}
 		return {
@@ -13521,23 +13583,23 @@ function buildControl(f, initial) {
 		};
 	}
 	if (f.type === "check") {
-		const cb = h("input.chk", {
+		const cb = h$1("input.chk", {
 			...common,
 			type: "checkbox"
 		});
 		cb.checked = Boolean(initial);
 		return {
-			control: h("label.inline", {
+			control: h$1("label.inline", {
 				for: id,
 				style: { cursor: "pointer" }
-			}, cb, h("span", f.checkLabel || f.label || "")),
+			}, cb, h$1("span", f.checkLabel || f.label || "")),
 			read: () => cb.checked,
 			focus: () => cb.focus(),
 			bare: true
 		};
 	}
 	if (f.type === "tags") {
-		const inp = h("input.inp", {
+		const inp = h$1("input.inp", {
 			...common,
 			placeholder: f.placeholder || "用逗号分隔，例如：爽快, 老客户"
 		});
@@ -13555,7 +13617,7 @@ function buildControl(f, initial) {
 		password: "password",
 		text: "text"
 	};
-	const inp = h("input.inp", {
+	const inp = h$1("input.inp", {
 		...common,
 		type: types[f.type] || "text",
 		inputmode: f.type === "money" || f.type === "number" ? "decimal" : f.inputmode || void 0,
@@ -13582,11 +13644,11 @@ function buildControl(f, initial) {
 function makeField(f, initial) {
 	const { control, read, focus, bare } = buildControl(f, initial);
 	if (bare) return {
-		el: h("div.field.field--full", control),
+		el: h$1("div.field.field--full", control),
 		read,
 		focus,
 		control,
-		errEl: h("div.err", { hidden: true })
+		errEl: h$1("div.err", { hidden: true })
 	};
 	const { el, errEl } = fieldShell(f, control);
 	if (f.width !== "half") el.classList.add("field--full");
@@ -13606,16 +13668,16 @@ function makeField(f, initial) {
 function imageField({ name = "image", label = "图片", value = "", prefix = "img", shape = "square", size = 56, hint = "", placeholder = "无" } = {}) {
 	let url = value || "";
 	let preview = null;
-	const file = h("input", {
+	const file = h$1("input", {
 		type: "file",
 		accept: "image/png,image/jpeg,image/webp,image/gif,image/svg+xml",
 		style: { display: "none" }
 	});
-	const btn = h("button.btn.btn--sm", { type: "button" }, icon("upload", 14), "选一张图");
-	const clearBtn = h("button.btn.btn--sm.btn--quiet", { type: "button" }, "去掉");
+	const btn = h$1("button.btn.btn--sm", { type: "button" }, icon("upload", 14), "选一张图");
+	const clearBtn = h$1("button.btn.btn--sm.btn--quiet", { type: "button" }, "去掉");
 	function paint() {
 		if (!preview) return;
-		preview.replaceChildren(url ? h("img", {
+		preview.replaceChildren(url ? h$1("img", {
 			src: url,
 			alt: label,
 			style: {
@@ -13623,7 +13685,7 @@ function imageField({ name = "image", label = "图片", value = "", prefix = "im
 				height: "100%",
 				objectFit: "cover"
 			}
-		}) : h("span.dim.tiny", placeholder));
+		}) : h$1("span.dim.tiny", placeholder));
 		clearBtn.style.display = url ? "" : "none";
 	}
 	btn.addEventListener("click", () => file.click());
@@ -13663,7 +13725,7 @@ function imageField({ name = "image", label = "图片", value = "", prefix = "im
 		type: "custom",
 		width: "full",
 		render: () => {
-			preview = h("div", { style: {
+			preview = h$1("div", { style: {
 				width: `${size}px`,
 				height: `${size}px`,
 				borderRadius: shape === "circle" ? "50%" : "12px",
@@ -13675,7 +13737,7 @@ function imageField({ name = "image", label = "图片", value = "", prefix = "im
 				flex: "none"
 			} });
 			paint();
-			return h("div.field.field--full", label ? h("label.lbl", label) : null, h("div.cluster", preview, h("div.stack.stack--tight", h("div.cluster", btn, clearBtn), hint ? h("div.hint", hint) : null)), file);
+			return h$1("div.field.field--full", label ? h$1("label.lbl", label) : null, h$1("div.cluster", preview, h$1("div.stack.stack--tight", h$1("div.cluster", btn, clearBtn), hint ? h$1("div.hint", hint) : null)), file);
 		},
 		collect: (out) => {
 			out[name] = url;
@@ -13690,14 +13752,14 @@ function formDrawer({ title, subtitle, fields, values = {}, submitLabel = "保�
 	return new Promise((resolve) => {
 		let settled = false;
 		const built = [];
-		const grid = h("div.formgrid");
+		const grid = h$1("div.formgrid");
 		for (const f of fields) {
 			if (f.type === "section") {
-				grid.appendChild(h("div.formsec.field--full", h("div.sechead", { style: { marginBottom: "0" } }, h("h3", f.title), f.note ? h("span.sechead__note", f.note) : null)));
+				grid.appendChild(h$1("div.formsec.field--full", h$1("div.sechead", { style: { marginBottom: "0" } }, h$1("h3", f.title), f.note ? h$1("span.sechead__note", f.note) : null)));
 				continue;
 			}
 			if (f.type === "note") {
-				grid.appendChild(h(`div.note${f.tone ? `.note--${f.tone}` : ""}.field--full`, f.text));
+				grid.appendChild(h$1(`div.note${f.tone ? `.note--${f.tone}` : ""}.field--full`, f.text));
 				continue;
 			}
 			if (f.type === "custom") {
@@ -13722,15 +13784,15 @@ function formDrawer({ title, subtitle, fields, values = {}, submitLabel = "保�
 				control: built1.control
 			});
 		}
-		const errBox = h("div.note.note--alert", { hidden: true });
-		const bodyWrap = h("div.stack", intro, grid, footerNote ? h("div.hint", footerNote) : null, errBox);
+		const errBox = h$1("div.note.note--alert", { hidden: true });
+		const bodyWrap = h$1("div.stack", intro, grid, footerNote ? h$1("div.hint", footerNote) : null, errBox);
 		const formId = uid("form");
-		const form = h("form", {
+		const form = h$1("form", {
 			id: formId,
 			novalidate: true,
 			onsubmit: handleSubmit
 		}, bodyWrap);
-		const submitBtn = h("button.btn.btn--primary", {
+		const submitBtn = h$1("button.btn.btn--primary", {
 			type: "submit",
 			form: formId
 		}, submitLabel);
@@ -13739,11 +13801,11 @@ function formDrawer({ title, subtitle, fields, values = {}, submitLabel = "保�
 			subtitle,
 			body: form,
 			footer: [
-				h("button.btn", {
+				h$1("button.btn", {
 					type: "button",
 					onclick: () => finish(null)
 				}, "取消"),
-				h("div", { style: { flex: "1" } }),
+				h$1("div", { style: { flex: "1" } }),
 				submitBtn
 			],
 			wide,
@@ -13825,7 +13887,7 @@ function formDrawer({ title, subtitle, fields, values = {}, submitLabel = "保�
 	});
 }
 function emptyState({ iconName = "plus", title, body, steps, actionLabel, onAction, secondary }) {
-	return h("div.empty", h("div.empty__mark", icon(iconName, 20)), h("div.empty__title", title), body ? h("p.empty__body", body) : null, steps && steps.length ? h("ul.empty__steps", steps.map((s, i) => h("li", h("span.n", String(i + 1)), h("span", s)))) : null, actionLabel || secondary ? h("div.cluster", actionLabel ? h("button.btn.btn--primary", {
+	return h$1("div.empty", h$1("div.empty__mark", icon(iconName, 20)), h$1("div.empty__title", title), body ? h$1("p.empty__body", body) : null, steps && steps.length ? h$1("ul.empty__steps", steps.map((s, i) => h$1("li", h$1("span.n", String(i + 1)), h$1("span", s)))) : null, actionLabel || secondary ? h$1("div.cluster", actionLabel ? h$1("button.btn.btn--primary", {
 		type: "button",
 		onclick: onAction
 	}, actionLabel) : null, secondary || null) : null);
@@ -13835,10 +13897,10 @@ function emptyState({ iconName = "plus", title, body, steps, actionLabel, onActi
 * 手机上每一行折成一张卡片，td 用 data-label 显示列名。
 */
 function table({ columns, rows, onRowClick, stack = true, footer = null, compact = false }) {
-	const thead = h("thead", h("tr", columns.map((c) => h(`th${c.num ? ".num" : ""}`, { style: c.width ? { width: c.width } : null }, c.label))));
-	const tbody = h("tbody");
+	const thead = h$1("thead", h$1("tr", columns.map((c) => h$1(`th${c.num ? ".num" : ""}`, { style: c.width ? { width: c.width } : null }, c.label))));
+	const tbody = h$1("tbody");
 	rows.forEach((row, idx) => {
-		const tr = h("tr", {
+		const tr = h$1("tr", {
 			"data-clickable": onRowClick ? "1" : null,
 			tabindex: onRowClick ? "0" : null,
 			onclick: onRowClick ? (e) => {
@@ -13851,24 +13913,24 @@ function table({ columns, rows, onRowClick, stack = true, footer = null, compact
 		columns.forEach((c, ci) => {
 			const content = c.render ? c.render(row, idx) : row[c.key];
 			const isMain = c.main || ci === 0;
-			tr.appendChild(h(`td${c.num ? ".num" : ""}${isMain ? ".td-main" : ""}${c.cls ? "." + c.cls : ""}`, { "data-label": c.num ? c.label : isMain ? "" : c.label }, content));
+			tr.appendChild(h$1(`td${c.num ? ".num" : ""}${isMain ? ".td-main" : ""}${c.cls ? "." + c.cls : ""}`, { "data-label": c.num ? c.label : isMain ? "" : c.label }, content));
 		});
 		tbody.appendChild(tr);
 	});
-	return h(`div.tblwrap${stack ? ".tblwrap--stack" : ""}`, h(`table.tbl${stack ? ".tbl--stack" : ""}${compact ? ".tbl--compact" : ""}`, thead, tbody, footer));
+	return h$1(`div.tblwrap${stack ? ".tblwrap--stack" : ""}`, h$1(`table.tbl${stack ? ".tbl--stack" : ""}${compact ? ".tbl--compact" : ""}`, thead, tbody, footer));
 }
 function lamp(label, tone = "muted") {
-	return h(`span.lamp.lamp--${tone}`, label);
+	return h$1(`span.lamp.lamp--${tone}`, label);
 }
 function orderLamp(status, label) {
 	return lamp(label || status, STATUS_TONE[status] || "muted");
 }
 function tag(text, tone = "") {
-	return h(`span.tag${tone ? `.tag--${tone}` : ""}`, text);
+	return h$1(`span.tag${tone ? `.tag--${tone}` : ""}`, text);
 }
 /** 订单走的五步轨；售后/取消单独用灯表示 */
 function orderTrack(status, statusLabel) {
-	if (status === "cancelled" || status === "after_sale") return h("div.cluster", orderLamp(status, statusLabel), h("span.dim.tiny", "已离开主流程"));
+	if (status === "cancelled" || status === "after_sale") return h$1("div.cluster", orderLamp(status, statusLabel), h$1("span.dim.tiny", "已离开主流程"));
 	const at = STATUS_FLOW.indexOf(status);
 	const labels = {
 		pending_confirm: "待确认",
@@ -13879,11 +13941,11 @@ function orderTrack(status, statusLabel) {
 	};
 	const out = [];
 	STATUS_FLOW.forEach((s, i) => {
-		if (i > 0) out.push(h("span.track__sep"));
+		if (i > 0) out.push(h$1("span.track__sep"));
 		const state = i < at ? "--done" : i === at ? "--now" : "";
-		out.push(h(`div.track__step${state ? ".track__step" + state : ""}`, labels[s]));
+		out.push(h$1(`div.track__step${state ? ".track__step" + state : ""}`, labels[s]));
 	});
-	return h("div.track", out);
+	return h$1("div.track", out);
 }
 /**
 * 小标题：标题 + 可选说明 + 右侧若干个动作。
@@ -13892,15 +13954,15 @@ function orderTrack(status, statusLabel) {
 */
 function sectionHead(title, note, ...actions) {
 	const list = actions.flat().filter(Boolean);
-	return h("div.sechead", h("h3", title), note ? h("span.sechead__note", note) : null, ...list);
+	return h$1("div.sechead", h$1("h3", title), note ? h$1("span.sechead__note", note) : null, ...list);
 }
 function copyButton(text, label = "复制", { size = "sm", onCopied } = {}) {
-	return h(`button.btn.btn--sm${size === "icon" ? ".btn--icon" : ""}`, {
+	return h$1(`button.btn.btn--sm${size === "icon" ? ".btn--icon" : ""}`, {
 		type: "button",
 		title: label,
 		onclick: async (e) => {
 			e.stopPropagation();
-			const ok = await copyText(text);
+			const ok = await copyText$1(text);
 			toast(ok ? "已复制" : "复制失败，请手动选中", ok ? "ok" : "err", 1600);
 			if (ok && onCopied) onCopied();
 		}
@@ -13995,7 +14057,7 @@ function resourcesField({ before = "", after = "", beforeFrom = "" } = {}) {
 		const parsed = parseResources(initial);
 		const inputs = {};
 		for (const k of RES_KEYS) {
-			const inp = h("input.inp.inp--fig", {
+			const inp = h$1("input.inp.inp--fig", {
 				inputmode: "numeric",
 				style: { width: "92px" },
 				"aria-label": `${label} ${k}`
@@ -14003,30 +14065,30 @@ function resourcesField({ before = "", after = "", beforeFrom = "" } = {}) {
 			inp.value = parsed[k];
 			inputs[k] = inp;
 		}
-		const other = h("input.inp", {
+		const other = h$1("input.inp", {
 			placeholder: "其他（可选）",
 			"aria-label": `${label} 其他资源`
 		});
 		other.value = parsed.other;
-		const deltaLine = h("div.hint");
-		const note = h("div.note.note--ok", { hidden: true });
-		const file = h("input", {
+		const deltaLine = h$1("div.hint");
+		const note = h$1("div.note.note--ok", { hidden: true });
+		const file = h$1("input", {
 			type: "file",
 			accept: "image/png,image/jpeg,image/webp",
 			style: { display: "none" }
 		});
-		const shotBtn = h("button.btn.btn--sm", {
+		const shotBtn = h$1("button.btn.btn--sm", {
 			type: "button",
 			title: "选一张游戏截图，自动认星声 / 体力 / 贝币"
 		}, icon("eye", 14), "识别截图");
-		const watchBtn = h("button.btn.btn--sm.btn--primary", {
+		const watchBtn = h$1("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			title: "切到游戏，程序会一直看着屏幕，三个都认到就自动停"
 		}, icon("refresh", 14), "识别画面");
-		const box = h("div.field.field--full", h("div.cluster", h("label.lbl", label), h("div", { style: { flex: "1" } }), watchBtn, shotBtn), h("div.cluster", { style: {
+		const box = h$1("div.field.field--full", h$1("div.cluster", h$1("label.lbl", label), h$1("div", { style: { flex: "1" } }), watchBtn, shotBtn), h$1("div.cluster", { style: {
 			gap: "6px",
 			flexWrap: "wrap"
-		} }, ...RES_KEYS.map((k) => h("label.inline", { style: { gap: "4px" } }, h("span.dim.tiny", k), inputs[k]))), other, isFirst && beforeFrom ? h("div.hint", `「做之前」带的是${beforeFrom}，不对就直接改。`) : null, deltaLine, note, file);
+		} }, ...RES_KEYS.map((k) => h$1("label.inline", { style: { gap: "4px" } }, h$1("span.dim.tiny", k), inputs[k]))), other, isFirst && beforeFrom ? h$1("div.hint", `「做之前」带的是${beforeFrom}，不对就直接改。`) : null, deltaLine, note, file);
 		const rec = {
 			inputs,
 			other,
@@ -14061,13 +14123,13 @@ function resourcesField({ before = "", after = "", beforeFrom = "" } = {}) {
 			const paintProgress = (extra) => {
 				const have = RES_KEYS.filter((k) => got[k] !== void 0);
 				note.hidden = false;
-				mount(note, h("strong", `正在看屏幕… 已认到 ${have.length}/${RES_KEYS.length}${have.length ? "（" + have.join("、") + "）" : ""}`), engine ? h("div.tiny", { style: {
+				mount(note, h$1("strong", `正在看屏幕… 已认到 ${have.length}/${RES_KEYS.length}${have.length ? "（" + have.join("、") + "）" : ""}`), engine ? h$1("div.tiny", { style: {
 					marginTop: "4px",
 					opacity: ".85"
-				} }, `引擎：${engine}${seenIcons.length ? ` · 图标：${seenIcons.join("、")}` : ""}`) : null, Object.keys(pending).length ? h("div.tiny", { style: {
+				} }, `引擎：${engine}${seenIcons.length ? ` · 图标：${seenIcons.join("、")}` : ""}`) : null, Object.keys(pending).length ? h$1("div.tiny", { style: {
 					marginTop: "2px",
 					opacity: ".85"
-				} }, "正在复核：" + Object.entries(pending).map(([k, p]) => `${k} ${p.votes}/${p.need}`).join(" · ")) : null, h("div.tiny", { style: {
+				} }, "正在复核：" + Object.entries(pending).map(([k, p]) => `${k} ${p.votes}/${p.need}`).join(" · ")) : null, h$1("div.tiny", { style: {
 					marginTop: "4px",
 					opacity: ".85"
 				} }, extra || "切到游戏，停在能看到这几个资源的界面；每个数字要认到两次才采纳。"));
@@ -14108,7 +14170,7 @@ function resourcesField({ before = "", after = "", beforeFrom = "" } = {}) {
 				const n = RES_KEYS.filter((k) => got[k] !== void 0).length;
 				const missing = RES_KEYS.filter((k) => got[k] === void 0);
 				const small = Object.keys(smallText);
-				mount(note, h("strong", n === RES_KEYS.length ? "三个都认到了，核对一下再保存" : `认到 ${n} 个${missing.length ? `，${missing.join("、")} 没认到` : ""}`), small.length ? h("div.tiny.tone-amber", { style: { marginTop: "2px" } }, `${small.join("、")} 这几个字太小（顶栏文字不到 21px），自带 OCR 有时会读错位数 —— 这 ${small.length} 个请对着游戏核一遍。想要更准就装一个本地 OCR 引擎（设置页有指引）。`) : null, Object.keys(layoutFallback).length ? h("div.tiny.tone-amber", { style: { marginTop: "2px" } }, `${Object.keys(layoutFallback).join("、")} 是按数字格式补出的，请对照截图核对。`) : null, h("div.tiny", { style: {
+				mount(note, h$1("strong", n === RES_KEYS.length ? "三个都认到了，核对一下再保存" : `认到 ${n} 个${missing.length ? `，${missing.join("、")} 没认到` : ""}`), small.length ? h$1("div.tiny.tone-amber", { style: { marginTop: "2px" } }, `${small.join("、")} 这几个字太小（顶栏文字不到 21px），自带 OCR 有时会读错位数 —— 这 ${small.length} 个请对着游戏核一遍。想要更准就装一个本地 OCR 引擎（设置页有指引）。`) : null, Object.keys(layoutFallback).length ? h$1("div.tiny.tone-amber", { style: { marginTop: "2px" } }, `${Object.keys(layoutFallback).join("、")} 是按数字格式补出的，请对照截图核对。`) : null, h$1("div.tiny", { style: {
 					marginTop: "4px",
 					opacity: ".85"
 				} }, n === RES_KEYS.length ? "每个数字都认到两次以上才填进来的。" : "认不出来就先留空自己填 —— 认不准的时候它不会硬凑一个数字。"));
@@ -14149,16 +14211,16 @@ function resourcesField({ before = "", after = "", beforeFrom = "" } = {}) {
 				const gotKeys = new Set((r.hits || []).map((s) => s.key));
 				const weak = (r.seen || []).filter((s) => (s.value === void 0 || s.value === null) && !gotKeys.has(s.key)).map((s) => `${s.key}${s.score ? `(分${s.score})` : ""}`);
 				const fallback = (r.hits || []).filter((s) => s.source === "ocr-layout").map((s) => s.key);
-				mount(note, h("strong", n ? `认出 ${n} 项，请核对一下再保存` : "这三个资源一个都没认出来，可以手动填"), r.warning ? h("div.tiny", { style: {
+				mount(note, h$1("strong", n ? `认出 ${n} 项，请核对一下再保存` : "这三个资源一个都没认出来，可以手动填"), r.warning ? h$1("div.tiny", { style: {
 					marginTop: "2px",
 					opacity: ".85"
-				} }, r.warning) : null, r.engine ? h("div.tiny", { style: {
+				} }, r.warning) : null, r.engine ? h$1("div.tiny", { style: {
 					marginTop: "2px",
 					opacity: ".85"
-				} }, `引擎：${r.engine}${r.anchor ? ` · 定标图标：${r.anchor.key}(分${r.anchor.score})` : ""}`) : null, fallback.length ? h("div.tiny.tone-amber", { style: { marginTop: "2px" } }, `${fallback.join("、")} 是按数字格式补出的，请对照截图核对。`) : null, weak.length ? h("div.tiny", { style: {
+				} }, `引擎：${r.engine}${r.anchor ? ` · 定标图标：${r.anchor.key}(分${r.anchor.score})` : ""}`) : null, fallback.length ? h$1("div.tiny.tone-amber", { style: { marginTop: "2px" } }, `${fallback.join("、")} 是按数字格式补出的，请对照截图核对。`) : null, weak.length ? h$1("div.tiny", { style: {
 					marginTop: "2px",
 					opacity: ".85"
-				} }, `没配上数字的：${weak.join("、")}`) : null, lines.length ? h("div.tiny", { style: {
+				} }, `没配上数字的：${weak.join("、")}`) : null, lines.length ? h$1("div.tiny", { style: {
 					marginTop: "4px",
 					opacity: ".85"
 				} }, `识别到的原文：${lines.join(" ｜ ")}`) : null);
@@ -14184,14 +14246,14 @@ function resourcesField({ before = "", after = "", beforeFrom = "" } = {}) {
 		const deltas = resourceDelta(vals(sides[0]), vals(sides[1]));
 		sides[1].deltaLine.textContent = deltas.length ? "本次消耗：" + deltas.map((d) => {
 			const sign = d.diff < 0 ? "−" : d.diff > 0 ? "+" : "±";
-			return `${d.key} ${sign}${fmtQty(Math.abs(d.diff))}`;
+			return `${d.key} ${sign}${fmtQty$1(Math.abs(d.diff))}`;
 		}).join(" · ") : "";
 	}
 	return {
 		type: "custom",
 		width: "full",
 		render: () => {
-			const box = h("div.stack.stack--tight", buildSide("资源对比 · 做之前", before, true), buildSide("资源对比 · 做之后", after));
+			const box = h$1("div.stack.stack--tight", buildSide("资源对比 · 做之前", before, true), buildSide("资源对比 · 做之后", after));
 			read = () => ({
 				resources_before: vals(sides[0]),
 				resources_after: vals(sides[1])
@@ -14220,14 +14282,14 @@ function progressDrawer(order, onDone) {
 		title: "记一条进度",
 		subtitle: `${order.order_no} · ${order.title || ""}`,
 		submitLabel: "记下",
-		intro: h("div.hint", "以后客户问\"做到哪了\"，直接把这条发给他就行。"),
+		intro: h$1("div.hint", "以后客户问\"做到哪了\"，直接把这条发给他就行。"),
 		fields: [
 			{
 				name: "happened_on",
 				label: "日期",
 				type: "date",
 				required: true,
-				default: todayStr(),
+				default: todayStr$1(),
 				width: "half"
 			},
 			resourcesField({
@@ -14269,7 +14331,7 @@ function paymentDrawer(order, onDone, { presetKind } = {}) {
 	const kind = presetKind || (paid > .001 ? "balance" : "full");
 	return formDrawer({
 		title: "记一笔收款",
-		subtitle: `${order.order_no} · 应收 ${fmtMoney(order.total)} 元，还差 ${fmtMoney(due)} 元`,
+		subtitle: `${order.order_no} · 应收 ${fmtMoney$1(order.total)} 元，还差 ${fmtMoney$1(due)} 元`,
 		submitLabel: "记下",
 		fields: [
 			{
@@ -14321,7 +14383,7 @@ function paymentDrawer(order, onDone, { presetKind } = {}) {
 				name: "paid_at",
 				label: "日期",
 				type: "date",
-				default: todayStr(),
+				default: todayStr$1(),
 				width: "half"
 			},
 			{
@@ -14387,38 +14449,38 @@ function orderColumns({ showCustomer = true, ctx } = {}) {
 		key: "order_no",
 		label: "订单",
 		main: true,
-		render: (o) => h("div", h("div.tbl__primary", o.order_no, o.stale ? h("span.tag.tag--amber", { style: { marginLeft: "6px" } }, `${o.idle_days} 天没动`) : null, o.daily_done_today ? h("span.tag.tag--jade", { style: { marginLeft: "6px" } }, "今日已完成") : null), h("div.tbl__meta", o.title || "（没写标题）"))
+		render: (o) => h$1("div", h$1("div.tbl__primary", o.order_no, o.stale ? h$1("span.tag.tag--amber", { style: { marginLeft: "6px" } }, `${o.idle_days} 天没动`) : null, o.daily_done_today ? h$1("span.tag.tag--jade", { style: { marginLeft: "6px" } }, "今日已完成") : null), h$1("div.tbl__meta", o.title || "（没写标题）"))
 	}];
 	if (showCustomer) cols.push({
 		key: "customer_name",
 		label: "客户",
 		render: (o) => {
-			if (!o.customer_id) return h("span.dim", "散客");
+			if (!o.customer_id) return h$1("span.dim", "散客");
 			const n = Number(o.customer_order_count) || 0;
-			return h("button.custcell", {
+			return h$1("button.custcell", {
 				type: "button",
 				title: `看 ${o.customer_name || "这个客户"} 的档案（名下共 ${n} 张单）${o.customer_phone ? ` · ${o.customer_phone}` : ""}`,
 				onclick: (e) => {
 					e.stopPropagation();
 					ctx.navigate(`/customers/${o.customer_id}`);
 				}
-			}, o.customer_avatar ? h("img.avatar.avatar--xs", {
+			}, o.customer_avatar ? h$1("img.avatar.avatar--xs", {
 				src: o.customer_avatar,
 				alt: "",
 				loading: "lazy"
-			}) : h("span.avatar.avatar--xs", (o.customer_name || "?").slice(0, 1)), h("span.custcell__txt", h("span.custcell__name", o.customer_name || "没填名字"), h("span.custcell__n", o.customer_phone ? h("span.mono", o.customer_phone) : null, o.customer_phone && n > 1 ? h("span", " · ") : null, n > 1 ? h("span", `第 ${n} 单`) : null)));
+			}) : h$1("span.avatar.avatar--xs", (o.customer_name || "?").slice(0, 1)), h$1("span.custcell__txt", h$1("span.custcell__name", o.customer_name || "没填名字"), h$1("span.custcell__n", o.customer_phone ? h$1("span.mono", o.customer_phone) : null, o.customer_phone && n > 1 ? h$1("span", " · ") : null, n > 1 ? h$1("span", `第 ${n} 单`) : null)));
 		}
 	});
 	cols.push({
 		key: "game_name",
 		label: "游戏",
 		cls: "col-opt",
-		render: (o) => h("span.sm", { style: { whiteSpace: "nowrap" } }, o.game_name || "—")
+		render: (o) => h$1("span.sm", { style: { whiteSpace: "nowrap" } }, o.game_name || "—")
 	}, {
 		key: "progress_count",
 		label: "进度",
 		cls: "col-opt",
-		render: (o) => o.progress_count ? h("span.sm", `${o.progress_count} 条`, h("span.dim.tiny", ` · 到 ${fmtDay(o.last_progress_on)}`)) : h("span.dim.sm", "还没记")
+		render: (o) => o.progress_count ? h$1("span.sm", `${o.progress_count} 条`, h$1("span.dim.tiny", ` · 到 ${fmtDay$1(o.last_progress_on)}`)) : h$1("span.dim.sm", "还没记")
 	}, {
 		key: "status",
 		label: "状态",
@@ -14428,47 +14490,47 @@ function orderColumns({ showCustomer = true, ctx } = {}) {
 		label: "交付",
 		cls: "col-opt",
 		render: (o) => {
-			if (!o.due_at) return h("span.dim.sm", "—");
+			if (!o.due_at) return h$1("span.dim.sm", "—");
 			const info = ["done", "cancelled"].includes(o.status) ? {
 				kind: "ok",
 				text: ""
-			} : remainInfo(o.ordered_at, o.due_at);
-			return h("span", { style: {
+			} : remainInfo$1(o.ordered_at, o.due_at);
+			return h$1("span", { style: {
 				display: "inline-flex",
 				alignItems: "center",
 				gap: "6px",
 				whiteSpace: "nowrap"
-			} }, h("span.sm", fmtDay(o.due_at)), info.kind === "invalid" ? h("span.duepill.duepill--bad", "填错了") : info.text ? h(`span.duepill.duepill--${info.kind}`, info.text) : null);
+			} }, h$1("span.sm", fmtDay$1(o.due_at)), info.kind === "invalid" ? h$1("span.duepill.duepill--bad", "填错了") : info.text ? h$1(`span.duepill.duepill--${info.kind}`, info.text) : null);
 		}
 	}, {
 		key: "total",
 		label: "总额",
 		num: true,
-		render: (o) => `¥${fmtMoney(o.total)}`
+		render: (o) => `¥${fmtMoney$1(o.total)}`
 	}, {
 		key: "due_total",
 		label: "尾款",
 		num: true,
-		render: (o) => o.due_total > .001 ? h("span.tone-amber", `¥${fmtMoney(o.due_total)}`) : h("span.dim", "已结清")
+		render: (o) => o.due_total > .001 ? h$1("span.tone-amber", `¥${fmtMoney$1(o.due_total)}`) : h$1("span.dim", "已结清")
 	}, {
 		key: "acts",
 		label: "操作",
 		cls: "td-acts",
-		render: (o) => h("div.tbl__acts", h("button.btn.btn--sm", {
+		render: (o) => h$1("div.tbl__acts", h$1("button.btn.btn--sm", {
 			type: "button",
 			title: "记进度",
 			onclick: (e) => {
 				e.stopPropagation();
 				progressDrawer(o, () => ctx.app.reload());
 			}
-		}, icon("edit", 14)), o.due_total > .001 ? h("button.btn.btn--sm", {
+		}, icon("edit", 14)), o.due_total > .001 ? h$1("button.btn.btn--sm", {
 			type: "button",
 			title: "记收款",
 			onclick: (e) => {
 				e.stopPropagation();
 				paymentDrawer(o, () => ctx.app.reload());
 			}
-		}, icon("wallet", 14)) : null, h("button.btn.btn--sm", {
+		}, icon("wallet", 14)) : null, h$1("button.btn.btn--sm", {
 			type: "button",
 			title: "看详情",
 			onclick: (e) => {
@@ -14495,13 +14557,13 @@ function itemGain(it) {
 	if (!g || !g.name) return "";
 	const total = Number(g.amount || 0) * (Number(it.quantity) || 1);
 	if (!Number.isFinite(total) || total <= 0) return "";
-	return `${g.name} ${fmtQty(total)}`;
+	return `${g.name} ${fmtQty$1(total)}`;
 }
 function orderItemsList(items) {
-	return h("div.itemlist", items.map((it) => h("div.item", { style: {
+	return h$1("div.itemlist", items.map((it) => h$1("div.item", { style: {
 		cursor: "default",
 		alignItems: "flex-start"
-	} }, h("div.item__main", h("div.item__title", it.name, it.is_daily ? tag("每天做", "jade") : null, it.snapshot?.price_overridden ? tag("改过价", "cinnabar") : null, it.snapshot?.matched_tier ? tag("阶梯价", "slate") : null), it.spec ? h("div.tbl__meta", it.spec) : null, itemGain(it) ? h("div.subitems", h("div.subitem", h("span.subitem__k", "可得"), h("span.strong", itemGain(it)))) : null, it.snapshot?.package_items?.length ? h("div.subitems", h("div.subitem", h("span.subitem__k", "套餐含"), h("span", it.snapshot.package_items.join(" · ")))) : null, it.snapshot?.addons?.length ? h("div.subitems", h("div.subitem", h("span.subitem__k", "增项"), h("span", it.snapshot.addons.map((a) => `${a.name}${a.price_mode === "percent" ? ` +${a.price}%` : ` +${fmtMoney(a.price)}元`}`).join(" · ")))) : null), h("div.item__right", h("div.item__fig", `${fmtMoney(it.unit_price)}`, h("span.dim", `${it.unit_label ? `/${it.unit_label}` : ""} × ${fmtQty(it.quantity)}`)), h("div.tbl__meta", `= ${fmtMoney(it.amount)} 元`)))));
+	} }, h$1("div.item__main", h$1("div.item__title", it.name, it.is_daily ? tag("每天做", "jade") : null, it.snapshot?.price_overridden ? tag("改过价", "cinnabar") : null, it.snapshot?.matched_tier ? tag("阶梯价", "slate") : null), it.spec ? h$1("div.tbl__meta", it.spec) : null, itemGain(it) ? h$1("div.subitems", h$1("div.subitem", h$1("span.subitem__k", "可得"), h$1("span.strong", itemGain(it)))) : null, it.snapshot?.package_items?.length ? h$1("div.subitems", h$1("div.subitem", h$1("span.subitem__k", "套餐含"), h$1("span", it.snapshot.package_items.join(" · ")))) : null, it.snapshot?.addons?.length ? h$1("div.subitems", h$1("div.subitem", h$1("span.subitem__k", "增项"), h$1("span", it.snapshot.addons.map((a) => `${a.name}${a.price_mode === "percent" ? ` +${a.price}%` : ` +${fmtMoney$1(a.price)}元`}`).join(" · ")))) : null), h$1("div.item__right", h$1("div.item__fig", `${fmtMoney$1(it.unit_price)}`, h$1("span.dim", `${it.unit_label ? `/${it.unit_label}` : ""} × ${fmtQty$1(it.quantity)}`)), h$1("div.tbl__meta", `= ${fmtMoney$1(it.amount)} 元`)))));
 }
 /** 「今天 / 昨天 / 3 天前 / 更早写日期」 */
 function relDay(dateStr) {
@@ -14525,39 +14587,39 @@ function deltaChips(p) {
 	for (const d of deltas) {
 		const tone = d.diff < 0 ? "oxblood" : d.diff > 0 ? "jade" : "muted";
 		const sign = d.diff < 0 ? "−" : d.diff > 0 ? "+" : "±";
-		out.push(h(`span.tl__delta.tone-${tone}`, `${d.key} ${sign}${fmtQty(Math.abs(d.diff))}`));
+		out.push(h$1(`span.tl__delta.tone-${tone}`, `${d.key} ${sign}${fmtQty$1(Math.abs(d.diff))}`));
 	}
 	return out;
 }
 function progressTimeline(list, { onEdit, onDelete } = {}) {
-	if (!list.length) return h("div.empty", h("div.empty__mark", icon("clock", 20)), h("div.empty__title", "还没有进度记录"), h("p.empty__body", "每做一段就记一条，客户问起来直接发，自己回头看也清楚。"));
+	if (!list.length) return h$1("div.empty", h$1("div.empty__mark", icon("clock", 20)), h$1("div.empty__title", "还没有进度记录"), h$1("p.empty__body", "每做一段就记一条，客户问起来直接发，自己回头看也清楚。"));
 	const sorted = [...list].sort((a, b) => String(a.happened_on || "").localeCompare(String(b.happened_on || "")) || (a.id || 0) - (b.id || 0));
 	const lastIdx = sorted.length - 1;
-	return h("div.timeline", sorted.map((p, i) => {
+	return h$1("div.timeline", sorted.map((p, i) => {
 		const chips = deltaChips(p);
 		const shots = (p.media || []).filter((m) => /\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(m));
 		const links = (p.media || []).filter((m) => !/\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(m));
-		return h(`div.tl${i === lastIdx ? ".tl--now" : ""}`, h("div.tl__rail", h("div.tl__dot")), h("div.tl__body", h("div.tl__head", h("div.tl__date", h("strong", relDay(p.happened_on)), h("span.tl__datefull", fmtDay(p.happened_on))), i === lastIdx ? tag("最新", "slate") : null, h("span.tl__step", `第 ${i + 1} 条`), h("div", { style: { flex: "1" } }), onEdit ? h("button.btn.btn--sm.btn--quiet", {
+		return h$1(`div.tl${i === lastIdx ? ".tl--now" : ""}`, h$1("div.tl__rail", h$1("div.tl__dot")), h$1("div.tl__body", h$1("div.tl__head", h$1("div.tl__date", h$1("strong", relDay(p.happened_on)), h$1("span.tl__datefull", fmtDay$1(p.happened_on))), i === lastIdx ? tag("最新", "slate") : null, h$1("span.tl__step", `第 ${i + 1} 条`), h$1("div", { style: { flex: "1" } }), onEdit ? h$1("button.btn.btn--sm.btn--quiet", {
 			type: "button",
 			title: "编辑",
 			onclick: () => onEdit(p)
-		}, icon("edit", 13)) : null, onDelete ? h("button.btn.btn--sm.btn--quiet", {
+		}, icon("edit", 13)) : null, onDelete ? h$1("button.btn.btn--sm.btn--quiet", {
 			type: "button",
 			title: "删除",
 			onclick: () => onDelete(p)
-		}, icon("trash", 13)) : null), h("div.tl__content", p.content), p.resources_before || p.resources_after ? h("div.tl__resrow", h("span.tl__reslabel", "资源变化"), h("span.tl__res", p.resources_before ? h("span", p.resources_before) : h("span.dim", "未记录"), h("span.tl__arrow", "→"), p.resources_after ? h("span", p.resources_after) : h("span.dim", "未记录"))) : null, chips.length ? h("div.tl__deltas", h("span.dim.tiny", "本次消耗"), ...chips) : null, shots.length ? h("div.tl__shots", shots.map((m) => h("a", {
+		}, icon("trash", 13)) : null), h$1("div.tl__content", p.content), p.resources_before || p.resources_after ? h$1("div.tl__resrow", h$1("span.tl__reslabel", "资源变化"), h$1("span.tl__res", p.resources_before ? h$1("span", p.resources_before) : h$1("span.dim", "未记录"), h$1("span.tl__arrow", "→"), p.resources_after ? h$1("span", p.resources_after) : h$1("span.dim", "未记录"))) : null, chips.length ? h$1("div.tl__deltas", h$1("span.dim.tiny", "本次消耗"), ...chips) : null, shots.length ? h$1("div.tl__shots", shots.map((m) => h$1("a", {
 			href: m,
 			target: "_blank",
 			rel: "noreferrer noopener"
-		}, h("img.shot", {
+		}, h$1("img.shot", {
 			src: m,
 			alt: "进度截图",
 			loading: "lazy"
-		})))) : null, links.length ? h("div.tl__shots", links.map((m) => h("a.shot-link", {
+		})))) : null, links.length ? h$1("div.tl__shots", links.map((m) => h$1("a.shot-link", {
 			href: m,
 			target: "_blank",
 			rel: "noreferrer noopener"
-		}, icon("link", 12), "录屏 / 链接"))) : null, p.note ? h("div.tl__note", h("span.tl__note-label", "备注"), p.note) : null));
+		}, icon("link", 12), "录屏 / 链接"))) : null, p.note ? h$1("div.tl__note", h$1("span.tl__note-label", "备注"), p.note) : null));
 	}));
 }
 function editProgressDrawer(p, onDone) {
@@ -15198,16 +15260,16 @@ async function shareProgress(order, ctx) {
 		return;
 	}
 	const { text, report } = data;
-	const pre = h("pre.report-text");
+	const pre = h$1("pre.report-text");
 	pre.textContent = text;
-	const imgBox = h("div.report-preview");
+	const imgBox = h$1("div.report-preview");
 	try {
-		imgBox.appendChild(h("img", {
+		imgBox.appendChild(h$1("img", {
 			src: renderProgressCard(report, { scale: 1 }).toDataURL("image/png"),
 			alt: "进度汇报预览"
 		}));
 	} catch (err) {
-		imgBox.appendChild(h("div.hint", `图片预览画不出来：${err.message || ""}`));
+		imgBox.appendChild(h$1("div.hint", `图片预览画不出来：${err.message || ""}`));
 	}
 	async function doCopy() {
 		try {
@@ -15239,7 +15301,7 @@ async function shareProgress(order, ctx) {
 	const m = modal({
 		title: "分享进度",
 		wide: true,
-		body: h("div.stack", h("p.muted.sm", { style: { margin: "0" } }, "发给客户看这次做到哪了。图片发微信最好用，文字想改两句就复制。"), h("div.sechead", { style: { marginBottom: "0" } }, h("h3", "图片"), h("span.sechead__note", "一张竖图，直接发")), imgBox, h("div.sechead", { style: { marginBottom: "0" } }, h("h3", "文字"), h("span.sechead__note", "复制了就能粘")), pre, h("div.note", "进度、资源变化、截图张数都会带上。截图原图发不进这张图里，图上只会写「附 N 张截图」，图还是自己另发。")),
+		body: h$1("div.stack", h$1("p.muted.sm", { style: { margin: "0" } }, "发给客户看这次做到哪了。图片发微信最好用，文字想改两句就复制。"), h$1("div.sechead", { style: { marginBottom: "0" } }, h$1("h3", "图片"), h$1("span.sechead__note", "一张竖图，直接发")), imgBox, h$1("div.sechead", { style: { marginBottom: "0" } }, h$1("h3", "文字"), h$1("span.sechead__note", "复制了就能粘")), pre, h$1("div.note", "进度、资源变化、截图张数都会带上。截图原图发不进这张图里，图上只会写「附 N 张截图」，图还是自己另发。")),
 		actions: [
 			{
 				label: "关闭",
@@ -15323,7 +15385,7 @@ function gainSum(pairs) {
 		byName.set(name, (byName.get(name) || 0) + amount);
 	}
 	if (!byName.size) return "";
-	return [...byName.entries()].map(([name, amount]) => `${name} ${fmtQty(amount)}`).join(" + ");
+	return [...byName.entries()].map(([name, amount]) => `${name} ${fmtQty$1(amount)}`).join(" + ");
 }
 /**
 * 单子里这些明细加起来能让客户拿到多少货币。
@@ -15411,57 +15473,57 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 		});
 		else unmappable.push(it);
 	}
-	const custSel = h("select.sel");
-	custSel.appendChild(h("option", { value: "" }, "— 选客户 —"));
+	const custSel = h$1("select.sel");
+	custSel.appendChild(h$1("option", { value: "" }, "— 选客户 —"));
 	for (const c of customers) {
-		const o = h("option", { value: String(c.id) }, `${c.name}${c.phone ? ` · ${c.phone}` : ""}`);
+		const o = h$1("option", { value: String(c.id) }, `${c.name}${c.phone ? ` · ${c.phone}` : ""}`);
 		if (existing ? existing.customer_id === c.id : presetCustomer === c.id) o.selected = true;
 		custSel.appendChild(o);
 	}
-	const gameSel = h("select.sel");
-	gameSel.appendChild(h("option", { value: "" }, "— 选游戏 —"));
+	const gameSel = h$1("select.sel");
+	gameSel.appendChild(h$1("option", { value: "" }, "— 选游戏 —"));
 	for (const g of games) {
-		const o = h("option", { value: String(g.id) }, g.name);
+		const o = h$1("option", { value: String(g.id) }, g.name);
 		if (existing && existing.game_id === g.id) o.selected = true;
 		gameSel.appendChild(o);
 	}
-	const dateInp = h("input.inp", {
+	const dateInp = h$1("input.inp", {
 		type: "date",
-		value: existing ? fmtDate(existing.ordered_at) : todayStr()
+		value: existing ? fmtDate$1(existing.ordered_at) : todayStr$1()
 	});
-	const titleInp = h("input.inp", {
+	const titleInp = h$1("input.inp", {
 		placeholder: "不填就用服务名拼一个",
 		value: existing?.title || ""
 	});
-	const dueInp = h("input.inp", {
+	const dueInp = h$1("input.inp", {
 		type: "date",
-		value: existing?.due_at ? fmtDate(existing.due_at) : ""
+		value: existing?.due_at ? fmtDate$1(existing.due_at) : ""
 	});
 	let dueTouched = Boolean(existing?.due_at);
 	let dueAuto = {
 		days: 0,
 		name: ""
 	};
-	const remainBox = h("div.remain");
+	const remainBox = h$1("div.remain");
 	function paintRemain() {
 		remainBox.replaceChildren();
 		remainBox.className = "remain";
-		const info = remainInfo(dateInp.value, dueInp.value);
+		const info = remainInfo$1(dateInp.value, dueInp.value);
 		if (info.kind === "none") {
 			remainBox.classList.add("remain--none");
-			if (!dueInp.value) remainBox.appendChild(h("span.dim.sm", "填了交付日期，这里会算还剩几天"));
+			if (!dueInp.value) remainBox.appendChild(h$1("span.dim.sm", "填了交付日期，这里会算还剩几天"));
 			return;
 		}
 		if (info.kind === "invalid") {
 			remainBox.classList.add("remain--bad");
-			remainBox.appendChild(h("span.remain__big", "交付日期比下单日期还早"));
-			remainBox.appendChild(h("span.dim.sm", `下单到交付 ${info.span} 天，检查一下`));
+			remainBox.appendChild(h$1("span.remain__big", "交付日期比下单日期还早"));
+			remainBox.appendChild(h$1("span.dim.sm", `下单到交付 ${info.span} 天，检查一下`));
 			return;
 		}
 		remainBox.classList.add(`remain--${info.kind}`);
-		remainBox.appendChild(h("span.remain__big", info.text));
-		if (info.span !== null) remainBox.appendChild(h("span.dim.sm", `下单到交付 ${info.span} 天`));
-		if (dueAuto.days > 0) remainBox.appendChild(h("span.dim.sm", `${dueAuto.name ? `按「${dueAuto.name}」` : ""}${dueAuto.days} 天自动填的，可以直接改`));
+		remainBox.appendChild(h$1("span.remain__big", info.text));
+		if (info.span !== null) remainBox.appendChild(h$1("span.dim.sm", `下单到交付 ${info.span} 天`));
+		if (dueAuto.days > 0) remainBox.appendChild(h$1("span.dim.sm", `${dueAuto.name ? `按「${dueAuto.name}」` : ""}${dueAuto.days} 天自动填的，可以直接改`));
 	}
 	dateInp.addEventListener("input", paintRemain);
 	dateInp.addEventListener("change", paintRemain);
@@ -15477,36 +15539,36 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 		paintRemain();
 	});
 	dueInp.addEventListener("change", paintRemain);
-	const noteInp = h("textarea.ta", {
+	const noteInp = h$1("textarea.ta", {
 		rows: 2,
 		placeholder: "给客户看的备注"
 	});
 	noteInp.value = existing?.note || "";
-	const innerInp = h("textarea.ta", {
+	const innerInp = h$1("textarea.ta", {
 		rows: 2,
 		placeholder: "只有自己看得到的备注"
 	});
 	innerInp.value = existing?.internal_note || "";
-	const discountInp = h("input.inp.inp--fig", {
+	const discountInp = h$1("input.inp.inp--fig", {
 		inputmode: "decimal",
 		value: String(existing?.discount ?? 0)
 	});
-	const feeInp = h("input.inp.inp--fig", {
+	const feeInp = h$1("input.inp.inp--fig", {
 		inputmode: "decimal",
 		value: String(existing?.platform_fee ?? 0)
 	});
-	const costInp = h("input.inp.inp--fig", {
+	const costInp = h$1("input.inp.inp--fig", {
 		inputmode: "decimal",
 		value: String(existing?.cost ?? 0)
 	});
-	const svcSearch = h("input.inp", {
+	const svcSearch = h$1("input.inp", {
 		type: "search",
 		placeholder: "搜服务名…"
 	});
-	const svcList = h("div.picker__scroll");
-	const pickerFoot = h("div.picker__foot");
-	const summaryBox = h("div.stack.stack--tight");
-	const totalFig = h("span.quote-sheet__totalfig");
+	const svcList = h$1("div.picker__scroll");
+	const pickerFoot = h$1("div.picker__foot");
+	const summaryBox = h$1("div.stack.stack--tight");
+	const totalFig = h$1("span.quote-sheet__totalfig");
 	let gameFilter = "";
 	function renderServices() {
 		const q = svcSearch.value.trim().toLowerCase();
@@ -15523,14 +15585,14 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 		}
 		svcList.replaceChildren();
 		if (!cats.size) {
-			svcList.appendChild(h("div.empty", h("div.empty__body", "没有匹配的服务项。"), h("button.btn.btn--sm", {
+			svcList.appendChild(h$1("div.empty", h$1("div.empty__body", "没有匹配的服务项。"), h$1("button.btn.btn--sm", {
 				type: "button",
 				onclick: () => ctx.navigate("/price")
 			}, "去价格表加一个")));
 			return;
 		}
 		for (const [catName, list] of cats) {
-			const group = h("div.pickgroup", h("div.pickgroup__head", h("span.pickgroup__name", catName), h("span.pickgroup__n", `${list.length} 项`)));
+			const group = h$1("div.pickgroup", h$1("div.pickgroup__head", h$1("span.pickgroup__name", catName), h$1("span.pickgroup__n", `${list.length} 项`)));
 			for (const s of list) group.appendChild(serviceRow(s));
 			svcList.appendChild(group);
 		}
@@ -15539,7 +15601,7 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 	/** 「已选 N 项 + 共多少钱」，顺带一个清空 */
 	function paintPickerFoot() {
 		const n = picked.size;
-		mount(pickerFoot, n ? h("span.cluster", { style: { gap: "6px" } }, h("span.pickcount", String(n)), h("span", "已选")) : h("span.dim", "还没勾服务项"), h("div", { style: { flex: "1" } }), n ? h("button.btn.btn--sm.btn--quiet", {
+		mount(pickerFoot, n ? h$1("span.cluster", { style: { gap: "6px" } }, h$1("span.pickcount", String(n)), h$1("span", "已选")) : h$1("span.dim", "还没勾服务项"), h$1("div", { style: { flex: "1" } }), n ? h$1("button.btn.btn--sm.btn--quiet", {
 			type: "button",
 			onclick: () => {
 				picked.clear();
@@ -15561,31 +15623,31 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 	}
 	const svcGain = (s) => {
 		const pair = svcGainPair(s);
-		return pair ? `${pair[0]} ${fmtQty(pair[1])}` : "";
+		return pair ? `${pair[0]} ${fmtQty$1(pair[1])}` : "";
 	};
 	function serviceRow(s) {
-		const cb = h("input.chk", {
+		const cb = h$1("input.chk", {
 			type: "checkbox",
 			"aria-label": `选择 ${s.name}`
 		});
 		cb.checked = picked.has(s.id);
 		const gain = svcGain(s);
-		const qty = h("input.inp.inp--fig", {
+		const qty = h$1("input.inp.inp--fig", {
 			inputmode: "decimal",
 			style: { width: "76px" },
 			"aria-label": `${s.name} 数量`
 		});
-		const price = h("input.inp.inp--fig", {
+		const price = h$1("input.inp.inp--fig", {
 			inputmode: "decimal",
 			style: { width: "86px" },
 			placeholder: "改价",
 			"aria-label": `${s.name} 单价`
 		});
-		const optWrap = h("div.cluster", { style: { gap: "10px" } });
-		const tierHint = h("span.dim.tiny");
-		const ctrl = h("div.pickrow__ctrl", h("div.cluster", { style: { gap: "6px" } }, qty, h("span.dim.tiny", defaultUnit$1(s)), price, h("span.dim.tiny", "元")));
-		const detail = h("div.pickrow__detail");
-		const row = h("div.pickrow");
+		const optWrap = h$1("div.cluster", { style: { gap: "10px" } });
+		const tierHint = h$1("span.dim.tiny");
+		const ctrl = h$1("div.pickrow__ctrl", h$1("div.cluster", { style: { gap: "6px" } }, qty, h$1("span.dim.tiny", defaultUnit$1(s)), price, h$1("span.dim.tiny", "元")));
+		const detail = h$1("div.pickrow__detail");
+		const row = h$1("div.pickrow");
 		/** 只重画选中/未选中的外观，不重建输入框（否则打字会掉焦点） */
 		function paintRow() {
 			const cur = picked.get(s.id);
@@ -15597,7 +15659,7 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 			if (document.activeElement !== qty) qty.value = String(cur.quantity);
 			if (document.activeElement !== price) price.value = cur.unitPrice === "" ? "" : String(cur.unitPrice);
 			const auto = unitPriceFor$1(s, s.tiers, Number(cur.quantity) || 1);
-			tierHint.textContent = Number(cur.quantity) >= 1 ? `按 ${fmtQty(cur.quantity)} ${defaultUnit$1(s)} 算，基准单价 ¥${fmtMoney(auto)}` : "";
+			tierHint.textContent = Number(cur.quantity) >= 1 ? `按 ${fmtQty$1(cur.quantity)} ${defaultUnit$1(s)} 算，基准单价 ¥${fmtMoney$1(auto)}` : "";
 		}
 		/** 增项只在勾选状态变化时重建 */
 		function buildOptions() {
@@ -15605,24 +15667,24 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 			optWrap.replaceChildren();
 			if (!cur) return;
 			for (const o of cur.options || []) {
-				const oc = h("input.chk", { type: "checkbox" });
+				const oc = h$1("input.chk", { type: "checkbox" });
 				oc.checked = cur.optionIds.has(o.id);
 				oc.addEventListener("change", () => {
 					if (oc.checked) cur.optionIds.add(o.id);
 					else cur.optionIds.delete(o.id);
 					paintSummary();
 				});
-				optWrap.appendChild(h("label.inline", { style: {
+				optWrap.appendChild(h$1("label.inline", { style: {
 					cursor: "pointer",
 					gap: "5px"
-				} }, oc, h("span.sm", o.name), h("span.dim.tiny", o.price_mode === "percent" ? `+${o.price}%` : o.price ? `+${fmtMoney(o.price)}元` : "不加价")));
+				} }, oc, h$1("span.sm", o.name), h$1("span.dim.tiny", o.price_mode === "percent" ? `+${o.price}%` : o.price ? `+${fmtMoney$1(o.price)}元` : "不加价")));
 			}
-			if (!optWrap.childElementCount) optWrap.appendChild(h("span.dim.tiny", "这个服务项没有增项"));
+			if (!optWrap.childElementCount) optWrap.appendChild(h$1("span.dim.tiny", "这个服务项没有增项"));
 		}
-		row.append(h("div.pickrow__top", cb, h("button.pickrow__main", {
+		row.append(h$1("div.pickrow__top", cb, h$1("button.pickrow__main", {
 			type: "button",
 			onclick: () => toggle()
-		}, h("span.pickrow__line", h("span.pickrow__name", s.name), gain ? h("span.pickrow__gain", gain) : null, h("span.pickrow__fig", `¥${fmtMoney(s.base_price)}`, h("em", `/${defaultUnit$1(s)}`))), h("span.pickrow__meta", [
+		}, h$1("span.pickrow__line", h$1("span.pickrow__name", s.name), gain ? h$1("span.pickrow__gain", gain) : null, h$1("span.pickrow__fig", `¥${fmtMoney$1(s.base_price)}`, h$1("em", `/${defaultUnit$1(s)}`))), h$1("span.pickrow__meta", [
 			PRICE_TYPE_LABEL[s.price_type] || s.price_type,
 			s.tiers?.length ? `${s.tiers.length} 档阶梯价` : null,
 			s.description || null
@@ -15693,7 +15755,7 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 		const fee = Math.max(0, Number(feeInp.value) || 0);
 		const cost = Math.max(0, Number(costInp.value) || 0);
 		const total = Math.max(0, subtotal + addons - discount);
-		totalFig.textContent = `¥${fmtMoney(total)}`;
+		totalFig.textContent = `¥${fmtMoney$1(total)}`;
 		const gainText = gainSum([...picked.entries()].map(([id, sel]) => {
 			const pair = svcGainPair(servicesById.get(id));
 			return pair ? [pair[0], pair[1] * (Number(sel.quantity) || 1)] : null;
@@ -15713,12 +15775,12 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 				name: ""
 			};
 		}
-		summaryBox.replaceChildren(h("div", { style: {
+		summaryBox.replaceChildren(h$1("div", { style: {
 			display: "grid",
 			gridTemplateColumns: "1fr auto",
 			gap: "4px 12px",
 			fontSize: "var(--fs-sm)"
-		} }, h("span.dim", `服务小计（${lines.length} 项）`), h("span.num", `¥${fmtMoney(subtotal)}`), h("span.dim", "增项合计"), h("span.num", `¥${fmtMoney(addons)}`), h("span.dim", "折扣"), h("span.num.tone-oxblood", `−¥${fmtMoney(discount)}`), h("span.dim", "利润预估"), h("span.num", `¥${fmtMoney(total - fee - cost)}`), gainText ? h("span.dim", "可得") : null, gainText ? h("span.num", gainText) : null));
+		} }, h$1("span.dim", `服务小计（${lines.length} 项）`), h$1("span.num", `¥${fmtMoney$1(subtotal)}`), h$1("span.dim", "增项合计"), h$1("span.num", `¥${fmtMoney$1(addons)}`), h$1("span.dim", "折扣"), h$1("span.num.tone-oxblood", `−¥${fmtMoney$1(discount)}`), h$1("span.dim", "利润预估"), h$1("span.num", `¥${fmtMoney$1(total - fee - cost)}`), gainText ? h$1("span.dim", "可得") : null, gainText ? h$1("span.num", gainText) : null));
 		for (const p of recordPainters) if (p) p();
 		paintPickerFoot();
 	}
@@ -15728,17 +15790,17 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 		feeInp,
 		costInp
 	]) inp.addEventListener("input", paintSummary);
-	const gameFilterSel = h("select.sel", {
+	const gameFilterSel = h$1("select.sel", {
 		style: {
 			width: "auto",
 			minWidth: "130px"
 		},
 		"aria-label": "按游戏筛选"
 	});
-	gameFilterSel.appendChild(h("option", { value: "" }, "全部游戏"));
-	for (const g of games) gameFilterSel.appendChild(h("option", { value: String(g.id) }, g.name));
+	gameFilterSel.appendChild(h$1("option", { value: "" }, "全部游戏"));
+	for (const g of games) gameFilterSel.appendChild(h$1("option", { value: String(g.id) }, g.name));
 	let catFilter = "";
-	const catFilterSel = h("select.sel", {
+	const catFilterSel = h$1("select.sel", {
 		style: {
 			width: "auto",
 			minWidth: "130px"
@@ -15754,7 +15816,7 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 	function paintCatFilter() {
 		const list = pickableCats();
 		if (catFilter && !list.some((c) => String(c.id) === catFilter)) catFilter = "";
-		catFilterSel.replaceChildren(h("option", { value: "" }, "全部大类"), ...list.map((c) => h("option", { value: String(c.id) }, c.name)));
+		catFilterSel.replaceChildren(h$1("option", { value: "" }, "全部大类"), ...list.map((c) => h$1("option", { value: String(c.id) }, c.name)));
 		catFilterSel.value = catFilter;
 	}
 	catFilterSel.addEventListener("change", () => {
@@ -15770,39 +15832,39 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 	renderServices();
 	paintSummary();
 	paintRemain();
-	const body = h("div.stack", h("div.formgrid", h("div.field", h("label.lbl", "客户 *"), h("div.cluster", { style: {
+	const body = h$1("div.stack", h$1("div.formgrid", h$1("div.field", h$1("label.lbl", "客户 *"), h$1("div.cluster", { style: {
 		gap: "6px",
 		flexWrap: "nowrap"
-	} }, h("div", { style: {
+	} }, h$1("div", { style: {
 		flex: "1 1 auto",
 		minWidth: "0"
-	} }, custSel), addCustomerBtn())), h("div.field", h("label.lbl", "游戏"), gameSel), h("div.field", h("label.lbl", "下单日期"), dateInp), h("div.field", h("label.lbl", "交付日期"), dueInp), h("div.field.field--full", remainBox), h("div.field.field--full", h("label.lbl", "订单标题"), titleInp)), h("div", h("div.sechead", h("h3", "挑服务"), h("span.sechead__note", "勾上就进单子，数量可以改"))), h("div.cluster", { style: { marginBottom: "6px" } }, svcSearch, gameFilterSel, catFilterSel), h("div.picker", svcList, pickerFoot), h("div", h("div.sechead", h("h3", "金额"))), h("div.formgrid", h("div.field", h("label.lbl", "折扣（元）"), discountInp), h("div.field", h("label.lbl", "平台手续费（元）"), feeInp), h("div.field", h("label.lbl", "成本（元）"), costInp)), summaryBox, unmappable.length ? h("div.note.note--warn", `这张单有 ${unmappable.length} 条明细（${unmappable.map((i) => i.name).join("、")}）在价格表里已经找不到对应的服务项，多半是从报价单转过来的。这几条在这里改不了，保存时会原样保留（不会被删掉，也不会被重算）。其它明细的改动照常保存。`) : null, h("div", h("div.sechead", h("h3", "备注"))), h("div.field.field--full", h("label.lbl", "给客户看的备注"), noteInp), h("div.field.field--full", h("label.lbl", "只有自己看得到的备注"), innerInp), h("div.note", "提交后，服务名、单价、数量、套餐内容、增项会一起冻进这张单的快照里。之后你在价格表里怎么改价，这张单都不受影响。"));
+	} }, custSel), addCustomerBtn())), h$1("div.field", h$1("label.lbl", "游戏"), gameSel), h$1("div.field", h$1("label.lbl", "下单日期"), dateInp), h$1("div.field", h$1("label.lbl", "交付日期"), dueInp), h$1("div.field.field--full", remainBox), h$1("div.field.field--full", h$1("label.lbl", "订单标题"), titleInp)), h$1("div", h$1("div.sechead", h$1("h3", "挑服务"), h$1("span.sechead__note", "勾上就进单子，数量可以改"))), h$1("div.cluster", { style: { marginBottom: "6px" } }, svcSearch, gameFilterSel, catFilterSel), h$1("div.picker", svcList, pickerFoot), h$1("div", h$1("div.sechead", h$1("h3", "金额"))), h$1("div.formgrid", h$1("div.field", h$1("label.lbl", "折扣（元）"), discountInp), h$1("div.field", h$1("label.lbl", "平台手续费（元）"), feeInp), h$1("div.field", h$1("label.lbl", "成本（元）"), costInp)), summaryBox, unmappable.length ? h$1("div.note.note--warn", `这张单有 ${unmappable.length} 条明细（${unmappable.map((i) => i.name).join("、")}）在价格表里已经找不到对应的服务项，多半是从报价单转过来的。这几条在这里改不了，保存时会原样保留（不会被删掉，也不会被重算）。其它明细的改动照常保存。`) : null, h$1("div", h$1("div.sechead", h$1("h3", "备注"))), h$1("div.field.field--full", h$1("label.lbl", "给客户看的备注"), noteInp), h$1("div.field.field--full", h$1("label.lbl", "只有自己看得到的备注"), innerInp), h$1("div.note", "提交后，服务名、单价、数量、套餐内容、增项会一起冻进这张单的快照里。之后你在价格表里怎么改价，这张单都不受影响。"));
 	function addCustomerBtn() {
-		return h("button.btn.btn--sm", {
+		return h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: async () => {
 				const created = await customerForm();
 				if (!created) return;
-				const o = h("option", { value: String(created.id) }, `${created.name}${created.phone ? ` · ${created.phone}` : ""}`);
+				const o = h$1("option", { value: String(created.id) }, `${created.name}${created.phone ? ` · ${created.phone}` : ""}`);
 				custSel.appendChild(o);
 				custSel.value = String(created.id);
 			}
 		}, icon("plus", 14), "新客户");
 	}
-	const submitBtn = h("button.btn.btn--primary", { type: "button" }, existing ? "保存改动" : "开单");
+	const submitBtn = h$1("button.btn.btn--primary", { type: "button" }, existing ? "保存改动" : "开单");
 	const d = drawer({
 		title: existing ? `改单 · ${existing.order_no}` : "开一张新单",
 		subtitle: existing ? "改完会重算金额并替换明细快照" : "选客户、挑服务，价格自动算",
 		wide: true,
 		body,
 		footer: [
-			h("div", { style: {
+			h$1("div", { style: {
 				display: "flex",
 				alignItems: "baseline",
 				gap: "8px",
 				flex: "1"
-			} }, h("span.sm.dim", "合计"), totalFig),
-			h("button.btn", {
+			} }, h$1("span.sm.dim", "合计"), totalFig),
+			h$1("button.btn", {
 				type: "button",
 				onclick: () => d.close()
 			}, "取消"),
@@ -15992,9 +16054,9 @@ async function renderDetail(ctx, id) {
 	/** 拆单：把几个服务项挪到一张新单上，两边各自收款结单 */
 	const splitOrder = () => {
 		const pickedIds = /* @__PURE__ */ new Set();
-		const list = h("div.itemlist");
+		const list = h$1("div.itemlist");
 		for (const it of o.items) {
-			const cb = h("input.chk", {
+			const cb = h$1("input.chk", {
 				type: "checkbox",
 				"aria-label": `拆出 ${it.name}`
 			});
@@ -16003,21 +16065,21 @@ async function renderDetail(ctx, id) {
 				else pickedIds.delete(it.id);
 				paintFoot();
 			});
-			list.appendChild(h("label.item", { style: {
+			list.appendChild(h$1("label.item", { style: {
 				cursor: "pointer",
 				alignItems: "center",
 				gap: "10px"
-			} }, cb, h("div.item__main", h("div.item__title", it.name, it.is_daily ? tag("每天做", "jade") : null), it.spec ? h("div.tbl__meta", it.spec) : null), h("div.item__right", h("div.item__fig", `¥${fmtMoney(it.amount)}`))));
+			} }, cb, h$1("div.item__main", h$1("div.item__title", it.name, it.is_daily ? tag("每天做", "jade") : null), it.spec ? h$1("div.tbl__meta", it.spec) : null), h$1("div.item__right", h$1("div.item__fig", `¥${fmtMoney$1(it.amount)}`))));
 		}
-		const foot = h("div.note.note--warn");
-		const paySel = h("select.sel", { "aria-label": "收款怎么分" }, h("option", { value: "proportional" }, "按金额比例分到两张单（推荐）"), h("option", { value: "keep" }, "全部留在原单"));
-		const progSel = h("select.sel", { "aria-label": "进度时间线怎么处理" }, h("option", { value: "keep" }, "留在原单"), h("option", { value: "move" }, "跟到新单"));
+		const foot = h$1("div.note.note--warn");
+		const paySel = h$1("select.sel", { "aria-label": "收款怎么分" }, h$1("option", { value: "proportional" }, "按金额比例分到两张单（推荐）"), h$1("option", { value: "keep" }, "全部留在原单"));
+		const progSel = h$1("select.sel", { "aria-label": "进度时间线怎么处理" }, h$1("option", { value: "keep" }, "留在原单"), h$1("option", { value: "move" }, "跟到新单"));
 		const hasPay = (o.payments || []).length > 0;
 		const hasProg = (o.progress || []).length > 0;
 		const m = modal({
 			title: `拆单 · ${o.order_no}`,
 			wide: true,
-			body: h("div.stack", h("p.sm", "适合「30天日体 + 几个活动」这种单：把活动拆出去单独结算，日体那张继续天天标今日完成。"), h("p.sm.dim", "勾上要拆出去的 —— 选中的会变成一张新单，没选的留在原单。"), list, hasPay ? h("div.field", h("label.lbl", `收款怎么分（这张单已收 ¥${fmtMoney(o.paid_total)}）`), paySel) : null, hasProg ? h("div.field", h("label.lbl", `进度时间线（现有 ${o.progress.length} 条）`), progSel) : null, foot),
+			body: h$1("div.stack", h$1("p.sm", "适合「30天日体 + 几个活动」这种单：把活动拆出去单独结算，日体那张继续天天标今日完成。"), h$1("p.sm.dim", "勾上要拆出去的 —— 选中的会变成一张新单，没选的留在原单。"), list, hasPay ? h$1("div.field", h$1("label.lbl", `收款怎么分（这张单已收 ¥${fmtMoney$1(o.paid_total)}）`), paySel) : null, hasProg ? h$1("div.field", h$1("label.lbl", `进度时间线（现有 ${o.progress.length} 条）`), progSel) : null, foot),
 			actions: [{ label: "取消" }, {
 				label: "拆成新单",
 				tone: "primary",
@@ -16034,7 +16096,7 @@ async function renderDetail(ctx, id) {
 						if (r.payments_moved) bits.push(`收款分了 ${r.payments_moved} 笔`);
 						if (r.progress_moved) bits.push(`进度跟过去 ${r.progress_moved} 条`);
 						toast(bits.join(" · "), "ok", 4600);
-						if (r.original_overpaid > .001) setTimeout(() => toast(`注意：原单还留着 ¥${fmtMoney(r.original_paid)} 的收款，但金额只剩 ¥${fmtMoney(r.original.total)}，多收了 ¥${fmtMoney(r.original_overpaid)}`, "err", 9e3), 400);
+						if (r.original_overpaid > .001) setTimeout(() => toast(`注意：原单还留着 ¥${fmtMoney$1(r.original_paid)} 的收款，但金额只剩 ¥${fmtMoney$1(r.original.total)}，多收了 ¥${fmtMoney$1(r.original_overpaid)}`, "err", 9e3), 400);
 						ctx.app.reload();
 					} catch (err) {
 						toastErr(err);
@@ -16046,36 +16108,36 @@ async function renderDetail(ctx, id) {
 		function paintFoot() {
 			const n = pickedIds.size;
 			const rest = o.items.length - n;
-			foot.replaceChildren(h("span", n === 0 ? "还没勾任何服务项。" : rest === 0 ? "不能全拆走 —— 原单得至少留一个服务项（整张都要挪的话，不如直接改这一张）。" : `拆出去 ${n} 项，原单留 ${rest} 项。折扣 / 手续费 / 成本留在原单，新单从 0 开始。`));
+			foot.replaceChildren(h$1("span", n === 0 ? "还没勾任何服务项。" : rest === 0 ? "不能全拆走 —— 原单得至少留一个服务项（整张都要挪的话，不如直接改这一张）。" : `拆出去 ${n} 项，原单留 ${rest} 项。折扣 / 手续费 / 成本留在原单，新单从 0 开始。`));
 			if (m.setDisabled) m.setDisabled("go", n === 0 || rest === 0);
 		}
 		paintFoot();
 	};
-	ctx.setActions(h("button.btn.btn--sm", {
+	ctx.setActions(h$1("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => progressDrawer(o, () => ctx.app.reload())
-	}, icon("edit", 14), "记进度"), o.due_total > .001 ? h("button.btn.btn--sm", {
+	}, icon("edit", 14), "记进度"), o.due_total > .001 ? h$1("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => paymentDrawer(o, () => ctx.app.reload())
-	}, icon("wallet", 14), "记收款") : null, !closed ? h("button.btn.btn--sm", {
+	}, icon("wallet", 14), "记收款") : null, !closed ? h$1("button.btn.btn--sm", {
 		type: "button",
 		title: o.daily_done_today ? "撤销今日完成，重新回到「在做」" : "今天这份做完了，先挪出「在做」，明天自动回来",
 		onclick: () => dailyDone(!o.daily_done_today)
-	}, icon(o.daily_done_today ? "refresh" : "check", 14), o.daily_done_today ? "撤销今日完成" : "今日已完成") : null, !closed && (o.next_statuses || []).includes("done") ? h("button.btn.btn--sm.btn--primary", {
+	}, icon(o.daily_done_today ? "refresh" : "check", 14), o.daily_done_today ? "撤销今日完成" : "今日已完成") : null, !closed && (o.next_statuses || []).includes("done") ? h$1("button.btn.btn--sm.btn--primary", {
 		type: "button",
 		title: "整张单结束",
 		onclick: finishNow
-	}, icon("check", 14), "标记完成") : null, h("button.btn.btn--sm", {
+	}, icon("check", 14), "标记完成") : null, h$1("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => statusDrawer(o, () => ctx.app.reload())
-	}, "推进状态"), h("button.btn.btn--sm", {
+	}, "推进状态"), h$1("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => openComposer(ctx, { existing: o })
-	}, icon("price", 14), "改明细"), o.items.length > 1 ? h("button.btn.btn--sm", {
+	}, icon("price", 14), "改明细"), o.items.length > 1 ? h$1("button.btn.btn--sm", {
 		type: "button",
 		title: "把其中几个服务项拆成一张新单",
 		onclick: splitOrder
-	}, icon("copy", 14), "拆单") : null, h("button.btn.btn--sm.btn--icon", {
+	}, icon("copy", 14), "拆单") : null, h$1("button.btn.btn--sm.btn--icon", {
 		type: "button",
 		title: "删除订单",
 		onclick: async () => {
@@ -16093,44 +16155,44 @@ async function renderDetail(ctx, id) {
 		}
 	}, icon("trash", 14)));
 	const moneyRows = [
-		["服务小计", `¥${fmtMoney(o.items_subtotal)}`],
-		["增项合计", `¥${fmtMoney(o.addon_total)}`],
-		["折扣", `−¥${fmtMoney(o.discount)}`],
-		["平台手续费", `¥${fmtMoney(o.platform_fee)}`],
-		["成本", `¥${fmtMoney(o.cost)}`]
+		["服务小计", `¥${fmtMoney$1(o.items_subtotal)}`],
+		["增项合计", `¥${fmtMoney$1(o.addon_total)}`],
+		["折扣", `−¥${fmtMoney$1(o.discount)}`],
+		["平台手续费", `¥${fmtMoney$1(o.platform_fee)}`],
+		["成本", `¥${fmtMoney$1(o.cost)}`]
 	];
-	return h("div.stack", h("section.panel", h("div.panel__body", h("div.cluster", { style: {
+	return h$1("div.stack", h$1("section.panel", h$1("div.panel__body", h$1("div.cluster", { style: {
 		justifyContent: "space-between",
 		alignItems: "flex-start"
-	} }, h("div", { style: { minWidth: "0" } }, h("div.cluster", h("span.mono.strong", o.order_no), lamp(o.status_label, STATUS_TONE[o.status] || "muted"), copyButton(o.order_no, "复单号", { size: "icon" })), h("h1", { style: { marginTop: "4px" } }, o.title || "（没写标题）"), h("div.cluster.sm.dim", { style: { marginTop: "4px" } }, h("span", o.customer_name || "散客"), h("span", "·"), h("span", o.game_name || "未指定游戏"), h("span", "·"), h("span", `下单 ${fmtDateTime(o.ordered_at)}`), o.due_at ? h("span", `· 交付 ${fmtDay(o.due_at)}`) : null, (() => {
+	} }, h$1("div", { style: { minWidth: "0" } }, h$1("div.cluster", h$1("span.mono.strong", o.order_no), lamp(o.status_label, STATUS_TONE[o.status] || "muted"), copyButton(o.order_no, "复单号", { size: "icon" })), h$1("h1", { style: { marginTop: "4px" } }, o.title || "（没写标题）"), h$1("div.cluster.sm.dim", { style: { marginTop: "4px" } }, h$1("span", o.customer_name || "散客"), h$1("span", "·"), h$1("span", o.game_name || "未指定游戏"), h$1("span", "·"), h$1("span", `下单 ${fmtDateTime(o.ordered_at)}`), o.due_at ? h$1("span", `· 交付 ${fmtDay$1(o.due_at)}`) : null, (() => {
 		if (["done", "cancelled"].includes(o.status)) return null;
-		const info = remainInfo(o.ordered_at, o.due_at);
+		const info = remainInfo$1(o.ordered_at, o.due_at);
 		if (info.kind === "none") return null;
-		if (info.kind === "invalid") return h("span.duepill.duepill--bad", "交付日期填错了");
-		return h(`span.duepill.duepill--${info.kind}`, info.text);
-	})())), h("div", { style: { textAlign: "right" } }, h("div.cell__lbl", "订单总额"), h("div", { style: {
+		if (info.kind === "invalid") return h$1("span.duepill.duepill--bad", "交付日期填错了");
+		return h$1(`span.duepill.duepill--${info.kind}`, info.text);
+	})())), h$1("div", { style: { textAlign: "right" } }, h$1("div.cell__lbl", "订单总额"), h$1("div", { style: {
 		fontFamily: "var(--font-fig)",
 		fontSize: "var(--fs-2xl)",
 		fontWeight: "600",
 		letterSpacing: "-0.02em"
-	} }, `¥${fmtMoney(o.total)}`), h("div.sm", o.due_total > .001 ? h("span.tone-amber", `还差 ¥${fmtMoney(o.due_total)}`) : h("span.tone-jade", "已结清")))), h("div", { style: { marginTop: "var(--sp-4)" } }, orderTrack(o.status, o.status_label)), o.customer_id ? h("div.cluster", { style: { marginTop: "var(--sp-3)" } }, h("button.btn.btn--sm", {
+	} }, `¥${fmtMoney$1(o.total)}`), h$1("div.sm", o.due_total > .001 ? h$1("span.tone-amber", `还差 ¥${fmtMoney$1(o.due_total)}`) : h$1("span.tone-jade", "已结清")))), h$1("div", { style: { marginTop: "var(--sp-4)" } }, orderTrack(o.status, o.status_label)), o.customer_id ? h$1("div.cluster", { style: { marginTop: "var(--sp-3)" } }, h$1("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => ctx.navigate(`/customers/${o.customer_id}`)
-	}, "看客户档案"), o.credentials?.length ? h("button.btn.btn--sm", {
+	}, "看客户档案"), o.credentials?.length ? h$1("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => ctx.navigate(`/vault?customer=${o.customer_id}`)
-	}, icon("vault", 14), `这个客户有 ${o.credentials.length} 条登录凭证`) : null) : null)), h("div.split", h("div.stack", h("section.panel", h("div.panel__body", sectionHead("服务明细（下单时的快照）", "改价格表不影响这里")), h("div.panel__body.panel__body--flush", orderItemsList(o.items)), h("div.panel__foot", h("span.sm.dim", `共 ${o.items.length} 项`), gainTotal(o.items) ? h("span.sm.dim", { style: { marginLeft: "10px" } }, `可得 ${gainTotal(o.items)}`) : null, h("div", { style: { flex: "1" } }), h("span.sm.dim", "合计"), h("span.strong", `¥${fmtMoney(o.total)}`))), h("section.panel", h("div.panel__body", sectionHead("进度时间线", `${o.progress.length} 条`, h("button.btn.btn--sm", {
+	}, icon("vault", 14), `这个客户有 ${o.credentials.length} 条登录凭证`) : null) : null)), h$1("div.split", h$1("div.stack", h$1("section.panel", h$1("div.panel__body", sectionHead("服务明细（下单时的快照）", "改价格表不影响这里")), h$1("div.panel__body.panel__body--flush", orderItemsList(o.items)), h$1("div.panel__foot", h$1("span.sm.dim", `共 ${o.items.length} 项`), gainTotal(o.items) ? h$1("span.sm.dim", { style: { marginLeft: "10px" } }, `可得 ${gainTotal(o.items)}`) : null, h$1("div", { style: { flex: "1" } }), h$1("span.sm.dim", "合计"), h$1("span.strong", `¥${fmtMoney$1(o.total)}`))), h$1("section.panel", h$1("div.panel__body", sectionHead("进度时间线", `${o.progress.length} 条`, h$1("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => shareProgress(o, ctx)
-	}, icon("quotes", 14), "分享进度"), h("button.btn.btn--sm.btn--primary", {
+	}, icon("quotes", 14), "分享进度"), h$1("button.btn.btn--sm.btn--primary", {
 		type: "button",
 		onclick: () => progressDrawer(o, () => ctx.app.reload())
-	}, icon("plus", 14), "记一条"))), h("div.panel__body", { style: { paddingTop: "0" } }, progressTimeline(o.progress, {
+	}, icon("plus", 14), "记一条"))), h$1("div.panel__body", { style: { paddingTop: "0" } }, progressTimeline(o.progress, {
 		onEdit: (p) => editProgressDrawer(p, () => ctx.app.reload()),
 		onDelete: async (p) => {
 			if (!await confirmDelete({
 				title: "删掉这条进度？",
-				message: `${fmtDay(p.happened_on)}：${p.content.slice(0, 40)}`
+				message: `${fmtDay$1(p.happened_on)}：${p.content.slice(0, 40)}`
 			})) return;
 			try {
 				await api.del(`/api/progress/${p.id}`);
@@ -16140,29 +16202,29 @@ async function renderDetail(ctx, id) {
 				toastErr(err);
 			}
 		}
-	})))), h("div.stack", h("section.panel", h("div.panel__body", sectionHead("钱")), h("div.panel__body", { style: { paddingTop: "0" } }, h("div", { style: {
+	})))), h$1("div.stack", h$1("section.panel", h$1("div.panel__body", sectionHead("钱")), h$1("div.panel__body", { style: { paddingTop: "0" } }, h$1("div", { style: {
 		display: "grid",
 		gridTemplateColumns: "1fr auto",
 		gap: "6px 12px",
 		fontSize: "var(--fs-base)"
-	} }, ...moneyRows.flatMap(([k, v]) => [h("span.dim", k), h("span.num", v)]), h("span.strong", { style: {
+	} }, ...moneyRows.flatMap(([k, v]) => [h$1("span.dim", k), h$1("span.num", v)]), h$1("span.strong", { style: {
 		borderTop: "1px solid var(--line)",
 		paddingTop: "6px",
 		marginTop: "4px"
-	} }, "合计"), h("span.num.strong", { style: {
+	} }, "合计"), h$1("span.num.strong", { style: {
 		borderTop: "1px solid var(--line)",
 		paddingTop: "6px",
 		marginTop: "4px"
-	} }, `¥${fmtMoney(o.total)}`), h("span.dim.tone-jade", "已收"), h("span.num.tone-jade", `¥${fmtMoney(o.paid_total)}`), h("span.dim", o.due_total > .001 ? "还差" : "尾款"), h("span.num", o.due_total > .001 ? `¥${fmtMoney(o.due_total)}` : "0"), h("span.dim", "利润"), h("span.num", `¥${fmtMoney(o.profit)}`))), h("div.panel__body", { style: { paddingTop: "0" } }, h("div.cluster", h("button.btn.btn--sm.btn--block", {
+	} }, `¥${fmtMoney$1(o.total)}`), h$1("span.dim.tone-jade", "已收"), h$1("span.num.tone-jade", `¥${fmtMoney$1(o.paid_total)}`), h$1("span.dim", o.due_total > .001 ? "还差" : "尾款"), h$1("span.num", o.due_total > .001 ? `¥${fmtMoney$1(o.due_total)}` : "0"), h$1("span.dim", "利润"), h$1("span.num", `¥${fmtMoney$1(o.profit)}`))), h$1("div.panel__body", { style: { paddingTop: "0" } }, h$1("div.cluster", h$1("button.btn.btn--sm.btn--block", {
 		type: "button",
 		onclick: () => paymentDrawer(o, () => ctx.app.reload())
-	}, icon("plus", 14), "记一笔收款")))), h("section.panel", h("div.panel__body", sectionHead("收款记录", `${o.payments.length} 笔`)), o.payments.length ? h("div.itemlist", o.payments.map((p) => h("div.item", { style: { cursor: "default" } }, h("div.item__main", h("div.item__title", PAY_KIND_LABEL[p.kind] || p.kind, tag(PAY_METHOD_LABEL[p.method] || p.method)), h("div.item__meta", h("span", fmtDay(p.paid_at)), p.note ? h("span", p.note) : null)), h("div.item__right", h(`div.item__fig${p.kind === "refund" ? ".tone-oxblood" : ".tone-jade"}`, `${p.kind === "refund" ? "−" : "+"}¥${fmtMoney(p.amount)}`), h("button.btn.btn--sm.btn--quiet", {
+	}, icon("plus", 14), "记一笔收款")))), h$1("section.panel", h$1("div.panel__body", sectionHead("收款记录", `${o.payments.length} 笔`)), o.payments.length ? h$1("div.itemlist", o.payments.map((p) => h$1("div.item", { style: { cursor: "default" } }, h$1("div.item__main", h$1("div.item__title", PAY_KIND_LABEL[p.kind] || p.kind, tag(PAY_METHOD_LABEL[p.method] || p.method)), h$1("div.item__meta", h$1("span", fmtDay$1(p.paid_at)), p.note ? h$1("span", p.note) : null)), h$1("div.item__right", h$1(`div.item__fig${p.kind === "refund" ? ".tone-oxblood" : ".tone-jade"}`, `${p.kind === "refund" ? "−" : "+"}¥${fmtMoney$1(p.amount)}`), h$1("button.btn.btn--sm.btn--quiet", {
 		type: "button",
 		title: "删除这笔",
 		onclick: async () => {
 			if (!await confirmDelete({
 				title: "删掉这笔记录？",
-				message: `${PAY_KIND_LABEL[p.kind]} ¥${fmtMoney(p.amount)}（${p.paid_at}）`
+				message: `${PAY_KIND_LABEL[p.kind]} ¥${fmtMoney$1(p.amount)}（${p.paid_at}）`
 			})) return;
 			try {
 				await api.del(`/api/payments/${p.id}`);
@@ -16172,7 +16234,7 @@ async function renderDetail(ctx, id) {
 				toastErr(err);
 			}
 		}
-	}, icon("trash", 13)))))) : h("div.panel__body", h("p.dim.sm", "还没有收款记录。"))), o.note || o.internal_note ? h("section.panel", h("div.panel__body", sectionHead("备注")), h("div.panel__body", { style: { paddingTop: "0" } }, o.note ? h("div", h("div.tbl__meta", "给客户看的"), h("p", { style: { whiteSpace: "pre-wrap" } }, o.note)) : null, o.internal_note ? h("div", { style: { marginTop: "10px" } }, h("div.tbl__meta", "只有自己看得到"), h("p", { style: { whiteSpace: "pre-wrap" } }, o.internal_note)) : null)) : null)));
+	}, icon("trash", 13)))))) : h$1("div.panel__body", h$1("p.dim.sm", "还没有收款记录。"))), o.note || o.internal_note ? h$1("section.panel", h$1("div.panel__body", sectionHead("备注")), h$1("div.panel__body", { style: { paddingTop: "0" } }, o.note ? h$1("div", h$1("div.tbl__meta", "给客户看的"), h$1("p", { style: { whiteSpace: "pre-wrap" } }, o.note)) : null, o.internal_note ? h$1("div", { style: { marginTop: "10px" } }, h$1("div.tbl__meta", "只有自己看得到"), h$1("p", { style: { whiteSpace: "pre-wrap" } }, o.internal_note)) : null)) : null)));
 }
 var FILTERS$2 = [
 	{
@@ -16230,7 +16292,7 @@ async function renderList(ctx, status) {
 		const q = ctx.query.get("q") || "";
 		const custId = ctx.query.get("customer_id") || "";
 		const sort = ctx.query.get("sort") || "";
-		ctx.setActions(h("button.btn.btn--sm.btn--primary", {
+		ctx.setActions(h$1("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			onclick: () => openComposer(ctx)
 		}, icon("plus", 14), "开新单"));
@@ -16260,12 +16322,12 @@ async function renderList(ctx, status) {
 			if (so) p.set("sort", so);
 			return `/orders?${p.toString()}`;
 		};
-		const seg = h("div.seg", FILTERS$2.map((f) => h("button.seg__btn", {
+		const seg = h$1("div.seg", FILTERS$2.map((f) => h$1("button.seg__btn", {
 			type: "button",
 			"aria-pressed": String(f.key === status),
 			onclick: () => ctx.navigate(href({ status: f.key }))
 		}, f.label)));
-		const sortSel = h("select.sel", {
+		const sortSel = h$1("select.sel", {
 			style: { width: "auto" },
 			"aria-label": "排序方式"
 		}, ...[
@@ -16285,10 +16347,10 @@ async function renderList(ctx, status) {
 				v: "amount",
 				l: "按金额排"
 			}
-		].map((o) => h("option", { value: o.v }, o.l)));
+		].map((o) => h$1("option", { value: o.v }, o.l)));
 		sortSel.value = sort;
 		sortSel.addEventListener("change", () => ctx.navigate(href({ sort: sortSel.value })));
-		const searchInput = h("input.inp", {
+		const searchInput = h$1("input.inp", {
 			type: "search",
 			placeholder: "搜单号 / 标题 / 客户名",
 			value: q,
@@ -16307,11 +16369,11 @@ async function renderList(ctx, status) {
 		});
 		const custCount = new Set(items.filter((o) => o.customer_id).map((o) => o.customer_id)).size;
 		const walkIn = items.filter((o) => !o.customer_id).length;
-		return h("div.stack", h("div.pagehead", h("div.pagehead__txt", h("h1", custId ? `${cust?.name || "这个客户"}的单` : status === "open" ? "在做的单" : status === "daily_done" ? "今日已完成" : "订单"), h("p.pagehead__sub", items.length ? `${items.length} 张单 · ${custCount} 位客户${walkIn ? ` + ${walkIn} 张散客` : ""} · 合计 ¥${fmtMoney(total.amount)} · 未收 ¥${fmtMoney(total.due)}` : ""))), h("div.toolbar", seg, custId ? h("button.filterchip", {
+		return h$1("div.stack", h$1("div.pagehead", h$1("div.pagehead__txt", h$1("h1", custId ? `${cust?.name || "这个客户"}的单` : status === "open" ? "在做的单" : status === "daily_done" ? "今日已完成" : "订单"), h$1("p.pagehead__sub", items.length ? `${items.length} 张单 · ${custCount} 位客户${walkIn ? ` + ${walkIn} 张散客` : ""} · 合计 ¥${fmtMoney$1(total.amount)} · 未收 ¥${fmtMoney$1(total.due)}` : ""))), h$1("div.toolbar", seg, custId ? h$1("button.filterchip", {
 			type: "button",
 			title: "取消「只看这个客户」",
 			onclick: () => ctx.navigate(href({ customer_id: "" }))
-		}, `只看「${cust?.name || "这个客户"}」`, icon("close", 12)) : null, h("div.toolbar__grow"), sortSel, searchInput), status === "daily_done" ? h("div.note.note--ok", h("span", { style: { flex: "none" } }, icon("check", 15)), h("span", "这些是这个「今天」标了「今日已完成」的单 —— 今天不用再管，过了凌晨 4 点它们会自动回到「在做的」。点单号进去可以撤销。")) : null, h("section.panel", h("div.panel__body.panel__body--flush", items.length ? orderTable(items, ctx) : emptyState({
+		}, `只看「${cust?.name || "这个客户"}」`, icon("close", 12)) : null, h$1("div.toolbar__grow"), sortSel, searchInput), status === "daily_done" ? h$1("div.note.note--ok", h$1("span", { style: { flex: "none" } }, icon("check", 15)), h$1("span", "这些是这个「今天」标了「今日已完成」的单 —— 今天不用再管，过了凌晨 4 点它们会自动回到「在做的」。点单号进去可以撤销。")) : null, h$1("section.panel", h$1("div.panel__body.panel__body--flush", items.length ? orderTable(items, ctx) : emptyState({
 			iconName: "orders",
 			title: q ? "没搜到符合条件的单" : status === "open" ? "手上没有在做的单" : "这个状态下没有单",
 			body: q ? "换个单号或者客户名试试。" : "开一张新单：选客户、挑服务，价格会自动算出来。",
@@ -16356,14 +16418,14 @@ async function removeCustomer(ctx, c) {
 	}
 }
 function customerRow(c, ctx) {
-	return h("button.item", {
+	return h$1("button.item", {
 		type: "button",
 		onclick: () => ctx.navigate(`/customers/${c.id}`)
-	}, c.avatar ? h("img.avatar", {
+	}, c.avatar ? h$1("img.avatar", {
 		src: c.avatar,
 		alt: "",
 		loading: "lazy"
-	}) : h("div.avatar", (c.name || "?").slice(0, 1)), h("div.item__main", h("div.item__title", c.name, c.status === "archived" ? tag("已归档", "oxblood") : null, ...(c.tags || []).slice(0, 3).map((t) => tag(t))), h("div.item__meta", c.phone ? h("span.mono", c.phone) : h("span.dim", "没填手机号"), c.wechat ? h("span", `微信 ${c.wechat}`) : null, c.qq ? h("span", `QQ ${c.qq}`) : null, c.source ? h("span", c.source) : null)), h("div.item__right", h("div.item__fig", `${c.order_count} 单`), h("div.tbl__meta", c.due_total > .001 ? h("span.tone-amber", `未收 ¥${fmtMoney(c.due_total)}`) : h("span.dim", `累计 ¥${fmtMoney(c.order_total)}`))));
+	}) : h$1("div.avatar", (c.name || "?").slice(0, 1)), h$1("div.item__main", h$1("div.item__title", c.name, c.status === "archived" ? tag("已归档", "oxblood") : null, ...(c.tags || []).slice(0, 3).map((t) => tag(t))), h$1("div.item__meta", c.phone ? h$1("span.mono", c.phone) : h$1("span.dim", "没填手机号"), c.wechat ? h$1("span", `微信 ${c.wechat}`) : null, c.qq ? h$1("span", `QQ ${c.qq}`) : null, c.source ? h$1("span", c.source) : null)), h$1("div.item__right", h$1("div.item__fig", `${c.order_count} 单`), h$1("div.tbl__meta", c.due_total > .001 ? h$1("span.tone-amber", `未收 ¥${fmtMoney$1(c.due_total)}`) : h$1("span.dim", `累计 ¥${fmtMoney$1(c.order_total)}`))));
 }
 /** 在做 / 已结束 的一张订单行 */
 function orderLine(ctx, o) {
@@ -16371,12 +16433,12 @@ function orderLine(ctx, o) {
 	const info = done ? {
 		kind: "ok",
 		text: ""
-	} : remainInfo(o.ordered_at, o.due_at);
+	} : remainInfo$1(o.ordered_at, o.due_at);
 	const due = Number(o.due_total) || 0;
-	return h("button.item", {
+	return h$1("button.item", {
 		type: "button",
 		onclick: () => ctx.navigate(`/orders/${o.id}`)
-	}, h("div.item__main", h("div.item__title", o.order_no, lamp(o.status_label, STATUS_TONE[o.status] || "muted"), !done && info.text ? h(`span.duepill.duepill--${info.kind}`, info.text) : null), h("div.item__meta", h("span", o.title || "没写标题"), h("span", fmtDay(o.ordered_at)), o.due_at ? h("span", `交付 ${fmtDay(o.due_at)}`) : null)), h("div.item__right", h("div.item__fig", `¥${fmtMoney(o.total)}`), h("div.tbl__meta", due > .001 ? h("span.tone-amber", `未收 ¥${fmtMoney(due)}`) : h("span.dim", "已结清"))));
+	}, h$1("div.item__main", h$1("div.item__title", o.order_no, lamp(o.status_label, STATUS_TONE[o.status] || "muted"), !done && info.text ? h$1(`span.duepill.duepill--${info.kind}`, info.text) : null), h$1("div.item__meta", h$1("span", o.title || "没写标题"), h$1("span", fmtDay$1(o.ordered_at)), o.due_at ? h$1("span", `交付 ${fmtDay$1(o.due_at)}`) : null)), h$1("div.item__right", h$1("div.item__fig", `¥${fmtMoney$1(o.total)}`), h$1("div.tbl__meta", due > .001 ? h$1("span.tone-amber", `未收 ¥${fmtMoney$1(due)}`) : h$1("span.dim", "已结清"))));
 }
 /**
 * 客户名下的订单。
@@ -16389,36 +16451,36 @@ function customerOrders(ctx, c, orders) {
 	const ACTIVE_MAX = 6;
 	const CLOSED_MAX = 3;
 	const unpaid = active.filter((o) => Number(o.due_total) > .001).length;
-	const head = h("div.custorder__sum", h("span", `在做 ${active.length}`), closed.length ? h("span.dim", `· 已结束 ${closed.length}`) : null, unpaid ? h("span.tone-amber", `· ${unpaid} 张没收齐`) : null);
-	const body = h("div.itemlist");
+	const head = h$1("div.custorder__sum", h$1("span", `在做 ${active.length}`), closed.length ? h$1("span.dim", `· 已结束 ${closed.length}`) : null, unpaid ? h$1("span.tone-amber", `· ${unpaid} 张没收齐`) : null);
+	const body = h$1("div.itemlist");
 	for (const o of active.slice(0, ACTIVE_MAX)) body.appendChild(orderLine(ctx, o));
-	if (active.length > ACTIVE_MAX) body.appendChild(h("button.item.item--more", {
+	if (active.length > ACTIVE_MAX) body.appendChild(h$1("button.item.item--more", {
 		type: "button",
 		onclick: () => ctx.navigate(`/orders?customer_id=${c.id}&status=open`)
-	}, h("span.sm", `还有 ${active.length - ACTIVE_MAX} 张在做的单`), icon("right", 13)));
+	}, h$1("span.sm", `还有 ${active.length - ACTIVE_MAX} 张在做的单`), icon("right", 13)));
 	if (closed.length) {
-		body.appendChild(h("div.custorder__sep", h("span.sm.dim", "已结束")));
+		body.appendChild(h$1("div.custorder__sep", h$1("span.sm.dim", "已结束")));
 		for (const o of closed.slice(0, CLOSED_MAX)) body.appendChild(orderLine(ctx, o));
-		if (closed.length > CLOSED_MAX) body.appendChild(h("button.item.item--more", {
+		if (closed.length > CLOSED_MAX) body.appendChild(h$1("button.item.item--more", {
 			type: "button",
 			onclick: () => ctx.navigate(`/orders?customer_id=${c.id}&status=`)
-		}, h("span.sm", `还有 ${closed.length - CLOSED_MAX} 张已结束的单`), icon("right", 13)));
+		}, h$1("span.sm", `还有 ${closed.length - CLOSED_MAX} 张已结束的单`), icon("right", 13)));
 	}
-	return h("div", head, body);
+	return h$1("div", head, body);
 }
 async function renderCustomerDetail(ctx, id) {
 	const p = await api.get(`/api/customers/${id}/profile`);
 	const c = p.customer;
 	const s = p.summary;
-	ctx.setActions(h("button.btn.btn--sm.btn--primary", {
+	ctx.setActions(h$1("button.btn.btn--sm.btn--primary", {
 		type: "button",
 		onclick: () => openComposer(ctx, { presetCustomer: c.id })
-	}, icon("plus", 14), "给 TA 开单"), h("button.btn.btn--sm", {
+	}, icon("plus", 14), "给 TA 开单"), h$1("button.btn.btn--sm", {
 		type: "button",
 		onclick: async () => {
 			if (await customerForm(c, { title: "改客户资料" })) ctx.app.reload();
 		}
-	}, icon("edit", 14), "改资料"), c.status === "archived" ? h("button.btn.btn--sm", {
+	}, icon("edit", 14), "改资料"), c.status === "archived" ? h$1("button.btn.btn--sm", {
 		type: "button",
 		onclick: async () => {
 			try {
@@ -16429,50 +16491,50 @@ async function renderCustomerDetail(ctx, id) {
 				toastErr(err);
 			}
 		}
-	}, icon("refresh", 14), "恢复") : null, h("button.btn.btn--sm.btn--quiet", {
+	}, icon("refresh", 14), "恢复") : null, h$1("button.btn.btn--sm.btn--quiet", {
 		type: "button",
 		title: "归档或彻底删除这位客户",
 		onclick: () => removeCustomer(ctx, c)
-	}, icon("trash", 14)), h("button.btn.btn--sm.btn--quiet", {
+	}, icon("trash", 14)), h$1("button.btn.btn--sm.btn--quiet", {
 		type: "button",
 		onclick: () => ctx.navigate("/customers")
 	}, "返回列表"));
-	const contact = h("div.stack.stack--tight", h("div.kv", ...[
-		["手机号", c.phone ? h("span.cluster", h("span.mono", c.phone), copyButton(c.phone, "复制", { size: "icon" })) : h("span.dim", "没填")],
-		["微信", c.wechat ? h("span.cluster", h("span.mono", c.wechat), copyButton(c.wechat, "复制", { size: "icon" })) : h("span.dim", "没填")],
-		["QQ", c.qq ? h("span.mono", c.qq) : h("span.dim", "没填")],
+	const contact = h$1("div.stack.stack--tight", h$1("div.kv", ...[
+		["手机号", c.phone ? h$1("span.cluster", h$1("span.mono", c.phone), copyButton(c.phone, "复制", { size: "icon" })) : h$1("span.dim", "没填")],
+		["微信", c.wechat ? h$1("span.cluster", h$1("span.mono", c.wechat), copyButton(c.wechat, "复制", { size: "icon" })) : h$1("span.dim", "没填")],
+		["QQ", c.qq ? h$1("span.mono", c.qq) : h$1("span.dim", "没填")],
 		["来源", c.source || "—"],
-		["建档", fmtDate(c.created_at)]
-	].flatMap(([k, v]) => [h("dt", k), h("dd", v)])), c.tags?.length ? h("div.cluster", c.tags.map((t) => tag(t))) : null, c.note ? h("div.note", c.note) : null);
-	const money = h("div", { style: {
+		["建档", fmtDate$1(c.created_at)]
+	].flatMap(([k, v]) => [h$1("dt", k), h$1("dd", v)])), c.tags?.length ? h$1("div.cluster", c.tags.map((t) => tag(t))) : null, c.note ? h$1("div.note", c.note) : null);
+	const money = h$1("div", { style: {
 		display: "grid",
 		gridTemplateColumns: "1fr auto",
 		gap: "6px 12px"
-	} }, h("span.dim", "累计订单额"), h("span.num", `¥${fmtMoney(s.order_total)}`), h("span.dim.tone-jade", "已收"), h("span.num.tone-jade", `¥${fmtMoney(s.paid_total)}`), h("span.dim", s.due_total > .001 ? "还欠" : "尾款"), h("span.num", s.due_total > .001 ? h("span.tone-amber", `¥${fmtMoney(s.due_total)}`) : "0"), h("span.dim", "在做的单"), h("span.num", String(s.active_orders)));
-	const credBlock = p.credentials.length ? h("div.itemlist", p.credentials.map((cred) => h("div.item", { style: { cursor: "default" } }, h("div.item__main", h("div.item__title", cred.label || "未命名", h("span.tag", LOGIN_TYPE_LABEL[cred.login_type] || cred.login_type)), h("div.item__meta", h("span", cred.game_name || "未指定"), h("span", cred.server || ""), h("span.mono", cred.masked_hint))), h("button.btn.btn--sm", {
+	} }, h$1("span.dim", "累计订单额"), h$1("span.num", `¥${fmtMoney$1(s.order_total)}`), h$1("span.dim.tone-jade", "已收"), h$1("span.num.tone-jade", `¥${fmtMoney$1(s.paid_total)}`), h$1("span.dim", s.due_total > .001 ? "还欠" : "尾款"), h$1("span.num", s.due_total > .001 ? h$1("span.tone-amber", `¥${fmtMoney$1(s.due_total)}`) : "0"), h$1("span.dim", "在做的单"), h$1("span.num", String(s.active_orders)));
+	const credBlock = p.credentials.length ? h$1("div.itemlist", p.credentials.map((cred) => h$1("div.item", { style: { cursor: "default" } }, h$1("div.item__main", h$1("div.item__title", cred.label || "未命名", h$1("span.tag", LOGIN_TYPE_LABEL[cred.login_type] || cred.login_type)), h$1("div.item__meta", h$1("span", cred.game_name || "未指定"), h$1("span", cred.server || ""), h$1("span.mono", cred.masked_hint))), h$1("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => ctx.navigate(`/vault?customer=${c.id}&c=${cred.id}`)
-	}, "去保险箱")))) : h("p.dim.sm", "这个客户还没有登记游戏登录凭证。");
-	return h("div.stack", h("div.pagehead", h("div.cluster", { style: {
+	}, "去保险箱")))) : h$1("p.dim.sm", "这个客户还没有登记游戏登录凭证。");
+	return h$1("div.stack", h$1("div.pagehead", h$1("div.cluster", { style: {
 		gap: "var(--sp-3)",
 		alignItems: "center"
-	} }, c.avatar ? h("img.avatar.avatar--lg", {
+	} }, c.avatar ? h$1("img.avatar.avatar--lg", {
 		src: c.avatar,
 		alt: "",
 		style: { flex: "none" }
-	}) : h("div.avatar.avatar--lg", { style: { flex: "none" } }, (c.name || "?").slice(0, 1)), h("div.pagehead__txt", h("h1", c.name), h("p.pagehead__sub", `${s.order_count} 张单 · 累计 ¥${fmtMoney(s.order_total)}${s.due_total > .001 ? ` · 还欠 ¥${fmtMoney(s.due_total)}` : " · 已结清"}`)))), h("div.split", h("div.stack", h("section.panel", h("div.panel__body", sectionHead("订单", `${p.orders.length} 张`, p.orders.length ? h("button.btn.btn--sm", {
+	}) : h$1("div.avatar.avatar--lg", { style: { flex: "none" } }, (c.name || "?").slice(0, 1)), h$1("div.pagehead__txt", h$1("h1", c.name), h$1("p.pagehead__sub", `${s.order_count} 张单 · 累计 ¥${fmtMoney$1(s.order_total)}${s.due_total > .001 ? ` · 还欠 ¥${fmtMoney$1(s.due_total)}` : " · 已结清"}`)))), h$1("div.split", h$1("div.stack", h$1("section.panel", h$1("div.panel__body", sectionHead("订单", `${p.orders.length} 张`, p.orders.length ? h$1("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => ctx.navigate(`/orders?customer_id=${c.id}&status=`)
-	}, "看全部") : null)), p.orders.length ? customerOrders(ctx, c, p.orders) : h("div.panel__body", emptyState({
+	}, "看全部") : null)), p.orders.length ? customerOrders(ctx, c, p.orders) : h$1("div.panel__body", emptyState({
 		iconName: "orders",
 		title: "还没有单",
 		body: "给这个客户开第一张单。",
 		actionLabel: "开单",
 		onAction: () => openComposer(ctx, { presetCustomer: c.id })
-	}))), h("section.panel", h("div.panel__body", sectionHead("收款流水", `${p.payments.length} 笔`)), p.payments.length ? h("div.itemlist", p.payments.map((pay) => h("div.item", { style: { cursor: "default" } }, h("div.item__main", h("div.item__title", PAY_KIND_LABEL[pay.kind] || pay.kind, tag(PAY_METHOD_LABEL[pay.method] || pay.method)), h("div.item__meta", h("span", fmtDay(pay.paid_at)), h("span", pay.order_no || ""), pay.note ? h("span", pay.note) : null)), h("div.item__right", h(`div.item__fig${pay.kind === "refund" ? ".tone-oxblood" : ".tone-jade"}`, `${pay.kind === "refund" ? "−" : "+"}¥${fmtMoney(pay.amount)}`))))) : h("div.panel__body", h("p.dim.sm", "还没有收款记录。")))), h("div.stack", h("section.panel", h("div.panel__body", sectionHead("联系方式")), h("div.panel__body", { style: { paddingTop: "0" } }, contact)), h("section.panel", h("div.panel__body", sectionHead("账目")), h("div.panel__body", { style: { paddingTop: "0" } }, money)), h("section.panel", h("div.panel__body", sectionHead("登录凭证", `${p.credentials.length} 条`, h("button.btn.btn--sm", {
+	}))), h$1("section.panel", h$1("div.panel__body", sectionHead("收款流水", `${p.payments.length} 笔`)), p.payments.length ? h$1("div.itemlist", p.payments.map((pay) => h$1("div.item", { style: { cursor: "default" } }, h$1("div.item__main", h$1("div.item__title", PAY_KIND_LABEL[pay.kind] || pay.kind, tag(PAY_METHOD_LABEL[pay.method] || pay.method)), h$1("div.item__meta", h$1("span", fmtDay$1(pay.paid_at)), h$1("span", pay.order_no || ""), pay.note ? h$1("span", pay.note) : null)), h$1("div.item__right", h$1(`div.item__fig${pay.kind === "refund" ? ".tone-oxblood" : ".tone-jade"}`, `${pay.kind === "refund" ? "−" : "+"}¥${fmtMoney$1(pay.amount)}`))))) : h$1("div.panel__body", h$1("p.dim.sm", "还没有收款记录。")))), h$1("div.stack", h$1("section.panel", h$1("div.panel__body", sectionHead("联系方式")), h$1("div.panel__body", { style: { paddingTop: "0" } }, contact)), h$1("section.panel", h$1("div.panel__body", sectionHead("账目")), h$1("div.panel__body", { style: { paddingTop: "0" } }, money)), h$1("section.panel", h$1("div.panel__body", sectionHead("登录凭证", `${p.credentials.length} 条`, h$1("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => ctx.navigate(`/vault?customer=${c.id}`)
-	}, "去保险箱"))), h("div.panel__body", { style: { paddingTop: "0" } }, credBlock)))));
+	}, "去保险箱"))), h$1("div.panel__body", { style: { paddingTop: "0" } }, credBlock)))));
 }
 var customers_default = {
 	title: "客户",
@@ -16481,7 +16543,7 @@ var customers_default = {
 		const q = ctx.query.get("q") || "";
 		const only = ctx.query.get("only") || "";
 		const { items } = await api.get("/api/customers", { limit: 500 });
-		ctx.setActions(h("button.btn.btn--sm.btn--primary", {
+		ctx.setActions(h$1("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			onclick: async () => {
 				const saved = await customerForm();
@@ -16491,7 +16553,7 @@ var customers_default = {
 				}
 			}
 		}, icon("plus", 14), "新建客户"));
-		if (!items.length) return h("section.panel", h("div.panel__body", emptyState({
+		if (!items.length) return h$1("section.panel", h$1("div.panel__body", emptyState({
 			iconName: "customers",
 			title: "还没有客户",
 			body: "手机号作为客户标识，以后直接搜手机号就能找到人和他所有的单。",
@@ -16515,7 +16577,7 @@ var customers_default = {
 		else filtered = filtered.filter((c) => c.status !== "archived");
 		if (only === "due") filtered = filtered.filter((c) => c.due_total > .001);
 		if (only === "repeat") filtered = filtered.filter((c) => c.order_count >= 2);
-		const searchInput = h("input.inp", {
+		const searchInput = h$1("input.inp", {
 			type: "search",
 			placeholder: "搜昵称 / 手机号 / 微信 / QQ",
 			value: q,
@@ -16528,7 +16590,7 @@ var customers_default = {
 			if (only) p.set("only", only);
 			ctx.navigate(`/customers${p.toString() ? "?" + p.toString() : ""}`, { replace: true });
 		}, 300));
-		const seg = h("div.seg", [
+		const seg = h$1("div.seg", [
 			{
 				key: "",
 				label: "全部"
@@ -16545,7 +16607,7 @@ var customers_default = {
 				key: "archived",
 				label: `已归档 ${archivedCount}`
 			}] : []
-		].map((f) => h("button.seg__btn", {
+		].map((f) => h$1("button.seg__btn", {
 			type: "button",
 			"aria-pressed": String(f.key === only),
 			onclick: () => {
@@ -16555,7 +16617,7 @@ var customers_default = {
 				ctx.navigate(`/customers${p.toString() ? "?" + p.toString() : ""}`);
 			}
 		}, f.label)));
-		return h("div.stack", h("div.pagehead", h("div.pagehead__txt", h("h1", "客户"), h("p.pagehead__sub", `${filtered.length} 位${filtered.length !== items.length ? `（共 ${items.length} 位）` : ""}`))), h("div.toolbar", seg, h("div.toolbar__grow"), searchInput), h("section.panel", filtered.length ? h("div.itemlist", filtered.map((c) => customerRow(c, ctx))) : h("div.panel__body", emptyState({
+		return h$1("div.stack", h$1("div.pagehead", h$1("div.pagehead__txt", h$1("h1", "客户"), h$1("p.pagehead__sub", `${filtered.length} 位${filtered.length !== items.length ? `（共 ${items.length} 位）` : ""}`))), h$1("div.toolbar", seg, h$1("div.toolbar__grow"), searchInput), h$1("section.panel", filtered.length ? h$1("div.itemlist", filtered.map((c) => customerRow(c, ctx))) : h$1("div.panel__body", emptyState({
 			iconName: "search",
 			title: "没找到",
 			body: "换个关键词试试，或者清空搜索。"
@@ -16662,11 +16724,11 @@ var games_default = {
 	title: "游戏",
 	async render(ctx) {
 		const { items } = await api.get("/api/games", { limit: 200 });
-		ctx.setActions(h("button.btn.btn--sm.btn--primary", {
+		ctx.setActions(h$1("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			onclick: () => gameForm().then(() => ctx.app.reload())
 		}, icon("plus", 14), "新建游戏"));
-		if (!items.length) return h("section.panel", h("div.panel__body", emptyState({
+		if (!items.length) return h$1("section.panel", h$1("div.panel__body", emptyState({
 			iconName: "games",
 			title: "还没有加游戏",
 			body: "先加一个你在代肝的游戏。区服也可以一起填上，开单的时候就不用每次手打了。",
@@ -16680,7 +16742,7 @@ var games_default = {
 		})));
 		const active = items.filter((g) => g.status === "active");
 		const archived = items.filter((g) => g.status === "archived");
-		const rows = items.map((g) => h("div.item", { style: { cursor: "default" } }, g.icon ? h("img", {
+		const rows = items.map((g) => h$1("div.item", { style: { cursor: "default" } }, g.icon ? h$1("img", {
 			src: g.icon,
 			alt: "",
 			style: {
@@ -16691,14 +16753,14 @@ var games_default = {
 				flex: "none",
 				border: "1px solid var(--line)"
 			}
-		}) : h("div.avatar", g.name.slice(0, 1)), h("div.item__main", h("div.item__title", g.name, g.short_name ? h("span.dim.sm", g.short_name) : null, g.status === "archived" ? tag("已归档", "oxblood") : null), h("div.item__meta", h("span", `${g.service_count} 个在架服务`), h("span", `${g.order_count} 张单`), g.servers?.length ? h("span", `区服：${g.servers.join(" / ")}`) : h("span.dim", "没填区服"), g.created_at ? h("span", `建于 ${fmtDate(g.created_at)}`) : null), g.note ? h("div.tbl__meta", g.note) : null, g.notice ? h("div.tbl__meta", { style: {
+		}) : h$1("div.avatar", g.name.slice(0, 1)), h$1("div.item__main", h$1("div.item__title", g.name, g.short_name ? h$1("span.dim.sm", g.short_name) : null, g.status === "archived" ? tag("已归档", "oxblood") : null), h$1("div.item__meta", h$1("span", `${g.service_count} 个在架服务`), h$1("span", `${g.order_count} 张单`), g.servers?.length ? h$1("span", `区服：${g.servers.join(" / ")}`) : h$1("span.dim", "没填区服"), g.created_at ? h$1("span", `建于 ${fmtDate$1(g.created_at)}`) : null), g.note ? h$1("div.tbl__meta", g.note) : null, g.notice ? h$1("div.tbl__meta", { style: {
 			display: "flex",
 			gap: "7px",
 			alignItems: "baseline"
-		} }, h("span.notice-tick"), h("span", { style: { whiteSpace: "pre-wrap" } }, firstLine$1(g.notice))) : null), h("div.tbl__acts", h("button.btn.btn--sm", {
+		} }, h$1("span.notice-tick"), h$1("span", { style: { whiteSpace: "pre-wrap" } }, firstLine$1(g.notice))) : null), h$1("div.tbl__acts", h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => gameForm(g).then(() => ctx.app.reload())
-		}, icon("edit", 14)), h("button.btn.btn--sm", {
+		}, icon("edit", 14)), h$1("button.btn.btn--sm", {
 			type: "button",
 			title: g.status === "active" ? "归档" : "恢复上架",
 			onclick: async () => {
@@ -16714,7 +16776,7 @@ var games_default = {
 				toast(g.status === "active" ? "已归档" : "已恢复上架", "ok");
 				ctx.app.reload();
 			}
-		}, g.status === "active" ? icon("down", 14) : icon("refresh", 14)), h("button.btn.btn--sm.btn--danger", {
+		}, g.status === "active" ? icon("down", 14) : icon("refresh", 14)), h$1("button.btn.btn--sm.btn--danger", {
 			type: "button",
 			title: "彻底删除",
 			onclick: async () => {
@@ -16733,7 +16795,7 @@ var games_default = {
 				}
 			}
 		}, icon("trash", 14)))));
-		return h("div.stack", h("div.pagehead", h("div.pagehead__txt", h("h1", "游戏"), h("p.pagehead__sub", `${active.length} 个上架${archived.length ? ` · ${archived.length} 个已归档` : ""}`))), h("section.panel", h("div.itemlist", rows)), archived.length ? h("div.note", `「已归档」的游戏不会被删除，老订单和登录凭证仍然指向它们。想彻底清掉就到上面点删除。`) : null);
+		return h$1("div.stack", h$1("div.pagehead", h$1("div.pagehead__txt", h$1("h1", "游戏"), h$1("p.pagehead__sub", `${active.length} 个上架${archived.length ? ` · ${archived.length} 个已归档` : ""}`))), h$1("section.panel", h$1("div.itemlist", rows)), archived.length ? h$1("div.note", `「已归档」的游戏不会被删除，老订单和登录凭证仍然指向它们。想彻底清掉就到上面点删除。`) : null);
 	}
 };
 //#endregion
@@ -16779,8 +16841,8 @@ function sumDialog(cat, services) {
 	const list = (services || []).filter((s) => s.status !== "archived");
 	const picked = /* @__PURE__ */ new Set();
 	const rows = [];
-	const totalFig = h("span.sumline__v", "¥0");
-	const countNote = h("span.dim.sm", "");
+	const totalFig = h$1("span.sumline__v", "¥0");
+	const countNote = h$1("span.dim.sm", "");
 	let m = null;
 	function paint() {
 		let total = 0;
@@ -16793,32 +16855,32 @@ function sumDialog(cat, services) {
 			const q = on ? Math.max(.01, Number(r.qty.value) || 1) : 1;
 			const u = tierUnitPrice(r.s, q);
 			const amt = on ? u * q : 0;
-			r.fig.textContent = `¥${fmtMoney(on ? amt : Number(r.s.base_price) || 0)}`;
+			r.fig.textContent = `¥${fmtMoney$1(on ? amt : Number(r.s.base_price) || 0)}`;
 			if (on) {
 				total += amt;
 				n++;
 			}
-			r.hint.textContent = on && (r.s.tiers || []).length ? `按 ${fmtQty(q)} ${unitOf$1(r.s)} 算，单价 ¥${fmtMoney(u)}` : "";
+			r.hint.textContent = on && (r.s.tiers || []).length ? `按 ${fmtQty$1(q)} ${unitOf$1(r.s)} 算，单价 ¥${fmtMoney$1(u)}` : "";
 		}
-		totalFig.textContent = `¥${fmtMoney(total)}`;
+		totalFig.textContent = `¥${fmtMoney$1(total)}`;
 		countNote.textContent = n ? `已选 ${n} 项` : "还没勾";
 		if (m && m.setDisabled) m.setDisabled("copy", n === 0);
 	}
 	const rowFor = (s) => {
-		const cb = h("input.chk", {
+		const cb = h$1("input.chk", {
 			type: "checkbox",
 			"aria-label": `选择 ${s.name}`
 		});
-		const qty = h("input.inp.inp--fig", {
+		const qty = h$1("input.inp.inp--fig", {
 			inputmode: "decimal",
 			style: { width: "64px" },
 			disabled: true,
 			"aria-label": `${s.name} 数量`
 		});
 		qty.value = String(Number(s.min_qty) || 1);
-		const unit = h("span.dim.tiny", unitOf$1(s));
-		const fig = h("span.pickrow__fig", `¥${fmtMoney(Number(s.base_price) || 0)}`);
-		const hint = h("div.hint");
+		const unit = h$1("span.dim.tiny", unitOf$1(s));
+		const fig = h$1("span.pickrow__fig", `¥${fmtMoney$1(Number(s.base_price) || 0)}`);
+		const hint = h$1("div.hint");
 		const toggle = () => {
 			if (picked.has(s.id)) picked.delete(s.id);
 			else picked.add(s.id);
@@ -16827,14 +16889,14 @@ function sumDialog(cat, services) {
 		};
 		cb.addEventListener("change", toggle);
 		qty.addEventListener("input", paint);
-		const el = h("div.pickrow", h("div.pickrow__top", cb, h("button.pickrow__main", {
+		const el = h$1("div.pickrow", h$1("div.pickrow__top", cb, h$1("button.pickrow__main", {
 			type: "button",
 			onclick: toggle
-		}, h("span.pickrow__line", h("span.pickrow__name", s.name), fig), h("span.pickrow__meta", [
+		}, h$1("span.pickrow__line", h$1("span.pickrow__name", s.name), fig), h$1("span.pickrow__meta", [
 			PRICE_TYPE_LABEL[s.price_type] || s.price_type,
 			(s.tiers || []).length ? `${s.tiers.length} 档阶梯价` : null,
 			s.description || null
-		].filter(Boolean).join(" · ")))), h("div.pickrow__ctrl", h("div.cluster", { style: { gap: "6px" } }, qty, unit, hint)));
+		].filter(Boolean).join(" · ")))), h$1("div.pickrow__ctrl", h$1("div.cluster", { style: { gap: "6px" } }, qty, unit, hint)));
 		rows.push({
 			s,
 			el,
@@ -16858,13 +16920,13 @@ function sumDialog(cat, services) {
 	m = modal({
 		title: `组合报价 · ${cat.name}`,
 		wide: true,
-		body: h("div.stack", h("div.cluster", h("span.sm.dim", `勾上客户要的服务项${list.some((s) => (s.tiers || []).length) ? "；数量能改，会自动套阶梯价" : ""}。`), h("div", { style: { flex: "1" } }), list.length ? h("button.btn.btn--sm", {
+		body: h$1("div.stack", h$1("div.cluster", h$1("span.sm.dim", `勾上客户要的服务项${list.some((s) => (s.tiers || []).length) ? "；数量能改，会自动套阶梯价" : ""}。`), h$1("div", { style: { flex: "1" } }), list.length ? h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => setAll(true)
-		}, "全选") : null, list.length ? h("button.btn.btn--sm", {
+		}, "全选") : null, list.length ? h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => setAll(false)
-		}, "全不选") : null), list.length ? h("div.picker", h("div.picker__scroll", ...list.map(rowFor))) : h("div.empty", h("div.empty__body", "这个大类下还没有服务项。")), h("div.sumline", h("span.dim", "合计"), countNote, h("div", { style: { flex: "1" } }), totalFig)),
+		}, "全不选") : null), list.length ? h$1("div.picker", h$1("div.picker__scroll", ...list.map(rowFor))) : h$1("div.empty", h$1("div.empty__body", "这个大类下还没有服务项。")), h$1("div.sumline", h$1("span.dim", "合计"), countNote, h$1("div", { style: { flex: "1" } }), totalFig)),
 		actions: [{ label: "关闭" }, {
 			label: "复制报价",
 			key: "copy",
@@ -16877,13 +16939,13 @@ function sumDialog(cat, services) {
 					const u = tierUnitPrice(r.s, q);
 					const amt = u * q;
 					total += amt;
-					lines.push(`${r.s.name}  ${fmtQty(q)}${unitOf$1(r.s)} × ¥${fmtMoney(u)} = ¥${fmtMoney(amt)}`);
+					lines.push(`${r.s.name}  ${fmtQty$1(q)}${unitOf$1(r.s)} × ¥${fmtMoney$1(u)} = ¥${fmtMoney$1(amt)}`);
 				}
 				if (!lines.length) return false;
-				const okCopy = await copyText([
+				const okCopy = await copyText$1([
 					`【${cat.name}】`,
 					...lines,
-					`合计：¥${fmtMoney(total)}`
+					`合计：¥${fmtMoney$1(total)}`
 				].join("\n"));
 				toast(okCopy ? "报价已复制" : "复制失败，手动选一下吧", okCopy ? "ok" : "err");
 				return false;
@@ -16898,7 +16960,7 @@ function priceRange$1(list) {
 	if (!vals.length) return "";
 	const lo = Math.min(...vals);
 	const hi = Math.max(...vals);
-	return lo === hi ? `¥${fmtMoney(lo)}` : `¥${fmtMoney(lo)} – ¥${fmtMoney(hi)}`;
+	return lo === hi ? `¥${fmtMoney$1(lo)}` : `¥${fmtMoney$1(lo)} – ¥${fmtMoney$1(hi)}`;
 }
 function currencyGain(service, games = [], categories = []) {
 	const raw = service?.currency_amount;
@@ -16908,7 +16970,7 @@ function currencyGain(service, games = [], categories = []) {
 	let gid = service.game_id || "";
 	if (!gid && service.category_id) gid = (categories || []).find((c) => String(c.id) === String(service.category_id))?.game_id || "";
 	const name = String((games || []).find((g) => String(g.id) === String(gid))?.currency || "").trim();
-	return name ? `${name} ${fmtQty(n)}` : "";
+	return name ? `${name} ${fmtQty$1(n)}` : "";
 }
 var CAT_OPEN_KEY = "xfc.price.catOpen";
 var catOpen = /* @__PURE__ */ new Map();
@@ -16935,7 +16997,7 @@ function categoryForm(values = {}, games = [], presetGameId = null) {
 		submitLabel: "保存",
 		values: initial,
 		wide: true,
-		intro: h("div.hint", "价格表的结构是三层：游戏 → 大类 → 服务项。先建大类（日常 / 周常 / 深渊 / 活动 / 材料…），再往大类里加具体的服务项。"),
+		intro: h$1("div.hint", "价格表的结构是三层：游戏 → 大类 → 服务项。先建大类（日常 / 周常 / 深渊 / 活动 / 材料…），再往大类里加具体的服务项。"),
 		fields: [
 			{
 				name: "name",
@@ -17007,17 +17069,17 @@ function gameCategoryField({ games = [], categories = [], gameId = "", categoryI
 	});
 	function paintGames() {
 		gameSel.replaceChildren();
-		gameSel.appendChild(h("option", { value: "" }, "通用（不属于某个游戏）"));
-		for (const g of games) gameSel.appendChild(h("option", { value: String(g.id) }, g.name));
+		gameSel.appendChild(h$1("option", { value: "" }, "通用（不属于某个游戏）"));
+		for (const g of games) gameSel.appendChild(h$1("option", { value: String(g.id) }, g.name));
 		gameSel.value = state.gameId;
 	}
 	function paintCats() {
 		const list = catOptionsFor();
 		catSel.replaceChildren();
-		catSel.appendChild(h("option", { value: "" }, list.length ? "— 选一个大类 —" : "这个游戏下还没有大类"));
+		catSel.appendChild(h$1("option", { value: "" }, list.length ? "— 选一个大类 —" : "这个游戏下还没有大类"));
 		for (const c of list) {
 			const foreign = c.game_id && String(c.game_id) !== state.gameId;
-			catSel.appendChild(h("option", { value: String(c.id) }, `${c.name}${c.game_name ? `（${c.game_name}）` : ""}${foreign ? " ⚠" : ""}`));
+			catSel.appendChild(h$1("option", { value: String(c.id) }, `${c.name}${c.game_name ? `（${c.game_name}）` : ""}${foreign ? " ⚠" : ""}`));
 		}
 		catSel.value = list.some((c) => String(c.id) === state.categoryId) ? state.categoryId : "";
 		state.categoryId = catSel.value;
@@ -17026,8 +17088,8 @@ function gameCategoryField({ games = [], categories = [], gameId = "", categoryI
 		type: "custom",
 		width: "full",
 		render: () => {
-			gameSel = h("select.sel");
-			catSel = h("select.sel");
+			gameSel = h$1("select.sel");
+			catSel = h$1("select.sel");
 			gameSel.addEventListener("change", () => {
 				state.gameId = gameSel.value;
 				state.categoryId = "";
@@ -17045,7 +17107,7 @@ function gameCategoryField({ games = [], categories = [], gameId = "", categoryI
 			});
 			paintGames();
 			paintCats();
-			return h("div.row-2", h("div.field.field--full", h("label.lbl", "属于哪个游戏"), gameSel, h("div.hint", "选「通用」表示这张价格表不绑游戏")), h("div.field.field--full", h("label.lbl", "放在哪个大类下", h("span.req", "*")), catSel, h("div.hint", "服务项必须挂在某个大类里。还没有大类就先去「新建分类」。")));
+			return h$1("div.row-2", h$1("div.field.field--full", h$1("label.lbl", "属于哪个游戏"), gameSel, h$1("div.hint", "选「通用」表示这张价格表不绑游戏")), h$1("div.field.field--full", h$1("label.lbl", "放在哪个大类下", h$1("span.req", "*")), catSel, h$1("div.hint", "服务项必须挂在某个大类里。还没有大类就先去「新建分类」。")));
 		},
 		collect: (out) => {
 			out.game_id = state.gameId || "";
@@ -17197,13 +17259,13 @@ function serviceForm(values = {}, { games = [], categories = [] } = {}) {
 	});
 }
 function tierEditor(service, onDone) {
-	h("div.stack");
-	const listBox = h("div.itemlist");
+	h$1("div.stack");
+	const listBox = h$1("div.itemlist");
 	async function load() {
 		const { items } = await api.get(`/api/services/${service.id}/tiers`);
 		listBox.replaceChildren();
-		if (!items.length) listBox.appendChild(h("div.panel__body", h("p.dim.sm", "还没有阶梯价。不配的话就一律用基准单价。")));
-		for (const t of items) listBox.appendChild(h("div.item", { style: { cursor: "default" } }, h("div.item__main", h("div.item__title", `${fmtQty(t.min_qty)} ~ ${t.max_qty === null || t.max_qty === "" ? "不限" : fmtQty(t.max_qty)} ${unitOf$1(service)}`), h("div.item__meta", h("span", `单价 ¥${fmtMoney(t.unit_price)}/${unitOf$1(service)}`))), h("div.tbl__acts", h("button.btn.btn--sm", {
+		if (!items.length) listBox.appendChild(h$1("div.panel__body", h$1("p.dim.sm", "还没有阶梯价。不配的话就一律用基准单价。")));
+		for (const t of items) listBox.appendChild(h$1("div.item", { style: { cursor: "default" } }, h$1("div.item__main", h$1("div.item__title", `${fmtQty$1(t.min_qty)} ~ ${t.max_qty === null || t.max_qty === "" ? "不限" : fmtQty$1(t.max_qty)} ${unitOf$1(service)}`), h$1("div.item__meta", h$1("span", `单价 ¥${fmtMoney$1(t.unit_price)}/${unitOf$1(service)}`))), h$1("div.tbl__acts", h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => formDrawer({
 				title: "改阶梯价",
@@ -17242,12 +17304,12 @@ function tierEditor(service, onDone) {
 					load();
 				}
 			})
-		}, icon("edit", 14)), h("button.btn.btn--sm", {
+		}, icon("edit", 14)), h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: async () => {
 				if (!await confirmDelete({
 					title: "删掉这一档？",
-					message: `第 ${fmtQty(t.min_qty)} 档`
+					message: `第 ${fmtQty$1(t.min_qty)} 档`
 				})) return;
 				await api.del(`/api/tiers/${t.id}`);
 				toast("已删除", "ok");
@@ -17258,7 +17320,7 @@ function tierEditor(service, onDone) {
 	const d = drawer({
 		title: "阶梯价",
 		subtitle: `${service.name} · 按数量越多越便宜`,
-		body: h("div.stack", h("div.note", "按「数量」计价的服务项会先来这里找匹配的一档；找不到就用基准单价。例：1~5 层 30 元/层，6~12 层 25 元/层。"), listBox, h("button.btn.btn--primary", {
+		body: h$1("div.stack", h$1("div.note", "按「数量」计价的服务项会先来这里找匹配的一档；找不到就用基准单价。例：1~5 层 30 元/层，6~12 层 25 元/层。"), listBox, h$1("button.btn.btn--primary", {
 			type: "button",
 			onclick: () => formDrawer({
 				title: "加一档阶梯价",
@@ -17303,7 +17365,7 @@ function tierEditor(service, onDone) {
 	return d;
 }
 function optionEditor(service) {
-	const listBox = h("div.itemlist");
+	const listBox = h$1("div.itemlist");
 	async function load() {
 		const [mine, all] = await Promise.all([api.get("/api/options", {
 			service_id: service.id,
@@ -17312,16 +17374,16 @@ function optionEditor(service) {
 		const globals = (all.items || []).filter((o) => !o.service_id && o.status !== "archived");
 		listBox.replaceChildren();
 		const section = (title, rows, note) => {
-			listBox.appendChild(h("div.search__grouplbl", { style: { padding: "10px 0 4px" } }, title));
-			if (note) listBox.appendChild(h("div.hint", { style: { paddingBottom: "6px" } }, note));
+			listBox.appendChild(h$1("div.search__grouplbl", { style: { padding: "10px 0 4px" } }, title));
+			if (note) listBox.appendChild(h$1("div.hint", { style: { paddingBottom: "6px" } }, note));
 			if (!rows.length) {
-				listBox.appendChild(h("div", { style: { padding: "0 0 8px" } }, h("span.dim.sm", "（空）")));
+				listBox.appendChild(h$1("div", { style: { padding: "0 0 8px" } }, h$1("span.dim.sm", "（空）")));
 				return;
 			}
-			for (const o of rows) listBox.appendChild(h("div.item", { style: {
+			for (const o of rows) listBox.appendChild(h$1("div.item", { style: {
 				cursor: "default",
 				alignItems: "flex-start"
-			} }, h("div.item__main", h("div.item__title", o.name, tag(o.kind === "package" ? "套餐" : "增项", o.kind === "package" ? "slate" : ""), o.default_selected ? tag("默认选中", "jade") : null, o.status === "archived" ? tag("已下架", "oxblood") : null), h("div.item__meta", h("span", o.price_mode === "percent" ? `加价 ${o.price}%` : o.price ? `加 ¥${fmtMoney(o.price)}` : "不加价"), o.description ? h("span", o.description) : null)), o.service_id ? h("div.tbl__acts", h("button.btn.btn--sm", {
+			} }, h$1("div.item__main", h$1("div.item__title", o.name, tag(o.kind === "package" ? "套餐" : "增项", o.kind === "package" ? "slate" : ""), o.default_selected ? tag("默认选中", "jade") : null, o.status === "archived" ? tag("已下架", "oxblood") : null), h$1("div.item__meta", h$1("span", o.price_mode === "percent" ? `加价 ${o.price}%` : o.price ? `加 ¥${fmtMoney$1(o.price)}` : "不加价"), o.description ? h$1("span", o.description) : null)), o.service_id ? h$1("div.tbl__acts", h$1("button.btn.btn--sm", {
 				type: "button",
 				onclick: () => formDrawer({
 					title: "改增项",
@@ -17384,7 +17446,7 @@ function optionEditor(service) {
 						load();
 					}
 				})
-			}, icon("edit", 14)), h("button.btn.btn--sm", {
+			}, icon("edit", 14)), h$1("button.btn.btn--sm", {
 				type: "button",
 				onclick: async () => {
 					if (!await confirmDelete({
@@ -17395,7 +17457,7 @@ function optionEditor(service) {
 					toast("已删除", "ok");
 					load();
 				}
-			}, icon("trash", 14))) : h("span.tag.tag--outline", "通用")));
+			}, icon("trash", 14))) : h$1("span.tag.tag--outline", "通用")));
 		};
 		section("这个服务项专属", mine.items || []);
 		section("全局通用增项", globals, "建在所有服务项上都可用，比如「不动原石」「全程录屏」。在「新建增项」里把绑定服务留空即可。");
@@ -17403,7 +17465,7 @@ function optionEditor(service) {
 	const d = drawer({
 		title: "套餐与增项",
 		subtitle: service.name,
-		body: h("div.stack", h("div.note", "增项会作为可勾选项出现在下单台里，选了就自动加进金额，并且一起冻进订单快照。"), listBox, h("div.cluster", h("button.btn.btn--primary", {
+		body: h$1("div.stack", h$1("div.note", "增项会作为可勾选项出现在下单台里，选了就自动加进金额，并且一起冻进订单快照。"), listBox, h$1("div.cluster", h$1("button.btn.btn--primary", {
 			type: "button",
 			onclick: () => formDrawer({
 				title: "给这个服务项加增项",
@@ -17472,12 +17534,12 @@ function optionEditor(service) {
 					load();
 				}
 			})
-		}, icon("plus", 14), "加增项"), h("button.btn", {
+		}, icon("plus", 14), "加增项"), h$1("button.btn", {
 			type: "button",
 			onclick: () => formDrawer({
 				title: "新建全局通用增项",
 				submitLabel: "加上",
-				intro: h("div.hint", "不绑定任何服务项，所有服务都能勾。"),
+				intro: h$1("div.hint", "不绑定任何服务项，所有服务都能勾。"),
 				fields: [
 					{
 						name: "name",
@@ -17532,24 +17594,24 @@ function servicePeek(service, ctx, { onChanged } = {}) {
 		if (onChanged) onChanged();
 		ctx.app.reload();
 	};
-	const priceLine = service.price_type === "per_unit" && service.tiers?.length ? h("div", h("div.pitem__fig", `¥${fmtMoney(service.base_price)}`), h("div.pitem__unit", `/${unitOf$1(service)} 起`), h("div.tbl__meta", `${service.tiers.length} 档阶梯价`)) : h("div", h("div.pitem__fig", `¥${fmtMoney(service.base_price)}`), h("div.pitem__unit", `/${unitOf$1(service)}`));
+	const priceLine = service.price_type === "per_unit" && service.tiers?.length ? h$1("div", h$1("div.pitem__fig", `¥${fmtMoney$1(service.base_price)}`), h$1("div.pitem__unit", `/${unitOf$1(service)} 起`), h$1("div.tbl__meta", `${service.tiers.length} 档阶梯价`)) : h$1("div", h$1("div.pitem__fig", `¥${fmtMoney$1(service.base_price)}`), h$1("div.pitem__unit", `/${unitOf$1(service)}`));
 	const gain = currencyGain(service, ctx.meta?.games || [], ctx.meta?.categories || []);
 	const d = drawer({
 		title: service.name,
 		subtitle: `${PRICE_TYPE_LABEL[service.price_type] || service.price_type} · ${service.category_name || "未分类"}${service.game_name ? ` · ${service.game_name}` : ""}`,
-		body: h("div.stack", h("div.cluster", { style: {
+		body: h$1("div.stack", h$1("div.cluster", { style: {
 			justifyContent: "space-between",
 			alignItems: "flex-start"
-		} }, h("div", priceLine), h("div.cluster", service.status === "active" ? tag("在架", "jade") : tag("已下架", "oxblood"))), gain ? h("div", h("span.tag.tag--outline", `可获得 ${gain}`)) : null, service.description ? h("p", { style: { lineHeight: "1.7" } }, service.description) : null, service.package_items?.length ? h("div", h("div.tbl__meta", "套餐包含"), h("div.subitems", ...service.package_items.map((p) => h("div.subitem", h("span", "·"), h("span", p))))) : null, h("hr"), h("div.cluster", h("button.btn.btn--sm", {
+		} }, h$1("div", priceLine), h$1("div.cluster", service.status === "active" ? tag("在架", "jade") : tag("已下架", "oxblood"))), gain ? h$1("div", h$1("span.tag.tag--outline", `可获得 ${gain}`)) : null, service.description ? h$1("p", { style: { lineHeight: "1.7" } }, service.description) : null, service.package_items?.length ? h$1("div", h$1("div.tbl__meta", "套餐包含"), h$1("div.subitems", ...service.package_items.map((p) => h$1("div.subitem", h$1("span", "·"), h$1("span", p))))) : null, h$1("hr"), h$1("div.cluster", h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => serviceForm(service, ctx.meta).then(reload)
-		}, icon("edit", 14), "改价格和说明"), h("button.btn.btn--sm", {
+		}, icon("edit", 14), "改价格和说明"), h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => tierEditor(service)
-		}, "阶梯价"), h("button.btn.btn--sm", {
+		}, "阶梯价"), h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => optionEditor(service)
-		}, "套餐与增项"), copyButton(`${service.name} ¥${fmtMoney(service.base_price)}/${unitOf$1(service)}`, "复制价款")), h("hr"), h("div.cluster", h("button.btn.btn--sm", {
+		}, "套餐与增项"), copyButton(`${service.name} ¥${fmtMoney$1(service.base_price)}/${unitOf$1(service)}`, "复制价款")), h$1("hr"), h$1("div.cluster", h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: async () => {
 				const next = service.status === "active" ? "archived" : "active";
@@ -17557,7 +17619,7 @@ function servicePeek(service, ctx, { onChanged } = {}) {
 				toast(next === "archived" ? "已下架，老订单不受影响" : "已重新上架", "ok");
 				reload();
 			}
-		}, service.status === "active" ? "下架" : "重新上架"), h("div", { style: { flex: "1" } }), h("button.btn.btn--sm.btn--danger", {
+		}, service.status === "active" ? "下架" : "重新上架"), h$1("div", { style: { flex: "1" } }), h$1("button.btn.btn--sm.btn--danger", {
 			type: "button",
 			onclick: async () => {
 				const usage = await api.get(`/api/services/${service.id}/usage`);
@@ -17591,9 +17653,9 @@ async function openExporter(ctx, { games = [] } = {}) {
 		footer: null
 	};
 	let allModel = null;
-	const scopeSel = h("select.sel", h("option", { value: "per-game" }, "每个游戏各出一份（推荐 · 分开的文件）"), h("option", { value: "merged" }, "全部游戏合并成一份"), ...games.map((g) => h("option", { value: `game:${g.id}` }, `只要「${g.name}」这一份`)));
+	const scopeSel = h$1("select.sel", h$1("option", { value: "per-game" }, "每个游戏各出一份（推荐 · 分开的文件）"), h$1("option", { value: "merged" }, "全部游戏合并成一份"), ...games.map((g) => h$1("option", { value: `game:${g.id}` }, `只要「${g.name}」这一份`)));
 	scopeSel.value = state.scope;
-	const perSel = h("select.sel", ...[
+	const perSel = h$1("select.sel", ...[
 		{
 			v: "4",
 			l: "4 项"
@@ -17614,9 +17676,9 @@ async function openExporter(ctx, { games = [] } = {}) {
 			v: "99",
 			l: "不限"
 		}
-	].map((o) => h("option", { value: o.v }, o.l)));
+	].map((o) => h$1("option", { value: o.v }, o.l)));
 	perSel.value = state.perCategory;
-	const catSel = h("select.sel", ...[
+	const catSel = h$1("select.sel", ...[
 		{
 			v: "6",
 			l: "6 个"
@@ -17633,16 +17695,16 @@ async function openExporter(ctx, { games = [] } = {}) {
 			v: "99",
 			l: "不限"
 		}
-	].map((o) => h("option", { value: o.v }, o.l)));
+	].map((o) => h$1("option", { value: o.v }, o.l)));
 	catSel.value = state.maxCategories;
-	const descChk = h("input.chk", { type: "checkbox" });
+	const descChk = h$1("input.chk", { type: "checkbox" });
 	descChk.checked = true;
-	const contactInp = h("input.inp", { placeholder: "例：微信 xiaofeng" });
-	const footerInp = h("input.inp", { placeholder: "例：价格随版本更新，以最新报价为准" });
-	const previewBox = h("div.exporter__preview");
-	const summary = h("div.hint", "正在生成预览…");
-	const imgBtn = h("button.btn.btn--primary", { type: "button" }, icon("download", 14), "生成图片");
-	const docBtn = h("button.btn", { type: "button" }, icon("quotes", 14), "生成 Word 文档");
+	const contactInp = h$1("input.inp", { placeholder: "例：微信 xiaofeng" });
+	const footerInp = h$1("input.inp", { placeholder: "例：价格随版本更新，以最新报价为准" });
+	const previewBox = h$1("div.exporter__preview");
+	const summary = h$1("div.hint", "正在生成预览…");
+	const imgBtn = h$1("button.btn.btn--primary", { type: "button" }, icon("download", 14), "生成图片");
+	const docBtn = h$1("button.btn", { type: "button" }, icon("quotes", 14), "生成 Word 文档");
 	let refreshing = 0;
 	/** 公共查询参数（不含 game_id） */
 	function baseQuery() {
@@ -17706,7 +17768,7 @@ async function openExporter(ctx, { games = [] } = {}) {
 			summary.textContent = "预览画不出来：" + (err.message || "");
 			return;
 		}
-		mount(previewBox, h("img", {
+		mount(previewBox, h$1("img", {
 			src: canvas.toDataURL("image/png"),
 			alt: "价格表预览"
 		}));
@@ -17748,13 +17810,13 @@ async function openExporter(ctx, { games = [] } = {}) {
 		wide: true,
 		title: "导出价格表",
 		subtitle: "生成能直接发微信的图片，或者能打印、能编辑的 Word 文档",
-		body: h("div.stack", h("div.formgrid", h("div.field.field--full", h("label.lbl", "导出范围"), scopeSel, h("div.hint", "默认每个游戏单独出一份，发给客户时只发他那款游戏，不会把几个游戏混在一张图上。")), h("div.field.field--full", h("label.lbl", "每个大类最多列几项"), perSel, h("div.hint", "列不下的会折成「还有 N 项」")), h("div.field.field--full", h("label.lbl", "最多列几个大类"), catSel), h("div.field.field--full", h("label.lbl", "带说明文字"), h("label.inline", { style: { cursor: "pointer" } }, descChk, h("span.sm", "展示服务项的说明和套餐内容"))), h("div.field.field--full", h("label.lbl", "联系方式"), contactInp), h("div.field.field--full", h("label.lbl", "页脚说明"), footerInp)), h("div.sechead", { style: { marginBottom: "0" } }, h("h3", "预览"), h("span.sechead__note", "这就是生成出来的图片")), previewBox, summary, h("div.note", "导出会自动裁掉多余内容：空的大类不导出，超出条数的服务项折成「还有 N 项」，说明太长会截断。目的是一张图发出去好看、一眼能看完，而不是把整张价格表塞进去。")),
+		body: h$1("div.stack", h$1("div.formgrid", h$1("div.field.field--full", h$1("label.lbl", "导出范围"), scopeSel, h$1("div.hint", "默认每个游戏单独出一份，发给客户时只发他那款游戏，不会把几个游戏混在一张图上。")), h$1("div.field.field--full", h$1("label.lbl", "每个大类最多列几项"), perSel, h$1("div.hint", "列不下的会折成「还有 N 项」")), h$1("div.field.field--full", h$1("label.lbl", "最多列几个大类"), catSel), h$1("div.field.field--full", h$1("label.lbl", "带说明文字"), h$1("label.inline", { style: { cursor: "pointer" } }, descChk, h$1("span.sm", "展示服务项的说明和套餐内容"))), h$1("div.field.field--full", h$1("label.lbl", "联系方式"), contactInp), h$1("div.field.field--full", h$1("label.lbl", "页脚说明"), footerInp)), h$1("div.sechead", { style: { marginBottom: "0" } }, h$1("h3", "预览"), h$1("span.sechead__note", "这就是生成出来的图片")), previewBox, summary, h$1("div.note", "导出会自动裁掉多余内容：空的大类不导出，超出条数的服务项折成「还有 N 项」，说明太长会截断。目的是一张图发出去好看、一眼能看完，而不是把整张价格表塞进去。")),
 		footer: [
-			h("button.btn", {
+			h$1("button.btn", {
 				type: "button",
 				onclick: () => d.close()
 			}, "关闭"),
-			h("div", { style: { flex: "1" } }),
+			h$1("div", { style: { flex: "1" } }),
 			docBtn,
 			imgBtn
 		]
@@ -17908,17 +17970,17 @@ var price_default = {
 				categories
 			}).then(() => ctx.app.reload());
 		};
-		ctx.setActions(h("button.btn.btn--sm", {
+		ctx.setActions(h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => newPriceTable()
-		}, icon("plus", 14), "新建价格表"), h("button.btn.btn--sm.btn--primary", {
+		}, icon("plus", 14), "新建价格表"), h$1("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			onclick: () => newCategory()
-		}, icon("plus", 14), "新建大类"), h("button.btn.btn--sm", {
+		}, icon("plus", 14), "新建大类"), h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => openExporter(ctx, { games: allGames })
 		}, icon("download", 14), "导出图片/文档"));
-		if (!allGames.length && !categories.length && !services.length) return h("section.panel", h("div.panel__body", emptyState({
+		if (!allGames.length && !categories.length && !services.length) return h$1("section.panel", h$1("div.panel__body", emptyState({
 			iconName: "price",
 			title: "还没有价格表",
 			body: "一张价格表 = 一个游戏。先建价格表，再在里面建大类（日常 / 周常 / 深渊 / 活动），最后往大类里加具体的服务项。价格改一次，从今往后的单子都按新价，已经开出去的老单不动。",
@@ -17931,7 +17993,7 @@ var price_default = {
 			],
 			actionLabel: "新建第一张价格表",
 			onAction: () => newPriceTable(),
-			secondary: h("button.btn", {
+			secondary: h$1("button.btn", {
 				type: "button",
 				onclick: () => newCategory()
 			}, "不绑游戏，建个通用大类")
@@ -17978,7 +18040,7 @@ var price_default = {
 		let filterGame = ctx.query.get("game") || "";
 		let filterStatus = ctx.query.get("status") || "active";
 		let filterQ = "";
-		const listBox = h("div.pricelist");
+		const listBox = h$1("div.pricelist");
 		function optsFor(sid) {
 			return options.filter((o) => o.service_id === sid || !o.service_id && o.status === "active");
 		}
@@ -18179,7 +18241,7 @@ var price_default = {
 			const related = optsFor(s.id);
 			const gain = currencyGain(s, allGames, categories);
 			const bare = !s.description && !s.package_items?.length && !related.length && !(s.tier_count > 0) && s.status !== "archived";
-			const acts = h("div.pitem__acts", h("button.btn.btn--sm.btn--quiet", {
+			const acts = h$1("div.pitem__acts", h$1("button.btn.btn--sm.btn--quiet", {
 				type: "button",
 				title: "详情",
 				draggable: "false",
@@ -18187,7 +18249,7 @@ var price_default = {
 					e.stopPropagation();
 					servicePeek(s, ctx, { onChanged: () => ctx.app.reload() });
 				}
-			}, "详情"), h("button.btn.btn--sm.btn--quiet", {
+			}, "详情"), h$1("button.btn.btn--sm.btn--quiet", {
 				type: "button",
 				title: "改这个服务项",
 				draggable: "false",
@@ -18199,7 +18261,7 @@ var price_default = {
 					}).then(() => ctx.app.reload());
 				}
 			}, icon("edit", 14)));
-			const row = bare ? h("div.pitem.pitem--slim", { title: "拖动可以调整顺序" }, h("span.pitem__grip", icon("drag", 14)), h("span.pitem__name", s.name, gain ? tag(gain, "outline") : null), h("span.pitem__leader"), h("span.pitem__amount", h("span.pitem__fig", `¥${fmtMoney(s.base_price)}`), h("em.pitem__unit", `/${unitOf$1(s)}`)), acts) : h("div.pitem", { title: "拖动可以调整顺序" }, h("div", h("div.pitem__name", h("span.pitem__grip", icon("drag", 14)), s.name, gain ? tag(gain, "outline") : null, s.tier_count > 0 ? tag(`${s.tier_count} 档阶梯价`, "cinnabar") : null, s.status === "archived" ? tag("已下架", "oxblood") : null), s.description ? h("div.pitem__desc", s.description) : null, s.package_items?.length ? h("div.subitems", h("div.subitem", h("span.subitem__k", "含"), h("span", s.package_items.join(" · ")))) : null, related.length ? h("div.subitems", h("div.subitem", h("span.subitem__k", "增项"), h("span", related.slice(0, 6).map((o) => `${o.name}${o.price_mode === "percent" ? ` +${o.price}%` : o.price ? ` +${fmtMoney(o.price)}元` : ""}`).join(" · ")))) : null), h("div.pitem__price", h("span.pitem__amount", h("span.pitem__fig", `¥${fmtMoney(s.base_price)}`), h("em.pitem__unit", `/${unitOf$1(s)}`)), acts));
+			const row = bare ? h$1("div.pitem.pitem--slim", { title: "拖动可以调整顺序" }, h$1("span.pitem__grip", icon("drag", 14)), h$1("span.pitem__name", s.name, gain ? tag(gain, "outline") : null), h$1("span.pitem__leader"), h$1("span.pitem__amount", h$1("span.pitem__fig", `¥${fmtMoney$1(s.base_price)}`), h$1("em.pitem__unit", `/${unitOf$1(s)}`)), acts) : h$1("div.pitem", { title: "拖动可以调整顺序" }, h$1("div", h$1("div.pitem__name", h$1("span.pitem__grip", icon("drag", 14)), s.name, gain ? tag(gain, "outline") : null, s.tier_count > 0 ? tag(`${s.tier_count} 档阶梯价`, "cinnabar") : null, s.status === "archived" ? tag("已下架", "oxblood") : null), s.description ? h$1("div.pitem__desc", s.description) : null, s.package_items?.length ? h$1("div.subitems", h$1("div.subitem", h$1("span.subitem__k", "含"), h$1("span", s.package_items.join(" · ")))) : null, related.length ? h$1("div.subitems", h$1("div.subitem", h$1("span.subitem__k", "增项"), h$1("span", related.slice(0, 6).map((o) => `${o.name}${o.price_mode === "percent" ? ` +${o.price}%` : o.price ? ` +${fmtMoney$1(o.price)}元` : ""}`).join(" · ")))) : null), h$1("div.pitem__price", h$1("span.pitem__amount", h$1("span.pitem__fig", `¥${fmtMoney$1(s.base_price)}`), h$1("em.pitem__unit", `/${unitOf$1(s)}`)), acts));
 			wireRow(row, s);
 			return row;
 		}
@@ -18230,36 +18292,36 @@ var price_default = {
 				}
 				const svcCount = blocks.reduce((n, b) => n + b.list.length, 0) + loose.length;
 				shownGroups++;
-				const groupBody = h("div.pgroup__body");
+				const groupBody = h$1("div.pgroup__body");
 				for (const b of blocks) {
-					const catBody = h("div.pcat__body");
+					const catBody = h$1("div.pcat__body");
 					const catNotice = String(b.cat.notice || "").trim();
-					if (catNotice) catBody.appendChild(h("div.pcat__notice", h("span", catNotice)));
-					if (!b.list.length) catBody.appendChild(h("div", { style: { padding: "2px 16px 14px" } }, h("span.dim.sm", b.all.length ? "这个筛选下没有服务项。" : "这个大类下还没有服务项 —— 点右边「加服务项」开始录。")));
+					if (catNotice) catBody.appendChild(h$1("div.pcat__notice", h$1("span", catNotice)));
+					if (!b.list.length) catBody.appendChild(h$1("div", { style: { padding: "2px 16px 14px" } }, h$1("span.dim.sm", b.all.length ? "这个筛选下没有服务项。" : "这个大类下还没有服务项 —— 点右边「加服务项」开始录。")));
 					else for (const s of b.list) catBody.appendChild(serviceRow(s));
 					wireCatBody(catBody, b.cat);
-					const catHead = h("div.pcat__head", { title: "按住可以调整大类顺序，拖到别的游戏/通用组里就是换归属" }, h("span.pcat__name", b.cat.name), b.cat.is_daily ? tag("每天做", "outline") : null, b.cat.status === "archived" ? tag("大类已归档", "oxblood") : null, b.cat.note ? h("span.pcat__note", b.cat.note) : null, h("span.pcat__rule"), priceRange$1(b.list) ? h("span.pcat__range", priceRange$1(b.list)) : null, h("span.pcat__n", q && b.list.length !== b.all.length ? `${b.all.length} 项（命中 ${b.list.length}）` : `${b.all.length} 项`), h("span.pcat__acts", h("button.btn.btn--sm", {
+					const catHead = h$1("div.pcat__head", { title: "按住可以调整大类顺序，拖到别的游戏/通用组里就是换归属" }, h$1("span.pcat__name", b.cat.name), b.cat.is_daily ? tag("每天做", "outline") : null, b.cat.status === "archived" ? tag("大类已归档", "oxblood") : null, b.cat.note ? h$1("span.pcat__note", b.cat.note) : null, h$1("span.pcat__rule"), priceRange$1(b.list) ? h$1("span.pcat__range", priceRange$1(b.list)) : null, h$1("span.pcat__n", q && b.list.length !== b.all.length ? `${b.all.length} 项（命中 ${b.list.length}）` : `${b.all.length} 项`), h$1("span.pcat__acts", h$1("button.btn.btn--sm", {
 						type: "button",
 						title: "勾几个服务项，算这一组一共多少钱",
 						onclick: (e) => {
 							e.stopPropagation();
 							sumDialog(b.cat, b.all);
 						}
-					}, icon("price", 14), "组合报价"), h("button.btn.btn--sm.btn--primary", {
+					}, icon("price", 14), "组合报价"), h$1("button.btn.btn--sm.btn--primary", {
 						type: "button",
 						title: "在这个大类下加服务项",
 						onclick: (e) => {
 							e.stopPropagation();
 							newService(b.cat.id);
 						}
-					}, icon("plus", 14), "加服务项"), h("button.btn.btn--sm.btn--quiet", {
+					}, icon("plus", 14), "加服务项"), h$1("button.btn.btn--sm.btn--quiet", {
 						type: "button",
 						title: "改大类",
 						onclick: (e) => {
 							e.stopPropagation();
 							editCategory(b.cat);
 						}
-					}, icon("edit", 14)), h("button.btn.btn--sm.btn--quiet", {
+					}, icon("edit", 14)), h$1("button.btn.btn--sm.btn--quiet", {
 						type: "button",
 						title: "归档或彻底删除这个大类",
 						onclick: (e) => {
@@ -18277,18 +18339,18 @@ var price_default = {
 						setCatOpen(b.cat.id, next);
 						syncExpandNow();
 					});
-					const pcatEl = h("div.pcat", catHead, catBody);
+					const pcatEl = h$1("div.pcat", catHead, catBody);
 					wireCatHead(catHead, pcatEl, b.cat);
 					groupBody.appendChild(pcatEl);
 				}
 				wireGroupBody(groupBody, grp);
 				if (loose.length) {
-					const looseBody = h("div.pcat__body");
+					const looseBody = h$1("div.pcat__body");
 					for (const s of loose) looseBody.appendChild(serviceRow(s));
-					groupBody.appendChild(h("div.pcat", h("div.pcat__head", h("span.pcat__name", "未分类"), tag("这些服务项还没归到大类", "amber"), h("span.pcat__rule"), priceRange$1(loose) ? h("span.pcat__range", priceRange$1(loose)) : null, h("span.pcat__n", `${loose.length} 项`)), looseBody));
+					groupBody.appendChild(h$1("div.pcat", h$1("div.pcat__head", h$1("span.pcat__name", "未分类"), tag("这些服务项还没归到大类", "amber"), h$1("span.pcat__rule"), priceRange$1(loose) ? h$1("span.pcat__range", priceRange$1(loose)) : null, h$1("span.pcat__n", `${loose.length} 项`)), looseBody));
 				}
-				if (!blocks.length && !loose.length) groupBody.appendChild(h("div", { style: { padding: "2px 16px 14px" } }, h("span.dim.sm", "这张价格表还没有大类 —— 先点右边「新建大类」，再往里加服务项。")));
-				const groupHead = h("div.pgroup__head", h("span.pgroup__name", grp.name), grp.game?.status === "archived" ? tag("游戏已归档", "oxblood") : null, grp.game?.servers?.length ? h("span.dim.tiny", grp.game.servers.join(" / ")) : null, h("span.pgroup__grow"), h("span.pgroup__n", `${blocks.length} 个大类 · ${svcCount} 个服务项`), h("button.btn.btn--sm", {
+				if (!blocks.length && !loose.length) groupBody.appendChild(h$1("div", { style: { padding: "2px 16px 14px" } }, h$1("span.dim.sm", "这张价格表还没有大类 —— 先点右边「新建大类」，再往里加服务项。")));
+				const groupHead = h$1("div.pgroup__head", h$1("span.pgroup__name", grp.name), grp.game?.status === "archived" ? tag("游戏已归档", "oxblood") : null, grp.game?.servers?.length ? h$1("span.dim.tiny", grp.game.servers.join(" / ")) : null, h$1("span.pgroup__grow"), h$1("span.pgroup__n", `${blocks.length} 个大类 · ${svcCount} 个服务项`), h$1("button.btn.btn--sm", {
 					type: "button",
 					title: "在这张价格表下新建大类",
 					onclick: (e) => {
@@ -18297,9 +18359,9 @@ var price_default = {
 					}
 				}, icon("plus", 14), "新建大类"));
 				const gameNotice = String(grp.game?.notice || "").trim();
-				listBox.appendChild(h("div.pgroup", groupHead, gameNotice ? h("div.pgroup__notice", h("span", gameNotice)) : null, groupBody));
+				listBox.appendChild(h$1("div.pgroup", groupHead, gameNotice ? h$1("div.pgroup__notice", h$1("span", gameNotice)) : null, groupBody));
 			}
-			if (!shownGroups) listBox.appendChild(h("div", emptyState({
+			if (!shownGroups) listBox.appendChild(h$1("div", emptyState({
 				iconName: "search",
 				title: q ? "没有匹配的服务项" : "这个筛选下没有内容",
 				body: q ? "换个关键词，或者清空搜索。" : "换个筛选条件，或者新建一个大类。",
@@ -18308,7 +18370,7 @@ var price_default = {
 			})));
 			syncExpandNow();
 		}
-		const searchInput = h("input.inp", {
+		const searchInput = h$1("input.inp", {
 			type: "search",
 			placeholder: "搜服务名 / 说明",
 			style: { maxWidth: "240px" }
@@ -18317,18 +18379,18 @@ var price_default = {
 			filterQ = searchInput.value;
 			paint();
 		}, 160));
-		const gameSel = h("select.sel", { style: {
+		const gameSel = h$1("select.sel", { style: {
 			width: "auto",
 			minWidth: "140px"
 		} });
-		gameSel.appendChild(h("option", { value: "" }, "全部价格表"));
-		for (const g of allGames) gameSel.appendChild(h("option", { value: String(g.id) }, g.status === "archived" ? `${g.name}（已归档）` : g.name));
+		gameSel.appendChild(h$1("option", { value: "" }, "全部价格表"));
+		for (const g of allGames) gameSel.appendChild(h$1("option", { value: String(g.id) }, g.status === "archived" ? `${g.name}（已归档）` : g.name));
 		if (filterGame) gameSel.value = filterGame;
 		gameSel.addEventListener("change", () => {
 			filterGame = gameSel.value;
 			paint();
 		});
-		const statusSeg = h("div.seg", [
+		const statusSeg = h$1("div.seg", [
 			{
 				key: "active",
 				label: "在架"
@@ -18341,7 +18403,7 @@ var price_default = {
 				key: "all",
 				label: "全部"
 			}
-		].map((f) => h("button.seg__btn", {
+		].map((f) => h$1("button.seg__btn", {
 			type: "button",
 			"aria-pressed": String(f.key === filterStatus),
 			onclick: (e) => {
@@ -18353,14 +18415,14 @@ var price_default = {
 		}, f.label)));
 		paint();
 		const expandIco = icon("down", 14);
-		const expandTxt = h("span", "全部展开");
+		const expandTxt = h$1("span", "全部展开");
 		const allExpanded = () => categories.length > 0 && categories.every((c) => isCatOpen(c.id));
 		const syncExpand = () => {
 			const on = allExpanded();
 			expandIco.style.transform = on ? "rotate(180deg)" : "";
 			expandTxt.textContent = on ? "全部收起" : "全部展开";
 		};
-		const expandBtn = h("button.btn.btn--sm", {
+		const expandBtn = h$1("button.btn.btn--sm", {
 			type: "button",
 			title: "把所有大类一次展开或收起",
 			onclick: () => {
@@ -18377,7 +18439,7 @@ var price_default = {
 			const s = services.find((x) => String(x.id) === String(focused));
 			if (s) setTimeout(() => servicePeek(s, ctx, { onChanged: () => ctx.app.reload() }), 120);
 		}
-		return h("div.stack", h("div.pagehead", h("div.pagehead__txt", h("h1", "价格表"), h("p.pagehead__sub", `${allGames.length} 张价格表 · ${categories.length} 个大类 · ${services.filter((s) => s.status === "active").length} 个在架服务项 · 改价只影响之后开的单`))), h("div.toolbar", statusSeg, gameSel, expandBtn, h("div.toolbar__grow"), searchInput), h("section.sheet", listBox), h("div.note", "结构是「游戏（一张价格表）→ 大类 → 服务项」。服务项必须挂在大类里。按住服务项可以拖动排序，拖到别的大类里就顺手换归属；大类的标题也能拖，用来调整大类顺序，拖到别的游戏组里就是换游戏。改价格表只影响之后开的单，已经开出去的老单，价格冻在下单那一刻。"));
+		return h$1("div.stack", h$1("div.pagehead", h$1("div.pagehead__txt", h$1("h1", "价格表"), h$1("p.pagehead__sub", `${allGames.length} 张价格表 · ${categories.length} 个大类 · ${services.filter((s) => s.status === "active").length} 个在架服务项 · 改价只影响之后开的单`))), h$1("div.toolbar", statusSeg, gameSel, expandBtn, h$1("div.toolbar__grow"), searchInput), h$1("section.sheet", listBox), h$1("div.note", "结构是「游戏（一张价格表）→ 大类 → 服务项」。服务项必须挂在大类里。按住服务项可以拖动排序，拖到别的大类里就顺手换归属；大类的标题也能拖，用来调整大类顺序，拖到别的游戏组里就是换游戏。改价格表只影响之后开的单，已经开出去的老单，价格冻在下单那一刻。"));
 	}
 };
 //#endregion
@@ -18433,15 +18495,15 @@ async function refreshVault() {
 function promptUnlock({ reason = "要取用游戏登录凭证，先解开保险箱", allowCancel = true } = {}) {
 	if (vaultState.unlocked) return Promise.resolve(true);
 	return new Promise((resolve) => {
-		const input = h("input.inp", {
+		const input = h$1("input.inp", {
 			type: "password",
 			autocomplete: "current-password",
 			placeholder: "保险箱密码",
 			"aria-label": "保险箱密码"
 		});
-		const errBox = h("div.note.note--alert", { hidden: true });
-		const seal = h("div.seal-mark", "封");
-		const sealWrap = h("div", { style: {
+		const errBox = h$1("div.note.note--alert", { hidden: true });
+		const seal = h$1("div.seal-mark", "封");
+		const sealWrap = h$1("div", { style: {
 			display: "flex",
 			justifyContent: "center",
 			padding: "2px 0 6px"
@@ -18454,7 +18516,7 @@ function promptUnlock({ reason = "要取用游戏登录凭证，先解开保险�
 		};
 		const m = modal({
 			title: "解开保险箱",
-			body: h("div.stack.stack--tight", sealWrap, h("p.muted.sm", reason), h("div.field.field--full", h("label.lbl", { for: "vp" }, "保险箱密码"), input), errBox, h("div.hint", "这是和登录密码分开的独立密码。钥匙只放在内存里，闲置 20 分钟自动落锁。")),
+			body: h$1("div.stack.stack--tight", sealWrap, h$1("p.muted.sm", reason), h$1("div.field.field--full", h$1("label.lbl", { for: "vp" }, "保险箱密码"), input), errBox, h$1("div.hint", "这是和登录密码分开的独立密码。钥匙只放在内存里，闲置 20 分钟自动落锁。")),
 			actions: [...allowCancel ? [{
 				label: "先不解",
 				onClick: () => finish(false)
@@ -18511,20 +18573,20 @@ async function ensureVaultReady() {
 				done = true;
 				resolve(v);
 			};
-			const p1 = h("input.inp", {
+			const p1 = h$1("input.inp", {
 				type: "password",
 				autocomplete: "new-password",
 				placeholder: "至少 8 位，不要纯数字"
 			});
-			const p2 = h("input.inp", {
+			const p2 = h$1("input.inp", {
 				type: "password",
 				autocomplete: "new-password",
 				placeholder: "再输一次"
 			});
-			const errBox = h("div.note.note--alert", { hidden: true });
+			const errBox = h$1("div.note.note--alert", { hidden: true });
 			const m = modal({
 				title: "先给保险箱设个密码",
-				body: h("div.stack.stack--tight", h("p.muted.sm", "游戏登录凭证会用 AES-256-GCM 加密后存进数据库。这把钥匙由这个密码推导，不写进任何文件——忘了就真的解不开了。"), h("div.field.field--full", h("label.lbl", "保险箱密码 *"), p1), h("div.field.field--full", h("label.lbl", "确认密码 *"), p2), errBox, h("div.note", "建议和登录密码不一样，并且记在你自己的密码管理器里。")),
+				body: h$1("div.stack.stack--tight", h$1("p.muted.sm", "游戏登录凭证会用 AES-256-GCM 加密后存进数据库。这把钥匙由这个密码推导，不写进任何文件——忘了就真的解不开了。"), h$1("div.field.field--full", h$1("label.lbl", "保险箱密码 *"), p1), h$1("div.field.field--full", h$1("label.lbl", "确认密码 *"), p2), errBox, h$1("div.note", "建议和登录密码不一样，并且记在你自己的密码管理器里。")),
 				actions: [{
 					label: "以后再说",
 					onClick: () => finish(false)
@@ -18565,7 +18627,7 @@ async function lockVault() {
 	}
 }
 function vaultLockButton() {
-	const btn = h("button.btn.btn--icon.btn--quiet", { type: "button" });
+	const btn = h$1("button.btn.btn--icon.btn--quiet", { type: "button" });
 	const paint = () => {
 		const open = vaultState.unlocked;
 		const configured = vaultState.configured;
@@ -18607,7 +18669,7 @@ function credentialForm(values = {}, { customers = [], games = [], existingSecre
 		subtitle: "内容加密后落库，明文不落盘",
 		submitLabel: values.id ? "保存并重新加密" : "加密保存",
 		wide: true,
-		intro: h("div.note", h("span", { style: { flex: "none" } }, icon("shield", 16)), h("span", "优先扫码登录，不要密码就不用存密码。真需要代登时再填密码——它会用 AES-256-GCM 加密后写进数据库，任何时候查看或复制都会记一笔审计。")),
+		intro: h$1("div.note", h$1("span", { style: { flex: "none" } }, icon("shield", 16)), h$1("span", "优先扫码登录，不要密码就不用存密码。真需要代登时再填密码——它会用 AES-256-GCM 加密后写进数据库，任何时候查看或复制都会记一笔审计。")),
 		fields: [
 			{
 				type: "section",
@@ -18779,14 +18841,14 @@ async function revealSecret(cred, { action = "view" } = {}) {
 		["密保答案", s.security_answer],
 		["备注", s.note]
 	].filter(([, v]) => String(v || "").trim());
-	const grid = h("div.secretgrid");
+	const grid = h$1("div.secretgrid");
 	for (const [k, v] of rows) {
-		grid.appendChild(h("div.secretgrid__k", k));
-		grid.appendChild(h("div.secretgrid__v", h("code", String(v)), h("button.btn.btn--sm.btn--icon.btn--quiet", {
+		grid.appendChild(h$1("div.secretgrid__k", k));
+		grid.appendChild(h$1("div.secretgrid__v", h$1("code", String(v)), h$1("button.btn.btn--sm.btn--icon.btn--quiet", {
 			type: "button",
 			title: "复制",
 			onclick: async () => {
-				const ok = await copyText(v);
+				const ok = await copyText$1(v);
 				toast(ok ? "已复制（已记入审计）" : "复制失败", ok ? "ok" : "err");
 				if (ok) api.post(`/api/credentials/${cred.id}/reveal`, {
 					action: "copy",
@@ -18799,17 +18861,17 @@ async function revealSecret(cred, { action = "view" } = {}) {
 	modal({
 		title: `${cred.customer_name || ""} · ${cred.label || "登录凭证"}`,
 		wide: true,
-		body: h("div.stack", h("div.cluster.sm.dim", h("span", data.game_name || "未指定游戏"), data.server ? h("span", `· ${data.server}`) : null, data.role_name ? h("span", `· ${data.role_name}`) : null, h("span", "·"), h("span", LOGIN_TYPE_LABEL[data.login_type] || data.login_type)), h("div", { class: "veil-clear" }, grid), h("div.note.note--warn", `本次取用于 ${fmtDateTime(data.revealed_at)} 记入审计日志。关闭后请勿口头转述或转发截图。`), h("div.cluster", h("button.btn.btn--sm", {
+		body: h$1("div.stack", h$1("div.cluster.sm.dim", h$1("span", data.game_name || "未指定游戏"), data.server ? h$1("span", `· ${data.server}`) : null, data.role_name ? h$1("span", `· ${data.role_name}`) : null, h$1("span", "·"), h$1("span", LOGIN_TYPE_LABEL[data.login_type] || data.login_type)), h$1("div", { class: "veil-clear" }, grid), h$1("div.note.note--warn", `本次取用于 ${fmtDateTime(data.revealed_at)} 记入审计日志。关闭后请勿口头转述或转发截图。`), h$1("div.cluster", h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: async () => {
-				const ok = await copyText(allText);
+				const ok = await copyText$1(allText);
 				toast(ok ? "整条已复制（已记入审计）" : "复制失败", ok ? "ok" : "err");
 				if (ok) api.post(`/api/credentials/${cred.id}/reveal`, {
 					action: "copy",
 					field: "整条"
 				}).catch(() => {});
 			}
-		}, icon("copy", 14), "复制整条"), h("span.dim.tiny", "仅在客户明确要求代登时使用"))),
+		}, icon("copy", 14), "复制整条"), h$1("span.dim.tiny", "仅在客户明确要求代登时使用"))),
 		actions: [{
 			label: "看完了，关掉",
 			tone: "primary"
@@ -18817,11 +18879,11 @@ async function revealSecret(cred, { action = "view" } = {}) {
 	});
 }
 function vaultBar(onChanged) {
-	const wrap = h("div");
+	const wrap = h$1("div");
 	const paint = () => {
 		const configured = vaultState.configured;
 		const open = vaultState.unlocked;
-		wrap.replaceChildren(h(`div.vaultbar${open ? ".vaultbar--open" : ""}`, h("div.seal-mark", open ? "开" : "封"), h("div.vaultbar__txt", h("div.strong", !configured ? "保险箱还没设密码" : open ? "保险箱已解开" : "保险箱已锁定"), h("div.sm.dim", !configured ? "设一个独立密码，游戏账号密码才能开始加密入库。" : open ? `钥匙只在内存里，闲置 20 分钟或退出登录会自动落锁。${vaultState.expires_in_ms ? `还有约 ${Math.max(1, Math.round(vaultState.expires_in_ms / 6e4))} 分钟。` : ""}` : "要看账号密码，先解开保险箱。每次查看和复制都会留痕。")), !configured ? h("button.btn.btn--primary", {
+		wrap.replaceChildren(h$1(`div.vaultbar${open ? ".vaultbar--open" : ""}`, h$1("div.seal-mark", open ? "开" : "封"), h$1("div.vaultbar__txt", h$1("div.strong", !configured ? "保险箱还没设密码" : open ? "保险箱已解开" : "保险箱已锁定"), h$1("div.sm.dim", !configured ? "设一个独立密码，游戏账号密码才能开始加密入库。" : open ? `钥匙只在内存里，闲置 20 分钟或退出登录会自动落锁。${vaultState.expires_in_ms ? `还有约 ${Math.max(1, Math.round(vaultState.expires_in_ms / 6e4))} 分钟。` : ""}` : "要看账号密码，先解开保险箱。每次查看和复制都会留痕。")), !configured ? h$1("button.btn.btn--primary", {
 			type: "button",
 			onclick: async () => {
 				if (await ensureVaultReady()) {
@@ -18830,7 +18892,7 @@ function vaultBar(onChanged) {
 				}
 				paint();
 			}
-		}, "设置密码") : open ? h("button.btn", {
+		}, "设置密码") : open ? h$1("button.btn", {
 			type: "button",
 			onclick: async () => {
 				await lockVault();
@@ -18838,7 +18900,7 @@ function vaultBar(onChanged) {
 				onChanged();
 				paint();
 			}
-		}, icon("vault", 15), "落锁") : h("button.btn.btn--primary", {
+		}, icon("vault", 15), "落锁") : h$1("button.btn.btn--primary", {
 			type: "button",
 			onclick: async () => {
 				await promptUnlock({ reason: "解开后可以查看客户游戏账号密码。" });
@@ -18859,10 +18921,10 @@ async function auditDrawer() {
 		wide: true,
 		title: "取用记录",
 		subtitle: "谁、什么时候、看了哪条",
-		body: h("div.stack", h("div.note", "这个列表只记不删。如果发现不是你本人的操作，请立刻改保险箱密码并检查这台电脑。"), items.length ? h("div.itemlist", items.map((a) => h("div.item", { style: {
+		body: h$1("div.stack", h$1("div.note", "这个列表只记不删。如果发现不是你本人的操作，请立刻改保险箱密码并检查这台电脑。"), items.length ? h$1("div.itemlist", items.map((a) => h$1("div.item", { style: {
 			cursor: "default",
 			alignItems: "flex-start"
-		} }, h("div.item__main", h("div.item__title", AUDIT_ACTION_LABEL[a.action] || a.action, a.action.includes("failed") ? tag("失败", "oxblood") : null), h("div.item__meta", h("span", a.customer_name || ""), h("span", a.target || ""), h("span.mono", a.ip || "")), h("div.tbl__meta", `${fmtDateTime(a.created_at)} · ${relTime(a.created_at)} · 操作人 ${a.actor || "—"}`))))) : h("p.dim.sm", "还没有任何取用记录。"))
+		} }, h$1("div.item__main", h$1("div.item__title", AUDIT_ACTION_LABEL[a.action] || a.action, a.action.includes("failed") ? tag("失败", "oxblood") : null), h$1("div.item__meta", h$1("span", a.customer_name || ""), h$1("span", a.target || ""), h$1("span.mono", a.ip || "")), h$1("div.tbl__meta", `${fmtDateTime(a.created_at)} · ${relTime(a.created_at)} · 操作人 ${a.actor || "—"}`))))) : h$1("p.dim.sm", "还没有任何取用记录。"))
 	});
 }
 var vault_default = {
@@ -18883,10 +18945,10 @@ var vault_default = {
 		const focusCustomer = ctx.query.get("customer");
 		if (focusCustomer) creds = creds.filter((c) => String(c.customer_id) === String(focusCustomer));
 		const bar = vaultBar(() => ctx.app.reload());
-		ctx.setActions(h("button.btn.btn--sm", {
+		ctx.setActions(h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => auditDrawer()
-		}, icon("clock", 14), "取用记录"), h("button.btn.btn--sm.btn--primary", {
+		}, icon("clock", 14), "取用记录"), h$1("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			onclick: async () => {
 				if (!await ensureVaultReady()) return;
@@ -18899,15 +18961,15 @@ var vault_default = {
 				}
 			}
 		}, icon("plus", 14), "登记凭证"));
-		const body = creds.length ? h("div.itemlist", creds.map((c) => {
+		const body = creds.length ? h$1("div.itemlist", creds.map((c) => {
 			const locked = !vaultState.unlocked;
-			return h("div.item", { style: {
+			return h$1("div.item", { style: {
 				cursor: "default",
 				alignItems: "flex-start"
-			} }, h("div.item__main", h("div.item__title", c.label || "未命名凭证", tag(LOGIN_TYPE_LABEL[c.login_type] || c.login_type, c.login_type === "qrcode" ? "jade" : ""), c.status === "archived" ? tag("已归档", "oxblood") : null), h("div.item__meta", h("span", c.customer_name || "—"), h("span", c.game_name || "未指定游戏"), c.server ? h("span", c.server) : null, c.role_name ? h("span", c.role_name) : null, h("span", `建于 ${fmtDate(c.created_at)}`)), h("div", { style: { marginTop: "6px" } }, locked ? h("span.sealed", h("span.seal-mark", "封"), "内容已加密封存 · 解开保险箱后可查看") : h("span.mono.sm", c.masked_hint || "（没记账号）"))), h("div.tbl__acts", h("button.btn.btn--sm", {
+			} }, h$1("div.item__main", h$1("div.item__title", c.label || "未命名凭证", tag(LOGIN_TYPE_LABEL[c.login_type] || c.login_type, c.login_type === "qrcode" ? "jade" : ""), c.status === "archived" ? tag("已归档", "oxblood") : null), h$1("div.item__meta", h$1("span", c.customer_name || "—"), h$1("span", c.game_name || "未指定游戏"), c.server ? h$1("span", c.server) : null, c.role_name ? h$1("span", c.role_name) : null, h$1("span", `建于 ${fmtDate$1(c.created_at)}`)), h$1("div", { style: { marginTop: "6px" } }, locked ? h$1("span.sealed", h$1("span.seal-mark", "封"), "内容已加密封存 · 解开保险箱后可查看") : h$1("span.mono.sm", c.masked_hint || "（没记账号）"))), h$1("div.tbl__acts", h$1("button.btn.btn--sm", {
 				type: "button",
 				onclick: () => revealSecret(c)
-			}, icon(locked ? "vault" : "eye", 14), locked ? "解开查看" : "查看"), h("button.btn.btn--sm", {
+			}, icon(locked ? "vault" : "eye", 14), locked ? "解开查看" : "查看"), h$1("button.btn.btn--sm", {
 				type: "button",
 				onclick: async () => {
 					if (!await promptUnlock({ reason: "改凭证内容也要先解开保险箱。" })) return;
@@ -18924,7 +18986,7 @@ var vault_default = {
 						existingSecret: secret
 					})) ctx.app.reload();
 				}
-			}, icon("edit", 14)), h("button.btn.btn--sm.btn--danger", {
+			}, icon("edit", 14)), h$1("button.btn.btn--sm.btn--danger", {
 				type: "button",
 				onclick: async () => {
 					if (!await confirmDelete({
@@ -18965,7 +19027,7 @@ var vault_default = {
 			const c = creds.find((x) => String(x.id) === String(focusedId)) || (credRes.items || []).find((x) => String(x.id) === String(focusedId));
 			if (c && vaultState.unlocked) setTimeout(() => revealSecret(c), 150);
 		}
-		return h("div.stack", h("div.pagehead", h("div.pagehead__txt", h("h1", "登录凭证保险箱"), h("p.pagehead__sub", `${creds.length} 条凭证 · 用 AES-256-GCM 加密存储，明文不落盘`))), bar.node, creds.length && !vaultState.unlocked ? h("div.note.note--warn", "保险箱已锁定：下面的内容全被封着。这是故意的——万一这台电脑被别人打开，第一眼看不到任何账号。") : null, h("section.panel", h("div.panel__body.panel__body--flush", body)));
+		return h$1("div.stack", h$1("div.pagehead", h$1("div.pagehead__txt", h$1("h1", "登录凭证保险箱"), h$1("p.pagehead__sub", `${creds.length} 条凭证 · 用 AES-256-GCM 加密存储，明文不落盘`))), bar.node, creds.length && !vaultState.unlocked ? h$1("div.note.note--warn", "保险箱已锁定：下面的内容全被封着。这是故意的——万一这台电脑被别人打开，第一眼看不到任何账号。") : null, h$1("section.panel", h$1("div.panel__body.panel__body--flush", body)));
 	}
 };
 //#endregion
@@ -18976,7 +19038,7 @@ function presetRange(key) {
 	const m = now.getMonth();
 	if (key === "thisMonth") return {
 		from: `${y}-${String(m + 1).padStart(2, "0")}-01`,
-		to: todayStr(),
+		to: todayStr$1(),
 		label: "本月"
 	};
 	if (key === "lastMonth") {
@@ -18990,39 +19052,39 @@ function presetRange(key) {
 	}
 	if (key === "thisYear") return {
 		from: `${y}-01-01`,
-		to: todayStr(),
+		to: todayStr$1(),
 		label: "今年"
 	};
 	if (key === "last30") {
 		const d = /* @__PURE__ */ new Date();
 		d.setDate(d.getDate() - 29);
 		return {
-			from: fmtDate(d.toISOString()),
-			to: todayStr(),
+			from: fmtDate$1(d.toISOString()),
+			to: todayStr$1(),
 			label: "近 30 天"
 		};
 	}
 	return {
-		from: monthStart(),
-		to: todayStr(),
+		from: monthStart$1(),
+		to: todayStr$1(),
 		label: "本月"
 	};
 }
 function bars(daily) {
 	const list = daily.slice(-31);
 	const max = Math.max(1, ...list.map((d) => Math.max(d.ordered || 0, d.received || 0)));
-	return h("div", h("div.bars", list.map((d) => h("div.bar", { style: {
+	return h$1("div", h$1("div.bars", list.map((d) => h$1("div.bar", { style: {
 		height: `${Math.max(2, (d.ordered || 0) / max * 100)}%`,
 		background: d.ordered ? "var(--cinnabar)" : "var(--line-strong)"
-	} }, h("div.bar__tip", `${fmtDay(d.date)}：开单 ¥${fmtMoney(d.ordered)} · 收款 ¥${fmtMoney(d.received)}`)))), h("div.legend", h("span.legend__k", h("span.legend__sw", { style: { background: "var(--cinnabar)" } }), "当日开单额"), h("span.legend__k", h("span", `峰值 ¥${fmtMoney(max)}`)), h("span.legend__k", h("span", `${list[0] ? fmtDay(list[0].date) : ""} → ${list.length ? fmtDay(list[list.length - 1].date) : ""}`))));
+	} }, h$1("div.bar__tip", `${fmtDay$1(d.date)}：开单 ¥${fmtMoney$1(d.ordered)} · 收款 ¥${fmtMoney$1(d.received)}`)))), h$1("div.legend", h$1("span.legend__k", h$1("span.legend__sw", { style: { background: "var(--cinnabar)" } }), "当日开单额"), h$1("span.legend__k", h$1("span", `峰值 ¥${fmtMoney$1(max)}`)), h$1("span.legend__k", h$1("span", `${list[0] ? fmtDay$1(list[0].date) : ""} → ${list.length ? fmtDay$1(list[list.length - 1].date) : ""}`))));
 }
 var finance_default = {
 	title: "财务",
 	async render(ctx) {
 		const preset = ctx.query.get("range") || "thisMonth";
 		const range = preset === "custom" ? {
-			from: ctx.query.get("from") || monthStart(),
-			to: ctx.query.get("to") || todayStr(),
+			from: ctx.query.get("from") || monthStart$1(),
+			to: ctx.query.get("to") || todayStr$1(),
 			label: "自定义"
 		} : presetRange(preset);
 		const [fin, payRes] = await Promise.all([api.get("/api/finance/summary", {
@@ -19034,38 +19096,38 @@ var finance_default = {
 			limit: 400
 		})]);
 		const t = fin.totals;
-		const fromInp = h("input.inp", {
+		const fromInp = h$1("input.inp", {
 			type: "date",
 			value: range.from,
 			style: { width: "auto" }
 		});
-		const toInp = h("input.inp", {
+		const toInp = h$1("input.inp", {
 			type: "date",
 			value: range.to,
 			style: { width: "auto" }
 		});
 		const goCustom = () => ctx.navigate(`/finance?range=custom&from=${fromInp.value}&to=${toInp.value}`);
-		const seg = h("div.seg", [
+		const seg = h$1("div.seg", [
 			"thisMonth",
 			"lastMonth",
 			"last30",
 			"thisYear",
 			"custom"
-		].map((k) => h("button.seg__btn", {
+		].map((k) => h$1("button.seg__btn", {
 			type: "button",
 			"aria-pressed": String(k === preset),
 			onclick: () => ctx.navigate(`/finance?range=${k}`)
 		}, k === "custom" ? "自定义" : presetRange(k).label)));
-		return h("div.stack", h("div.pagehead", h("div.pagehead__txt", h("h1", "财务"), h("p.pagehead__sub", `${range.from} → ${range.to} · 共 ${t.order_count} 张单`)), h("div.pagehead__acts", preset === "custom" ? h("div.cluster", fromInp, h("span.dim", "→"), toInp, h("button.btn.btn--sm.btn--primary", {
+		return h$1("div.stack", h$1("div.pagehead", h$1("div.pagehead__txt", h$1("h1", "财务"), h$1("p.pagehead__sub", `${range.from} → ${range.to} · 共 ${t.order_count} 张单`)), h$1("div.pagehead__acts", preset === "custom" ? h$1("div.cluster", fromInp, h$1("span.dim", "→"), toInp, h$1("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			onclick: goCustom
-		}, "看这段")) : null)), h("div.toolbar", seg, h("div.toolbar__grow")), h("section.ledger", h("div.ledger__head", h("span.ledger__title", "区间账单"), h("div", { style: { flex: "1" } }), h("span.ledger__date", `${range.label}`)), h("div.ledger__body", h("div.ledger__group", h("div.cell", h("span.cell__lbl", "订单额"), h("span.cell__fig", `¥${fmtMoney(t.order_total)}`)), h("div.cell", h("span.cell__lbl", "总收款"), h("span.cell__fig", `¥${fmtMoney(t.received)}`)), h("div.cell", h("span.cell__lbl", "退款"), h("span.cell__fig", `¥${fmtMoney(t.refunded)}`)), h("div.cell", h("span.cell__lbl", "净收"), h("span.cell__fig.tone-jade", { style: { color: "var(--jade-ink)" } }, `¥${fmtMoney(t.net_received)}`))), h("div.ledger__group.ledger__group--sum", h("div.cell", h("span.cell__lbl", "应收余额"), h("span.cell__fig", { style: { color: t.due_total > 0 ? "var(--cinnabar)" : "" } }, `¥${fmtMoney(t.due_total)}`)), h("div.cell", h("span.cell__lbl", "手续费"), h("span.cell__fig.cell__fig--sm", `¥${fmtMoney(t.platform_fee)}`)), h("div.cell", h("span.cell__lbl", "成本"), h("span.cell__fig.cell__fig--sm", `¥${fmtMoney(t.cost)}`)), h("div.cell", h("span.cell__lbl", "利润"), h("span.cell__fig", `¥${fmtMoney(t.profit)}`))))), h("div.split", h("div.stack", h("section.panel", h("div.panel__body", sectionHead("每天开了多少", "按开单日统计")), h("div.panel__body", { style: { paddingTop: "0" } }, bars(fin.daily))), h("section.panel", h("div.panel__body", sectionHead("还没结清的单", `${fin.receivables.length} 张 · 合计 ¥${fmtMoney(fin.receivables.reduce((s, r) => s + r.due_total, 0))}`)), fin.receivables.length ? table({
+		}, "看这段")) : null)), h$1("div.toolbar", seg, h$1("div.toolbar__grow")), h$1("section.ledger", h$1("div.ledger__head", h$1("span.ledger__title", "区间账单"), h$1("div", { style: { flex: "1" } }), h$1("span.ledger__date", `${range.label}`)), h$1("div.ledger__body", h$1("div.ledger__group", h$1("div.cell", h$1("span.cell__lbl", "订单额"), h$1("span.cell__fig", `¥${fmtMoney$1(t.order_total)}`)), h$1("div.cell", h$1("span.cell__lbl", "总收款"), h$1("span.cell__fig", `¥${fmtMoney$1(t.received)}`)), h$1("div.cell", h$1("span.cell__lbl", "退款"), h$1("span.cell__fig", `¥${fmtMoney$1(t.refunded)}`)), h$1("div.cell", h$1("span.cell__lbl", "净收"), h$1("span.cell__fig.tone-jade", { style: { color: "var(--jade-ink)" } }, `¥${fmtMoney$1(t.net_received)}`))), h$1("div.ledger__group.ledger__group--sum", h$1("div.cell", h$1("span.cell__lbl", "应收余额"), h$1("span.cell__fig", { style: { color: t.due_total > 0 ? "var(--cinnabar)" : "" } }, `¥${fmtMoney$1(t.due_total)}`)), h$1("div.cell", h$1("span.cell__lbl", "手续费"), h$1("span.cell__fig.cell__fig--sm", `¥${fmtMoney$1(t.platform_fee)}`)), h$1("div.cell", h$1("span.cell__lbl", "成本"), h$1("span.cell__fig.cell__fig--sm", `¥${fmtMoney$1(t.cost)}`)), h$1("div.cell", h$1("span.cell__lbl", "利润"), h$1("span.cell__fig", `¥${fmtMoney$1(t.profit)}`))))), h$1("div.split", h$1("div.stack", h$1("section.panel", h$1("div.panel__body", sectionHead("每天开了多少", "按开单日统计")), h$1("div.panel__body", { style: { paddingTop: "0" } }, bars(fin.daily))), h$1("section.panel", h$1("div.panel__body", sectionHead("还没结清的单", `${fin.receivables.length} 张 · 合计 ¥${fmtMoney$1(fin.receivables.reduce((s, r) => s + r.due_total, 0))}`)), fin.receivables.length ? table({
 			columns: [
 				{
 					key: "order_no",
 					label: "订单",
 					main: true,
-					render: (o) => h("div", h("div.tbl__primary", o.order_no), h("div.tbl__meta", o.title || ""))
+					render: (o) => h$1("div", h$1("div.tbl__primary", o.order_no), h$1("div.tbl__meta", o.title || ""))
 				},
 				{
 					key: "customer_name",
@@ -19079,30 +19141,30 @@ var finance_default = {
 				{
 					key: "ordered_at",
 					label: "下单",
-					render: (o) => h("span.sm.dim", fmtDay(o.ordered_at))
+					render: (o) => h$1("span.sm.dim", fmtDay$1(o.ordered_at))
 				},
 				{
 					key: "total",
 					label: "总额",
 					num: true,
-					render: (o) => fmtMoney(o.total)
+					render: (o) => fmtMoney$1(o.total)
 				},
 				{
 					key: "due_total",
 					label: "还差",
 					num: true,
-					render: (o) => h("span.tone-amber", fmtMoney(o.due_total))
+					render: (o) => h$1("span.tone-amber", fmtMoney$1(o.due_total))
 				}
 			],
 			rows: fin.receivables,
 			onRowClick: (o) => ctx.navigate(`/orders/${o.id}`)
-		}) : h("div.panel__body", h("p.dim.sm", "都收齐了。"))), h("section.panel", h("div.panel__body", sectionHead("收款流水", `${payRes.items.length} 笔`)), payRes.items.length ? table({
+		}) : h$1("div.panel__body", h$1("p.dim.sm", "都收齐了。"))), h$1("section.panel", h$1("div.panel__body", sectionHead("收款流水", `${payRes.items.length} 笔`)), payRes.items.length ? table({
 			columns: [
 				{
 					key: "paid_at",
 					label: "日期",
 					main: true,
-					render: (p) => h("div", h("div.tbl__primary", fmtDay(p.paid_at)), h("div.tbl__meta", p.order_no || "未挂订单"))
+					render: (p) => h$1("div", h$1("div.tbl__primary", fmtDay$1(p.paid_at)), h$1("div.tbl__meta", p.order_no || "未挂订单"))
 				},
 				{
 					key: "customer_name",
@@ -19116,17 +19178,17 @@ var finance_default = {
 				{
 					key: "note",
 					label: "备注",
-					render: (p) => h("span.sm.dim", p.note || "")
+					render: (p) => h$1("span.sm.dim", p.note || "")
 				},
 				{
 					key: "amount",
 					label: "金额",
 					num: true,
-					render: (p) => h(`span${p.kind === "refund" ? ".tone-oxblood" : ".tone-jade"}`, `${p.kind === "refund" ? "−" : "+"}${fmtMoney(p.amount)}`)
+					render: (p) => h$1(`span${p.kind === "refund" ? ".tone-oxblood" : ".tone-jade"}`, `${p.kind === "refund" ? "−" : "+"}${fmtMoney$1(p.amount)}`)
 				}
 			],
 			rows: payRes.items
-		}) : h("div.panel__body", h("p.dim.sm", "这段时间没有收款记录。")))), h("div.stack", h("section.panel", h("div.panel__body", sectionHead("按收款方式")), fin.by_method.length ? h("div.itemlist", fin.by_method.map((m) => h("div.item", { style: { cursor: "default" } }, h("div.item__main", h("div.item__title", PAY_METHOD_LABEL[m.method] || m.method), h("div.item__meta", h("span", `${m.count} 笔`))), h("div.item__right", h("div.item__fig", `¥${fmtMoney(m.amount)}`))))) : h("div.panel__body", h("p.dim.sm", "暂无。"))), h("section.panel", h("div.panel__body", sectionHead("按游戏")), fin.by_game.length ? h("div.itemlist", fin.by_game.map((g) => h("div.item", { style: { cursor: "default" } }, h("div.item__main", h("div.item__title", g.game_name), h("div.item__meta", h("span", `${g.order_count} 单`), h("span", `利润 ¥${fmtMoney(g.profit)}`))), h("div.item__right", h("div.item__fig", `¥${fmtMoney(g.order_total)}`))))) : h("div.panel__body", h("p.dim.sm", "暂无。"))), h("section.panel", h("div.panel__body", sectionHead("口径说明")), h("div.panel__body", { style: { paddingTop: "0" } }, h("ul.empty__steps", h("li", h("span.n", "·"), h("span", "订单额按「下单日」归集；收款按「到账日」归集，两者不必同月。")), h("li", h("span.n", "·"), h("span", "净收 = 总收款 − 退款。")), h("li", h("span.n", "·"), h("span", "利润 = 订单额 − 平台手续费 − 成本，不含你自己的人工。")), h("li", h("span.n", "·"), h("span", "已取消的单不计入订单额。"))))))));
+		}) : h$1("div.panel__body", h$1("p.dim.sm", "这段时间没有收款记录。")))), h$1("div.stack", h$1("section.panel", h$1("div.panel__body", sectionHead("按收款方式")), fin.by_method.length ? h$1("div.itemlist", fin.by_method.map((m) => h$1("div.item", { style: { cursor: "default" } }, h$1("div.item__main", h$1("div.item__title", PAY_METHOD_LABEL[m.method] || m.method), h$1("div.item__meta", h$1("span", `${m.count} 笔`))), h$1("div.item__right", h$1("div.item__fig", `¥${fmtMoney$1(m.amount)}`))))) : h$1("div.panel__body", h$1("p.dim.sm", "暂无。"))), h$1("section.panel", h$1("div.panel__body", sectionHead("按游戏")), fin.by_game.length ? h$1("div.itemlist", fin.by_game.map((g) => h$1("div.item", { style: { cursor: "default" } }, h$1("div.item__main", h$1("div.item__title", g.game_name), h$1("div.item__meta", h$1("span", `${g.order_count} 单`), h$1("span", `利润 ¥${fmtMoney$1(g.profit)}`))), h$1("div.item__right", h$1("div.item__fig", `¥${fmtMoney$1(g.order_total)}`))))) : h$1("div.panel__body", h$1("p.dim.sm", "暂无。"))), h$1("section.panel", h$1("div.panel__body", sectionHead("口径说明")), h$1("div.panel__body", { style: { paddingTop: "0" } }, h$1("ul.empty__steps", h$1("li", h$1("span.n", "·"), h$1("span", "订单额按「下单日」归集；收款按「到账日」归集，两者不必同月。")), h$1("li", h$1("span.n", "·"), h$1("span", "净收 = 总收款 − 退款。")), h$1("li", h$1("span.n", "·"), h$1("span", "利润 = 订单额 − 平台手续费 − 成本，不含你自己的人工。")), h$1("li", h$1("span.n", "·"), h$1("span", "已取消的单不计入订单额。"))))))));
 	}
 };
 //#endregion
@@ -19177,39 +19239,39 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 	let title = existing?.title || "代肝报价单";
 	let note = existing?.note || "";
 	let validUntil = existing?.valid_until || new Date(Date.now() + 6048e5).toISOString().slice(0, 10);
-	const custSel = h("select.sel");
-	custSel.appendChild(h("option", { value: "" }, "— 不指定客户（先给路人报价）—"));
+	const custSel = h$1("select.sel");
+	custSel.appendChild(h$1("option", { value: "" }, "— 不指定客户（先给路人报价）—"));
 	for (const c of customers) {
-		const o = h("option", { value: String(c.id) }, `${c.name}${c.phone ? ` · ${c.phone}` : ""}`);
+		const o = h$1("option", { value: String(c.id) }, `${c.name}${c.phone ? ` · ${c.phone}` : ""}`);
 		if (existing?.customer_id === c.id) o.selected = true;
 		custSel.appendChild(o);
 	}
-	const gameSel = h("select.sel");
-	gameSel.appendChild(h("option", { value: "" }, "— 不指定游戏 —"));
+	const gameSel = h$1("select.sel");
+	gameSel.appendChild(h$1("option", { value: "" }, "— 不指定游戏 —"));
 	for (const g of games) {
-		const o = h("option", { value: String(g.id) }, g.name);
+		const o = h$1("option", { value: String(g.id) }, g.name);
 		if (existing?.game_id === g.id) o.selected = true;
 		gameSel.appendChild(o);
 	}
-	const titleInp = h("input.inp", { value: title });
-	const noteInp = h("textarea.ta", {
+	const titleInp = h$1("input.inp", { value: title });
+	const noteInp = h$1("textarea.ta", {
 		rows: 2,
 		placeholder: "例：包月更划算；三个号同时做可再谈"
 	});
 	noteInp.value = note;
-	const validInp = h("input.inp", {
+	const validInp = h$1("input.inp", {
 		type: "date",
 		value: validUntil
 	});
-	const searchInput = h("input.inp", {
+	const searchInput = h$1("input.inp", {
 		type: "search",
 		placeholder: "搜服务名…"
 	});
-	const svcList = h("div.picker__scroll");
-	const pickerFoot = h("div.picker__foot");
-	const sheetBox = h("div.stack.stack--tight");
-	const textBox = h("pre.plaintext", { style: { display: "none" } });
-	const toggleTextBtn = h("button.btn.btn--sm", { type: "button" }, icon("quotes", 14), "看文字版");
+	const svcList = h$1("div.picker__scroll");
+	const pickerFoot = h$1("div.picker__foot");
+	const sheetBox = h$1("div.stack.stack--tight");
+	const textBox = h$1("pre.plaintext", { style: { display: "none" } });
+	const toggleTextBtn = h$1("button.btn.btn--sm", { type: "button" }, icon("quotes", 14), "看文字版");
 	let showText = false;
 	function paintSheet() {
 		const lines = [];
@@ -19225,7 +19287,7 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 				if (!sel.optionIds.has(o.id)) continue;
 				const add = o.price_mode === "percent" ? amount * Number(o.price) / 100 : Number(o.price);
 				amount += add;
-				addons.push(`${o.name}${o.price_mode === "percent" ? ` +${o.price}%` : o.price ? ` +${fmtMoney(o.price)}元` : ""}`);
+				addons.push(`${o.name}${o.price_mode === "percent" ? ` +${o.price}%` : o.price ? ` +${fmtMoney$1(o.price)}元` : ""}`);
 			}
 			total += amount;
 			lines.push({
@@ -19236,7 +19298,7 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 				addons
 			});
 		}
-		sheetBox.replaceChildren(lines.length ? h("div.quote-sheet", h("div.quote-sheet__head", h("strong", titleInp.value || "代肝报价单"), h("div", { style: { flex: "1" } }), h("span.dim.sm", `有效期至 ${validInp.value || "—"}`)), h("div.quote-sheet__lines", lines.map((l) => h("div.qline", h("div", h("div", l.s.name), h("div.tbl__meta", `${fmtMoney(l.unit)} 元/${defaultUnit(l.s)} × ${fmtQty(l.qty)} = ${fmtMoney(l.amount)} 元`), l.addons.length ? h("div.tbl__meta", `含 ${l.addons.join(" · ")}`) : null), h("div.qline__amt", `¥${fmtMoney(l.amount)}`)))), h("div.quote-sheet__total", h("span", "合计"), h("span.quote-sheet__totalfig", `¥${fmtMoney(total)}`))) : h("div.empty", h("div.empty__mark", icon("price", 20)), h("div.empty__title", "右边勾几个服务项"), h("p.empty__body", "报价单会实时长出来，右边这段文字可以直接复制发微信。")));
+		sheetBox.replaceChildren(lines.length ? h$1("div.quote-sheet", h$1("div.quote-sheet__head", h$1("strong", titleInp.value || "代肝报价单"), h$1("div", { style: { flex: "1" } }), h$1("span.dim.sm", `有效期至 ${validInp.value || "—"}`)), h$1("div.quote-sheet__lines", lines.map((l) => h$1("div.qline", h$1("div", h$1("div", l.s.name), h$1("div.tbl__meta", `${fmtMoney$1(l.unit)} 元/${defaultUnit(l.s)} × ${fmtQty$1(l.qty)} = ${fmtMoney$1(l.amount)} 元`), l.addons.length ? h$1("div.tbl__meta", `含 ${l.addons.join(" · ")}`) : null), h$1("div.qline__amt", `¥${fmtMoney$1(l.amount)}`)))), h$1("div.quote-sheet__total", h$1("span", "合计"), h$1("span.quote-sheet__totalfig", `¥${fmtMoney$1(total)}`))) : h$1("div.empty", h$1("div.empty__mark", icon("price", 20)), h$1("div.empty__title", "右边勾几个服务项"), h$1("p.empty__body", "报价单会实时长出来，右边这段文字可以直接复制发微信。")));
 		if (showText) {
 			textBox.textContent = buildText(lines, total);
 			textBox.style.display = "";
@@ -19253,18 +19315,18 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 		out.push("————————————");
 		lines.forEach((l, i) => {
 			out.push(`${i + 1}. ${l.s.name}`);
-			out.push(`   ${fmtMoney(l.unit)} 元/${defaultUnit(l.s)} × ${fmtQty(l.qty)} = ${fmtMoney(l.amount)} 元`);
+			out.push(`   ${fmtMoney$1(l.unit)} 元/${defaultUnit(l.s)} × ${fmtQty$1(l.qty)} = ${fmtMoney$1(l.amount)} 元`);
 			if (l.addons.length) out.push(`   含：${l.addons.join("、")}`);
 			if (l.s.description) out.push(`   说明：${l.s.description}`);
 		});
 		out.push("————————————");
-		out.push(`合计：${fmtMoney(total)} 元`);
+		out.push(`合计：${fmtMoney$1(total)} 元`);
 		if (noteInp.value) out.push(`备注：${noteInp.value}`);
 		if (validInp.value) out.push(`有效期至：${validInp.value}`);
 		return out.join("\n");
 	}
 	let catFilter = "";
-	const catFilterSel = h("select.sel", {
+	const catFilterSel = h$1("select.sel", {
 		style: {
 			width: "auto",
 			minWidth: "130px"
@@ -19280,7 +19342,7 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 			list = own.length ? own : withSvc.filter((c) => !c.game_id);
 		}
 		if (catFilter && !list.some((c) => String(c.id) === catFilter)) catFilter = "";
-		catFilterSel.replaceChildren(h("option", { value: "" }, "全部大类"), ...list.map((c) => h("option", { value: String(c.id) }, c.name)));
+		catFilterSel.replaceChildren(h$1("option", { value: "" }, "全部大类"), ...list.map((c) => h$1("option", { value: String(c.id) }, c.name)));
 		catFilterSel.value = catFilter;
 	}
 	catFilterSel.addEventListener("change", () => {
@@ -19290,7 +19352,7 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 	/** 「已选 N 项 + 清空」，固定在挑服务框底部 */
 	function paintFoot() {
 		const n = picked.size;
-		mount(pickerFoot, n ? h("span.cluster", { style: { gap: "6px" } }, h("span.pickcount", String(n)), h("span", "已选")) : h("span.dim", "还没勾服务项"), h("div", { style: { flex: "1" } }), n ? h("button.btn.btn--sm.btn--quiet", {
+		mount(pickerFoot, n ? h$1("span.cluster", { style: { gap: "6px" } }, h$1("span.pickcount", String(n)), h$1("span", "已选")) : h$1("span.dim", "还没勾服务项"), h$1("div", { style: { flex: "1" } }), n ? h$1("button.btn.btn--sm.btn--quiet", {
 			type: "button",
 			onclick: () => {
 				picked.clear();
@@ -19312,7 +19374,7 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 		}
 		svcList.replaceChildren();
 		if (!allServices.length) {
-			svcList.appendChild(h("div.empty", h("div.empty__body", "价格表还是空的。"), h("button.btn.btn--sm", {
+			svcList.appendChild(h$1("div.empty", h$1("div.empty__body", "价格表还是空的。"), h$1("button.btn.btn--sm", {
 				type: "button",
 				onclick: () => ctx.navigate("/price")
 			}, "先去建价格表")));
@@ -19320,7 +19382,7 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 			return;
 		}
 		if (!cats.size) {
-			svcList.appendChild(h("div.empty", h("div.empty__body", "没有匹配的服务项。"), h("button.btn.btn--sm", {
+			svcList.appendChild(h$1("div.empty", h$1("div.empty__body", "没有匹配的服务项。"), h$1("button.btn.btn--sm", {
 				type: "button",
 				onclick: () => ctx.navigate("/price")
 			}, "去价格表看看")));
@@ -19328,30 +19390,30 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 			return;
 		}
 		for (const [catName, list] of cats) {
-			const group = h("div.pickgroup", h("div.pickgroup__head", h("span.pickgroup__name", catName), h("span.pickgroup__n", `${list.length} 项`)));
+			const group = h$1("div.pickgroup", h$1("div.pickgroup__head", h$1("span.pickgroup__name", catName), h$1("span.pickgroup__n", `${list.length} 项`)));
 			for (const s of list) {
 				const sel = picked.get(s.id);
-				const cb = h("input.chk", {
+				const cb = h$1("input.chk", {
 					type: "checkbox",
 					"aria-label": `选择 ${s.name}`
 				});
 				cb.checked = Boolean(sel);
-				const qty = h("input.inp.inp--fig", {
+				const qty = h$1("input.inp.inp--fig", {
 					inputmode: "decimal",
 					style: { width: "70px" },
 					"aria-label": `${s.name} 数量`
 				});
-				const price = h("input.inp.inp--fig", {
+				const price = h$1("input.inp.inp--fig", {
 					inputmode: "decimal",
 					style: { width: "82px" },
 					placeholder: "改价",
 					"aria-label": `${s.name} 单价`
 				});
-				const ctrl = h("div.pickrow__ctrl");
-				ctrl.append(h("div.cluster", { style: { gap: "6px" } }, qty, h("span.dim.tiny", defaultUnit(s)), price, h("span.dim.tiny", "元")));
-				const optWrap = h("div.cluster", { style: { gap: "10px" } });
-				const detail = h("div.pickrow__detail", optWrap);
-				const row = h("div.pickrow");
+				const ctrl = h$1("div.pickrow__ctrl");
+				ctrl.append(h$1("div.cluster", { style: { gap: "6px" } }, qty, h$1("span.dim.tiny", defaultUnit(s)), price, h$1("span.dim.tiny", "元")));
+				const optWrap = h$1("div.cluster", { style: { gap: "10px" } });
+				const detail = h$1("div.pickrow__detail", optWrap);
+				const row = h$1("div.pickrow");
 				const paint = () => {
 					const cur = picked.get(s.id);
 					row.classList.toggle("pickrow--on", Boolean(cur));
@@ -19390,23 +19452,23 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 					const cur = picked.get(s.id);
 					if (!cur) return;
 					for (const o of s.options || []) {
-						const oc = h("input.chk", { type: "checkbox" });
+						const oc = h$1("input.chk", { type: "checkbox" });
 						oc.checked = cur.optionIds.has(o.id);
 						oc.addEventListener("change", () => {
 							if (oc.checked) cur.optionIds.add(o.id);
 							else cur.optionIds.delete(o.id);
 							paintSheet();
 						});
-						optWrap.appendChild(h("label.inline", { style: {
+						optWrap.appendChild(h$1("label.inline", { style: {
 							cursor: "pointer",
 							gap: "5px"
-						} }, oc, h("span.sm", o.name)));
+						} }, oc, h$1("span.sm", o.name)));
 					}
 				}
-				row.append(h("div.pickrow__top", cb, h("button.pickrow__main", {
+				row.append(h$1("div.pickrow__top", cb, h$1("button.pickrow__main", {
 					type: "button",
 					onclick: toggle
-				}, h("span.pickrow__line", h("span.pickrow__name", s.name), h("span.pickrow__fig", `¥${fmtMoney(s.base_price)}`, h("em", `/${defaultUnit(s)}`))), h("span.pickrow__meta", [PRICE_TYPE_LABEL[s.price_type] || s.price_type, s.description || null].filter(Boolean).join(" · ")))), ctrl, detail);
+				}, h$1("span.pickrow__line", h$1("span.pickrow__name", s.name), h$1("span.pickrow__fig", `¥${fmtMoney$1(s.base_price)}`, h$1("em", `/${defaultUnit(s)}`))), h$1("span.pickrow__meta", [PRICE_TYPE_LABEL[s.price_type] || s.price_type, s.description || null].filter(Boolean).join(" · ")))), ctrl, detail);
 				rowPainters.push(paint);
 				buildOpts();
 				paint();
@@ -19434,16 +19496,16 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 	paintCatFilter();
 	renderServices();
 	paintSheet();
-	const saveBtn = h("button.btn.btn--primary", { type: "button" }, existing ? "保存改动" : "存成报价单");
-	const copyBtn = h("button.btn", { type: "button" }, icon("copy", 14), "复制文字");
+	const saveBtn = h$1("button.btn.btn--primary", { type: "button" }, existing ? "保存改动" : "存成报价单");
+	const copyBtn = h$1("button.btn", { type: "button" }, icon("copy", 14), "复制文字");
 	const d = drawer({
 		wide: true,
 		title: existing ? `改报价单 · ${existing.quote_no}` : "做一张报价单",
 		subtitle: "勾服务 → 算钱 → 复制文字发微信",
-		body: h("div.stack", h("div.formgrid", h("div.field.field--full", h("label.lbl", "抬头"), titleInp), h("div.field.field--full", h("label.lbl", "客户"), custSel), h("div.field.field--full", h("label.lbl", "游戏"), gameSel), h("div.field.field--full", h("label.lbl", "有效期至"), validInp)), h("div.split", h("div.stack.stack--tight", h("div.sechead", h("h3", "挑服务"), h("span.sechead__note", "勾上就进单")), h("div.cluster", { style: { gap: "6px" } }, searchInput, catFilterSel), h("div.picker", svcList, pickerFoot)), h("div.stack.stack--tight", h("div.sechead", h("h3", "报价单"), h("div", { style: { flex: "1" } }), toggleTextBtn), sheetBox, textBox, h("div.field.field--full", h("label.lbl", "备注"), noteInp)))),
+		body: h$1("div.stack", h$1("div.formgrid", h$1("div.field.field--full", h$1("label.lbl", "抬头"), titleInp), h$1("div.field.field--full", h$1("label.lbl", "客户"), custSel), h$1("div.field.field--full", h$1("label.lbl", "游戏"), gameSel), h$1("div.field.field--full", h$1("label.lbl", "有效期至"), validInp)), h$1("div.split", h$1("div.stack.stack--tight", h$1("div.sechead", h$1("h3", "挑服务"), h$1("span.sechead__note", "勾上就进单")), h$1("div.cluster", { style: { gap: "6px" } }, searchInput, catFilterSel), h$1("div.picker", svcList, pickerFoot)), h$1("div.stack.stack--tight", h$1("div.sechead", h$1("h3", "报价单"), h$1("div", { style: { flex: "1" } }), toggleTextBtn), sheetBox, textBox, h$1("div.field.field--full", h$1("label.lbl", "备注"), noteInp)))),
 		footer: [
-			h("div", { style: { flex: "1" } }),
-			h("button.btn", {
+			h$1("div", { style: { flex: "1" } }),
+			h$1("button.btn", {
 				type: "button",
 				onclick: () => d.close()
 			}, "关闭"),
@@ -19465,7 +19527,7 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 				if (!sel.optionIds.has(o.id)) continue;
 				const add = o.price_mode === "percent" ? amount * Number(o.price) / 100 : Number(o.price);
 				amount += add;
-				addons.push(`${o.name}${o.price_mode === "percent" ? ` +${o.price}%` : o.price ? ` +${fmtMoney(o.price)}元` : ""}`);
+				addons.push(`${o.name}${o.price_mode === "percent" ? ` +${o.price}%` : o.price ? ` +${fmtMoney$1(o.price)}元` : ""}`);
 			}
 			total += amount;
 			lines.push({
@@ -19480,7 +19542,7 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 			toast("还没勾服务项", "err");
 			return;
 		}
-		const ok = await copyText(buildText(lines, total));
+		const ok = await copyText$1(buildText(lines, total));
 		toast(ok ? "报价单文字已复制，去微信粘吧" : "复制失败，可以手动框选文字版", ok ? "ok" : "err", 2600);
 	});
 	saveBtn.addEventListener("click", async () => {
@@ -19522,11 +19584,11 @@ var quotes_default = {
 	title: "报价单",
 	async render(ctx) {
 		const { items } = await api.get("/api/quotes", { limit: 200 });
-		ctx.setActions(h("button.btn.btn--sm.btn--primary", {
+		ctx.setActions(h$1("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			onclick: () => openQuoteComposer(ctx)
 		}, icon("plus", 14), "做报价单"));
-		if (!items.length) return h("section.panel", h("div.panel__body", emptyState({
+		if (!items.length) return h$1("section.panel", h$1("div.panel__body", emptyState({
 			iconName: "quotes",
 			title: "还没做过报价单",
 			body: "客户问\"多少钱\"，不用再翻价格表手打——勾几个服务项，报价单自动出来，还能一键复制成文字发微信。",
@@ -19542,30 +19604,30 @@ var quotes_default = {
 		})));
 		const showText = async (q) => {
 			const { text } = await api.get(`/api/quotes/${q.id}/text`);
-			const pre = h("pre.plaintext", text);
+			const pre = h$1("pre.plaintext", text);
 			modal({
 				title: `报价单文字 · ${q.quote_no}`,
 				wide: true,
-				body: h("div.stack.stack--tight", pre, h("div.hint", "这段字可以直接粘到微信里。")),
+				body: h$1("div.stack.stack--tight", pre, h$1("div.hint", "这段字可以直接粘到微信里。")),
 				actions: [{
 					label: "复制",
 					tone: "primary",
 					keepOpen: true,
 					onClick: async () => {
-						const ok = await copyText(text);
+						const ok = await copyText$1(text);
 						toast(ok ? "已复制" : "复制失败，请手动选中", ok ? "ok" : "err");
 						return false;
 					}
 				}, { label: "关闭" }]
 			});
 		};
-		return h("div.stack", h("div.pagehead", h("div.pagehead__txt", h("h1", "报价单"), h("p.pagehead__sub", `${items.length} 张 · 客户点头后可以一键转成订单`))), h("section.panel", table({
+		return h$1("div.stack", h$1("div.pagehead", h$1("div.pagehead__txt", h$1("h1", "报价单"), h$1("p.pagehead__sub", `${items.length} 张 · 客户点头后可以一键转成订单`))), h$1("section.panel", table({
 			columns: [
 				{
 					key: "quote_no",
 					label: "报价单",
 					main: true,
-					render: (q) => h("div", h("div.tbl__primary", q.quote_no), h("div.tbl__meta", `${q.title || ""}${q.customer_name ? ` · ${q.customer_name}` : ""}`))
+					render: (q) => h$1("div", h$1("div.tbl__primary", q.quote_no), h$1("div.tbl__meta", `${q.title || ""}${q.customer_name ? ` · ${q.customer_name}` : ""}`))
 				},
 				{
 					key: "item_count",
@@ -19576,30 +19638,30 @@ var quotes_default = {
 				{
 					key: "game_name",
 					label: "游戏",
-					render: (q) => h("span.sm", q.game_name || "通用")
+					render: (q) => h$1("span.sm", q.game_name || "通用")
 				},
 				{
 					key: "valid_until",
 					label: "有效期至",
-					render: (q) => h("span.sm.dim", q.valid_until || "—")
+					render: (q) => h$1("span.sm.dim", q.valid_until || "—")
 				},
 				{
 					key: "total",
 					label: "合计",
 					num: true,
-					render: (q) => h("span.strong", `¥${fmtMoney(q.total)}`)
+					render: (q) => h$1("span.strong", `¥${fmtMoney$1(q.total)}`)
 				},
 				{
 					key: "acts",
 					label: "操作",
 					cls: "td-acts",
-					render: (q) => h("div.tbl__acts", h("button.btn.btn--sm", {
+					render: (q) => h$1("div.tbl__acts", h$1("button.btn.btn--sm", {
 						type: "button",
 						onclick: (e) => {
 							e.stopPropagation();
 							showText(q);
 						}
-					}, "文字"), h("button.btn.btn--sm", {
+					}, "文字"), h$1("button.btn.btn--sm", {
 						type: "button",
 						title: "转成订单",
 						onclick: async (e) => {
@@ -19612,14 +19674,14 @@ var quotes_default = {
 								toastErr(err);
 							}
 						}
-					}, "转订单"), h("button.btn.btn--sm", {
+					}, "转订单"), h$1("button.btn.btn--sm", {
 						type: "button",
 						title: "删除",
 						onclick: async (e) => {
 							e.stopPropagation();
 							if (!await confirmDelete({
 								title: "删掉这张报价单？",
-								message: `${q.quote_no} · ¥${fmtMoney(q.total)}`
+								message: `${q.quote_no} · ¥${fmtMoney$1(q.total)}`
 							})) return;
 							await api.del(`/api/quotes/${q.id}`);
 							toast("已删除", "ok");
@@ -19630,7 +19692,7 @@ var quotes_default = {
 			],
 			rows: items,
 			onRowClick: (q) => showText(q)
-		})), h("div.note", "报价单里的价格是下单那一刻从价格表读出来的。以后你改价格表的价，这些老报价单上的数字不变。"));
+		})), h$1("div.note", "报价单里的价格是下单那一刻从价格表读出来的。以后你改价格表的价，这些老报价单上的数字不变。"));
 	}
 };
 //#endregion
@@ -19693,7 +19755,7 @@ function passwordForm() {
 	return formDrawer({
 		title: "改登录密码",
 		submitLabel: "改密码",
-		intro: h("div.note", "改完之后，其他设备上的登录会全部退出。"),
+		intro: h$1("div.note", "改完之后，其他设备上的登录会全部退出。"),
 		fields: [
 			{
 				name: "current",
@@ -19728,7 +19790,7 @@ function vaultPasswordForm() {
 	return formDrawer({
 		title: "改保险箱密码",
 		submitLabel: "改密码",
-		intro: h("div.note.note--warn", "改密码会把数据库里所有凭证重新加密一遍。过程中不要关掉启动窗口。如果中途断电，旧密文可能解不开——改之前建议先导出一份备份。"),
+		intro: h$1("div.note.note--warn", "改密码会把数据库里所有凭证重新加密一遍。过程中不要关掉启动窗口。如果中途断电，旧密文可能解不开——改之前建议先导出一份备份。"),
 		fields: [{
 			name: "current",
 			label: "当前保险箱密码",
@@ -19758,10 +19820,10 @@ var OCR_ENGINE_ORDER = [
 ];
 function engineRow(eng, preferred) {
 	const live = eng.id === preferred;
-	return h("div.item", { style: {
+	return h$1("div.item", { style: {
 		cursor: "default",
 		alignItems: "flex-start"
-	} }, h("div.item__main", h("div.item__title", eng.name, live ? tag("正在用", "jade") : eng.available ? tag("可用", "jade") : tag("未安装", "muted"), eng.license ? h("span.dim.tiny", { style: { marginLeft: "6px" } }, eng.license) : null), h("div.tbl__meta", { style: { marginTop: "2px" } }, eng.available ? eng.note || "已就绪" : eng.note || ""), !eng.available && eng.install ? h("div.tbl__meta", { style: {
+	} }, h$1("div.item__main", h$1("div.item__title", eng.name, live ? tag("正在用", "jade") : eng.available ? tag("可用", "jade") : tag("未安装", "muted"), eng.license ? h$1("span.dim.tiny", { style: { marginLeft: "6px" } }, eng.license) : null), h$1("div.tbl__meta", { style: { marginTop: "2px" } }, eng.available ? eng.note || "已就绪" : eng.note || ""), !eng.available && eng.install ? h$1("div.tbl__meta", { style: {
 		marginTop: "2px",
 		opacity: ".75"
 	} }, `怎么装：${eng.install}`) : null));
@@ -19772,9 +19834,9 @@ function ocrPanel(st, onRefresh, onRefreshDone) {
 		items: [],
 		missing: []
 	};
-	const rows = h("div.itemlist");
+	const rows = h$1("div.itemlist");
 	for (const e of engines) rows.appendChild(engineRow(e, st.engine));
-	return h("section.panel", h("div.panel__body", sectionHead("屏幕识别", st.available ? `当前引擎：${st.engine_name || st.engine}` : "这台机器上还没有可用的 OCR", h("button.btn.btn--sm", {
+	return h$1("section.panel", h$1("div.panel__body", sectionHead("屏幕识别", st.available ? `当前引擎：${st.engine_name || st.engine}` : "这台机器上还没有可用的 OCR", h$1("button.btn.btn--sm", {
 		type: "button",
 		onclick: async (ev) => {
 			const btn = ev.currentTarget;
@@ -19789,13 +19851,13 @@ function ocrPanel(st, onRefresh, onRefreshDone) {
 				btn.removeAttribute("data-loading");
 			}
 		}
-	}, icon("refresh", 14), "重新检测"))), rows, h("div.panel__body", { style: { paddingTop: "0" } }, h("div.note", "识别用到的东西全部在这台电脑上跑，截图不出本机。按顺序试：Umi-OCR（装了并打开 HTTP 服务最好用）→ PaddleOCR-json / RapidOCR-json（解压到 tools\\ocr\\ 或设环境变量）→ Tesseract → Windows 自带。装了哪个用哪个，没装就往下退，不会因为缺一个就用不了。"), h("div", { style: { marginTop: "var(--sp-3)" } }, h("div.tbl__meta", `图标模板（认出「哪个图标是星声/体力/贝币」靠它们）：共 ${tpl.items.length} 个`), h("div.cluster", { style: {
+	}, icon("refresh", 14), "重新检测"))), rows, h$1("div.panel__body", { style: { paddingTop: "0" } }, h$1("div.note", "识别用到的东西全部在这台电脑上跑，截图不出本机。按顺序试：Umi-OCR（装了并打开 HTTP 服务最好用）→ PaddleOCR-json / RapidOCR-json（解压到 tools\\ocr\\ 或设环境变量）→ Tesseract → Windows 自带。装了哪个用哪个，没装就往下退，不会因为缺一个就用不了。"), h$1("div", { style: { marginTop: "var(--sp-3)" } }, h$1("div.tbl__meta", `图标模板（认出「哪个图标是星声/体力/贝币」靠它们）：共 ${tpl.items.length} 个`), h$1("div.cluster", { style: {
 		marginTop: "4px",
 		flexWrap: "wrap"
-	} }, ...tpl.items.map((it) => tag(`${it.key}${it.from === "custom" ? " · 自备" : ""}`, it.from === "custom" ? "jade" : "muted")), tpl.missing && tpl.missing.length ? tag(`缺 ${tpl.missing.join("、")}`, "amber") : null), h("div.cluster", { style: { marginTop: "var(--sp-3)" } }, h("button.btn.btn--sm", {
+	} }, ...tpl.items.map((it) => tag(`${it.key}${it.from === "custom" ? " · 自备" : ""}`, it.from === "custom" ? "jade" : "muted")), tpl.missing && tpl.missing.length ? tag(`缺 ${tpl.missing.join("、")}`, "amber") : null), h$1("div.cluster", { style: { marginTop: "var(--sp-3)" } }, h$1("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => iconTemplateForm(st, onRefreshDone)
-	}, icon("upload", 14), "自备一个图标模板"), h("span.dim.tiny", "换了游戏版本、图标变了样子时用：给一张顶栏截图 + 图标所在的方框，程序当场抠出来存下。")), installSection(onRefreshDone))));
+	}, icon("upload", 14), "自备一个图标模板"), h$1("span.dim.tiny", "换了游戏版本、图标变了样子时用：给一张顶栏截图 + 图标所在的方框，程序当场抠出来存下。")), installSection(onRefreshDone))));
 }
 function fileSizeText(n) {
 	if (!n) return "";
@@ -19804,10 +19866,10 @@ function fileSizeText(n) {
 }
 /** 一个安装选项一张卡 */
 function installOptionCard(o, { onChanged }) {
-	const status = h("div.tiny.dim");
-	const bar = h("div.install__bar", h("div.install__fill"));
-	const logBox = h("div.install__log", { hidden: true });
-	const actions = h("div.cluster", { style: {
+	const status = h$1("div.tiny.dim");
+	const bar = h$1("div.install__bar", h$1("div.install__fill"));
+	const logBox = h$1("div.install__log", { hidden: true });
+	const actions = h$1("div.cluster", { style: {
 		gap: "6px",
 		flexWrap: "wrap"
 	} });
@@ -19853,7 +19915,7 @@ function installOptionCard(o, { onChanged }) {
 		}
 		return last;
 	};
-	if (o.installed) actions.appendChild(h("button.btn.btn--sm", {
+	if (o.installed) actions.appendChild(h$1("button.btn.btn--sm", {
 		type: "button",
 		onclick: async (ev) => {
 			const btn = ev.currentTarget;
@@ -19869,7 +19931,7 @@ function installOptionCard(o, { onChanged }) {
 			}
 		}
 	}, icon("check", 14), "自检一下"));
-	else if (o.can_auto) actions.appendChild(h("button.btn.btn--sm.btn--primary", {
+	else if (o.can_auto) actions.appendChild(h$1("button.btn.btn--sm.btn--primary", {
 		type: "button",
 		onclick: async (ev) => {
 			const btn = ev.currentTarget;
@@ -19896,55 +19958,55 @@ function installOptionCard(o, { onChanged }) {
 			}
 		}
 	}, icon("download", 14), `自动安装（${shortSize(o.size)}）`));
-	else actions.appendChild(h("a.btn.btn--sm", {
+	else actions.appendChild(h$1("a.btn.btn--sm", {
 		href: o.release_page,
 		target: "_blank",
 		rel: "noreferrer noopener"
 	}, icon("download", 14), "去下载页"));
-	if (!o.can_auto && !o.installed) actions.appendChild(h("span.tiny.dim", o.blocked_reason || "需要手动装"));
-	if (o.env_key) actions.appendChild(h("span.tiny.dim", `装到别处也可以在环境变量里设 ${o.env_key}`));
-	return h("div.install", h("div.install__head", h("span.install__name", o.name), o.installed ? tag("已装好", "jade") : tag("未安装", "muted"), h("span.tiny.dim", o.license), h("div", { style: { flex: "1" } }), o.installed ? null : h("span.tiny.dim", o.size)), h("div.tiny.dim", { style: { marginTop: "2px" } }, o.note), actions, bar, status, logBox);
+	if (!o.can_auto && !o.installed) actions.appendChild(h$1("span.tiny.dim", o.blocked_reason || "需要手动装"));
+	if (o.env_key) actions.appendChild(h$1("span.tiny.dim", `装到别处也可以在环境变量里设 ${o.env_key}`));
+	return h$1("div.install", h$1("div.install__head", h$1("span.install__name", o.name), o.installed ? tag("已装好", "jade") : tag("未安装", "muted"), h$1("span.tiny.dim", o.license), h$1("div", { style: { flex: "1" } }), o.installed ? null : h$1("span.tiny.dim", o.size)), h$1("div.tiny.dim", { style: { marginTop: "2px" } }, o.note), actions, bar, status, logBox);
 }
 function shortSize(s) {
 	return String(s || "").replace(/^约\s*/, "").split(" ")[0] || "自动";
 }
 function installSection(onChanged) {
-	const box = h("div.stack.stack--tight");
-	const exBox = h("div.tiny.dim");
+	const box = h$1("div.stack.stack--tight");
+	const exBox = h$1("div.tiny.dim");
 	let loaded = false;
 	async function load() {
-		box.replaceChildren(h("div.tiny.dim", "正在查安装选项…"));
+		box.replaceChildren(h$1("div.tiny.dim", "正在查安装选项…"));
 		try {
 			const r = await api.get("/api/ocr/install");
 			const opts = r.options || [];
 			const ex = r.extractor || {};
-			exBox.replaceChildren(ex.can_auto ? h("span.tone-jade", `解压器：${ex.bin || ex.kind}（能解 .7z，可以直接自动安装）`) : h("span.tone-amber", ex.hint || ex.note || "这台机器上没有能解 .7z 的解压器"));
+			exBox.replaceChildren(ex.can_auto ? h$1("span.tone-jade", `解压器：${ex.bin || ex.kind}（能解 .7z，可以直接自动安装）`) : h$1("span.tone-amber", ex.hint || ex.note || "这台机器上没有能解 .7z 的解压器"));
 			const rest = opts.filter((o) => !o.installed);
-			box.replaceChildren(exBox, rest.length ? h("div.tiny.dim", "还没装的：") : h("div.tiny.dim", "这几个都已经装好了 —— 上面「图标模板」那块可以自备模板，引擎不用再装。"), ...rest.map((o) => installOptionCard(o, { onChanged: () => {
+			box.replaceChildren(exBox, rest.length ? h$1("div.tiny.dim", "还没装的：") : h$1("div.tiny.dim", "这几个都已经装好了 —— 上面「图标模板」那块可以自备模板，引擎不用再装。"), ...rest.map((o) => installOptionCard(o, { onChanged: () => {
 				load();
 				onChanged();
-			} })), opts.some((o) => o.installed) ? h("div", { style: { marginTop: "var(--sp-3)" } }, h("div.tiny.dim", "已经装好的："), ...opts.filter((o) => o.installed).map((o) => installOptionCard(o, { onChanged: () => {
+			} })), opts.some((o) => o.installed) ? h$1("div", { style: { marginTop: "var(--sp-3)" } }, h$1("div.tiny.dim", "已经装好的："), ...opts.filter((o) => o.installed).map((o) => installOptionCard(o, { onChanged: () => {
 				load();
 				onChanged();
 			} }))) : null);
 			loaded = true;
 		} catch (err) {
-			box.replaceChildren(h("div.note.note--alert", `拿不到安装选项：${err.message || err}`));
+			box.replaceChildren(h$1("div.note.note--alert", `拿不到安装选项：${err.message || err}`));
 		}
 	}
 	load();
-	return h("div", { style: { marginTop: "var(--sp-4)" } }, h("div.cluster", { style: { marginBottom: "6px" } }, h("strong.sm", "安装选项"), h("span.tiny.dim", "装完自动就能用，图标模板不用重做"), h("div", { style: { flex: "1" } }), h("button.btn.btn--sm.btn--quiet", {
+	return h$1("div", { style: { marginTop: "var(--sp-4)" } }, h$1("div.cluster", { style: { marginBottom: "6px" } }, h$1("strong.sm", "安装选项"), h$1("span.tiny.dim", "装完自动就能用，图标模板不用重做"), h$1("div", { style: { flex: "1" } }), h$1("button.btn.btn--sm.btn--quiet", {
 		type: "button",
 		onclick: () => load()
 	}, icon("refresh", 13), loaded ? "重新查" : "查一下")), box);
 }
 function iconTemplateForm(st, onDone) {
-	const file = h("input", {
+	const file = h$1("input", {
 		type: "file",
 		accept: "image/png,image/jpeg,image/webp",
 		style: { display: "none" }
 	});
-	const preview = h("img", {
+	const preview = h$1("img", {
 		alt: "截图预览",
 		style: {
 			maxWidth: "100%",
@@ -19952,14 +20014,14 @@ function iconTemplateForm(st, onDone) {
 			marginTop: "6px"
 		}
 	});
-	const keySel = h("select.sel", ...(st.resources || []).map((k) => h("option", { value: k }, k)));
+	const keySel = h$1("select.sel", ...(st.resources || []).map((k) => h$1("option", { value: k }, k)));
 	const box = {
 		x: 0,
 		y: 0,
 		w: 200,
 		h: 80
 	};
-	const num = (k, d) => h("input.inp.inp--fig", {
+	const num = (k, d) => h$1("input.inp.inp--fig", {
 		inputmode: "numeric",
 		value: String(d),
 		style: { width: "76px" },
@@ -20009,19 +20071,19 @@ function iconTemplateForm(st, onDone) {
 				name: "__img",
 				label: "游戏截图（顶栏那张）",
 				type: "custom",
-				render: () => h("div.stack.stack--tight", h("button.btn.btn--sm", {
+				render: () => h$1("div.stack.stack--tight", h$1("button.btn.btn--sm", {
 					type: "button",
 					onclick: () => file.click()
-				}, icon("upload", 14), "选一张图"), file, preview, h("div.tbl__meta", "选完图之后程序会给一个默认的方框；把下面四个数改成图标本体所在的位置。"))
+				}, icon("upload", 14), "选一张图"), file, preview, h$1("div.tbl__meta", "选完图之后程序会给一个默认的方框；把下面四个数改成图标本体所在的位置。"))
 			},
 			{
 				name: "__box",
 				label: "图标所在的方框（像素）",
 				type: "custom",
-				render: () => h("div.cluster", { style: {
+				render: () => h$1("div.cluster", { style: {
 					gap: "8px",
 					flexWrap: "wrap"
-				} }, h("label.inline", h("span.dim.tiny", "x"), inputs.x), h("label.inline", h("span.dim.tiny", "y"), inputs.y), h("label.inline", h("span.dim.tiny", "宽"), inputs.w), h("label.inline", h("span.dim.tiny", "高"), inputs.h))
+				} }, h$1("label.inline", h$1("span.dim.tiny", "x"), inputs.x), h$1("label.inline", h$1("span.dim.tiny", "y"), inputs.y), h$1("label.inline", h$1("span.dim.tiny", "宽"), inputs.w), h$1("label.inline", h$1("span.dim.tiny", "高"), inputs.h))
 			}
 		],
 		onSubmit: async () => {
@@ -20042,7 +20104,7 @@ async function exportBackup() {
 	const name = `代肝运营台-备份-${(/* @__PURE__ */ new Date()).toISOString().slice(0, 19).replace(/[:T]/g, "-")}.json`;
 	const blob = new Blob([text], { type: "application/json" });
 	const url = URL.createObjectURL(blob);
-	const a = h("a", {
+	const a = h$1("a", {
 		href: url,
 		download: name,
 		style: { display: "none" }
@@ -20057,7 +20119,7 @@ async function exportBackup() {
 	toast(`备份已导出：${counts.orders || 0} 单 / ${counts.customers || 0} 客户 / ${counts.credentials || 0} 凭证`, "ok", 4200);
 }
 function importBackup(onDone) {
-	const file = h("input", {
+	const file = h$1("input", {
 		type: "file",
 		accept: "application/json,.json",
 		style: { display: "none" }
@@ -20105,11 +20167,11 @@ var settings_default = {
 		const LAN = location.hostname !== "127.0.0.1" && location.hostname !== "localhost";
 		let ocrState = ocr;
 		const importInput = importBackup(() => ctx.app.reload());
-		const row = (title, desc, action, extra) => h("div.item", { style: {
+		const row = (title, desc, action, extra) => h$1("div.item", { style: {
 			cursor: "default",
 			alignItems: "flex-start"
-		} }, h("div.item__main", h("div.item__title", title, extra), desc ? h("div.tbl__meta", { style: { marginTop: "2px" } }, desc) : null), action || null);
-		const ocrBox = h("div.stack.stack--tight");
+		} }, h$1("div.item__main", h$1("div.item__title", title, extra), desc ? h$1("div.tbl__meta", { style: { marginTop: "2px" } }, desc) : null), action || null);
+		const ocrBox = h$1("div.stack.stack--tight");
 		const paintOcr = () => {
 			mount(ocrBox, ocrState ? ocrPanel(ocrState, (fresh) => {
 				ocrState = fresh;
@@ -20117,19 +20179,19 @@ var settings_default = {
 			}, async () => {
 				ocrState = await api.get("/api/ocr/status").catch(() => ocrState);
 				paintOcr();
-			}) : h("section.panel", h("div.panel__body", sectionHead("屏幕识别"), h("div.note", "拿不到识别状态（后端可能还没重启到新版）。"))));
+			}) : h$1("section.panel", h$1("div.panel__body", sectionHead("屏幕识别"), h$1("div.note", "拿不到识别状态（后端可能还没重启到新版）。"))));
 		};
 		paintOcr();
-		return h("div.stack", h("div.pagehead", h("div.pagehead__txt", h("h1", "设置"), h("p.pagehead__sub", "店铺信息、密码、备份与安全"))), h("section.panel", h("div.panel__body", sectionHead("店铺信息")), h("div.itemlist", row("招牌名 / 称呼", `${settings.business_name || "未设置"} · 操作人 ${settings.admin_name || "未设置"}`, h("button.btn.btn--sm", {
+		return h$1("div.stack", h$1("div.pagehead", h$1("div.pagehead__txt", h$1("h1", "设置"), h$1("p.pagehead__sub", "店铺信息、密码、备份与安全"))), h$1("section.panel", h$1("div.panel__body", sectionHead("店铺信息")), h$1("div.itemlist", row("招牌名 / 称呼", `${settings.business_name || "未设置"} · 操作人 ${settings.admin_name || "未设置"}`, h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => shopForm(settings).then(() => ctx.app.reload())
-		}, icon("edit", 14), "修改")), row("联系方式", settings.contact || "未填写"), row("报价单默认有效期", `${settings.quote_valid_days || 7} 天`))), h("section.panel", h("div.panel__body", sectionHead("安全")), h("div.itemlist", row("登录密码", "手机和电脑共用这一个。改完其他设备会退出。", h("button.btn.btn--sm", {
+		}, icon("edit", 14), "修改")), row("联系方式", settings.contact || "未填写"), row("报价单默认有效期", `${settings.quote_valid_days || 7} 天`))), h$1("section.panel", h$1("div.panel__body", sectionHead("安全")), h$1("div.itemlist", row("登录密码", "手机和电脑共用这一个。改完其他设备会退出。", h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => passwordForm()
-		}, "改密码")), row("保险箱密码", vaultState.configured ? vaultState.unlocked ? "当前已解开。改密码会重新加密所有凭证。" : "当前已锁定。" : "还没设置。设了之后游戏账号密码才能加密入库。", h("div.tbl__acts", vaultState.configured ? h("button.btn.btn--sm", {
+		}, "改密码")), row("保险箱密码", vaultState.configured ? vaultState.unlocked ? "当前已解开。改密码会重新加密所有凭证。" : "当前已锁定。" : "还没设置。设了之后游戏账号密码才能加密入库。", h$1("div.tbl__acts", vaultState.configured ? h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => vaultPasswordForm()
-		}, "改密码") : h("button.btn.btn--sm.btn--primary", {
+		}, "改密码") : h$1("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			onclick: async () => {
 				if (await ensureVaultReady()) {
@@ -20137,13 +20199,13 @@ var settings_default = {
 					ctx.app.reload();
 				}
 			}
-		}, "去设置")), vaultState.configured ? tag(vaultState.unlocked ? "已解开" : "已锁定", vaultState.unlocked ? "jade" : "amber") : tag("未设置", "oxblood")), row("保险箱加密", "AES-256-GCM，密钥由你的保险箱密码用 scrypt 推导，只存在于内存，不写进任何文件。"))), ocrBox, h("section.panel", h("div.panel__body", sectionHead("数据")), h("div.itemlist", row("当前数据量", `${counts.orders || 0} 张订单 · ${counts.customers || 0} 位客户 · ${counts.credentials || 0} 条凭证 · ${counts.services || 0} 个服务项 · ${counts.games || 0} 个游戏`), row("导出一份备份", "下载一个 JSON 文件，含全部业务数据。凭证在文件里仍然是密文，换台电脑要用同一个保险箱密码才能解开。", h("button.btn.btn--sm", {
+		}, "去设置")), vaultState.configured ? tag(vaultState.unlocked ? "已解开" : "已锁定", vaultState.unlocked ? "jade" : "amber") : tag("未设置", "oxblood")), row("保险箱加密", "AES-256-GCM，密钥由你的保险箱密码用 scrypt 推导，只存在于内存，不写进任何文件。"))), ocrBox, h$1("section.panel", h$1("div.panel__body", sectionHead("数据")), h$1("div.itemlist", row("当前数据量", `${counts.orders || 0} 张订单 · ${counts.customers || 0} 位客户 · ${counts.credentials || 0} 条凭证 · ${counts.services || 0} 个服务项 · ${counts.games || 0} 个游戏`), row("导出一份备份", "下载一个 JSON 文件，含全部业务数据。凭证在文件里仍然是密文，换台电脑要用同一个保险箱密码才能解开。", h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => exportBackup().catch(toastErr)
-		}, icon("download", 14), "导出")), row("从备份恢复", "会用备份内容覆盖现在的全部数据。", h("div.tbl__acts", h("button.btn.btn--sm", {
+		}, icon("download", 14), "导出")), row("从备份恢复", "会用备份内容覆盖现在的全部数据。", h$1("div.tbl__acts", h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => importInput.click()
-		}, icon("upload", 14), "导入"), importInput)), row("清空业务数据", "清掉订单、客户、凭证、价格表和游戏，保留登录密码和保险箱设置。不可撤销。", h("button.btn.btn--sm.btn--danger", {
+		}, icon("upload", 14), "导入"), importInput)), row("清空业务数据", "清掉订单、客户、凭证、价格表和游戏，保留登录密码和保险箱设置。不可撤销。", h$1("button.btn.btn--sm.btn--danger", {
 			type: "button",
 			onclick: async () => {
 				if (!await confirmModal({
@@ -20156,9 +20218,93 @@ var settings_default = {
 				toast("已清空", "ok");
 				ctx.app.reload();
 			}
-		}, "清空")))), h("section.panel", h("div.panel__body", sectionHead("安全须知", "值得花一分钟读完")), h("div.panel__body", { style: { paddingTop: "0" } }, h("ul.empty__steps", { style: { maxWidth: "70ch" } }, h("li", h("span.n", "1"), h("span", "数据全部存在这台电脑的 data/ 目录里，不会上传到任何地方。把整个文件夹拷走就是完整备份。")), h("li", h("span.n", "2"), h("span", "用手机通过局域网访问时走的是普通 HTTP，同一 WiFi 下的其他人理论上能抓包看到你输入的密码。建议只在自家/可信 WiFi 下用手机访问，或者启动时加 --local 只允许本机。")), h("li", h("span.n", "3"), h("span", "游戏登录凭证是加密的，但保险箱密码一旦忘记就真的解不开——没有后门。请记在密码管理器里。")), h("li", h("span.n", "4"), h("span", "优先让客户扫码登录。能不存密码，就不存密码。")), h("li", h("span.n", "5"), h("span", "定期导出备份。硬盘坏了、系统重装了，SQLite 文件不会自己回来。"))), LAN ? h("div.note.note--warn", { style: { marginTop: "var(--sp-4)" } }, "你现在是透过局域网访问的（" + location.host + "）。请确认这个 WiFi 是你信得过的。") : null)), h("section.panel", h("div.panel__body", sectionHead("关于")), h("div.panel__body", { style: { paddingTop: "0" } }, h("div.kv", h("dt", "程序"), h("dd", "代肝价格查询 · 私用运营台"), h("dt", "版本"), h("dd", "v1.0.0"), h("dt", "运行方式"), h("dd", "Node.js 内置 http + SQLite，零第三方依赖"), h("dt", "存储"), h("dd", h("span.mono.sm", "data/console.db")), h("dt", "本次登录"), h("dd", me?.actor || "—")))));
+		}, "清空")))), h$1("section.panel", h$1("div.panel__body", sectionHead("安全须知", "值得花一分钟读完")), h$1("div.panel__body", { style: { paddingTop: "0" } }, h$1("ul.empty__steps", { style: { maxWidth: "70ch" } }, h$1("li", h$1("span.n", "1"), h$1("span", "数据全部存在这台电脑的 data/ 目录里，不会上传到任何地方。把整个文件夹拷走就是完整备份。")), h$1("li", h$1("span.n", "2"), h$1("span", "用手机通过局域网访问时走的是普通 HTTP，同一 WiFi 下的其他人理论上能抓包看到你输入的密码。建议只在自家/可信 WiFi 下用手机访问，或者启动时加 --local 只允许本机。")), h$1("li", h$1("span.n", "3"), h$1("span", "游戏登录凭证是加密的，但保险箱密码一旦忘记就真的解不开——没有后门。请记在密码管理器里。")), h$1("li", h$1("span.n", "4"), h$1("span", "优先让客户扫码登录。能不存密码，就不存密码。")), h$1("li", h$1("span.n", "5"), h$1("span", "定期导出备份。硬盘坏了、系统重装了，SQLite 文件不会自己回来。"))), LAN ? h$1("div.note.note--warn", { style: { marginTop: "var(--sp-4)" } }, "你现在是透过局域网访问的（" + location.host + "）。请确认这个 WiFi 是你信得过的。") : null)), h$1("section.panel", h$1("div.panel__body", sectionHead("关于")), h$1("div.panel__body", { style: { paddingTop: "0" } }, h$1("div.kv", h$1("dt", "程序"), h$1("dd", "代肝价格查询 · 私用运营台"), h$1("dt", "版本"), h$1("dd", "v1.0.0"), h$1("dt", "运行方式"), h$1("dd", "Node.js 内置 http + SQLite，零第三方依赖"), h$1("dt", "存储"), h$1("dd", h$1("span.mono.sm", "data/console.db")), h$1("dt", "本次登录"), h$1("dd", me?.actor || "—")))));
 	}
 };
+//#endregion
+//#region client/lib/formatters.js
+function fmtMoney(value) {
+	return (Number(value) || 0).toLocaleString("zh-CN", {
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 2
+	});
+}
+function fmtQty(value) {
+	const number = Number(value) || 0;
+	return Number.isInteger(number) ? String(number) : String(Math.round(number * 100) / 100);
+}
+function fmtDate(value) {
+	if (!value) return "";
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return String(value);
+	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+function ymd(value) {
+	const match = /^(\d{4})-(\d{2})-(\d{2})(?:[T ]|$)/.exec(String(value || ""));
+	return match ? {
+		year: Number(match[1]),
+		month: Number(match[2]),
+		day: Number(match[3])
+	} : null;
+}
+var WEEK = [
+	"周日",
+	"周一",
+	"周二",
+	"周三",
+	"周四",
+	"周五",
+	"周六"
+];
+function fmtDay(value) {
+	const date = ymd(value);
+	return date ? `${date.month}月${date.day}日` : String(value || "");
+}
+function fmtDayFull(value) {
+	const date = ymd(value);
+	if (!date) return String(value || "");
+	const local = new Date(date.year, date.month - 1, date.day);
+	return `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")} ${WEEK[local.getDay()]}`;
+}
+function todayStr() {
+	const date = /* @__PURE__ */ new Date();
+	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+function monthStart() {
+	return `${todayStr().slice(0, 7)}-01`;
+}
+function dayDiff(from, to) {
+	if (!from || !to) return null;
+	const start = /* @__PURE__ */ new Date(`${String(from).slice(0, 10)}T00:00:00`);
+	const end = /* @__PURE__ */ new Date(`${String(to).slice(0, 10)}T00:00:00`);
+	if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
+	return Math.round((end - start) / 864e5);
+}
+function remainInfo(orderedAt, dueAt) {
+	if (!dueAt) return {
+		kind: "none",
+		text: "",
+		span: null
+	};
+	const span = dayDiff(orderedAt, dueAt);
+	if (span !== null && span < 0) return {
+		kind: "invalid",
+		text: "",
+		span
+	};
+	const left = dayDiff(todayStr(), dueAt);
+	if (left === null) return {
+		kind: "none",
+		text: "",
+		span
+	};
+	const text = left > 0 ? `剩余 ${left} 天` : left === 0 ? "今天到期" : `已逾期 ${Math.abs(left)} 天`;
+	return {
+		kind: left < 0 ? "bad" : left <= 2 ? "soon" : "ok",
+		text,
+		span
+	};
+}
 //#endregion
 //#region node_modules/react/cjs/react-jsx-runtime.production.js
 /**
@@ -20199,15 +20345,7 @@ var require_react_jsx_runtime_production = /* @__PURE__ */ __commonJSMin(((expor
 var import_jsx_runtime = (/* @__PURE__ */ __commonJSMin(((exports, module) => {
 	module.exports = require_react_jsx_runtime_production();
 })))();
-var STATUS_LABEL$1 = {
-	pending_confirm: "待确认",
-	pending_pay: "待付款",
-	in_progress: "进行中",
-	pending_accept: "待验收",
-	done: "已完成",
-	after_sale: "售后",
-	cancelled: "已取消"
-};
+var STATUS_LABEL$1 = ORDER_STATUS_LABEL;
 var iconProps$7 = (size = 16) => ({
 	size,
 	strokeWidth: 1.8,
@@ -20632,15 +20770,7 @@ var SORTS = [
 		label: "按金额排"
 	}
 ];
-var STATUS_LABEL = {
-	pending_confirm: "待确认",
-	pending_pay: "待付款",
-	in_progress: "进行中",
-	pending_accept: "待验收",
-	done: "已完成",
-	after_sale: "售后",
-	cancelled: "已取消"
-};
+var STATUS_LABEL = ORDER_STATUS_LABEL;
 var iconProps$6 = (size = 15) => ({
 	size,
 	strokeWidth: 1.8,
@@ -21615,13 +21745,7 @@ var iconProps$3 = (size = 15) => ({
 	absoluteStrokeWidth: true,
 	"aria-hidden": true
 });
-var unitOf = (service) => service.unit_label || {
-	fixed: "单",
-	daily: "天",
-	per_time: "次",
-	per_unit: "个",
-	package: "套"
-}[service.price_type] || "单";
+var unitOf = (service) => service.unit_label || PRICE_TYPE_UNIT_LABEL[service.price_type] || "单";
 function priceRange(services) {
 	const values = services.map((service) => Number(service.base_price)).filter(Number.isFinite);
 	if (!values.length) return "暂无价格";
@@ -22441,6 +22565,73 @@ function FinancePage({ route, navigate, reloadKey }) {
 	});
 }
 //#endregion
+//#region client/lib/dom.js
+function appendChildren(element, children) {
+	for (const child of children.flat(Infinity)) {
+		if (child === null || child === void 0 || child === false || child === true || child === "") continue;
+		element.appendChild(child instanceof Node ? child : document.createTextNode(String(child)));
+	}
+}
+function h(spec, props, ...children) {
+	const parts = String(spec).split(".");
+	const element = document.createElement(parts[0] || "div");
+	if (parts.length > 1) element.className = parts.slice(1).join(" ");
+	if (props !== null && props !== void 0) {
+		if (!(typeof props === "object" && !(props instanceof Node) && !Array.isArray(props) && !(props instanceof Date))) children.unshift(props);
+		else for (const [key, value] of Object.entries(props)) {
+			if (value === null || value === void 0 || value === false) continue;
+			if (key === "class" || key === "className") element.className = [element.className, value].filter(Boolean).join(" ");
+			else if (key === "text") element.textContent = String(value);
+			else if (key === "html") element.innerHTML = String(value);
+			else if (key === "style" && typeof value === "object") Object.assign(element.style, value);
+			else if (key === "dataset") Object.assign(element.dataset, value);
+			else if (key === "for") element.htmlFor = value;
+			else if (key.startsWith("on") && typeof value === "function") element.addEventListener(key.slice(2).toLowerCase(), value);
+			else if (key === "value") element.value = value;
+			else if ([
+				"checked",
+				"disabled",
+				"hidden",
+				"selected",
+				"multiple"
+			].includes(key)) element[key] = Boolean(value);
+			else if (key in element && typeof value !== "object") try {
+				element[key] = value;
+			} catch {
+				element.setAttribute(key, String(value));
+			}
+			else element.setAttribute(key, value === true ? "" : String(value));
+		}
+	}
+	appendChildren(element, children);
+	return element;
+}
+async function copyText(text) {
+	const value = String(text ?? "");
+	try {
+		if (navigator.clipboard && window.isSecureContext) {
+			await navigator.clipboard.writeText(value);
+			return true;
+		}
+	} catch {}
+	try {
+		const textarea = document.createElement("textarea");
+		textarea.value = value;
+		textarea.setAttribute("readonly", "");
+		textarea.style.position = "fixed";
+		textarea.style.top = "-1000px";
+		textarea.style.opacity = "0";
+		document.body.appendChild(textarea);
+		textarea.select();
+		textarea.setSelectionRange(0, value.length);
+		const ok = document.execCommand("copy");
+		textarea.remove();
+		return ok;
+	} catch {
+		return false;
+	}
+}
+//#endregion
 //#region client/quotes.jsx
 var iconProps$1 = (size = 15) => ({
 	size,
@@ -22653,6 +22844,120 @@ function QuotesPage({ route, navigate, onNew, onReload, reloadKey }) {
 	});
 }
 //#endregion
+//#region client/app/legacy-page.jsx
+function LegacyPage({ route, item, setActions, onReload, counts, settings, vaultgate, navigate }) {
+	const hostRef = import_react.useRef(null);
+	const [, rerender] = (0, import_react.useState)(0);
+	(0, import_react.useEffect)(() => {
+		let active = true;
+		const host = hostRef.current;
+		if (!host) return void 0;
+		host.replaceChildren();
+		setActions([]);
+		const skeleton = document.createElement("div");
+		skeleton.className = "refactor-loading";
+		skeleton.innerHTML = "<span></span><span></span><span></span>";
+		host.appendChild(skeleton);
+		if (!item?.view) return void 0;
+		const app = {
+			state: {
+				counts,
+				settings
+			},
+			navigate,
+			get route() {
+				return route;
+			},
+			reload: async () => {
+				await onReload();
+				rerender((value) => value + 1);
+			},
+			refreshCounts: onReload,
+			setActions,
+			openOrder: (id) => navigate(`/orders/${id}`),
+			openCustomer: (id) => navigate(`/customers/${id}`),
+			openQuoteComposer: null,
+			vault: () => Promise.resolve(vaultgate)
+		};
+		const ctx = {
+			route,
+			seg: route.seg,
+			sub: route.sub,
+			query: route.query,
+			app,
+			navigate,
+			setActions,
+			reload: onReload
+		};
+		Promise.resolve(item.view.render(ctx)).then((node) => {
+			if (active) {
+				host.replaceChildren();
+				if (node) host.appendChild(node);
+			}
+		}).catch((err) => {
+			if (!active) return;
+			toastErr(err);
+			host.replaceChildren();
+			const fallback = document.createElement("div");
+			fallback.className = "refactor-error";
+			fallback.textContent = err.message || "这一页没打开";
+			host.appendChild(fallback);
+		});
+		return () => {
+			active = false;
+			setActions([]);
+		};
+	}, [
+		route.seg,
+		route.sub,
+		route.query.toString(),
+		counts,
+		settings,
+		onReload,
+		setActions,
+		item,
+		vaultgate,
+		navigate
+	]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "legacy-host",
+		ref: hostRef
+	});
+}
+//#endregion
+//#region client/app/actions-slot.jsx
+function ActionsSlot({ nodes }) {
+	const ref = (0, import_react.useRef)(null);
+	(0, import_react.useEffect)(() => {
+		const host = ref.current;
+		if (!host) return void 0;
+		host.replaceChildren();
+		for (const node of nodes) if (node instanceof Node) host.appendChild(node);
+		return () => host.replaceChildren();
+	}, [nodes]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "refactor-actions",
+		ref
+	});
+}
+//#endregion
+//#region client/app/router.js
+function parseRoute(hash = window.location.hash) {
+	const [path, queryString] = String(hash || "#/").replace(/^#/, "").split("?");
+	const parts = path.split("/").filter(Boolean);
+	return {
+		seg: parts[0] || "",
+		sub: parts[1] || "",
+		rest: parts.slice(2),
+		query: new URLSearchParams(queryString || "")
+	};
+}
+function navigate(to) {
+	const target = String(to).startsWith("#") ? String(to) : `#${to}`;
+	if (window.location.hash === target) window.dispatchEvent(new HashChangeEvent("hashchange"));
+	else window.location.hash = target;
+}
+//#endregion
 //#region client/main.jsx
 var NAV = [
 	{
@@ -22721,21 +23026,6 @@ var NAV = [
 	}
 ];
 var NAV_BY_SEG = new Map(NAV.map((item) => [item.seg, item]));
-function parseRoute(hash = window.location.hash) {
-	const [path, queryString] = String(hash || "#/").replace(/^#/, "").split("?");
-	const parts = path.split("/").filter(Boolean);
-	return {
-		seg: parts[0] || "",
-		sub: parts[1] || "",
-		rest: parts.slice(2),
-		query: new URLSearchParams(queryString || "")
-	};
-}
-function go(to) {
-	const target = String(to).startsWith("#") ? String(to) : `#${to}`;
-	if (window.location.hash === target) window.dispatchEvent(new HashChangeEvent("hashchange"));
-	else window.location.hash = target;
-}
 function iconProps(size = 17) {
 	return {
 		size,
@@ -22899,99 +23189,6 @@ function Gate({ setup, onDone }) {
 				})
 			]
 		})
-	});
-}
-function ActionsSlot({ nodes }) {
-	const ref = (0, import_react.useRef)(null);
-	(0, import_react.useEffect)(() => {
-		const host = ref.current;
-		if (!host) return void 0;
-		host.replaceChildren();
-		for (const node of nodes) if (node instanceof Node) host.appendChild(node);
-		return () => host.replaceChildren();
-	}, [nodes]);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-		className: "refactor-actions",
-		ref
-	});
-}
-function LegacyPage({ route, setActions, onReload, counts, settings }) {
-	const hostRef = (0, import_react.useRef)(null);
-	const item = NAV_BY_SEG.get(route.seg) || NAV[0];
-	const [, rerender] = (0, import_react.useState)(0);
-	(0, import_react.useEffect)(() => {
-		let active = true;
-		const host = hostRef.current;
-		if (!host) return void 0;
-		host.replaceChildren();
-		setActions([]);
-		const skeleton = document.createElement("div");
-		skeleton.className = "refactor-loading";
-		skeleton.innerHTML = "<span></span><span></span><span></span>";
-		host.appendChild(skeleton);
-		const navigate = (to) => go(to);
-		if (!item.view) return void 0;
-		const app = {
-			state: {
-				counts,
-				settings
-			},
-			navigate,
-			get route() {
-				return route;
-			},
-			reload: async () => {
-				await onReload();
-				rerender((value) => value + 1);
-			},
-			refreshCounts: onReload,
-			setActions,
-			openOrder: (id) => navigate(`/orders/${id}`),
-			openCustomer: (id) => navigate(`/customers/${id}`),
-			openQuoteComposer: null,
-			vault: () => Promise.resolve(vaultgate_exports)
-		};
-		const ctx = {
-			route,
-			seg: route.seg,
-			sub: route.sub,
-			query: route.query,
-			app,
-			navigate,
-			setActions,
-			reload: onReload
-		};
-		Promise.resolve(item.view.render(ctx)).then((node) => {
-			if (active) {
-				host.replaceChildren();
-				if (node) host.appendChild(node);
-			}
-		}).catch((err) => {
-			if (!active) return;
-			toastErr(err);
-			host.replaceChildren();
-			const fallback = document.createElement("div");
-			fallback.className = "refactor-error";
-			fallback.textContent = err.message || "这一页没打开";
-			host.appendChild(fallback);
-		});
-		return () => {
-			active = false;
-			setActions([]);
-		};
-	}, [
-		route.seg,
-		route.sub,
-		route.query.toString(),
-		counts,
-		settings,
-		onReload,
-		setActions,
-		item.view
-	]);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-		className: "legacy-host",
-		ref: hostRef
 	});
 }
 function SearchBox({ onNavigate }) {
@@ -23174,7 +23371,7 @@ function Shell({ me, onLogout }) {
 	const createQuote = (0, import_react.useCallback)(async () => {
 		try {
 			await openQuoteComposer({
-				navigate: go,
+				navigate,
 				app: { reload: refresh }
 			});
 		} catch (err) {
@@ -23211,7 +23408,7 @@ function Shell({ me, onLogout }) {
 							item,
 							active: current.seg === item.seg,
 							count: counts,
-							onClick: () => go(item.seg ? `/${item.seg}` : "/")
+							onClick: () => navigate(item.seg ? `/${item.seg}` : "/")
 						}, item.seg))] }, group))
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -23220,7 +23417,7 @@ function Shell({ me, onLogout }) {
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 								className: "react-quick-action",
 								type: "button",
-								onClick: () => go("/orders/new"),
+								onClick: () => navigate("/orders/new"),
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps(16) }), "开新单"]
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
@@ -23253,7 +23450,7 @@ function Shell({ me, onLogout }) {
 							children: "工作台"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { children: current.label })]
 					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SearchBox, { onNavigate: go }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SearchBox, { onNavigate: navigate }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "react-topbar__tools",
 						children: [
@@ -23291,7 +23488,7 @@ function Shell({ me, onLogout }) {
 							}) : current.seg === "finance" && !route.sub ? null : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 								className: "refactor-button refactor-button--primary refactor-top-action",
 								type: "button",
-								onClick: () => go("/orders/new"),
+								onClick: () => navigate("/orders/new"),
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps(15) }), "开新单"]
 							})
 						]
@@ -23304,48 +23501,51 @@ function Shell({ me, onLogout }) {
 					className: "react-main__inner",
 					children: current.seg === "" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DashboardPage, {
 						data: dashboard,
-						navigate: go,
+						navigate,
 						onReload: refresh
 					}) : current.seg === "orders" && !route.sub && route.query.get("new") !== "1" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrdersPage, {
 						route,
-						navigate: go,
-						onNew: () => go("/orders/new"),
+						navigate,
+						onNew: () => navigate("/orders/new"),
 						onReload: refresh,
 						reloadKey
 					}) : current.seg === "customers" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CustomersPage, {
 						route,
-						navigate: go,
+						navigate,
 						onNew: createCustomer,
 						reloadKey
 					}) : current.seg === "games" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GamesPage, {
 						route,
-						navigate: go,
+						navigate,
 						onNew: createGame,
 						onReload: refresh,
 						reloadKey
 					}) : current.seg === "price" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PricePage, {
 						route,
-						navigate: go,
+						navigate,
 						onNewGame: createGame,
 						onNewCategory: createCategory,
 						onReload: refresh,
 						reloadKey
 					}) : current.seg === "finance" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FinancePage, {
 						route,
-						navigate: go,
+						navigate,
 						reloadKey
 					}) : current.seg === "quotes" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(QuotesPage, {
 						route,
-						navigate: go,
+						navigate,
 						onNew: createQuote,
 						onReload: refresh,
 						reloadKey
 					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LegacyPage, {
 						route,
+						item: current,
 						setActions: updateActions,
 						onReload: refresh,
 						counts,
-						settings
+						settings,
+						vaultgate: vaultgate_exports,
+						navigate
 					}, `${route.seg}/${route.sub}?${route.query.toString()}-${reloadKey}`)
 				})
 			}),
@@ -23361,11 +23561,11 @@ function Shell({ me, onLogout }) {
 					item,
 					active: current.seg === item.seg,
 					count: counts,
-					onClick: () => go(item.seg ? `/${item.seg}` : "/")
+					onClick: () => navigate(item.seg ? `/${item.seg}` : "/")
 				}, item.seg)), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 					className: "refactor-navitem",
 					type: "button",
-					onClick: () => go("/settings"),
+					onClick: () => navigate("/settings"),
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Ellipsis, { ...iconProps(18) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "更多" })]
 				})]
 			})

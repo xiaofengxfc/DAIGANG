@@ -1,5 +1,6 @@
 import { db } from './db.mjs'
 import { money, num, parseJSON, clampStr } from './util.mjs'
+import { PRICE_TYPE_UNIT_LABEL } from '../shared/domain.js'
 
 /**
  * 价格表的「导出模型」。
@@ -26,8 +27,7 @@ const qty = (n) => {
   return Number.isInteger(v) ? String(v) : String(Math.round(v * 100) / 100)
 }
 
-const DEFAULT_UNIT = { fixed: '单', daily: '天', per_time: '次', per_unit: '个', package: '套' }
-const unitOf = (s) => s.unit_label || DEFAULT_UNIT[s.price_type] || '单'
+const unitOf = (s) => s.unit_label || PRICE_TYPE_UNIT_LABEL[s.price_type] || '单'
 
 /** 价格主文本 + 阶梯/起订提示 */
 function priceOf(service, tiers) {

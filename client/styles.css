@@ -1,3 +1,7 @@
+@import '../public/css/tokens.css';
+@import '../public/css/base.css';
+@import '../public/css/app.css';
+
 :root {
   --refactor-accent: #6258d9;
   --refactor-accent-strong: #5046bf;
