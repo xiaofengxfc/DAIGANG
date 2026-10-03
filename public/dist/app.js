@@ -11715,7 +11715,7 @@ function createLucideIcon(iconDataOrName, iconNode = [], aliases = []) {
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$26 = {
+var __iconData$29 = {
 	name: "activity",
 	size: 24,
 	node: [["path", {
@@ -11723,8 +11723,40 @@ var __iconData$26 = {
 		key: "169zse"
 	}]]
 };
-__iconData$26.node;
-var Activity = createLucideIcon(__iconData$26);
+__iconData$29.node;
+var Activity = createLucideIcon(__iconData$29);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/archive.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$28 = {
+	name: "archive",
+	size: 24,
+	node: [
+		["rect", {
+			width: "20",
+			height: "5",
+			x: "2",
+			y: "3",
+			rx: "1",
+			key: "1wp1u1"
+		}],
+		["path", {
+			d: "M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8",
+			key: "1s80jp"
+		}],
+		["path", {
+			d: "M10 12h4",
+			key: "a56b0p"
+		}]
+	]
+};
+__iconData$28.node;
+var Archive = createLucideIcon(__iconData$28);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/arrow-up-right.mjs
 /**
@@ -11733,7 +11765,7 @@ var Activity = createLucideIcon(__iconData$26);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$25 = {
+var __iconData$27 = {
 	name: "arrow-up-right",
 	size: 24,
 	node: [["path", {
@@ -11744,8 +11776,8 @@ var __iconData$25 = {
 		key: "1vkiza"
 	}]]
 };
-__iconData$25.node;
-var ArrowUpRight = createLucideIcon(__iconData$25);
+__iconData$27.node;
+var ArrowUpRight = createLucideIcon(__iconData$27);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/check.mjs
 /**
@@ -11754,7 +11786,7 @@ var ArrowUpRight = createLucideIcon(__iconData$25);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$24 = {
+var __iconData$26 = {
 	name: "check",
 	size: 24,
 	node: [["path", {
@@ -11762,8 +11794,8 @@ var __iconData$24 = {
 		key: "1gmf2c"
 	}]]
 };
-__iconData$24.node;
-var Check = createLucideIcon(__iconData$24);
+__iconData$26.node;
+var Check = createLucideIcon(__iconData$26);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/circle-alert.mjs
 /**
@@ -11772,7 +11804,7 @@ var Check = createLucideIcon(__iconData$24);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$23 = {
+var __iconData$25 = {
 	name: "circle-alert",
 	size: 24,
 	node: [
@@ -11799,8 +11831,8 @@ var __iconData$23 = {
 	],
 	aliases: ["alert-circle"]
 };
-__iconData$23.node;
-var CircleAlert = createLucideIcon(__iconData$23);
+__iconData$25.node;
+var CircleAlert = createLucideIcon(__iconData$25);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/clipboard-list.mjs
 /**
@@ -11809,7 +11841,7 @@ var CircleAlert = createLucideIcon(__iconData$23);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$22 = {
+var __iconData$24 = {
 	name: "clipboard-list",
 	size: 24,
 	node: [
@@ -11844,8 +11876,8 @@ var __iconData$22 = {
 		}]
 	]
 };
-__iconData$22.node;
-var ClipboardList = createLucideIcon(__iconData$22);
+__iconData$24.node;
+var ClipboardList = createLucideIcon(__iconData$24);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/clock-3.mjs
 /**
@@ -11854,7 +11886,7 @@ var ClipboardList = createLucideIcon(__iconData$22);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$21 = {
+var __iconData$23 = {
 	name: "clock-3",
 	size: 24,
 	node: [["circle", {
@@ -11867,8 +11899,8 @@ var __iconData$21 = {
 		key: "135r8i"
 	}]]
 };
-__iconData$21.node;
-var Clock3 = createLucideIcon(__iconData$21);
+__iconData$23.node;
+var Clock3 = createLucideIcon(__iconData$23);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/command.mjs
 /**
@@ -11877,7 +11909,7 @@ var Clock3 = createLucideIcon(__iconData$21);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$20 = {
+var __iconData$22 = {
 	name: "command",
 	size: 24,
 	node: [["path", {
@@ -11885,8 +11917,8 @@ var __iconData$20 = {
 		key: "11bfej"
 	}]]
 };
-__iconData$20.node;
-var Command = createLucideIcon(__iconData$20);
+__iconData$22.node;
+var Command = createLucideIcon(__iconData$22);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/contact-round.mjs
 /**
@@ -11895,7 +11927,7 @@ var Command = createLucideIcon(__iconData$20);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$19 = {
+var __iconData$21 = {
 	name: "contact-round",
 	size: 24,
 	node: [
@@ -11928,8 +11960,8 @@ var __iconData$19 = {
 	],
 	aliases: ["contact-2"]
 };
-__iconData$19.node;
-var ContactRound = createLucideIcon(__iconData$19);
+__iconData$21.node;
+var ContactRound = createLucideIcon(__iconData$21);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/credit-card.mjs
 /**
@@ -11938,7 +11970,7 @@ var ContactRound = createLucideIcon(__iconData$19);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$18 = {
+var __iconData$20 = {
 	name: "credit-card",
 	size: 24,
 	node: [
@@ -11963,8 +11995,8 @@ var __iconData$18 = {
 		}]
 	]
 };
-__iconData$18.node;
-var CreditCard = createLucideIcon(__iconData$18);
+__iconData$20.node;
+var CreditCard = createLucideIcon(__iconData$20);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/ellipsis.mjs
 /**
@@ -11973,7 +12005,7 @@ var CreditCard = createLucideIcon(__iconData$18);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$17 = {
+var __iconData$19 = {
 	name: "ellipsis",
 	size: 24,
 	node: [
@@ -11998,8 +12030,8 @@ var __iconData$17 = {
 	],
 	aliases: ["more-horizontal"]
 };
-__iconData$17.node;
-var Ellipsis = createLucideIcon(__iconData$17);
+__iconData$19.node;
+var Ellipsis = createLucideIcon(__iconData$19);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/file-text.mjs
 /**
@@ -12008,7 +12040,7 @@ var Ellipsis = createLucideIcon(__iconData$17);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$16 = {
+var __iconData$18 = {
 	name: "file-text",
 	size: 24,
 	node: [
@@ -12034,8 +12066,8 @@ var __iconData$16 = {
 		}]
 	]
 };
-__iconData$16.node;
-var FileText = createLucideIcon(__iconData$16);
+__iconData$18.node;
+var FileText = createLucideIcon(__iconData$18);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/gamepad-2.mjs
 /**
@@ -12044,7 +12076,7 @@ var FileText = createLucideIcon(__iconData$16);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$15 = {
+var __iconData$17 = {
 	name: "gamepad-2",
 	size: 24,
 	node: [
@@ -12082,8 +12114,8 @@ var __iconData$15 = {
 		}]
 	]
 };
-__iconData$15.node;
-var Gamepad2 = createLucideIcon(__iconData$15);
+__iconData$17.node;
+var Gamepad2 = createLucideIcon(__iconData$17);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/layout-dashboard.mjs
 /**
@@ -12092,7 +12124,7 @@ var Gamepad2 = createLucideIcon(__iconData$15);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$14 = {
+var __iconData$16 = {
 	name: "layout-dashboard",
 	size: 24,
 	node: [
@@ -12130,8 +12162,8 @@ var __iconData$14 = {
 		}]
 	]
 };
-__iconData$14.node;
-var LayoutDashboard = createLucideIcon(__iconData$14);
+__iconData$16.node;
+var LayoutDashboard = createLucideIcon(__iconData$16);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/list-filter.mjs
 /**
@@ -12140,7 +12172,7 @@ var LayoutDashboard = createLucideIcon(__iconData$14);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$13 = {
+var __iconData$15 = {
 	name: "list-filter",
 	size: 24,
 	node: [
@@ -12158,8 +12190,8 @@ var __iconData$13 = {
 		}]
 	]
 };
-__iconData$13.node;
-var ListFilter = createLucideIcon(__iconData$13);
+__iconData$15.node;
+var ListFilter = createLucideIcon(__iconData$15);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/list-todo.mjs
 /**
@@ -12168,7 +12200,7 @@ var ListFilter = createLucideIcon(__iconData$13);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$12 = {
+var __iconData$14 = {
 	name: "list-todo",
 	size: 24,
 	node: [
@@ -12198,8 +12230,8 @@ var __iconData$12 = {
 		}]
 	]
 };
-__iconData$12.node;
-var ListTodo = createLucideIcon(__iconData$12);
+__iconData$14.node;
+var ListTodo = createLucideIcon(__iconData$14);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/lock-keyhole.mjs
 /**
@@ -12208,7 +12240,7 @@ var ListTodo = createLucideIcon(__iconData$12);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$11 = {
+var __iconData$13 = {
 	name: "lock-keyhole",
 	size: 24,
 	node: [
@@ -12232,8 +12264,8 @@ var __iconData$11 = {
 		}]
 	]
 };
-__iconData$11.node;
-var LockKeyhole = createLucideIcon(__iconData$11);
+__iconData$13.node;
+var LockKeyhole = createLucideIcon(__iconData$13);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/log-out.mjs
 /**
@@ -12242,7 +12274,7 @@ var LockKeyhole = createLucideIcon(__iconData$11);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$10 = {
+var __iconData$12 = {
 	name: "log-out",
 	size: 24,
 	node: [
@@ -12260,8 +12292,8 @@ var __iconData$10 = {
 		}]
 	]
 };
-__iconData$10.node;
-var LogOut = createLucideIcon(__iconData$10);
+__iconData$12.node;
+var LogOut = createLucideIcon(__iconData$12);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/moon.mjs
 /**
@@ -12270,7 +12302,7 @@ var LogOut = createLucideIcon(__iconData$10);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$9 = {
+var __iconData$11 = {
 	name: "moon",
 	size: 24,
 	node: [["path", {
@@ -12278,8 +12310,29 @@ var __iconData$9 = {
 		key: "kfwtm"
 	}]]
 };
-__iconData$9.node;
-var Moon = createLucideIcon(__iconData$9);
+__iconData$11.node;
+var Moon = createLucideIcon(__iconData$11);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/pencil.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$10 = {
+	name: "pencil",
+	size: 24,
+	node: [["path", {
+		d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
+		key: "1a8usu"
+	}], ["path", {
+		d: "m15 5 4 4",
+		key: "1mk7zo"
+	}]]
+};
+__iconData$10.node;
+var Pencil = createLucideIcon(__iconData$10);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/plus.mjs
 /**
@@ -12288,7 +12341,7 @@ var Moon = createLucideIcon(__iconData$9);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$8 = {
+var __iconData$9 = {
 	name: "plus",
 	size: 24,
 	node: [["path", {
@@ -12299,8 +12352,8 @@ var __iconData$8 = {
 		key: "s699le"
 	}]]
 };
-__iconData$8.node;
-var Plus = createLucideIcon(__iconData$8);
+__iconData$9.node;
+var Plus = createLucideIcon(__iconData$9);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/refresh-cw.mjs
 /**
@@ -12309,7 +12362,7 @@ var Plus = createLucideIcon(__iconData$8);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$7 = {
+var __iconData$8 = {
 	name: "refresh-cw",
 	size: 24,
 	node: [
@@ -12331,8 +12384,8 @@ var __iconData$7 = {
 		}]
 	]
 };
-__iconData$7.node;
-var RefreshCw = createLucideIcon(__iconData$7);
+__iconData$8.node;
+var RefreshCw = createLucideIcon(__iconData$8);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/search.mjs
 /**
@@ -12341,7 +12394,7 @@ var RefreshCw = createLucideIcon(__iconData$7);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$6 = {
+var __iconData$7 = {
 	name: "search",
 	size: 24,
 	node: [["path", {
@@ -12354,8 +12407,8 @@ var __iconData$6 = {
 		key: "4ej97u"
 	}]]
 };
-__iconData$6.node;
-var Search = createLucideIcon(__iconData$6);
+__iconData$7.node;
+var Search = createLucideIcon(__iconData$7);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/settings-2.mjs
 /**
@@ -12364,7 +12417,7 @@ var Search = createLucideIcon(__iconData$6);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$5 = {
+var __iconData$6 = {
 	name: "settings-2",
 	size: 24,
 	node: [
@@ -12390,8 +12443,8 @@ var __iconData$5 = {
 		}]
 	]
 };
-__iconData$5.node;
-var Settings2 = createLucideIcon(__iconData$5);
+__iconData$6.node;
+var Settings2 = createLucideIcon(__iconData$6);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/shield-check.mjs
 /**
@@ -12400,7 +12453,7 @@ var Settings2 = createLucideIcon(__iconData$5);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$4 = {
+var __iconData$5 = {
 	name: "shield-check",
 	size: 24,
 	node: [["path", {
@@ -12411,8 +12464,8 @@ var __iconData$4 = {
 		key: "dzmm74"
 	}]]
 };
-__iconData$4.node;
-var ShieldCheck = createLucideIcon(__iconData$4);
+__iconData$5.node;
+var ShieldCheck = createLucideIcon(__iconData$5);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/sun.mjs
 /**
@@ -12421,7 +12474,7 @@ var ShieldCheck = createLucideIcon(__iconData$4);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$3 = {
+var __iconData$4 = {
 	name: "sun",
 	size: 24,
 	node: [
@@ -12465,8 +12518,8 @@ var __iconData$3 = {
 		}]
 	]
 };
-__iconData$3.node;
-var Sun = createLucideIcon(__iconData$3);
+__iconData$4.node;
+var Sun = createLucideIcon(__iconData$4);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/tags.mjs
 /**
@@ -12475,7 +12528,7 @@ var Sun = createLucideIcon(__iconData$3);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$2 = {
+var __iconData$3 = {
 	name: "tags",
 	size: 24,
 	node: [
@@ -12496,8 +12549,45 @@ var __iconData$2 = {
 		}]
 	]
 };
+__iconData$3.node;
+var Tags = createLucideIcon(__iconData$3);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/trash.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$2 = {
+	name: "trash",
+	size: 24,
+	node: [
+		["path", {
+			d: "M10 11v6",
+			key: "nco0om"
+		}],
+		["path", {
+			d: "M14 11v6",
+			key: "outv1u"
+		}],
+		["path", {
+			d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6",
+			key: "miytrc"
+		}],
+		["path", {
+			d: "M3 6h18",
+			key: "d0wm0j"
+		}],
+		["path", {
+			d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2",
+			key: "e791ji"
+		}]
+	],
+	aliases: ["trash-2"]
+};
 __iconData$2.node;
-var Tags = createLucideIcon(__iconData$2);
+var Trash = createLucideIcon(__iconData$2);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/users.mjs
 /**
@@ -16202,7 +16292,7 @@ var customers_default = {
 //#endregion
 //#region public/js/views/games.js
 /** 公告可能有好几行、也可能很长，列表里只给一个开头 */
-function firstLine(text, max = 64) {
+function firstLine$1(text, max = 64) {
 	const lines = String(text || "").split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
 	if (!lines.length) return "";
 	const head = lines[0].length > max ? `${lines[0].slice(0, max)}…` : lines[0];
@@ -16332,7 +16422,7 @@ var games_default = {
 			display: "flex",
 			gap: "7px",
 			alignItems: "baseline"
-		} }, h("span.notice-tick"), h("span", { style: { whiteSpace: "pre-wrap" } }, firstLine(g.notice))) : null), h("div.tbl__acts", h("button.btn.btn--sm", {
+		} }, h("span.notice-tick"), h("span", { style: { whiteSpace: "pre-wrap" } }, firstLine$1(g.notice))) : null), h("div.tbl__acts", h("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => gameForm(g).then(() => ctx.app.reload())
 		}, icon("edit", 14)), h("button.btn.btn--sm", {
@@ -19845,7 +19935,7 @@ var STATUS_LABEL$1 = {
 	after_sale: "售后",
 	cancelled: "已取消"
 };
-var iconProps$3 = (size = 16) => ({
+var iconProps$4 = (size = 16) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -19941,7 +20031,7 @@ function EmptyOnboarding({ navigate }) {
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "react-dashboard-empty__icon",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$3(21) })
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$4(21) })
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "帐桌支好了，先录第一批价格" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "这个后台不预置任何数据。按下面顺序录入，十分钟就能接手第一单。" }),
@@ -19958,7 +20048,7 @@ function EmptyOnboarding({ navigate }) {
 					className: "refactor-button refactor-button--primary",
 					type: "button",
 					onClick: () => navigate("/games"),
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$3(15) }), "先加一个游戏"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$4(15) }), "先加一个游戏"]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 					className: "refactor-button",
 					type: "button",
@@ -20023,21 +20113,21 @@ function OrderRow$1({ order, navigate, onReload }) {
 						type: "button",
 						title: "记进度",
 						onClick: () => progressDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$3(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$4(14) })
 					}),
 					due > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "记收款",
 						onClick: () => paymentDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$3(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$4(14) })
 					}) : null,
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "看详情",
 						onClick: () => navigate(`/orders/${order.id}`),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$3(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$4(14) })
 					})
 				]
 			})
@@ -20065,14 +20155,14 @@ function OpenOrders({ orders, count, navigate, onReload }) {
 			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "react-panel-empty",
 				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$3(19) }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$4(19) }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "现在手上没有在做的单" }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "开一单试试，价格会在下单时冻结。" }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 						className: "refactor-button",
 						type: "button",
 						onClick: () => navigate("/orders/new"),
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$3(14) }), "开一张新单"]
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$4(14) }), "开一张新单"]
 					})
 				]
 			}),
@@ -20082,7 +20172,7 @@ function OpenOrders({ orders, count, navigate, onReload }) {
 					className: "refactor-button",
 					type: "button",
 					onClick: () => navigate("/orders?status=open"),
-					children: ["看全部在做的单 ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$3(14) })]
+					children: ["看全部在做的单 ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$4(14) })]
 				})
 			}) : null
 		]
@@ -20135,7 +20225,7 @@ function DashboardSide({ data, navigate, onReload }) {
 						type: "button",
 						title: "记收款",
 						onClick: () => paymentDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CreditCard, { ...iconProps$3(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CreditCard, { ...iconProps$4(14) })
 					})] })]
 				}, order.id)
 			}),
@@ -20173,7 +20263,7 @@ function DashboardSide({ data, navigate, onReload }) {
 								toastErr(err);
 							}
 						},
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$3(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$4(14) })
 					})] })]
 				}, payment.id)
 			})
@@ -20278,7 +20368,7 @@ var STATUS_LABEL = {
 	after_sale: "售后",
 	cancelled: "已取消"
 };
-var iconProps$2 = (size = 15) => ({
+var iconProps$3 = (size = 15) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -20409,21 +20499,21 @@ function OrderRow({ order, navigate, onReload }) {
 						type: "button",
 						title: "记进度",
 						onClick: () => progressDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$2(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$3(14) })
 					}),
 					due > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "记收款",
 						onClick: () => paymentDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$2(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$3(14) })
 					}) : null,
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "看详情",
 						onClick: () => navigate(`/orders/${order.id}`),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$2(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$3(14) })
 					})
 				]
 			})
@@ -20436,14 +20526,14 @@ function EmptyOrders({ search, status, onNew }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "orders-empty",
 		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListFilter, { ...iconProps$2(21) }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListFilter, { ...iconProps$3(21) }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: title }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: body }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 				className: "refactor-button refactor-button--primary",
 				type: "button",
 				onClick: onNew,
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$2(15) }), "开新单"]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$3(15) }), "开新单"]
 			})
 		]
 	});
@@ -20531,7 +20621,7 @@ function OrdersPage({ route, navigate, onNew, onReload, reloadKey }) {
 					className: "refactor-button refactor-button--primary",
 					type: "button",
 					onClick: onNew,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$2(15) }), "开新单"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$3(15) }), "开新单"]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
@@ -20566,7 +20656,7 @@ function OrdersPage({ route, navigate, onNew, onReload, reloadKey }) {
 						title: "取消客户筛选",
 						onClick: () => update({ customerId: "" }),
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Users, { ...iconProps$2(13) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Users, { ...iconProps$3(13) }),
 							"只看「",
 							customer?.name || "这个客户",
 							"」",
@@ -20590,7 +20680,7 @@ function OrdersPage({ route, navigate, onNew, onReload, reloadKey }) {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 						className: "orders-search",
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$2(15) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$3(15) }),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 								type: "search",
 								value: search,
@@ -20609,7 +20699,7 @@ function OrdersPage({ route, navigate, onNew, onReload, reloadKey }) {
 			}),
 			queryFilters.status === "daily_done" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "orders-note",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$2(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "这些是今天标了「今日已完成」的单，过了凌晨 4 点会自动回到「在做的」。点进订单可以撤销。" })]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$3(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "这些是今天标了「今日已完成」的单，过了凌晨 4 点会自动回到「在做的」。点进订单可以撤销。" })]
 			}) : null,
 			error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "refactor-alert",
@@ -20669,7 +20759,7 @@ var FILTERS = [
 		label: "回头客"
 	}
 ];
-var iconProps$1 = (size = 16) => ({
+var iconProps$2 = (size = 16) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -20743,7 +20833,7 @@ function CustomerRow({ customer, navigate }) {
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "customers-row__credentials",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$1(14) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: customer.credential_count || 0 })]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$2(14) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: customer.credential_count || 0 })]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 				className: "react-mini-button customers-row__open",
@@ -20753,7 +20843,7 @@ function CustomerRow({ customer, navigate }) {
 					event.stopPropagation();
 					navigate(`/customers/${customer.id}`);
 				},
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$1(15) })
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$2(15) })
 			})
 		]
 	});
@@ -20762,14 +20852,14 @@ function EmptyCustomers({ filtered, onNew }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "customers-empty",
 		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ContactRound, { ...iconProps$1(22) }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ContactRound, { ...iconProps$2(22) }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: filtered ? "没有符合条件的客户" : "还没有客户" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: filtered ? "换个关键词试试，或者清空筛选。" : "建立客户档案后，可以直接查看订单、收款和登录凭证。" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 				className: "refactor-button refactor-button--primary",
 				type: "button",
 				onClick: onNew,
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(15) }), "建第一个客户"]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$2(15) }), "建第一个客户"]
 			})
 		]
 	});
@@ -20837,7 +20927,7 @@ function CustomersPage({ route, navigate, onNew, reloadKey }) {
 					className: "refactor-button refactor-button--primary",
 					type: "button",
 					onClick: onNew,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(15) }), "新建客户"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$2(15) }), "新建客户"]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
@@ -20868,7 +20958,7 @@ function CustomersPage({ route, navigate, onNew, reloadKey }) {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 						className: "customers-search",
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$1(15) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$2(15) }),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 								type: "search",
 								value: search,
@@ -20920,6 +21010,327 @@ function CustomersPage({ route, navigate, onNew, reloadKey }) {
 					onNew
 				})]
 			})
+		]
+	});
+}
+//#endregion
+//#region client/games.jsx
+var iconProps$1 = (size = 16) => ({
+	size,
+	strokeWidth: 1.8,
+	absoluteStrokeWidth: true,
+	"aria-hidden": true
+});
+function firstLine(text, max = 70) {
+	const lines = String(text || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+	if (!lines.length) return "";
+	const head = lines[0].length > max ? `${lines[0].slice(0, max)}…` : lines[0];
+	return lines.length > 1 ? `${head}（共 ${lines.length} 行）` : head;
+}
+function GameIcon({ game }) {
+	if (game.icon) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+		className: "games-avatar",
+		src: game.icon,
+		alt: "",
+		loading: "lazy"
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+		className: "games-avatar games-avatar--fallback",
+		children: (game.name || "?").slice(0, 1)
+	});
+}
+function GameRow({ game, navigate, onEdit, onToggle, onDelete }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", {
+		className: `games-row${game.status === "archived" ? " is-archived" : ""}`,
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "games-row__identity",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(GameIcon, { game }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "games-row__name",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: game.name }),
+							game.short_name ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "games-short-name",
+								children: game.short_name
+							}) : null,
+							game.status === "archived" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "games-tag games-tag--archived",
+								children: "已归档"
+							}) : null
+						]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "games-row__meta",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [game.service_count || 0, " 个在架服务"] }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [game.order_count || 0, " 张单"] }),
+							game.servers?.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["区服：", game.servers.join(" / ")] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "没填区服" })
+						]
+					}),
+					game.notice ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "games-row__notice",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", {}), firstLine(game.notice)]
+					}) : null,
+					game.note ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "games-row__note",
+						children: game.note
+					}) : null
+				] })]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "games-row__currency",
+				children: game.currency || "未设置货币"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "games-row__date",
+				children: game.created_at ? `建于 ${fmtDate(game.created_at)}` : "—"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "games-row__actions",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "编辑游戏",
+						onClick: () => onEdit(game),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$1(15) })
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: game.status === "active" ? "归档游戏" : "恢复上架",
+						onClick: () => onToggle(game),
+						children: game.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$1(15) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps$1(15) })
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button games-delete",
+						type: "button",
+						title: "彻底删除",
+						onClick: () => onDelete(game),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$1(15) })
+					})
+				]
+			})
+		]
+	});
+}
+function EmptyGames({ filtered, onNew }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "games-empty",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gamepad2, { ...iconProps$1(23) }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: filtered ? "没有符合条件的游戏" : "还没有加游戏" }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: filtered ? "换个关键词试试，或者清空筛选。" : "先添加正在代肝的游戏，区服和货币也可以一起设置。" }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+				className: "refactor-button refactor-button--primary",
+				type: "button",
+				onClick: onNew,
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(15) }), "新建游戏"]
+			})
+		]
+	});
+}
+function GamesPage({ route, navigate, onNew, onReload, reloadKey }) {
+	const query = (0, import_react.useMemo)(() => ({
+		q: route.query.get("q") || "",
+		only: route.query.get("only") || ""
+	}), [route.query.toString()]);
+	const [search, setSearch] = (0, import_react.useState)(query.q);
+	const [items, setItems] = (0, import_react.useState)(null);
+	const [error, setError] = (0, import_react.useState)("");
+	const timer = (0, import_react.useRef)(null);
+	(0, import_react.useEffect)(() => setSearch(query.q), [query.q]);
+	(0, import_react.useEffect)(() => () => window.clearTimeout(timer.current), []);
+	(0, import_react.useEffect)(() => {
+		let active = true;
+		setItems(null);
+		setError("");
+		api.get("/api/games", {
+			limit: 200,
+			q: query.q
+		}).then((data) => {
+			if (active) setItems(data.items || []);
+		}).catch((err) => {
+			if (!active) return;
+			setItems([]);
+			setError(err.message || "游戏列表加载失败");
+		});
+		return () => {
+			active = false;
+		};
+	}, [query.q, reloadKey]);
+	const all = items || [];
+	const activeCount = all.filter((game) => game.status === "active").length;
+	const archivedCount = all.filter((game) => game.status === "archived").length;
+	const rows = query.only === "archived" ? all.filter((game) => game.status === "archived") : query.only === "active" ? all.filter((game) => game.status === "active") : all;
+	const navigateQuery = (overrides) => {
+		const next = {
+			...query,
+			...overrides
+		};
+		const params = new URLSearchParams();
+		if (next.q) params.set("q", next.q);
+		if (next.only) params.set("only", next.only);
+		navigate(`/games${params.toString() ? `?${params.toString()}` : ""}`);
+	};
+	const edit = async (game) => {
+		try {
+			if (await gameForm(game)) await onReload();
+		} catch (err) {
+			toastErr(err);
+		}
+	};
+	const toggle = async (game) => {
+		try {
+			if (game.status === "active") {
+				const usage = await api.get(`/api/games/${game.id}/usage`);
+				if (!await confirmModal({
+					title: `归档「${game.name}」？`,
+					message: `归档后它不再出现在新建服务项和开单选项里，但 ${usage.orders} 张老订单和 ${usage.credentials} 条登录凭证都会保留。`,
+					confirmLabel: "归档"
+				})) return;
+			}
+			await api.patch(`/api/games/${game.id}`, { status: game.status === "active" ? "archived" : "active" });
+			toast(game.status === "active" ? "已归档" : "已恢复上架", "ok");
+			await onReload();
+		} catch (err) {
+			toastErr(err);
+		}
+	};
+	const remove = async (game) => {
+		try {
+			const usage = await api.get(`/api/games/${game.id}/usage`);
+			const used = usage.services + usage.categories + usage.orders + usage.credentials;
+			if (!await confirmDelete({
+				title: `彻底删除「${game.name}」？`,
+				message: used ? `当前关联 ${usage.categories} 个分类、${usage.services} 个服务项、${usage.orders} 张订单、${usage.credentials} 条登录凭证。删除后关联数据会变成未指定游戏。` : "这个游戏没有关联数据，可以安全删除。"
+			})) return;
+			await api.del(`/api/games/${game.id}`, { hard: 1 });
+			toast("已删除", "ok");
+			await onReload();
+		} catch (err) {
+			toastErr(err);
+		}
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "games-page",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
+				className: "games-page__head",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "refactor-eyebrow",
+						children: "业务目录"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "游戏" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", { children: [
+						activeCount,
+						" 个上架",
+						archivedCount ? ` · ${archivedCount} 个已归档` : ""
+					] })
+				] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "refactor-button refactor-button--primary",
+					type: "button",
+					onClick: onNew,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(15) }), "新建游戏"]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+				className: "games-toolbar",
+				"aria-label": "游戏筛选",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "games-filters",
+						role: "tablist",
+						"aria-label": "游戏状态",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								className: `games-filter${!query.only ? " is-active" : ""}`,
+								type: "button",
+								role: "tab",
+								"aria-selected": !query.only,
+								onClick: () => navigateQuery({ only: "" }),
+								children: "全部"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+								className: `games-filter${query.only === "active" ? " is-active" : ""}`,
+								type: "button",
+								role: "tab",
+								"aria-selected": query.only === "active",
+								onClick: () => navigateQuery({ only: "active" }),
+								children: ["上架 ", activeCount]
+							}),
+							archivedCount ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+								className: `games-filter${query.only === "archived" ? " is-active" : ""}`,
+								type: "button",
+								role: "tab",
+								"aria-selected": query.only === "archived",
+								onClick: () => navigateQuery({ only: "archived" }),
+								children: ["已归档 ", archivedCount]
+							}) : null
+						]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "games-toolbar__spacer" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "games-search",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$1(15) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+								type: "search",
+								value: search,
+								placeholder: "搜游戏名、简称或备注",
+								onChange: (event) => {
+									const value = event.target.value;
+									setSearch(value);
+									window.clearTimeout(timer.current);
+									timer.current = window.setTimeout(() => navigateQuery({ q: value.trim() }), 260);
+								}
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("kbd", { children: "/" })
+						]
+					})
+				]
+			}),
+			error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "refactor-alert",
+				role: "alert",
+				children: error
+			}) : null,
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+				className: "games-panel",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "games-table-head",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "游戏" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "货币" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "建档" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "操作" })
+					]
+				}), items === null ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "refactor-loading",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+					]
+				}) : rows.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "games-list",
+					children: rows.map((game) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GameRow, {
+						game,
+						onEdit: edit,
+						onToggle: toggle,
+						onDelete: remove
+					}, game.id))
+				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmptyGames, {
+					filtered: Boolean(query.q || query.only),
+					onNew
+				})]
+			}),
+			archivedCount ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "games-footnote",
+				children: "已归档游戏不会出现在新建服务和开单选项中，老订单与登录凭证仍然保留。"
+			}) : null
 		]
 	});
 }
@@ -21425,6 +21836,13 @@ function Shell({ me, onLogout }) {
 			toastErr(err);
 		}
 	}, [refresh]);
+	const createGame = (0, import_react.useCallback)(async () => {
+		try {
+			if (await gameForm()) await refresh();
+		} catch (err) {
+			toastErr(err);
+		}
+	}, [refresh]);
 	(0, import_react.useEffect)(() => {
 		refresh();
 	}, [refresh]);
@@ -21517,6 +21935,11 @@ function Shell({ me, onLogout }) {
 								type: "button",
 								onClick: createCustomer,
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps(15) }), "新建客户"]
+							}) : current.seg === "games" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+								className: "refactor-button refactor-button--primary refactor-top-action",
+								type: "button",
+								onClick: createGame,
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps(15) }), "新建游戏"]
 							}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 								className: "refactor-button refactor-button--primary refactor-top-action",
 								type: "button",
@@ -21545,6 +21968,12 @@ function Shell({ me, onLogout }) {
 						route,
 						navigate: go,
 						onNew: createCustomer,
+						reloadKey
+					}) : current.seg === "games" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GamesPage, {
+						route,
+						navigate: go,
+						onNew: createGame,
+						onReload: refresh,
 						reloadKey
 					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LegacyPage, {
 						route,

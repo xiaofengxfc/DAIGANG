@@ -2092,3 +2092,351 @@ button.react-side-row {
     white-space: normal;
   }
 }
+
+/* React 游戏清单 */
+.games-page {
+  display: grid;
+  gap: 14px;
+}
+
+.games-page__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.games-page__head h2 {
+  margin: 3px 0 0;
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.games-page__head p {
+  margin: 7px 0 0;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.games-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.games-filters {
+  display: flex;
+  gap: 4px;
+}
+
+.games-filter {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.games-filter:hover,
+.games-filter.is-active {
+  border-color: var(--line-strong);
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.games-toolbar__spacer {
+  flex: 1 1 12px;
+}
+
+.games-search {
+  min-width: 220px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--ink-3);
+  font-size: 11px;
+}
+
+.games-search input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+}
+
+.games-search kbd {
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+.games-panel {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+}
+
+.games-table-head,
+.games-row {
+  display: grid;
+  grid-template-columns: minmax(300px, 2.5fr) minmax(120px, 1fr) 130px 112px;
+  align-items: center;
+  gap: 14px;
+}
+
+.games-table-head {
+  min-height: 34px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: 10px;
+}
+
+.games-row {
+  min-height: 88px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.games-row:last-child {
+  border-bottom: 0;
+}
+
+.games-row:hover {
+  background: var(--surface-2);
+}
+
+.games-row.is-archived {
+  background: color-mix(in srgb, var(--surface-2) 58%, var(--surface));
+}
+
+.games-row__identity {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.games-avatar {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 9px;
+  object-fit: cover;
+}
+
+.games-avatar--fallback {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  background: var(--surface-3);
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+.games-row__identity > div {
+  min-width: 0;
+}
+
+.games-row__name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.games-row__name > b {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.games-short-name {
+  color: var(--ink-3);
+  font-family: var(--font-fig);
+  font-size: 10px;
+}
+
+.games-tag {
+  min-height: 17px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--surface-3);
+  color: var(--ink-3);
+  font-size: 9px;
+}
+
+.games-tag--archived {
+  background: color-mix(in srgb, var(--oxblood) 14%, transparent);
+  color: var(--oxblood-ink);
+}
+
+.games-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 5px;
+  color: var(--ink-3);
+  font-size: 10px;
+}
+
+.games-row__notice,
+.games-row__note {
+  overflow: hidden;
+  margin-top: 5px;
+  color: var(--ink-3);
+  font-size: 10px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.games-row__notice {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.games-row__notice i {
+  width: 3px;
+  height: 11px;
+  flex: none;
+  display: inline-block;
+  border-radius: 2px;
+  background: var(--amber);
+}
+
+.games-row__currency,
+.games-row__date {
+  overflow: hidden;
+  color: var(--ink-2);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.games-row__date {
+  color: var(--ink-3);
+  font-size: 10px;
+}
+
+.games-row__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.games-delete:hover {
+  border-color: var(--cinnabar-line);
+  color: var(--cinnabar);
+}
+
+.games-empty {
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 30px 16px;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+.games-empty svg { color: var(--ink-3); }
+.games-empty b { color: var(--ink); font-size: 13px; }
+.games-empty span { font-size: 11px; }
+
+.games-footnote {
+  margin: -2px 0 0;
+  color: var(--ink-3);
+  font-size: 11px;
+}
+
+@media (max-width: 1060px) {
+  .games-table-head,
+  .games-row {
+    grid-template-columns: minmax(280px, 2fr) minmax(110px, 1fr) 112px;
+  }
+  .games-table-head > :nth-child(3),
+  .games-row > .games-row__date {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .games-page__head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .games-page__head h2 {
+    font-size: 20px;
+  }
+  .games-page__head .refactor-button {
+    width: 100%;
+    justify-content: center;
+  }
+  .games-toolbar {
+    align-items: stretch;
+  }
+  .games-filters {
+    width: 100%;
+    overflow-x: auto;
+  }
+  .games-filter {
+    flex: none;
+  }
+  .games-toolbar__spacer {
+    display: none;
+  }
+  .games-search {
+    min-width: 0;
+    flex: 1;
+  }
+  .games-table-head {
+    display: none;
+  }
+  .games-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding: 12px 13px;
+  }
+  .games-row__identity {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+  .games-row__currency,
+  .games-row__date {
+    display: none;
+  }
+  .games-row__actions {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .games-row__notice,
+  .games-row__note {
+    max-width: 210px;
+  }
+}

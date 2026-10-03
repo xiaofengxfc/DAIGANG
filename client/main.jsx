@@ -27,7 +27,7 @@ import { api } from '../public/js/api.js'
 import ordersView, { customerForm } from '../public/js/views/orders.js'
 import customersView from '../public/js/views/customers.js'
 import priceView from '../public/js/views/price.js'
-import gamesView from '../public/js/views/games.js'
+import gamesView, { gameForm } from '../public/js/views/games.js'
 import vaultView from '../public/js/views/vault.js'
 import financeView from '../public/js/views/finance.js'
 import quotesView from '../public/js/views/quotes.js'
@@ -36,6 +36,7 @@ import * as vaultgate from '../public/js/vaultgate.js'
 import DashboardPage from './dashboard.jsx'
 import OrdersPage from './orders.jsx'
 import CustomersPage from './customers.jsx'
+import GamesPage from './games.jsx'
 import { toast, toastErr } from '../public/js/ui.js'
 import './styles.css'
 
@@ -388,6 +389,15 @@ function Shell({ me, onLogout }) {
     }
   }, [refresh])
 
+  const createGame = useCallback(async () => {
+    try {
+      const saved = await gameForm()
+      if (saved) await refresh()
+    } catch (err) {
+      toastErr(err)
+    }
+  }, [refresh])
+
   useEffect(() => {
     refresh()
   }, [refresh])
@@ -428,12 +438,12 @@ function Shell({ me, onLogout }) {
         <div className="react-topbar__tools">
           <span className="react-online"><i />本机运行</span>
           <button className="react-icon-button" type="button" title="刷新数据" onClick={refresh}><RefreshCw {...iconProps(17)} /></button>
-          {actions.length ? <ActionsSlot nodes={actions} /> : current.seg === 'customers' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createCustomer}><Plus {...iconProps(15)} />新建客户</button> : <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={() => go('/orders/new')}><Plus {...iconProps(15)} />开新单</button>}
+          {actions.length ? <ActionsSlot nodes={actions} /> : current.seg === 'customers' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createCustomer}><Plus {...iconProps(15)} />新建客户</button> : current.seg === 'games' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createGame}><Plus {...iconProps(15)} />新建游戏</button> : <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={() => go('/orders/new')}><Plus {...iconProps(15)} />开新单</button>}
         </div>
       </header>
       <main className="react-main">
         <div className="react-main__inner">
-          {current.seg === '' ? <DashboardPage data={dashboard} navigate={go} onReload={refresh} /> : current.seg === 'orders' && !route.sub && route.query.get('new') !== '1' ? <OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'customers' && !route.sub ? <CustomersPage route={route} navigate={go} onNew={createCustomer} reloadKey={reloadKey} /> : <LegacyPage key={`${route.seg}/${route.sub}?${route.query.toString()}-${reloadKey}`} route={route} setActions={updateActions} onReload={refresh} counts={counts} settings={settings} />}
+          {current.seg === '' ? <DashboardPage data={dashboard} navigate={go} onReload={refresh} /> : current.seg === 'orders' && !route.sub && route.query.get('new') !== '1' ? <OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'customers' && !route.sub ? <CustomersPage route={route} navigate={go} onNew={createCustomer} reloadKey={reloadKey} /> : current.seg === 'games' && !route.sub ? <GamesPage route={route} navigate={go} onNew={createGame} onReload={refresh} reloadKey={reloadKey} /> : <LegacyPage key={`${route.seg}/${route.sub}?${route.query.toString()}-${reloadKey}`} route={route} setActions={updateActions} onReload={refresh} counts={counts} settings={settings} />}
         </div>
       </main>
       <nav className="react-mobile-tabs" aria-label="移动端导航">
