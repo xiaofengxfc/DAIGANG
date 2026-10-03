@@ -2,6 +2,8 @@
 
 `DaiganLauncher.exe` 是项目的 Windows 图形启动器，和 `server.mjs`、`data/` 放在同一目录。
 
+从源码首次部署时先在项目根目录执行 `npm run setup`，它会安装锁定版本的前端依赖并生成 `public/dist/`；之后启动器可以直接运行 `server.mjs`。
+
 支持：
 
 - 启动、停止、重启后台

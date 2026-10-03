@@ -1,14 +1,19 @@
 {
   "name": "daigan-ops-console",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "代肝价格查询 · 私用运营台 —— 零依赖本地管理后台",
+  "description": "代肝价格查询 · 私用运营台 —— 本地优先的运营工作台",
   "main": "server.mjs",
   "scripts": {
     "start": "node server.mjs",
     "local": "node server.mjs --local",
-    "check": "node scripts/check.mjs",
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "setup": "npm ci && npm run build",
+    "prestart": "npm run build",
+    "prelocal": "npm run build",
+    "check": "node scripts/check.mjs && npm run build",
     "migration:check": "node scripts/migration-check.mjs",
     "migration:export": "node scripts/migration-export.mjs",
     "erpnext:preview": "node scripts/erpnext-preview.mjs",
@@ -22,7 +27,15 @@
     "backup:restic": "node scripts/restic-backup.mjs"
   },
   "engines": {
-    "node": ">=22.5.0"
+    "node": ">=22.12.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "lucide-react": "1.50.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "6.1.1",
+    "vite": "8.3.2"
+  }
 }

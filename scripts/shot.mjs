@@ -220,7 +220,7 @@ try {
   await sleep(1200)
 
   /* 等目标元素 */
-  const sel = WAIT || '.pagehead, .pricelist, .panel, .boot'
+  const sel = WAIT || '.pagehead, .pricelist, .panel, .refactor-gate, .react-shell, .boot'
   let found = false
   for (let i = 0; i < 60; i++) {
     found = await cdp.eval(`Boolean(document.querySelector(${JSON.stringify(sel)}))`)

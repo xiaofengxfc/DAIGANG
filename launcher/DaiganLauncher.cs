@@ -151,7 +151,7 @@ namespace DaiganLauncher
             int major;
             int minor;
             if (!int.TryParse(match.Groups[1].Value, out major) || !int.TryParse(match.Groups[2].Value, out minor)) return false;
-            return major > 22 || (major == 22 && minor >= 5);
+            return major > 22 || (major == 22 && minor >= 12);
         }
 
         internal static int? FindTrackedServerPid()
@@ -394,7 +394,7 @@ namespace DaiganLauncher
                 _nodeLabel.Text = "Node：检测中…";
                 string node = Program.FindNodeExecutable();
                 string version = node == null ? "" : Program.ReadNodeVersion(node);
-                _nodeLabel.Text = node == null ? "Node：未找到（请安装 Node.js 22.5+）" :
+                _nodeLabel.Text = node == null ? "Node：未找到（请安装 Node.js 22.12+）" :
                     "Node：" + node + "  " + (string.IsNullOrWhiteSpace(version) ? "版本未知" : version) +
                     (Program.IsSupportedNodeVersion(version) ? "" : "  · 版本不受支持");
                 RefreshStatus();
@@ -585,9 +585,9 @@ namespace DaiganLauncher
                 if (tracked.HasValue) { SetStatus("后台已在运行 · PID " + tracked.Value, Color.FromArgb(5, 150, 105)); return; }
                 Program.RemovePid();
                 string node = Program.FindNodeExecutable();
-                if (node == null) throw new InvalidOperationException("没有找到 Node.js。请安装 Node.js 22.5 或更高版本后重试。");
+                if (node == null) throw new InvalidOperationException("没有找到 Node.js。请安装 Node.js 22.12 或更高版本后重试。");
                 string nodeVersion = Program.ReadNodeVersion(node);
-                if (!Program.IsSupportedNodeVersion(nodeVersion)) throw new InvalidOperationException("当前 Node.js 版本不受支持（需要 22.5 或更高版本，当前为 " + (string.IsNullOrWhiteSpace(nodeVersion) ? "未知" : nodeVersion) + "）。");
+                if (!Program.IsSupportedNodeVersion(nodeVersion)) throw new InvalidOperationException("当前 Node.js 版本不受支持（需要 22.12 或更高版本，当前为 " + (string.IsNullOrWhiteSpace(nodeVersion) ? "未知" : nodeVersion) + "）。");
                 if (!File.Exists(Path.Combine(Program.Root, "server.mjs"))) throw new InvalidOperationException("项目入口 server.mjs 不在 EXE 所在目录，无法启动。");
                 GetPort();
                 Directory.CreateDirectory(Program.StateDirectory);

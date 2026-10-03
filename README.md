@@ -4,14 +4,23 @@
 打开就是七个模块：游戏 → 服务与价格 → 客户 → 登录凭证保险箱 → 订单 → 进度记录 → 财务，
 外加一个「报价单生成」。
 
-零第三方依赖，只用 Node.js 自带的模块，数据全部存在你这台电脑上。
+后端继续使用 Node.js 原生 HTTP + SQLite，前端改为 React 19 + Vite 8，图标使用来自 GitHub 的 Lucide React。
+业务数据和登录凭证仍全部存在你这台电脑上，依赖只用于构建前端，不参与数据托管。
 
 ---
 
 ## 一、跑起来
 
-需要 **Node.js 22.5 或更高版本**（用到了内置的 `node:sqlite`）。
+需要 **Node.js 22.12 或更高版本**（用到了内置的 `node:sqlite` 和 Vite 8 构建链）。
 没装的话去 <https://nodejs.org> 下载 LTS 版本，一路下一步即可。
+
+从源码运行时先安装依赖并构建一次：
+
+```bash
+npm run setup
+```
+
+日常开发可以开两个终端：`npm run dev`（前端热更新）和 `npm run local`（本地后端）。
 
 | 系统 | 怎么做 |
 | --- | --- |
@@ -743,8 +752,8 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 
 ## 九、技术上的事
 
-- **零依赖**：`node:http` + `node:sqlite` + `node:crypto`，不需要 `npm install`。
-- 前端是原生 ES 模块 + 原生 CSS，没有构建步骤，改完刷新页面就生效。
+- **本地优先**：后端保持 `node:http` + `node:sqlite` + `node:crypto`，前端构建依赖锁在 `package-lock.json`。
+- 前端入口是 React 19 + Vite 8；旧业务视图通过适配器逐页接入，新组件统一使用 Lucide React 图标。
 - 密码用 scrypt 哈希；会话是 HttpOnly + SameSite=Lax 的 Cookie，有效期 14 天。
 - 数据库开了 WAL 和外键约束；迁移按 `PRAGMA user_version` 顺序前进，只增不改。
 - 附 `PRODUCT.md` 和 `DESIGN.md`：前者是产品定义，后者是视觉与交互的规则书。
@@ -764,7 +773,9 @@ src/
   ocr-install.mjs     引擎自动安装：下载 Release → 解压 → 落位 → 重新探测
   imgmatch.mjs        PNG 解码 / 老的模板匹配（新逻辑已迁到 vision.mjs）
   routes/             各模块接口
-public/               前端（原生 JS + CSS）
+  server/app.mjs      应用工厂、鉴权、静态资源和生命周期
+client/               React 壳层、登录态、导航、搜索和适配器
+public/               构建产物、旧业务视图与 CSS
 data/                 运行时生成：console.db + uploads/ + resource-icons/
 tools/ocr/            自动安装的本地 OCR 引擎（不进版本库）
 ```
