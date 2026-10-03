@@ -24,7 +24,7 @@ import {
   WalletCards,
 } from 'lucide-react'
 import { api } from '../public/js/api.js'
-import ordersView from '../public/js/views/orders.js'
+import ordersView, { customerForm } from '../public/js/views/orders.js'
 import customersView from '../public/js/views/customers.js'
 import priceView from '../public/js/views/price.js'
 import gamesView from '../public/js/views/games.js'
@@ -35,6 +35,7 @@ import settingsView from '../public/js/views/settings.js'
 import * as vaultgate from '../public/js/vaultgate.js'
 import DashboardPage from './dashboard.jsx'
 import OrdersPage from './orders.jsx'
+import CustomersPage from './customers.jsx'
 import { toast, toastErr } from '../public/js/ui.js'
 import './styles.css'
 
@@ -375,6 +376,18 @@ function Shell({ me, onLogout }) {
     } catch {}
   }, [])
 
+  const createCustomer = useCallback(async () => {
+    try {
+      const saved = await customerForm()
+      if (saved) {
+        toast(`客户「${saved.name}」已建档`, 'ok')
+        await refresh()
+      }
+    } catch (err) {
+      toastErr(err)
+    }
+  }, [refresh])
+
   useEffect(() => {
     refresh()
   }, [refresh])
@@ -415,12 +428,12 @@ function Shell({ me, onLogout }) {
         <div className="react-topbar__tools">
           <span className="react-online"><i />本机运行</span>
           <button className="react-icon-button" type="button" title="刷新数据" onClick={refresh}><RefreshCw {...iconProps(17)} /></button>
-          {actions.length ? <ActionsSlot nodes={actions} /> : <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={() => go('/orders/new')}><Plus {...iconProps(15)} />开新单</button>}
+          {actions.length ? <ActionsSlot nodes={actions} /> : current.seg === 'customers' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createCustomer}><Plus {...iconProps(15)} />新建客户</button> : <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={() => go('/orders/new')}><Plus {...iconProps(15)} />开新单</button>}
         </div>
       </header>
       <main className="react-main">
         <div className="react-main__inner">
-          {current.seg === '' ? <DashboardPage data={dashboard} navigate={go} onReload={refresh} /> : current.seg === 'orders' && !route.sub && route.query.get('new') !== '1' ? <OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /> : <LegacyPage key={`${route.seg}/${route.sub}?${route.query.toString()}-${reloadKey}`} route={route} setActions={updateActions} onReload={refresh} counts={counts} settings={settings} />}
+          {current.seg === '' ? <DashboardPage data={dashboard} navigate={go} onReload={refresh} /> : current.seg === 'orders' && !route.sub && route.query.get('new') !== '1' ? <OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'customers' && !route.sub ? <CustomersPage route={route} navigate={go} onNew={createCustomer} reloadKey={reloadKey} /> : <LegacyPage key={`${route.seg}/${route.sub}?${route.query.toString()}-${reloadKey}`} route={route} setActions={updateActions} onReload={refresh} counts={counts} settings={settings} />}
         </div>
       </main>
       <nav className="react-mobile-tabs" aria-label="移动端导航">

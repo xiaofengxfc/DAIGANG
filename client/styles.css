@@ -1742,3 +1742,353 @@ button.react-side-row {
     max-width: 190px;
   }
 }
+
+/* React 客户清单 */
+.customers-page {
+  display: grid;
+  gap: 14px;
+}
+
+.customers-page__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.customers-page__head h2 {
+  margin: 3px 0 0;
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.customers-page__head p {
+  margin: 7px 0 0;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.customers-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.customers-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.customers-filter {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.customers-filter:hover,
+.customers-filter.is-active {
+  border-color: var(--line-strong);
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.customers-toolbar__spacer {
+  flex: 1 1 12px;
+}
+
+.customers-search {
+  min-width: 240px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--ink-3);
+  font-size: 11px;
+}
+
+.customers-search input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+}
+
+.customers-search kbd {
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+.customers-panel {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+}
+
+.customers-table-head,
+.customers-row {
+  display: grid;
+  grid-template-columns: minmax(250px, 2fr) minmax(100px, .9fr) 70px 120px 70px 42px;
+  align-items: center;
+  gap: 14px;
+}
+
+.customers-table-head {
+  min-height: 34px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: 10px;
+}
+
+.customers-row {
+  min-height: 72px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.customers-row:last-child {
+  border-bottom: 0;
+}
+
+.customers-row:hover,
+.customers-row:focus-visible {
+  outline: 0;
+  background: var(--surface-2);
+}
+
+.customers-row__identity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.customers-avatar {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.customers-avatar--fallback {
+  display: grid;
+  place-items: center;
+  background: var(--surface-3);
+  color: var(--ink-2);
+  font-size: 13px;
+}
+
+.customers-row__identity > div {
+  min-width: 0;
+}
+
+.customers-row__name {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.customers-row__name > b {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.customers-row__contact {
+  display: flex;
+  gap: 8px;
+  overflow: hidden;
+  margin-top: 4px;
+  color: var(--ink-3);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.customers-row__contact span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.customers-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 17px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--surface-3);
+  color: var(--ink-3);
+  font-size: 9px;
+}
+
+.customers-tag--archived {
+  background: color-mix(in srgb, var(--oxblood) 14%, transparent);
+  color: var(--oxblood-ink);
+}
+
+.customers-row__source {
+  overflow: hidden;
+  color: var(--ink-3);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.customers-row__orders,
+.customers-row__money {
+  display: grid;
+  gap: 3px;
+}
+
+.customers-row__orders b,
+.customers-row__money b {
+  color: var(--ink);
+  font-family: var(--font-fig);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.customers-row__orders small,
+.customers-row__money small {
+  color: var(--ink-3);
+  font-size: 10px;
+}
+
+.customers-row__money b.is-due {
+  color: var(--amber-ink);
+}
+
+.customers-row__credentials {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink-3);
+  font-family: var(--font-fig);
+  font-size: 11px;
+}
+
+.customers-row__open {
+  justify-self: end;
+}
+
+.customers-empty {
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 30px 16px;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+.customers-empty svg { color: var(--ink-3); }
+.customers-empty b { color: var(--ink); font-size: 13px; }
+.customers-empty span { font-size: 11px; }
+
+@media (max-width: 1060px) {
+  .customers-table-head,
+  .customers-row {
+    grid-template-columns: minmax(220px, 2fr) 70px 100px 62px 42px;
+  }
+  .customers-table-head > :nth-child(2),
+  .customers-row > .customers-row__source {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .customers-page__head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .customers-page__head h2 {
+    font-size: 20px;
+  }
+  .customers-page__head .refactor-button {
+    width: 100%;
+    justify-content: center;
+  }
+  .customers-toolbar {
+    align-items: stretch;
+  }
+  .customers-filters {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .customers-filter {
+    flex: none;
+  }
+  .customers-toolbar__spacer {
+    display: none;
+  }
+  .customers-search {
+    min-width: 0;
+    flex: 1;
+  }
+  .customers-table-head {
+    display: none;
+  }
+  .customers-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 9px 12px;
+    padding: 12px 13px;
+  }
+  .customers-row__identity {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+  .customers-row__source,
+  .customers-row__credentials {
+    display: none;
+  }
+  .customers-row__orders {
+    grid-column: 2;
+    grid-row: 1;
+    justify-items: end;
+  }
+  .customers-row__money {
+    grid-column: 2;
+    grid-row: 2;
+    justify-items: end;
+  }
+  .customers-row__open {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  .customers-row__contact {
+    max-width: 190px;
+    flex-wrap: wrap;
+    white-space: normal;
+  }
+}
