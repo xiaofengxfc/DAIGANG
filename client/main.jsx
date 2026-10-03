@@ -4,7 +4,6 @@ import {
   Activity,
   AlertCircle,
   ArrowUpRight,
-  Check,
   ClipboardList,
   Command,
   FileText,
@@ -25,7 +24,6 @@ import {
   WalletCards,
 } from 'lucide-react'
 import { api } from '../public/js/api.js'
-import dashboardView from '../public/js/views/dashboard.js'
 import ordersView from '../public/js/views/orders.js'
 import customersView from '../public/js/views/customers.js'
 import priceView from '../public/js/views/price.js'
@@ -35,11 +33,12 @@ import financeView from '../public/js/views/finance.js'
 import quotesView from '../public/js/views/quotes.js'
 import settingsView from '../public/js/views/settings.js'
 import * as vaultgate from '../public/js/vaultgate.js'
+import DashboardPage from './dashboard.jsx'
 import { toast, toastErr } from '../public/js/ui.js'
 import './styles.css'
 
 const NAV = [
-  { seg: '', label: '总览', icon: LayoutDashboard, group: '工作台', view: dashboardView },
+  { seg: '', label: '总览', icon: LayoutDashboard, group: '工作台' },
   { seg: 'orders', label: '订单', icon: ClipboardList, group: '工作台', view: ordersView, badge: (c) => c.open },
   { seg: 'customers', label: '客户', icon: Users, group: '业务', view: customersView },
   { seg: 'price', label: '价格表', icon: Tags, group: '业务', view: priceView },
@@ -201,6 +200,7 @@ function LegacyPage({ route, setActions, onReload, counts, settings }) {
     skeleton.innerHTML = '<span></span><span></span><span></span>'
     host.appendChild(skeleton)
     const navigate = (to) => go(to)
+    if (!item.view) return undefined
     const app = {
       state: { counts, settings },
       navigate,
@@ -341,6 +341,7 @@ function Shell({ me, onLogout }) {
   const [theme, setTheme] = useState(() => localStorage.getItem('xfc.theme') || 'dark')
   const [actions, setActions] = useState([])
   const [counts, setCounts] = useState({})
+  const [dashboard, setDashboard] = useState(null)
   const [settings, setSettings] = useState(me.settings || {})
   const [reloadKey, setReloadKey] = useState(0)
   const updateActions = useCallback((...nodes) => {
@@ -361,6 +362,7 @@ function Shell({ me, onLogout }) {
   const refresh = useCallback(async () => {
     try {
       const dashboard = await api.get('/api/dashboard')
+      setDashboard(dashboard)
       setCounts(dashboard.counts || {})
       setReloadKey((value) => value + 1)
     } catch (err) {
@@ -412,12 +414,12 @@ function Shell({ me, onLogout }) {
         <div className="react-topbar__tools">
           <span className="react-online"><i />本机运行</span>
           <button className="react-icon-button" type="button" title="刷新数据" onClick={refresh}><RefreshCw {...iconProps(17)} /></button>
-          <ActionsSlot nodes={actions} />
+          {actions.length ? <ActionsSlot nodes={actions} /> : <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={() => go('/orders?new=1')}><Plus {...iconProps(15)} />开新单</button>}
         </div>
       </header>
       <main className="react-main">
         <div className="react-main__inner">
-          <LegacyPage key={`${route.seg}/${route.sub}?${route.query.toString()}-${reloadKey}`} route={route} setActions={updateActions} onReload={refresh} counts={counts} settings={settings} />
+          {current.seg === '' ? <DashboardPage data={dashboard} navigate={go} onReload={refresh} /> : <LegacyPage key={`${route.seg}/${route.sub}?${route.query.toString()}-${reloadKey}`} route={route} setActions={updateActions} onReload={refresh} counts={counts} settings={settings} />}
         </div>
       </main>
       <nav className="react-mobile-tabs" aria-label="移动端导航">

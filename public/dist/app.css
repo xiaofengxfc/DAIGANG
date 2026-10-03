@@ -575,6 +575,12 @@ input {
   gap: 6px;
 }
 
+.refactor-top-action {
+  min-height: 32px;
+  padding-inline: 11px;
+  font-size: 11px;
+}
+
 .react-main {
   grid-area: main;
   min-width: 0;
@@ -628,6 +634,489 @@ input {
   display: none;
 }
 
+/* ---------- React 总览 ---------- */
+
+.react-dashboard {
+  display: grid;
+  gap: 18px;
+}
+
+.react-ledger,
+.react-dashboard-panel,
+.react-dashboard-empty {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.react-ledger {
+  overflow: hidden;
+  border-top: 2px solid var(--cinnabar);
+}
+
+.react-ledger__head,
+.react-dashboard-panel__head {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.react-ledger__head > div,
+.react-dashboard-panel__head > div {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+}
+
+.react-ledger__head strong,
+.react-dashboard-panel__head h2 {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.react-ledger__head span,
+.react-dashboard-panel__head span,
+.react-dashboard-panel__head > div > span {
+  color: var(--ink-3);
+  font-size: 11px;
+}
+
+.react-ledger__summary {
+  flex: none;
+  color: var(--ink-2) !important;
+  font-family: var(--font-fig);
+  font-size: 11px !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.react-ledger__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+}
+
+.react-ledger__group {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.react-ledger__group--money {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-left: 1px solid var(--line-strong);
+}
+
+.react-ledger__cell {
+  min-width: 0;
+  min-height: 78px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 12px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-2);
+  text-align: left;
+  cursor: pointer;
+}
+
+.react-ledger__cell:last-child {
+  border-right: 0;
+}
+
+.react-ledger__cell:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.react-ledger__cell:disabled {
+  cursor: default;
+}
+
+.react-ledger__cell span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.react-ledger__cell b {
+  color: var(--ink);
+  font-family: var(--font-fig);
+  font-size: 18px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.react-ledger__cell.is-alert b,
+.react-ledger__cell.is-due b {
+  color: var(--amber-ink);
+}
+
+.react-dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(300px, 0.85fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.react-dashboard-panel {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.react-dashboard-panel__head {
+  align-items: flex-start;
+}
+
+.react-dashboard-panel__head > div {
+  display: grid;
+  gap: 3px;
+}
+
+.react-dashboard-panel__head h2 {
+  margin: 0;
+}
+
+.react-dashboard-panel__count {
+  flex: none;
+  color: var(--ink-3);
+  font-family: var(--font-fig);
+  font-size: 11px;
+}
+
+.react-orders-list {
+  display: grid;
+}
+
+.react-order-row {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(190px, 1.55fr) minmax(90px, 0.75fr) minmax(88px, 0.7fr) minmax(88px, 0.75fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 66px;
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.react-order-row:last-child {
+  border-bottom: 0;
+}
+
+.react-order-row:hover,
+.react-order-row:focus-visible {
+  outline: 0;
+  background: var(--surface-2);
+}
+
+.react-order-row__main,
+.react-order-row__title,
+.react-order-row__meta,
+.react-side-row > span {
+  min-width: 0;
+}
+
+.react-order-row__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.react-order-row__title b,
+.react-side-row b {
+  color: var(--ink);
+  font-family: var(--font-fig);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.react-order-row__meta,
+.react-side-row small {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--ink-3);
+  font-size: 11px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.react-order-row__meta span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.react-order-row__game,
+.react-order-row__progress {
+  overflow: hidden;
+  color: var(--ink-2);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.react-order-row__money {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.react-order-row__money b {
+  color: var(--ink);
+  font-family: var(--font-fig);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.react-order-row__money span {
+  color: var(--ink-3);
+  font-size: 10px;
+}
+
+.react-order-row__money span.is-due {
+  color: var(--amber-ink);
+}
+
+.react-order-row__actions {
+  display: flex;
+  gap: 4px;
+}
+
+.react-mini-button {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.react-mini-button:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-3);
+  color: var(--ink);
+}
+
+.react-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  color: var(--ink-2);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.react-status i {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.react-status--amber { color: var(--amber-ink); }
+.react-status--slate { color: var(--slate-ink); }
+.react-status--jade { color: var(--jade-ink); }
+.react-status--oxblood { color: var(--oxblood-ink); }
+.react-status--cinnabar { color: var(--cinnabar); }
+.react-status--muted { color: var(--ink-3); }
+
+.react-dashboard-panel__foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 14px;
+  border-top: 1px solid var(--line);
+}
+
+.react-dashboard-panel__foot .refactor-button {
+  min-height: 30px;
+  padding-inline: 10px;
+  font-size: 11px;
+}
+
+.react-dashboard-side {
+  display: grid;
+  gap: 18px;
+}
+
+.react-dashboard-panel--side .react-dashboard-panel__head {
+  padding-bottom: 11px;
+}
+
+.react-side-list {
+  display: grid;
+}
+
+.react-side-row {
+  min-width: 0;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 13px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-2);
+  text-align: left;
+}
+
+button.react-side-row {
+  width: 100%;
+  cursor: pointer;
+}
+
+.react-side-row:last-child {
+  border-bottom: 0;
+}
+
+.react-side-row:hover {
+  background: var(--surface-2);
+}
+
+.react-side-row > span {
+  display: block;
+}
+
+.react-side-row small {
+  display: block;
+  margin-top: 3px;
+}
+
+.react-side-row em,
+.react-side-row strong {
+  flex: none;
+  color: var(--amber-ink);
+  font-family: var(--font-fig);
+  font-size: 12px;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+.react-side-row > div {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.react-side-row strong.is-paid { color: var(--jade-ink); }
+.react-side-row strong.is-refund { color: var(--oxblood-ink); }
+
+.react-panel-empty,
+.react-dashboard-empty {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.react-panel-empty {
+  gap: 7px;
+  padding: 42px 20px;
+  color: var(--ink-3);
+}
+
+.react-panel-empty svg,
+.react-dashboard-empty__icon {
+  color: var(--cinnabar);
+}
+
+.react-panel-empty b {
+  margin-top: 4px;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.react-panel-empty span,
+.react-dashboard-empty p {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.react-panel-empty .refactor-button {
+  margin-top: 7px;
+}
+
+.react-dashboard-empty {
+  gap: 8px;
+  padding: 46px 22px;
+}
+
+.react-dashboard-empty__icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--cinnabar-line);
+  border-radius: 11px;
+  background: var(--cinnabar-bg);
+}
+
+.react-dashboard-empty h2 {
+  margin-top: 5px;
+  color: var(--ink);
+  font-size: 16px;
+}
+
+.react-dashboard-empty p {
+  max-width: 480px;
+  margin: 0;
+  line-height: 1.65;
+}
+
+.react-dashboard-empty ol {
+  width: min(100%, 510px);
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 3px;
+  padding: 0;
+  counter-reset: onboarding;
+  list-style: none;
+  text-align: left;
+}
+
+.react-dashboard-empty li {
+  display: grid;
+  grid-template-columns: 21px 1fr;
+  gap: 8px;
+  color: var(--ink-2);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.react-dashboard-empty li::before {
+  counter-increment: onboarding;
+  content: counter(onboarding);
+  color: var(--cinnabar);
+  font-family: var(--font-fig);
+  font-size: 11px;
+  text-align: center;
+}
+
+.react-dashboard-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 6px;
+}
+
 @media (max-width: 1060px) {
   .react-shell {
     grid-template-columns: 210px minmax(0, 1fr);
@@ -640,6 +1129,13 @@ input {
   }
   .react-online {
     display: none;
+  }
+  .react-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .react-dashboard-side {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
   }
 }
 
@@ -678,6 +1174,58 @@ input {
   }
   .react-main__inner {
     padding: 18px 14px 44px;
+  }
+  .react-ledger__head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .react-ledger__body {
+    grid-template-columns: 1fr;
+  }
+  .react-ledger__group {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .react-ledger__group--money {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 1px solid var(--line-strong);
+    border-left: 0;
+  }
+  .react-ledger__cell {
+    min-height: 64px;
+    border-bottom: 1px solid var(--line);
+  }
+  .react-ledger__group--money .react-ledger__cell {
+    border-bottom: 0;
+  }
+  .react-ledger__cell b {
+    font-size: 16px;
+  }
+  .react-dashboard-side {
+    grid-template-columns: 1fr;
+  }
+  .react-order-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding: 12px 13px;
+  }
+  .react-order-row__game,
+  .react-order-row__progress {
+    display: none;
+  }
+  .react-order-row__money {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .react-order-row__actions {
+    grid-column: 2;
+    grid-row: 2;
+    justify-content: flex-end;
+  }
+  .react-order-row__main {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: center;
   }
   .react-mobile-tabs {
     position: fixed;

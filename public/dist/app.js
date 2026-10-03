@@ -11715,7 +11715,7 @@ function createLucideIcon(iconDataOrName, iconNode = [], aliases = []) {
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$20 = {
+var __iconData$24 = {
 	name: "activity",
 	size: 24,
 	node: [["path", {
@@ -11723,8 +11723,8 @@ var __iconData$20 = {
 		key: "169zse"
 	}]]
 };
-__iconData$20.node;
-var Activity = createLucideIcon(__iconData$20);
+__iconData$24.node;
+var Activity = createLucideIcon(__iconData$24);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/arrow-up-right.mjs
 /**
@@ -11733,7 +11733,7 @@ var Activity = createLucideIcon(__iconData$20);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$19 = {
+var __iconData$23 = {
 	name: "arrow-up-right",
 	size: 24,
 	node: [["path", {
@@ -11744,8 +11744,26 @@ var __iconData$19 = {
 		key: "1vkiza"
 	}]]
 };
-__iconData$19.node;
-var ArrowUpRight = createLucideIcon(__iconData$19);
+__iconData$23.node;
+var ArrowUpRight = createLucideIcon(__iconData$23);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/check.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$22 = {
+	name: "check",
+	size: 24,
+	node: [["path", {
+		d: "M20 6 9 17l-5-5",
+		key: "1gmf2c"
+	}]]
+};
+__iconData$22.node;
+var Check = createLucideIcon(__iconData$22);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/circle-alert.mjs
 /**
@@ -11754,7 +11772,7 @@ var ArrowUpRight = createLucideIcon(__iconData$19);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$18 = {
+var __iconData$21 = {
 	name: "circle-alert",
 	size: 24,
 	node: [
@@ -11781,8 +11799,8 @@ var __iconData$18 = {
 	],
 	aliases: ["alert-circle"]
 };
-__iconData$18.node;
-var CircleAlert = createLucideIcon(__iconData$18);
+__iconData$21.node;
+var CircleAlert = createLucideIcon(__iconData$21);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/clipboard-list.mjs
 /**
@@ -11791,7 +11809,7 @@ var CircleAlert = createLucideIcon(__iconData$18);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$17 = {
+var __iconData$20 = {
 	name: "clipboard-list",
 	size: 24,
 	node: [
@@ -11826,8 +11844,31 @@ var __iconData$17 = {
 		}]
 	]
 };
-__iconData$17.node;
-var ClipboardList = createLucideIcon(__iconData$17);
+__iconData$20.node;
+var ClipboardList = createLucideIcon(__iconData$20);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/clock-3.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$19 = {
+	name: "clock-3",
+	size: 24,
+	node: [["circle", {
+		cx: "12",
+		cy: "12",
+		r: "10",
+		key: "1mglay"
+	}], ["path", {
+		d: "M12 6v6h4",
+		key: "135r8i"
+	}]]
+};
+__iconData$19.node;
+var Clock3 = createLucideIcon(__iconData$19);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/command.mjs
 /**
@@ -11836,7 +11877,7 @@ var ClipboardList = createLucideIcon(__iconData$17);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$16 = {
+var __iconData$18 = {
 	name: "command",
 	size: 24,
 	node: [["path", {
@@ -11844,8 +11885,43 @@ var __iconData$16 = {
 		key: "11bfej"
 	}]]
 };
-__iconData$16.node;
-var Command = createLucideIcon(__iconData$16);
+__iconData$18.node;
+var Command = createLucideIcon(__iconData$18);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/credit-card.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$17 = {
+	name: "credit-card",
+	size: 24,
+	node: [
+		["rect", {
+			width: "20",
+			height: "14",
+			x: "2",
+			y: "5",
+			rx: "2",
+			key: "ynyp8z"
+		}],
+		["line", {
+			x1: "2",
+			x2: "22",
+			y1: "10",
+			y2: "10",
+			key: "1b3vmo"
+		}],
+		["path", {
+			d: "M6 14h2",
+			key: "mk7k0u"
+		}]
+	]
+};
+__iconData$17.node;
+var CreditCard = createLucideIcon(__iconData$17);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/ellipsis.mjs
 /**
@@ -11854,7 +11930,7 @@ var Command = createLucideIcon(__iconData$16);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$15 = {
+var __iconData$16 = {
 	name: "ellipsis",
 	size: 24,
 	node: [
@@ -11879,8 +11955,8 @@ var __iconData$15 = {
 	],
 	aliases: ["more-horizontal"]
 };
-__iconData$15.node;
-var Ellipsis = createLucideIcon(__iconData$15);
+__iconData$16.node;
+var Ellipsis = createLucideIcon(__iconData$16);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/file-text.mjs
 /**
@@ -11889,7 +11965,7 @@ var Ellipsis = createLucideIcon(__iconData$15);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$14 = {
+var __iconData$15 = {
 	name: "file-text",
 	size: 24,
 	node: [
@@ -11915,8 +11991,8 @@ var __iconData$14 = {
 		}]
 	]
 };
-__iconData$14.node;
-var FileText = createLucideIcon(__iconData$14);
+__iconData$15.node;
+var FileText = createLucideIcon(__iconData$15);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/gamepad-2.mjs
 /**
@@ -11925,7 +12001,7 @@ var FileText = createLucideIcon(__iconData$14);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$13 = {
+var __iconData$14 = {
 	name: "gamepad-2",
 	size: 24,
 	node: [
@@ -11963,8 +12039,8 @@ var __iconData$13 = {
 		}]
 	]
 };
-__iconData$13.node;
-var Gamepad2 = createLucideIcon(__iconData$13);
+__iconData$14.node;
+var Gamepad2 = createLucideIcon(__iconData$14);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/layout-dashboard.mjs
 /**
@@ -11973,7 +12049,7 @@ var Gamepad2 = createLucideIcon(__iconData$13);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$12 = {
+var __iconData$13 = {
 	name: "layout-dashboard",
 	size: 24,
 	node: [
@@ -12011,8 +12087,48 @@ var __iconData$12 = {
 		}]
 	]
 };
+__iconData$13.node;
+var LayoutDashboard = createLucideIcon(__iconData$13);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/list-todo.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$12 = {
+	name: "list-todo",
+	size: 24,
+	node: [
+		["path", {
+			d: "M13 5h8",
+			key: "a7qcls"
+		}],
+		["path", {
+			d: "M13 12h8",
+			key: "h98zly"
+		}],
+		["path", {
+			d: "M13 19h8",
+			key: "c3s6r1"
+		}],
+		["path", {
+			d: "m3 17 2 2 4-4",
+			key: "1jhpwq"
+		}],
+		["rect", {
+			x: "3",
+			y: "4",
+			width: "6",
+			height: "6",
+			rx: "1",
+			key: "cif1o7"
+		}]
+	]
+};
 __iconData$12.node;
-var LayoutDashboard = createLucideIcon(__iconData$12);
+var ListTodo = createLucideIcon(__iconData$12);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/lock-keyhole.mjs
 /**
@@ -14056,136 +14172,6 @@ function editProgressDrawer(p, onDone) {
 		}
 	});
 }
-//#endregion
-//#region public/js/views/dashboard.js
-function ledgerCell({ label, value, tone = "", onClick, hint }) {
-	const el = h(`button.cell${tone ? ".cell--" + tone : ""}`, {
-		type: "button",
-		title: hint || `${label}：${value}`
-	}, h("span.cell__lbl", label), h("span.cell__fig", value));
-	if (onClick) el.addEventListener("click", onClick);
-	else el.disabled = true;
-	return el;
-}
-function ledgerMoneyCell({ label, value, tone = "", onClick, hint }) {
-	const el = h(`button.cell${tone ? ".cell--" + tone : ""}`, {
-		type: "button",
-		title: hint || `${label}：¥${value}`
-	}, h("span.cell__lbl", label), h("span.cell__fig", `¥${value}`));
-	if (onClick) el.addEventListener("click", onClick);
-	else el.disabled = true;
-	return el;
-}
-function onboarding(ctx) {
-	return h("div.panel", h("div.panel__body", emptyState({
-		iconName: "price",
-		title: "帐桌支好了，先录第一批价格",
-		body: "这个后台不预置任何数据——因为你的项目和价格只有你自己知道。按下面顺序走一遍，十分钟就能接手第一单。",
-		steps: [
-			"在「游戏」里加一个你在代肝的游戏，顺手填上区服。",
-			"在「价格表」里建分类（日常 / 周常 / 活动 / 深渊…）。",
-			"在分类下加服务项，选计价方式（固定价、按天、按次、按数量、套餐价），填单价。",
-			"需要阶梯价或加急之类的增项，就在服务项里继续加。",
-			"去「客户」录第一个客户，然后就能开单了。"
-		],
-		actionLabel: "先加一个游戏",
-		onAction: () => ctx.navigate("/games"),
-		secondary: h("button.btn", {
-			type: "button",
-			onclick: () => ctx.navigate("/price")
-		}, "直接去价格表")
-	})));
-}
-var dashboard_default = {
-	title: "总览",
-	async render(ctx) {
-		ctx.setActions(h("button.btn.btn--sm.btn--primary", {
-			type: "button",
-			onclick: () => ctx.navigate("/orders?new=1")
-		}, icon("plus", 14), "开新单"));
-		const d = await api.get("/api/dashboard");
-		const c = d.counts;
-		const today = todayStr();
-		const emptyish = !c.games && !c.customers && !c.open && !c.done;
-		const ledger = h("section.ledger", h("div.ledger__head", h("span.ledger__title", "今日台面"), h("span.ledger__date.mono", fmtDayFull(today)), h("div", { style: { flex: "1" } }), h("span.ledger__sum", `本月已收 ¥${fmtMoney(d.month_money.received)} · 利润 ¥${fmtMoney(d.month_money.profit)}`)), h("div.ledger__body", h("div.ledger__group", ledgerCell({
-			label: "待确认",
-			value: c.pending_confirm,
-			tone: c.pending_confirm ? "alert" : "",
-			hint: "客户下单了，等你确认",
-			onClick: () => ctx.navigate("/orders?status=pending_confirm")
-		}), ledgerCell({
-			label: "待付款",
-			value: c.pending_pay,
-			tone: c.pending_pay ? "alert" : "",
-			hint: "还没收到钱",
-			onClick: () => ctx.navigate("/orders?status=pending_pay")
-		}), ledgerCell({
-			label: "进行中",
-			value: c.in_progress,
-			hint: "正在做的单",
-			onClick: () => ctx.navigate("/orders?status=in_progress")
-		}), ledgerCell({
-			label: "待验收",
-			value: c.pending_accept,
-			tone: c.pending_accept ? "alert" : "",
-			hint: "做完了等客户点头",
-			onClick: () => ctx.navigate("/orders?status=pending_accept")
-		})), h("div.ledger__group.ledger__group--sum", ledgerMoneyCell({
-			label: "今日新单",
-			value: fmtMoney(d.today_money.ordered_amount),
-			hint: `${d.today_money.ordered_count} 单`
-		}), ledgerMoneyCell({
-			label: "今日已收",
-			value: fmtMoney(d.today_money.received),
-			onClick: () => ctx.navigate("/finance")
-		}), ledgerMoneyCell({
-			label: "未收余额",
-			value: fmtMoney(d.receivables),
-			tone: d.receivables > 0 ? "due" : "",
-			hint: "所有未结清订单的尾款合计",
-			onClick: () => ctx.navigate("/orders?due=1")
-		}))));
-		if (emptyish) return h("div.stack", ledger, onboarding(ctx));
-		const dispatch = d.open_orders.length > 0 ? h("section.panel", h("div.panel__body.panel__body--flush", orderTable(d.open_orders, ctx, { showCustomer: true })), h("div.panel__foot", h("span.sm.dim", `共 ${c.open} 单没结束`), h("div", { style: { flex: "1" } }), h("button.btn.btn--sm", {
-			type: "button",
-			onclick: () => ctx.navigate("/orders?status=open")
-		}, "看全部在做的单"))) : h("section.panel", h("div.panel__body", emptyState({
-			iconName: "orders",
-			title: "现在手上没有在做的单",
-			body: "开一单试试：选客户、选服务，价格会自动算出来，下单那一刻就把价格快照冻住了，以后改价不影响老单。",
-			actionLabel: "开一张新单",
-			onAction: () => ctx.navigate("/orders?new=1")
-		})));
-		const right = [];
-		if (d.stale_orders.length) right.push(h("section.panel", h("div", { style: { padding: "12px 16px 0" } }, h("div.sechead", { style: { marginBottom: "8px" } }, h("h3", h("span.tone-amber", "停滞提醒")), h("span.sechead__note", "两天没记进度了"))), h("div.itemlist", d.stale_orders.map((o) => h("button.item", {
-			type: "button",
-			onclick: () => ctx.navigate(`/orders/${o.id}`)
-		}, h("div.item__main", h("div.item__title", o.order_no), h("div.item__meta", h("span", o.customer_name || "散客"), h("span", `上次 ${fmtDay(o.last_progress_on)}`))), h("div.item__right", h("span.tag.tag--amber", `${o.idle_days} 天`)))))));
-		if (d.unpaid_orders.length) right.push(h("section.panel", h("div", { style: { padding: "12px 16px 0" } }, h("div.sechead", { style: { marginBottom: "0" } }, h("h3", "还没收齐"), h("span.sechead__note", "点一下就能记收款"))), h("div.itemlist", d.unpaid_orders.map((o) => h("div.item", { style: { cursor: "default" } }, h("div.item__main", h("div.item__title", o.order_no, orderLamp(o.status, o.status_label)), h("div.item__meta", h("span", o.customer_name || "散客"), h("span", o.title || ""))), h("div.item__right", h("div.item__fig.tone-amber", `¥${fmtMoney(o.due_total)}`), h("button.btn.btn--sm", {
-			type: "button",
-			style: { marginTop: "4px" },
-			onclick: () => paymentDrawer(o, () => ctx.app.reload())
-		}, "记收款")))))));
-		if (d.recent_payments.length) right.push(h("section.panel", h("div", { style: { padding: "12px 16px 0" } }, h("div.sechead", { style: { marginBottom: "0" } }, h("h3", "最近收款"))), h("div.itemlist", d.recent_payments.map((p) => h("div.item", { style: { cursor: "default" } }, h("div.item__main", h("div.item__title", p.customer_name || "散客", h("span.tag", PAY_METHOD_LABEL[p.method] || p.method)), h("div.item__meta", h("span", p.order_no || "未挂订单"), h("span", fmtDay(p.paid_at)))), h("div.item__right", h(`div.item__fig${p.kind === "refund" ? ".tone-oxblood" : ".tone-jade"}`, `${p.kind === "refund" ? "−" : "+"}¥${fmtMoney(p.amount)}`), h("button.btn.btn--sm.btn--quiet", {
-			type: "button",
-			title: "删除这笔收款",
-			onclick: async () => {
-				if (!await confirmDelete({
-					title: "删掉这笔收款？",
-					message: `${p.customer_name || "散客"} · ${PAY_KIND_LABEL[p.kind] || p.kind} ¥${fmtMoney(p.amount)}（${fmtDay(p.paid_at)}）` + (p.order_no ? `，挂在订单 ${p.order_no} 上。删掉后这张单的「已收 / 待收」会重新算。` : "。这笔没有挂订单。")
-				})) return;
-				try {
-					await api.del(`/api/payments/${p.id}`);
-					toast("已删除这笔收款", "ok");
-					ctx.app.reload();
-				} catch (err) {
-					toastErr(err);
-				}
-			}
-		}, icon("trash", 13))))))));
-		return h("div.stack", ledger, h("div.split", h("div.stack", dispatch), h("div.stack", right)));
-	}
-};
 //#endregion
 //#region public/js/progresscard.js
 var BG = "#F4F6F8";
@@ -19775,17 +19761,393 @@ var require_react_jsx_runtime_production = /* @__PURE__ */ __commonJSMin(((expor
 	exports.jsxs = jsxProd;
 }));
 //#endregion
-//#region client/main.jsx
+//#region client/dashboard.jsx
 var import_jsx_runtime = (/* @__PURE__ */ __commonJSMin(((exports, module) => {
 	module.exports = require_react_jsx_runtime_production();
 })))();
+var STATUS_LABEL = {
+	pending_confirm: "待确认",
+	pending_pay: "待付款",
+	in_progress: "进行中",
+	pending_accept: "待验收",
+	done: "已完成",
+	after_sale: "售后",
+	cancelled: "已取消"
+};
+var iconProps$1 = (size = 16) => ({
+	size,
+	strokeWidth: 1.8,
+	absoluteStrokeWidth: true,
+	"aria-hidden": true
+});
+function LedgerCell({ label, value, tone = "", hint, onClick }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+		className: `react-ledger__cell${tone ? ` is-${tone}` : ""}`,
+		type: "button",
+		title: hint,
+		disabled: !onClick,
+		onClick,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: label }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: value })]
+	});
+}
+function DashboardLedger({ data, navigate }) {
+	const c = data.counts || {};
+	const today = data.today || todayStr();
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+		className: "react-ledger",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
+			className: "react-ledger__head",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "今日台面" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: fmtDayFull(today) })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+				className: "react-ledger__summary",
+				children: [
+					"本月已收 ¥",
+					fmtMoney(data.month_money?.received),
+					" · 利润 ¥",
+					fmtMoney(data.month_money?.profit)
+				]
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "react-ledger__body",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "react-ledger__group",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
+						label: "待确认",
+						value: c.pending_confirm || 0,
+						tone: c.pending_confirm ? "alert" : "",
+						hint: "客户下单了，等你确认",
+						onClick: () => navigate("/orders?status=pending_confirm")
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
+						label: "待付款",
+						value: c.pending_pay || 0,
+						tone: c.pending_pay ? "alert" : "",
+						hint: "还没收到钱",
+						onClick: () => navigate("/orders?status=pending_pay")
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
+						label: "进行中",
+						value: c.in_progress || 0,
+						hint: "正在做的单",
+						onClick: () => navigate("/orders?status=in_progress")
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
+						label: "待验收",
+						value: c.pending_accept || 0,
+						tone: c.pending_accept ? "alert" : "",
+						hint: "做完了等客户点头",
+						onClick: () => navigate("/orders?status=pending_accept")
+					})
+				]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "react-ledger__group react-ledger__group--money",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
+						label: "今日新单",
+						value: `¥${fmtMoney(data.today_money?.ordered_amount)}`,
+						hint: `${data.today_money?.ordered_count || 0} 单`
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
+						label: "今日已收",
+						value: `¥${fmtMoney(data.today_money?.received)}`,
+						onClick: () => navigate("/finance")
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
+						label: "未收余额",
+						value: `¥${fmtMoney(data.receivables)}`,
+						tone: data.receivables > 0 ? "due" : "",
+						hint: "所有未结清订单的尾款合计",
+						onClick: () => navigate("/orders?due=1")
+					})
+				]
+			})]
+		})]
+	});
+}
+function EmptyOnboarding({ navigate }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+		className: "react-dashboard-empty",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "react-dashboard-empty__icon",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$1(21) })
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "帐桌支好了，先录第一批价格" }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "这个后台不预置任何数据。按下面顺序录入，十分钟就能接手第一单。" }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("ol", { children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "在「游戏」里添加正在代肝的游戏和区服。" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "在「价格表」里建立日常、周常、活动等分类。" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "在分类下添加服务项，选择计价方式并填单价。" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "需要阶梯价或加急之类的增项，就在服务项里继续添加。" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "录入客户后，从「订单」开出第一单。" })
+			] }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "react-dashboard-empty__actions",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "refactor-button refactor-button--primary",
+					type: "button",
+					onClick: () => navigate("/games"),
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(15) }), "先加一个游戏"]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+					className: "refactor-button",
+					type: "button",
+					onClick: () => navigate("/price"),
+					children: "直接去价格表"
+				})]
+			})
+		]
+	});
+}
+function StatusBadge({ status, label }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+		className: `react-status react-status--${STATUS_TONE[status] || "muted"}`,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", {}), label || STATUS_LABEL[status] || status || "未指定"]
+	});
+}
+function OrderRow({ order, navigate, onReload }) {
+	const due = Number(order.due_total) || 0;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", {
+		className: "react-order-row",
+		role: "button",
+		tabIndex: "0",
+		onClick: () => navigate(`/orders/${order.id}`),
+		onKeyDown: (event) => {
+			if (event.key === "Enter" || event.key === " ") navigate(`/orders/${order.id}`);
+		},
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "react-order-row__main",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "react-order-row__title",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.order_no }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StatusBadge, {
+						status: order.status,
+						label: order.status_label
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "react-order-row__meta",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: order.customer_name || "散客" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: order.title || "未填写标题" })]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "react-order-row__game",
+				children: order.game_name || "未指定游戏"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "react-order-row__progress",
+				children: order.progress_count ? `${order.progress_count} 条进度` : "还没记进度"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "react-order-row__money",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("b", { children: ["¥", fmtMoney(order.total)] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: due > .001 ? "is-due" : "",
+					children: due > .001 ? `尾款 ¥${fmtMoney(due)}` : "已结清"
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "react-order-row__actions",
+				onClick: (event) => event.stopPropagation(),
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "记进度",
+						onClick: () => progressDrawer(order, onReload),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$1(14) })
+					}),
+					due > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "记收款",
+						onClick: () => paymentDrawer(order, onReload),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$1(14) })
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "看详情",
+						onClick: () => navigate(`/orders/${order.id}`),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$1(14) })
+					})
+				]
+			})
+		]
+	});
+}
+function OpenOrders({ orders, count, navigate, onReload }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+		className: "react-dashboard-panel",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
+				className: "react-dashboard-panel__head",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "进行中调度" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "按交付时间排在前面的订单" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+					className: "react-dashboard-panel__count",
+					children: [count || 0, " 单未结束"]
+				})]
+			}),
+			orders.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "react-orders-list",
+				children: orders.map((order) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrderRow, {
+					order,
+					navigate,
+					onReload
+				}, order.id))
+			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "react-panel-empty",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$1(19) }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "现在手上没有在做的单" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "开一单试试，价格会在下单时冻结。" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "refactor-button",
+						type: "button",
+						onClick: () => navigate("/orders?new=1"),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(14) }), "开一张新单"]
+					})
+				]
+			}),
+			orders.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("footer", {
+				className: "react-dashboard-panel__foot",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "refactor-button",
+					type: "button",
+					onClick: () => navigate("/orders?status=open"),
+					children: ["看全部在做的单 ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$1(14) })]
+				})
+			}) : null
+		]
+	});
+}
+function SideList({ title, note, rows, renderRow }) {
+	if (!rows.length) return null;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+		className: "react-dashboard-panel react-dashboard-panel--side",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("header", {
+			className: "react-dashboard-panel__head",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: title }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: note })] })
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "react-side-list",
+			children: rows.map(renderRow)
+		})]
+	});
+}
+function DashboardSide({ data, navigate, onReload }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "react-dashboard-side",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SideList, {
+				title: "停滞提醒",
+				note: "两天没记进度了",
+				rows: data.stale_orders || [],
+				renderRow: (order) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "react-side-row",
+					type: "button",
+					onClick: () => navigate(`/orders/${order.id}`),
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.order_no }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+						order.customer_name || "散客",
+						" · 上次 ",
+						fmtDay(order.last_progress_on)
+					] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("em", { children: [order.idle_days, " 天"] })]
+				}, order.id)
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SideList, {
+				title: "还没收齐",
+				note: "点一下就能记收款",
+				rows: data.unpaid_orders || [],
+				renderRow: (order) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "react-side-row",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.order_no }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+						order.customer_name || "散客",
+						" · ",
+						order.title || "未填写标题"
+					] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", { children: ["¥", fmtMoney(order.due_total)] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "记收款",
+						onClick: () => paymentDrawer(order, onReload),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CreditCard, { ...iconProps$1(14) })
+					})] })]
+				}, order.id)
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SideList, {
+				title: "最近收款",
+				note: "最新确认的资金记录",
+				rows: data.recent_payments || [],
+				renderRow: (payment) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "react-side-row",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: payment.customer_name || "散客" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+						payment.order_no || "未挂订单",
+						" · ",
+						fmtDay(payment.paid_at)
+					] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", {
+						className: payment.kind === "refund" ? "is-refund" : "is-paid",
+						children: [
+							payment.kind === "refund" ? "−" : "+",
+							"¥",
+							fmtMoney(payment.amount)
+						]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "删除这笔收款",
+						onClick: async () => {
+							if (!await confirmDelete({
+								title: "删掉这笔收款？",
+								message: `${payment.customer_name || "散客"} · ${PAY_KIND_LABEL[payment.kind] || payment.kind} ¥${fmtMoney(payment.amount)}`
+							})) return;
+							try {
+								await api.del(`/api/payments/${payment.id}`);
+								toast("已删除这笔收款", "ok");
+								onReload();
+							} catch (err) {
+								toastErr(err);
+							}
+						},
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$1(14) })
+					})] })]
+				}, payment.id)
+			})
+		]
+	});
+}
+function DashboardPage({ data, navigate, onReload }) {
+	if (!data) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "refactor-loading",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+		]
+	});
+	const counts = data.counts || {};
+	const empty = !counts.games && !counts.customers && !counts.open && !counts.done;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "react-dashboard",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DashboardLedger, {
+			data,
+			navigate
+		}), empty ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmptyOnboarding, { navigate }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "react-dashboard-grid",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(OpenOrders, {
+				orders: data.open_orders || [],
+				count: counts.open,
+				navigate,
+				onReload
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DashboardSide, {
+				data,
+				navigate,
+				onReload
+			})]
+		})]
+	});
+}
+//#endregion
+//#region client/main.jsx
 var NAV = [
 	{
 		seg: "",
 		label: "总览",
 		icon: LayoutDashboard,
-		group: "工作台",
-		view: dashboard_default
+		group: "工作台"
 	},
 	{
 		seg: "orders",
@@ -20056,6 +20418,7 @@ function LegacyPage({ route, setActions, onReload, counts, settings }) {
 		skeleton.innerHTML = "<span></span><span></span><span></span>";
 		host.appendChild(skeleton);
 		const navigate = (to) => go(to);
+		if (!item.view) return void 0;
 		const app = {
 			state: {
 				counts,
@@ -20239,6 +20602,7 @@ function Shell({ me, onLogout }) {
 	const [theme, setTheme] = (0, import_react.useState)(() => localStorage.getItem("xfc.theme") || "dark");
 	const [actions, setActions] = (0, import_react.useState)([]);
 	const [counts, setCounts] = (0, import_react.useState)({});
+	const [dashboard, setDashboard] = (0, import_react.useState)(null);
 	const [settings, setSettings] = (0, import_react.useState)(me.settings || {});
 	const [reloadKey, setReloadKey] = (0, import_react.useState)(0);
 	const updateActions = (0, import_react.useCallback)((...nodes) => {
@@ -20256,6 +20620,7 @@ function Shell({ me, onLogout }) {
 	const refresh = (0, import_react.useCallback)(async () => {
 		try {
 			const dashboard = await api.get("/api/dashboard");
+			setDashboard(dashboard);
 			setCounts(dashboard.counts || {});
 			setReloadKey((value) => value + 1);
 		} catch (err) {
@@ -20353,7 +20718,12 @@ function Shell({ me, onLogout }) {
 								onClick: refresh,
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps(17) })
 							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ActionsSlot, { nodes: actions })
+							actions.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ActionsSlot, { nodes: actions }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+								className: "refactor-button refactor-button--primary refactor-top-action",
+								type: "button",
+								onClick: () => go("/orders?new=1"),
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps(15) }), "开新单"]
+							})
 						]
 					})
 				]
@@ -20362,7 +20732,11 @@ function Shell({ me, onLogout }) {
 				className: "react-main",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 					className: "react-main__inner",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LegacyPage, {
+					children: current.seg === "" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DashboardPage, {
+						data: dashboard,
+						navigate: go,
+						onReload: refresh
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LegacyPage, {
 						route,
 						setActions: updateActions,
 						onReload: refresh,
