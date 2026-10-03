@@ -34,6 +34,7 @@ import quotesView from '../public/js/views/quotes.js'
 import settingsView from '../public/js/views/settings.js'
 import * as vaultgate from '../public/js/vaultgate.js'
 import DashboardPage from './dashboard.jsx'
+import OrdersPage from './orders.jsx'
 import { toast, toastErr } from '../public/js/ui.js'
 import './styles.css'
 
@@ -403,7 +404,7 @@ function Shell({ me, onLogout }) {
           ))}
         </nav>
         <div className="react-sidebar__footer">
-          <button className="react-quick-action" type="button" onClick={() => go('/orders?new=1')}><Plus {...iconProps(16)} />开新单</button>
+          <button className="react-quick-action" type="button" onClick={() => go('/orders/new')}><Plus {...iconProps(16)} />开新单</button>
           <button className="react-sidebar__button" type="button" onClick={toggleTheme}>{theme === 'light' ? <Moon {...iconProps(16)} /> : <Sun {...iconProps(16)} />} {theme === 'light' ? '深色模式' : '浅色模式'}</button>
           <button className="react-sidebar__button" type="button" onClick={onLogout}><LogOut {...iconProps(16)} />退出登录</button>
         </div>
@@ -414,12 +415,12 @@ function Shell({ me, onLogout }) {
         <div className="react-topbar__tools">
           <span className="react-online"><i />本机运行</span>
           <button className="react-icon-button" type="button" title="刷新数据" onClick={refresh}><RefreshCw {...iconProps(17)} /></button>
-          {actions.length ? <ActionsSlot nodes={actions} /> : <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={() => go('/orders?new=1')}><Plus {...iconProps(15)} />开新单</button>}
+          {actions.length ? <ActionsSlot nodes={actions} /> : <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={() => go('/orders/new')}><Plus {...iconProps(15)} />开新单</button>}
         </div>
       </header>
       <main className="react-main">
         <div className="react-main__inner">
-          {current.seg === '' ? <DashboardPage data={dashboard} navigate={go} onReload={refresh} /> : <LegacyPage key={`${route.seg}/${route.sub}?${route.query.toString()}-${reloadKey}`} route={route} setActions={updateActions} onReload={refresh} counts={counts} settings={settings} />}
+          {current.seg === '' ? <DashboardPage data={dashboard} navigate={go} onReload={refresh} /> : current.seg === 'orders' && !route.sub && route.query.get('new') !== '1' ? <OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /> : <LegacyPage key={`${route.seg}/${route.sub}?${route.query.toString()}-${reloadKey}`} route={route} setActions={updateActions} onReload={refresh} counts={counts} settings={settings} />}
         </div>
       </main>
       <nav className="react-mobile-tabs" aria-label="移动端导航">

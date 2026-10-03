@@ -104,7 +104,7 @@ function OpenOrders({ orders, count, navigate, onReload }) {
   return (
     <section className="react-dashboard-panel">
       <header className="react-dashboard-panel__head"><div><h2>进行中调度</h2><span>按交付时间排在前面的订单</span></div><span className="react-dashboard-panel__count">{count || 0} 单未结束</span></header>
-      {orders.length ? <div className="react-orders-list">{orders.map((order) => <OrderRow key={order.id} order={order} navigate={navigate} onReload={onReload} />)}</div> : <div className="react-panel-empty"><ListTodo {...iconProps(19)} /><b>现在手上没有在做的单</b><span>开一单试试，价格会在下单时冻结。</span><button className="refactor-button" type="button" onClick={() => navigate('/orders?new=1')}><Plus {...iconProps(14)} />开一张新单</button></div>}
+      {orders.length ? <div className="react-orders-list">{orders.map((order) => <OrderRow key={order.id} order={order} navigate={navigate} onReload={onReload} />)}</div> : <div className="react-panel-empty"><ListTodo {...iconProps(19)} /><b>现在手上没有在做的单</b><span>开一单试试，价格会在下单时冻结。</span><button className="refactor-button" type="button" onClick={() => navigate('/orders/new')}><Plus {...iconProps(14)} />开一张新单</button></div>}
       {orders.length ? <footer className="react-dashboard-panel__foot"><button className="refactor-button" type="button" onClick={() => navigate('/orders?status=open')}>看全部在做的单 <ArrowUpRight {...iconProps(14)} /></button></footer> : null}
     </section>
   )

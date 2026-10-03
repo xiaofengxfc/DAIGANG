@@ -62,7 +62,7 @@ export default {
     ctx.setActions(
       h(
         'button.btn.btn--sm.btn--primary',
-        { type: 'button', onclick: () => ctx.navigate('/orders?new=1') },
+        { type: 'button', onclick: () => ctx.navigate('/orders/new') },
         icon('plus', 14),
         '开新单'
       )
@@ -137,7 +137,7 @@ export default {
                 title: '现在手上没有在做的单',
                 body: '开一单试试：选客户、选服务，价格会自动算出来，下单那一刻就把价格快照冻住了，以后改价不影响老单。',
                 actionLabel: '开一张新单',
-                onAction: () => ctx.navigate('/orders?new=1'),
+                onAction: () => ctx.navigate('/orders/new'),
               })
             )
           )

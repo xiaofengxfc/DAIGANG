@@ -1350,7 +1350,7 @@ const FILTERS = [
 export default {
   title: '订单',
   async render(ctx) {
-    if (ctx.sub === 'new') {
+    if (ctx.sub === 'new' || ctx.query.get('new') === '1') {
       ctx.setActions()
       const node = await renderList(ctx, '')
       setTimeout(() => openComposer(ctx), 80)

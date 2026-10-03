@@ -11715,7 +11715,7 @@ function createLucideIcon(iconDataOrName, iconNode = [], aliases = []) {
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$24 = {
+var __iconData$25 = {
 	name: "activity",
 	size: 24,
 	node: [["path", {
@@ -11723,8 +11723,8 @@ var __iconData$24 = {
 		key: "169zse"
 	}]]
 };
-__iconData$24.node;
-var Activity = createLucideIcon(__iconData$24);
+__iconData$25.node;
+var Activity = createLucideIcon(__iconData$25);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/arrow-up-right.mjs
 /**
@@ -11733,7 +11733,7 @@ var Activity = createLucideIcon(__iconData$24);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$23 = {
+var __iconData$24 = {
 	name: "arrow-up-right",
 	size: 24,
 	node: [["path", {
@@ -11744,8 +11744,8 @@ var __iconData$23 = {
 		key: "1vkiza"
 	}]]
 };
-__iconData$23.node;
-var ArrowUpRight = createLucideIcon(__iconData$23);
+__iconData$24.node;
+var ArrowUpRight = createLucideIcon(__iconData$24);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/check.mjs
 /**
@@ -11754,7 +11754,7 @@ var ArrowUpRight = createLucideIcon(__iconData$23);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$22 = {
+var __iconData$23 = {
 	name: "check",
 	size: 24,
 	node: [["path", {
@@ -11762,8 +11762,8 @@ var __iconData$22 = {
 		key: "1gmf2c"
 	}]]
 };
-__iconData$22.node;
-var Check = createLucideIcon(__iconData$22);
+__iconData$23.node;
+var Check = createLucideIcon(__iconData$23);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/circle-alert.mjs
 /**
@@ -11772,7 +11772,7 @@ var Check = createLucideIcon(__iconData$22);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$21 = {
+var __iconData$22 = {
 	name: "circle-alert",
 	size: 24,
 	node: [
@@ -11799,8 +11799,8 @@ var __iconData$21 = {
 	],
 	aliases: ["alert-circle"]
 };
-__iconData$21.node;
-var CircleAlert = createLucideIcon(__iconData$21);
+__iconData$22.node;
+var CircleAlert = createLucideIcon(__iconData$22);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/clipboard-list.mjs
 /**
@@ -11809,7 +11809,7 @@ var CircleAlert = createLucideIcon(__iconData$21);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$20 = {
+var __iconData$21 = {
 	name: "clipboard-list",
 	size: 24,
 	node: [
@@ -11844,8 +11844,8 @@ var __iconData$20 = {
 		}]
 	]
 };
-__iconData$20.node;
-var ClipboardList = createLucideIcon(__iconData$20);
+__iconData$21.node;
+var ClipboardList = createLucideIcon(__iconData$21);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/clock-3.mjs
 /**
@@ -11854,7 +11854,7 @@ var ClipboardList = createLucideIcon(__iconData$20);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$19 = {
+var __iconData$20 = {
 	name: "clock-3",
 	size: 24,
 	node: [["circle", {
@@ -11867,8 +11867,8 @@ var __iconData$19 = {
 		key: "135r8i"
 	}]]
 };
-__iconData$19.node;
-var Clock3 = createLucideIcon(__iconData$19);
+__iconData$20.node;
+var Clock3 = createLucideIcon(__iconData$20);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/command.mjs
 /**
@@ -11877,7 +11877,7 @@ var Clock3 = createLucideIcon(__iconData$19);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$18 = {
+var __iconData$19 = {
 	name: "command",
 	size: 24,
 	node: [["path", {
@@ -11885,8 +11885,8 @@ var __iconData$18 = {
 		key: "11bfej"
 	}]]
 };
-__iconData$18.node;
-var Command = createLucideIcon(__iconData$18);
+__iconData$19.node;
+var Command = createLucideIcon(__iconData$19);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/credit-card.mjs
 /**
@@ -11895,7 +11895,7 @@ var Command = createLucideIcon(__iconData$18);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$17 = {
+var __iconData$18 = {
 	name: "credit-card",
 	size: 24,
 	node: [
@@ -11920,8 +11920,8 @@ var __iconData$17 = {
 		}]
 	]
 };
-__iconData$17.node;
-var CreditCard = createLucideIcon(__iconData$17);
+__iconData$18.node;
+var CreditCard = createLucideIcon(__iconData$18);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/ellipsis.mjs
 /**
@@ -11930,7 +11930,7 @@ var CreditCard = createLucideIcon(__iconData$17);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$16 = {
+var __iconData$17 = {
 	name: "ellipsis",
 	size: 24,
 	node: [
@@ -11955,8 +11955,8 @@ var __iconData$16 = {
 	],
 	aliases: ["more-horizontal"]
 };
-__iconData$16.node;
-var Ellipsis = createLucideIcon(__iconData$16);
+__iconData$17.node;
+var Ellipsis = createLucideIcon(__iconData$17);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/file-text.mjs
 /**
@@ -11965,7 +11965,7 @@ var Ellipsis = createLucideIcon(__iconData$16);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$15 = {
+var __iconData$16 = {
 	name: "file-text",
 	size: 24,
 	node: [
@@ -11991,8 +11991,8 @@ var __iconData$15 = {
 		}]
 	]
 };
-__iconData$15.node;
-var FileText = createLucideIcon(__iconData$15);
+__iconData$16.node;
+var FileText = createLucideIcon(__iconData$16);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/gamepad-2.mjs
 /**
@@ -12001,7 +12001,7 @@ var FileText = createLucideIcon(__iconData$15);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$14 = {
+var __iconData$15 = {
 	name: "gamepad-2",
 	size: 24,
 	node: [
@@ -12039,8 +12039,8 @@ var __iconData$14 = {
 		}]
 	]
 };
-__iconData$14.node;
-var Gamepad2 = createLucideIcon(__iconData$14);
+__iconData$15.node;
+var Gamepad2 = createLucideIcon(__iconData$15);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/layout-dashboard.mjs
 /**
@@ -12049,7 +12049,7 @@ var Gamepad2 = createLucideIcon(__iconData$14);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$13 = {
+var __iconData$14 = {
 	name: "layout-dashboard",
 	size: 24,
 	node: [
@@ -12087,8 +12087,36 @@ var __iconData$13 = {
 		}]
 	]
 };
+__iconData$14.node;
+var LayoutDashboard = createLucideIcon(__iconData$14);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/list-filter.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$13 = {
+	name: "list-filter",
+	size: 24,
+	node: [
+		["path", {
+			d: "M2 5h20",
+			key: "1fs1ex"
+		}],
+		["path", {
+			d: "M6 12h12",
+			key: "8npq4p"
+		}],
+		["path", {
+			d: "M9 19h6",
+			key: "456am0"
+		}]
+	]
+};
 __iconData$13.node;
-var LayoutDashboard = createLucideIcon(__iconData$13);
+var ListFilter = createLucideIcon(__iconData$13);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/list-todo.mjs
 /**
@@ -15740,7 +15768,7 @@ async function renderDetail(ctx, id) {
 		}
 	}, icon("trash", 13)))))) : h("div.panel__body", h("p.dim.sm", "还没有收款记录。"))), o.note || o.internal_note ? h("section.panel", h("div.panel__body", sectionHead("备注")), h("div.panel__body", { style: { paddingTop: "0" } }, o.note ? h("div", h("div.tbl__meta", "给客户看的"), h("p", { style: { whiteSpace: "pre-wrap" } }, o.note)) : null, o.internal_note ? h("div", { style: { marginTop: "10px" } }, h("div.tbl__meta", "只有自己看得到"), h("p", { style: { whiteSpace: "pre-wrap" } }, o.internal_note)) : null)) : null)));
 }
-var FILTERS = [
+var FILTERS$1 = [
 	{
 		key: "open",
 		label: "在做的"
@@ -15781,7 +15809,7 @@ var FILTERS = [
 var orders_default = {
 	title: "订单",
 	async render(ctx) {
-		if (ctx.sub === "new") {
+		if (ctx.sub === "new" || ctx.query.get("new") === "1") {
 			ctx.setActions();
 			const node = await renderList(ctx, "");
 			setTimeout(() => openComposer(ctx), 80);
@@ -15826,7 +15854,7 @@ async function renderList(ctx, status) {
 			if (so) p.set("sort", so);
 			return `/orders?${p.toString()}`;
 		};
-		const seg = h("div.seg", FILTERS.map((f) => h("button.seg__btn", {
+		const seg = h("div.seg", FILTERS$1.map((f) => h("button.seg__btn", {
 			type: "button",
 			"aria-pressed": String(f.key === status),
 			onclick: () => ctx.navigate(href({ status: f.key }))
@@ -19765,7 +19793,7 @@ var require_react_jsx_runtime_production = /* @__PURE__ */ __commonJSMin(((expor
 var import_jsx_runtime = (/* @__PURE__ */ __commonJSMin(((exports, module) => {
 	module.exports = require_react_jsx_runtime_production();
 })))();
-var STATUS_LABEL = {
+var STATUS_LABEL$1 = {
 	pending_confirm: "待确认",
 	pending_pay: "待付款",
 	in_progress: "进行中",
@@ -19774,7 +19802,7 @@ var STATUS_LABEL = {
 	after_sale: "售后",
 	cancelled: "已取消"
 };
-var iconProps$1 = (size = 16) => ({
+var iconProps$2 = (size = 16) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -19870,7 +19898,7 @@ function EmptyOnboarding({ navigate }) {
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "react-dashboard-empty__icon",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$1(21) })
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$2(21) })
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "帐桌支好了，先录第一批价格" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "这个后台不预置任何数据。按下面顺序录入，十分钟就能接手第一单。" }),
@@ -19887,7 +19915,7 @@ function EmptyOnboarding({ navigate }) {
 					className: "refactor-button refactor-button--primary",
 					type: "button",
 					onClick: () => navigate("/games"),
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(15) }), "先加一个游戏"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$2(15) }), "先加一个游戏"]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 					className: "refactor-button",
 					type: "button",
@@ -19898,13 +19926,13 @@ function EmptyOnboarding({ navigate }) {
 		]
 	});
 }
-function StatusBadge({ status, label }) {
+function StatusBadge$1({ status, label }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
 		className: `react-status react-status--${STATUS_TONE[status] || "muted"}`,
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", {}), label || STATUS_LABEL[status] || status || "未指定"]
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", {}), label || STATUS_LABEL$1[status] || status || "未指定"]
 	});
 }
-function OrderRow({ order, navigate, onReload }) {
+function OrderRow$1({ order, navigate, onReload }) {
 	const due = Number(order.due_total) || 0;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", {
 		className: "react-order-row",
@@ -19919,7 +19947,7 @@ function OrderRow({ order, navigate, onReload }) {
 				className: "react-order-row__main",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "react-order-row__title",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.order_no }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StatusBadge, {
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.order_no }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StatusBadge$1, {
 						status: order.status,
 						label: order.status_label
 					})]
@@ -19952,21 +19980,21 @@ function OrderRow({ order, navigate, onReload }) {
 						type: "button",
 						title: "记进度",
 						onClick: () => progressDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$1(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$2(14) })
 					}),
 					due > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "记收款",
 						onClick: () => paymentDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$1(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$2(14) })
 					}) : null,
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "看详情",
 						onClick: () => navigate(`/orders/${order.id}`),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$1(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$2(14) })
 					})
 				]
 			})
@@ -19986,7 +20014,7 @@ function OpenOrders({ orders, count, navigate, onReload }) {
 			}),
 			orders.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "react-orders-list",
-				children: orders.map((order) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrderRow, {
+				children: orders.map((order) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrderRow$1, {
 					order,
 					navigate,
 					onReload
@@ -19994,14 +20022,14 @@ function OpenOrders({ orders, count, navigate, onReload }) {
 			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "react-panel-empty",
 				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$1(19) }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$2(19) }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "现在手上没有在做的单" }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "开一单试试，价格会在下单时冻结。" }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 						className: "refactor-button",
 						type: "button",
-						onClick: () => navigate("/orders?new=1"),
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(14) }), "开一张新单"]
+						onClick: () => navigate("/orders/new"),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$2(14) }), "开一张新单"]
 					})
 				]
 			}),
@@ -20011,7 +20039,7 @@ function OpenOrders({ orders, count, navigate, onReload }) {
 					className: "refactor-button",
 					type: "button",
 					onClick: () => navigate("/orders?status=open"),
-					children: ["看全部在做的单 ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$1(14) })]
+					children: ["看全部在做的单 ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$2(14) })]
 				})
 			}) : null
 		]
@@ -20064,7 +20092,7 @@ function DashboardSide({ data, navigate, onReload }) {
 						type: "button",
 						title: "记收款",
 						onClick: () => paymentDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CreditCard, { ...iconProps$1(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CreditCard, { ...iconProps$2(14) })
 					})] })]
 				}, order.id)
 			}),
@@ -20102,7 +20130,7 @@ function DashboardSide({ data, navigate, onReload }) {
 								toastErr(err);
 							}
 						},
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$1(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$2(14) })
 					})] })]
 				}, payment.id)
 			})
@@ -20138,6 +20166,448 @@ function DashboardPage({ data, navigate, onReload }) {
 				onReload
 			})]
 		})]
+	});
+}
+//#endregion
+//#region client/orders.jsx
+var FILTERS = [
+	{
+		key: "open",
+		label: "在做的"
+	},
+	{
+		key: "daily_done",
+		label: "今日已完成"
+	},
+	{
+		key: "pending_confirm",
+		label: "待确认"
+	},
+	{
+		key: "pending_pay",
+		label: "待付款"
+	},
+	{
+		key: "in_progress",
+		label: "进行中"
+	},
+	{
+		key: "pending_accept",
+		label: "待验收"
+	},
+	{
+		key: "due",
+		label: "没收齐"
+	},
+	{
+		key: "done",
+		label: "已完成"
+	},
+	{
+		key: "",
+		label: "全部"
+	}
+];
+var SORTS = [
+	{
+		value: "",
+		label: "最新在前"
+	},
+	{
+		value: "oldest",
+		label: "最早在前"
+	},
+	{
+		value: "customer",
+		label: "按客户排"
+	},
+	{
+		value: "amount",
+		label: "按金额排"
+	}
+];
+var STATUS_LABEL = {
+	pending_confirm: "待确认",
+	pending_pay: "待付款",
+	in_progress: "进行中",
+	pending_accept: "待验收",
+	done: "已完成",
+	after_sale: "售后",
+	cancelled: "已取消"
+};
+var iconProps$1 = (size = 15) => ({
+	size,
+	strokeWidth: 1.8,
+	absoluteStrokeWidth: true,
+	"aria-hidden": true
+});
+function StatusBadge({ order }) {
+	const tone = STATUS_TONE[order.status] || "muted";
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+		className: `react-status react-status--${tone}`,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", {}), order.status_label || STATUS_LABEL[order.status] || order.status || "未指定"]
+	});
+}
+function DueLabel({ order }) {
+	if (!order.due_at) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+		className: "orders-cell__muted",
+		children: "未设交付"
+	});
+	const info = ["done", "cancelled"].includes(order.status) ? {
+		kind: "ok",
+		text: ""
+	} : remainInfo(order.ordered_at, order.due_at);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+		className: "orders-due",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: fmtDay(order.due_at) }), info.kind === "invalid" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("em", {
+			className: "orders-due__bad",
+			children: "填错了"
+		}) : info.text ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("em", {
+			className: `orders-due__${info.kind}`,
+			children: info.text
+		}) : null]
+	});
+}
+function CustomerCell({ order, navigate }) {
+	if (!order.customer_id) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+		className: "orders-cell__muted",
+		children: "散客"
+	});
+	const count = Number(order.customer_order_count) || 0;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+		className: "orders-customer",
+		type: "button",
+		title: `看 ${order.customer_name || "这个客户"} 的档案`,
+		onClick: (event) => {
+			event.stopPropagation();
+			navigate(`/customers/${order.customer_id}`);
+		},
+		children: [order.customer_avatar ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+			src: order.customer_avatar,
+			alt: "",
+			loading: "lazy"
+		}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+			className: "orders-customer__avatar",
+			children: (order.customer_name || "?").slice(0, 1)
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.customer_name || "没填名字" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: order.customer_phone || (count > 1 ? `第 ${count} 单` : "客户档案") })] })]
+	});
+}
+function OrderRow({ order, navigate, onReload }) {
+	const due = Number(order.due_total) || 0;
+	const title = order.title || "（没写标题）";
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", {
+		className: "orders-row",
+		role: "button",
+		tabIndex: 0,
+		onClick: () => navigate(`/orders/${order.id}`),
+		onKeyDown: (event) => {
+			if (event.key === "Enter" || event.key === " ") {
+				event.preventDefault();
+				navigate(`/orders/${order.id}`);
+			}
+		},
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "orders-row__order",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "orders-row__number",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.order_no }),
+						order.stale ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							className: "orders-tag orders-tag--amber",
+							children: [order.idle_days, " 天没动"]
+						}) : null,
+						order.daily_done_today ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "orders-tag orders-tag--jade",
+							children: "今日已完成"
+						}) : null
+					]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: title })]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "orders-row__customer",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CustomerCell, {
+					order,
+					navigate
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "orders-row__game",
+				children: order.game_name || "未指定游戏"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "orders-row__progress",
+				children: order.progress_count ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("b", { children: [order.progress_count, " 条"] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: ["到 ", fmtDay(order.last_progress_on)] })] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "orders-cell__muted",
+					children: "还没记"
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "orders-row__status",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StatusBadge, { order })
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "orders-row__due",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DueLabel, { order })
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "orders-row__money",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("b", { children: ["¥", fmtMoney(order.total)] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: due > .001 ? "is-due" : "",
+					children: due > .001 ? `还差 ¥${fmtMoney(due)}` : "已结清"
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "orders-row__actions",
+				onClick: (event) => event.stopPropagation(),
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "记进度",
+						onClick: () => progressDrawer(order, onReload),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$1(14) })
+					}),
+					due > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "记收款",
+						onClick: () => paymentDrawer(order, onReload),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$1(14) })
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "看详情",
+						onClick: () => navigate(`/orders/${order.id}`),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$1(14) })
+					})
+				]
+			})
+		]
+	});
+}
+function EmptyOrders({ search, status, onNew }) {
+	const title = search ? "没搜到符合条件的单" : status === "open" ? "手上没有在做的单" : "这个状态下没有单";
+	const body = search ? "换个单号、标题或者客户名试试。" : "开一张新单：选客户、挑服务，价格会自动算出来。";
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "orders-empty",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListFilter, { ...iconProps$1(21) }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: title }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: body }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+				className: "refactor-button refactor-button--primary",
+				type: "button",
+				onClick: onNew,
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(15) }), "开新单"]
+			})
+		]
+	});
+}
+function toHref(filters) {
+	const params = new URLSearchParams();
+	params.set("status", filters.status || "");
+	if (filters.q) params.set("q", filters.q);
+	if (filters.customerId) params.set("customer_id", filters.customerId);
+	if (filters.sort) params.set("sort", filters.sort);
+	if (filters.due) params.set("due", "1");
+	return `/orders?${params.toString()}`;
+}
+function OrdersPage({ route, navigate, onNew, onReload, reloadKey }) {
+	const queryFilters = (0, import_react.useMemo)(() => {
+		const due = route.query.get("due") === "1";
+		return {
+			status: due ? "due" : route.query.has("status") ? route.query.get("status") || "" : "open",
+			q: route.query.get("q") || "",
+			customerId: route.query.get("customer_id") || "",
+			sort: route.query.get("sort") || "",
+			due
+		};
+	}, [route.query.toString()]);
+	const [search, setSearch] = (0, import_react.useState)(queryFilters.q);
+	const [items, setItems] = (0, import_react.useState)(null);
+	const [customer, setCustomer] = (0, import_react.useState)(null);
+	const [error, setError] = (0, import_react.useState)("");
+	const searchTimer = (0, import_react.useRef)(null);
+	(0, import_react.useEffect)(() => setSearch(queryFilters.q), [queryFilters.q]);
+	(0, import_react.useEffect)(() => () => window.clearTimeout(searchTimer.current), []);
+	(0, import_react.useEffect)(() => {
+		let active = true;
+		setItems(null);
+		setError("");
+		const params = { limit: 300 };
+		if (queryFilters.due) params.due = "1";
+		else if (queryFilters.status) params.status = queryFilters.status;
+		if (queryFilters.q) params.q = queryFilters.q;
+		if (queryFilters.customerId) params.customer_id = queryFilters.customerId;
+		if (queryFilters.sort) params.sort = queryFilters.sort;
+		Promise.all([api.get("/api/orders", params), queryFilters.customerId ? api.get(`/api/customers/${queryFilters.customerId}`).catch(() => null) : Promise.resolve(null)]).then(([data, customerData]) => {
+			if (!active) return;
+			setItems(data.items || []);
+			setCustomer(customerData);
+		}).catch((err) => {
+			if (!active) return;
+			setError(err.message || "订单列表加载失败");
+			setItems([]);
+		});
+		return () => {
+			active = false;
+		};
+	}, [
+		queryFilters.status,
+		queryFilters.q,
+		queryFilters.customerId,
+		queryFilters.sort,
+		queryFilters.due,
+		reloadKey
+	]);
+	const update = (overrides) => navigate(toHref({
+		...queryFilters,
+		...overrides
+	}));
+	const rows = items || [];
+	const total = rows.reduce((sum, row) => sum + (Number(row.total) || 0), 0);
+	const due = rows.reduce((sum, row) => sum + (Number(row.due_total) || 0), 0);
+	const customers = new Set(rows.filter((row) => row.customer_id).map((row) => row.customer_id)).size;
+	const walkIn = rows.filter((row) => !row.customer_id).length;
+	const title = queryFilters.customerId ? `${customer?.name || rows[0]?.customer_name || "这个客户"}的单` : queryFilters.due ? "没收齐的单" : queryFilters.status === "open" ? "在做的单" : queryFilters.status === "daily_done" ? "今日已完成" : "订单";
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "orders-page",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
+				className: "orders-page__head",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "refactor-eyebrow",
+						children: "业务清单"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: title }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: rows.length ? `${rows.length} 张单 · ${customers} 位客户${walkIn ? ` + ${walkIn} 张散客` : ""} · 合计 ¥${fmtMoney(total)} · 未收 ¥${fmtMoney(due)}` : "按状态、客户和交付情况快速定位订单" })
+				] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "refactor-button refactor-button--primary",
+					type: "button",
+					onClick: onNew,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(15) }), "开新单"]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+				className: "orders-toolbar",
+				"aria-label": "订单筛选",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "orders-filters",
+						role: "tablist",
+						"aria-label": "订单状态",
+						children: FILTERS.map((filter) => {
+							const active = filter.key === "due" ? queryFilters.due : !queryFilters.due && queryFilters.status === filter.key;
+							return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								className: `orders-filter${active ? " is-active" : ""}`,
+								type: "button",
+								role: "tab",
+								"aria-selected": active,
+								onClick: () => update(filter.key === "due" ? {
+									status: "open",
+									due: true
+								} : {
+									status: filter.key,
+									due: false
+								}),
+								children: filter.label
+							}, filter.key || "all");
+						})
+					}),
+					queryFilters.customerId ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "orders-chip",
+						type: "button",
+						title: "取消客户筛选",
+						onClick: () => update({ customerId: "" }),
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Users, { ...iconProps$1(13) }),
+							"只看「",
+							customer?.name || "这个客户",
+							"」",
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								"aria-hidden": "true",
+								children: "×"
+							})
+						]
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "orders-toolbar__spacer" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("select", {
+						className: "orders-select",
+						"aria-label": "排序方式",
+						value: queryFilters.sort,
+						onChange: (event) => update({ sort: event.target.value }),
+						children: SORTS.map((sort) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+							value: sort.value,
+							children: sort.label
+						}, sort.value))
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "orders-search",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$1(15) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+								type: "search",
+								value: search,
+								placeholder: "搜单号 / 标题 / 客户名",
+								onChange: (event) => {
+									const value = event.target.value;
+									setSearch(value);
+									window.clearTimeout(searchTimer.current);
+									searchTimer.current = window.setTimeout(() => update({ q: value.trim() }), 260);
+								}
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("kbd", { children: "/" })
+						]
+					})
+				]
+			}),
+			queryFilters.status === "daily_done" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "orders-note",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$1(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "这些是今天标了「今日已完成」的单，过了凌晨 4 点会自动回到「在做的」。点进订单可以撤销。" })]
+			}) : null,
+			error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "refactor-alert",
+				role: "alert",
+				children: error
+			}) : null,
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+				className: "orders-panel",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "orders-table-head",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "订单" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "客户" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "游戏" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "进度" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "状态" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "交付" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "金额" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "操作" })
+					]
+				}), items === null ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "refactor-loading",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+					]
+				}) : rows.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "orders-list",
+					children: rows.map((order) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrderRow, {
+						order,
+						navigate,
+						onReload
+					}, order.id))
+				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmptyOrders, {
+					search: Boolean(queryFilters.q),
+					status: queryFilters.status,
+					onNew
+				})]
+			})
+		]
 	});
 }
 //#endregion
@@ -20670,7 +21140,7 @@ function Shell({ me, onLogout }) {
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 								className: "react-quick-action",
 								type: "button",
-								onClick: () => go("/orders?new=1"),
+								onClick: () => go("/orders/new"),
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps(16) }), "开新单"]
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
@@ -20721,7 +21191,7 @@ function Shell({ me, onLogout }) {
 							actions.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ActionsSlot, { nodes: actions }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 								className: "refactor-button refactor-button--primary refactor-top-action",
 								type: "button",
-								onClick: () => go("/orders?new=1"),
+								onClick: () => go("/orders/new"),
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps(15) }), "开新单"]
 							})
 						]
@@ -20736,6 +21206,12 @@ function Shell({ me, onLogout }) {
 						data: dashboard,
 						navigate: go,
 						onReload: refresh
+					}) : current.seg === "orders" && !route.sub && route.query.get("new") !== "1" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrdersPage, {
+						route,
+						navigate: go,
+						onNew: () => go("/orders/new"),
+						onReload: refresh,
+						reloadKey
 					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LegacyPage, {
 						route,
 						setActions: updateActions,
