@@ -153,6 +153,16 @@ const tableBorders =
 
 const TABLE_WIDTHS = [3000, 1500, 1900, 1500, TEXT_W - 3000 - 1500 - 1900 - 1500]
 
+function gainAmountText(item) {
+  if (item.gainAmount !== null && item.gainAmount !== undefined && item.gainAmount !== '') {
+    const value = Number(item.gainAmount)
+    if (Number.isFinite(value)) return Number.isInteger(value) ? String(value) : String(Math.round(value * 100) / 100)
+  }
+  // 兼容旧导出模型：只从「可得 货币 数量」里取最后的数量。
+  const match = String(item.gain || '').match(/([0-9]+(?:\.[0-9]+)?)\s*$/)
+  return match ? match[1] : ''
+}
+
 function tableCell(content, width, { shade = '', bold = false, color = INK, align = 'left' } = {}) {
   const text = Array.isArray(content) ? content : [content]
   const paragraphs = text
@@ -184,7 +194,7 @@ function priceTable(group) {
         tableCell('服务项目', TABLE_WIDTHS[0], { shade: TINT, bold: true, color: CINNABAR }),
         tableCell('单位 / 起订', TABLE_WIDTHS[1], { shade: TINT, bold: true, color: CINNABAR, align: 'center' }),
         tableCell('价格', TABLE_WIDTHS[2], { shade: TINT, bold: true, color: CINNABAR, align: 'right' }),
-        tableCell('可得货币', TABLE_WIDTHS[3], { shade: TINT, bold: true, color: CINNABAR, align: 'right' }),
+        tableCell(group.currency || '可得货币', TABLE_WIDTHS[3], { shade: TINT, bold: true, color: CINNABAR, align: 'right' }),
         tableCell('说明', TABLE_WIDTHS[4], { shade: TINT, bold: true, color: CINNABAR }),
       ],
       { header: true }
@@ -201,7 +211,7 @@ function priceTable(group) {
         tableCell(it.name || '', TABLE_WIDTHS[0]),
         tableCell(unitStart, TABLE_WIDTHS[1], { align: 'center' }),
         tableCell(tierLines, TABLE_WIDTHS[2], { color: CINNABAR, align: 'right' }),
-        tableCell(it.gain || '', TABLE_WIDTHS[3], { color: GRAY, align: 'right' }),
+        tableCell(gainAmountText(it), TABLE_WIDTHS[3], { color: GRAY, align: 'right' }),
         tableCell(notes, TABLE_WIDTHS[4], { color: GRAY }),
       ])
     )

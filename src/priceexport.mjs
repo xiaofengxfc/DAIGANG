@@ -223,6 +223,7 @@ export function buildExportModel(opts = {}) {
       isOrphan: !cat,
       gameKey,
       gameName: gameKey ? gameById.get(Number(gameKey))?.name || '' : '',
+      currency: gameKey ? String(gameById.get(Number(gameKey))?.currency || '').trim() : '',
       gameNotice,
       // 大类自己的提示：排在它名字下面、服务项上面。
       // 「未分类」是临时的桶，没有真正的大类记录，所以没有提示。

@@ -21954,7 +21954,7 @@ function optionSummary(options) {
 	}).filter(Boolean);
 	return `${options.length} 个${items.length ? ` · ${items.join("、")}${options.length > items.length ? "…" : ""}` : ""}`;
 }
-function ServiceRow({ service, onEdit, onPeek, onAdvanced, onToggle, onDelete }) {
+function ServiceRow({ service, currency = "", onEdit, onPeek, onAdvanced, onToggle, onDelete }) {
 	const tiers = service.tiers || [];
 	const options = service.options || [];
 	const unit = unitOf(service);
@@ -22007,7 +22007,11 @@ function ServiceRow({ service, onEdit, onPeek, onAdvanced, onToggle, onDelete })
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "price-service__money",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("b", { children: ["¥", fmtMoney(service.base_price)] }), service.currency_amount ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: ["可得 ", fmtQty(service.currency_amount)] }) : null]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("b", { children: ["¥", fmtMoney(service.base_price)] }), service.currency_amount ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+					"可得 ",
+					currency ? `${currency} ` : "",
+					fmtQty(service.currency_amount)
+				] }) : null]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "price-service__tiers",
@@ -22057,7 +22061,7 @@ function ServiceRow({ service, onEdit, onPeek, onAdvanced, onToggle, onDelete })
 		]
 	});
 }
-function CategoryBlock({ category, open, onOpenChange, onEdit, onService, onSum, onToggle, onDelete, onEditService, onPeekService, onAdvancedService, onToggleService, onDeleteService }) {
+function CategoryBlock({ category, currency = "", open, onOpenChange, onEdit, onService, onSum, onToggle, onDelete, onEditService, onPeekService, onAdvancedService, onToggleService, onDeleteService }) {
 	const services = category.services || [];
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 		className: `price-category${category.status === "archived" ? " is-archived" : ""}`,
@@ -22135,6 +22139,7 @@ function CategoryBlock({ category, open, onOpenChange, onEdit, onService, onSum,
 				]
 			}), services.length ? services.map((service) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ServiceRow, {
 				service,
+				currency,
 				onEdit: onEditService,
 				onPeek: onPeekService,
 				onAdvanced: onAdvancedService,
@@ -22244,6 +22249,7 @@ function GroupWorkspace({ group, query, onNewCategory, onService, onEditCategory
 					}),
 					visible.map((category) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CategoryBlock, {
 						category,
+						currency: group.game?.currency || "",
 						open: !!openMap.get(String(category.id)),
 						onOpenChange: (value) => setCategoryOpen(category.id, value),
 						onEdit: onEditCategory,
@@ -22264,6 +22270,7 @@ function GroupWorkspace({ group, query, onNewCategory, onService, onEditCategory
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "未分类服务" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "请编辑服务并选择一个分类" })]
 						}), group.loose.map((service) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ServiceRow, {
 							service,
+							currency: group.game?.currency || "",
 							onEdit: onEditService,
 							onPeek: onPeekService,
 							onAdvanced: onAdvancedService,
