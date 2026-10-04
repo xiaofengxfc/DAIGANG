@@ -243,6 +243,37 @@ export function register() {
     const rows = db.prepare(`SELECT * FROM media_materials WHERE status = 'active' ${q ? 'AND filename LIKE ?' : ''} ORDER BY created_at DESC, id DESC`).all(...(q ? [`%${q}%`] : []))
     return { items: rows.map(materialRow) }
   })
+  patch('/api/media/materials/:id', (ctx) => {
+    const id = int(ctx.params.id)
+    const row = db.prepare("SELECT * FROM media_materials WHERE id = ? AND status = 'active'").get(id)
+    if (!row) notFound('素材不存在')
+    const requested = clampStr(ctx.body.filename ?? ctx.body.name, 180).replace(/[\\/:*?"<>|\0]/g, ' ').replace(/\s+/g, ' ').trim()
+    if (!requested) bad('请填写素材名称', 'missing_filename')
+
+    const oldAbsolute = path.resolve(UPLOAD_DIR, row.file_path)
+    if (!fs.existsSync(oldAbsolute)) bad('素材文件不存在', 'missing_file')
+    const extension = path.extname(row.file_path).toLowerCase()
+    const typedExtension = path.extname(requested)
+    const baseName = path.basename(requested, typedExtension || undefined).trim()
+    if (!baseName) bad('请填写素材名称', 'missing_filename')
+    const filename = `${baseName}${extension}`
+    const nextRelative = path.join(path.dirname(row.file_path), filename)
+    const nextAbsolute = path.resolve(UPLOAD_DIR, nextRelative)
+    if (nextAbsolute !== oldAbsolute && fs.existsSync(nextAbsolute)) bad('同名素材已经存在', 'filename_exists')
+
+    if (nextAbsolute !== oldAbsolute) {
+      fs.renameSync(oldAbsolute, nextAbsolute)
+      try {
+        db.prepare('UPDATE media_materials SET filename = ?, file_path = ?, updated_at = ? WHERE id = ?').run(filename, nextRelative, stamp(), id)
+      } catch (error) {
+        try { fs.renameSync(nextAbsolute, oldAbsolute) } catch {}
+        throw error
+      }
+    } else {
+      db.prepare('UPDATE media_materials SET filename = ?, updated_at = ? WHERE id = ?').run(filename, stamp(), id)
+    }
+    return materialRow(db.prepare('SELECT * FROM media_materials WHERE id = ?').get(id))
+  })
   del('/api/media/materials/:id', (ctx) => {
     const id = int(ctx.params.id)
     const row = db.prepare('SELECT * FROM media_materials WHERE id = ?').get(id)

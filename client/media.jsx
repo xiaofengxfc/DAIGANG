@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, CalendarClock, CheckCircle2, Clock3, FileVideo, FolderOpen, Plus, Radio, RefreshCw, RotateCcw, Send, Trash2, Upload, UserRound, X } from 'lucide-react'
+import { AlertTriangle, CalendarClock, Check, CheckCircle2, Clock3, FileVideo, FolderOpen, Pencil, Plus, Radio, RefreshCw, RotateCcw, Send, Trash2, Upload, UserRound, X } from 'lucide-react'
 import { api } from './lib/api.js'
 import { toast, toastErr } from './lib/legacy-ui.js'
 
@@ -144,6 +144,18 @@ export default function MediaPage({ reloadKey = 0 }) {
     try { await api.del(`/api/media/materials/${id}`); await load({ quiet: true }) } catch (err) { toastErr(err) }
   }
 
+  async function renameMaterial(id, filename) {
+    try {
+      await api.patch(`/api/media/materials/${id}`, { filename })
+      toast('素材名称已更新', 'ok')
+      await load({ quiet: true })
+      return true
+    } catch (err) {
+      toastErr(err)
+      return false
+    }
+  }
+
   async function uploadCookie(accountId, event) {
     const file = event.target.files?.[0]
     event.target.value = ''
@@ -245,7 +257,7 @@ export default function MediaPage({ reloadKey = 0 }) {
       {!data.executor?.configured || activeTab === 'accounts' ? <MediaDependencyCard status={dependencyStatus} installing={dependencyInstalling} refreshing={dependencyRefreshing} onInstall={installDependencies} onRefresh={refreshDependencies} /> : null}
 
       {activeTab === 'publish' ? <PublishComposer data={data} draft={draft} updateDraft={updateDraft} toggleDraftValue={toggleDraftValue} accountOptions={accountOptions} onSubmit={createTask} onUpload={() => fileRef.current?.click()} uploading={uploading} saving={saving} fileRef={fileRef} uploadFiles={uploadFiles} /> : null}
-      {activeTab === 'materials' ? <MaterialsView data={data} onUpload={() => fileRef.current?.click()} onDelete={deleteMaterial} uploading={uploading} fileRef={fileRef} uploadFiles={uploadFiles} /> : null}
+      {activeTab === 'materials' ? <MaterialsView data={data} onUpload={() => fileRef.current?.click()} onDelete={deleteMaterial} onRename={renameMaterial} uploading={uploading} fileRef={fileRef} uploadFiles={uploadFiles} /> : null}
       {activeTab === 'accounts' ? <AccountsView data={data} form={accountForm} setForm={setAccountForm} onSubmit={addAccount} onDelete={deleteAccount} onUploadCookie={uploadCookie} onLogin={loginAccount} loginJobs={loginJobs} /> : null}
       {activeTab === 'records' ? <RecordsView tasks={data.tasks} onAction={taskAction} /> : null}
     </div>
@@ -271,8 +283,34 @@ function PublishComposer({ data, draft, updateDraft, toggleDraftValue, accountOp
   )
 }
 
-function MaterialsView({ data, onUpload, onDelete, uploading, fileRef, uploadFiles }) {
-  return <section className="panel media-panel"><div className="media-panel__head"><div><h3>素材库</h3><p>图片和视频统一保存在本机 data/uploads/media 目录。</p></div><><button type="button" className="refactor-button refactor-button--primary" onClick={onUpload} disabled={uploading}><Upload {...iconProps(15)} />{uploading ? '上传中…' : '上传素材'}</button><input ref={fileRef} type="file" accept="video/*,image/*" multiple hidden onChange={uploadFiles} /></></div>{data.materials.length ? <div className="media-material-list">{data.materials.map((material) => <div className="media-material-row" key={material.id}><div className="media-material-row__icon"><FileVideo {...iconProps(19)} /></div><div className="media-material-row__main"><b>{material.filename}</b><small>{material.mime_type} · {formatBytes(material.file_size)} · {formatDate(material.created_at)}</small></div><a className="refactor-button refactor-button--compact" href={material.url} target="_blank" rel="noreferrer">预览</a><button type="button" className="refactor-icon-button" title="删除素材" onClick={() => onDelete(material.id)}><Trash2 {...iconProps(15)} /></button></div>)}</div> : <div className="empty media-empty"><FolderOpen className="empty__mark" {...iconProps(28)} /><b className="empty__title">还没有素材</b><p className="empty__body">上传图片或视频后，就可以在发布任务中重复使用。</p></div>}</section>
+function MaterialsView({ data, onUpload, onDelete, onRename, uploading, fileRef, uploadFiles }) {
+  const [editingId, setEditingId] = useState(null)
+  const [editingName, setEditingName] = useState('')
+  const [savingId, setSavingId] = useState(null)
+
+  function beginEdit(material) {
+    setEditingId(material.id)
+    setEditingName(material.filename)
+  }
+
+  async function saveEdit(material) {
+    const name = editingName.trim()
+    if (!name) return toast('素材名称不能为空', 'warn')
+    setSavingId(material.id)
+    const saved = await onRename(material.id, name)
+    setSavingId(null)
+    if (saved) {
+      setEditingId(null)
+      setEditingName('')
+    }
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setEditingName('')
+  }
+
+  return <section className="panel media-panel"><div className="media-panel__head"><div><h3>素材库</h3><p>图片和视频统一保存在本机 data/uploads/media 目录。</p></div><><button type="button" className="refactor-button refactor-button--primary" onClick={onUpload} disabled={uploading}><Upload {...iconProps(15)} />{uploading ? '上传中…' : '上传素材'}</button><input ref={fileRef} type="file" accept="video/*,image/*" multiple hidden onChange={uploadFiles} /></></div>{data.materials.length ? <div className="media-material-list">{data.materials.map((material) => <div className="media-material-row" key={material.id}><div className="media-material-row__icon"><FileVideo {...iconProps(19)} /></div><div className="media-material-row__main">{editingId === material.id ? <input className="refactor-input media-material-name-input" value={editingName} maxLength={180} autoFocus onChange={(event) => setEditingName(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') saveEdit(material); if (event.key === 'Escape') cancelEdit() }} /> : <b>{material.filename}</b>}<small>{material.mime_type} · {formatBytes(material.file_size)} · {formatDate(material.created_at)}</small></div>{editingId === material.id ? <><button type="button" className="refactor-icon-button" title="保存名称" onClick={() => saveEdit(material)} disabled={savingId === material.id}><Check {...iconProps(15)} /></button><button type="button" className="refactor-icon-button" title="取消编辑" onClick={cancelEdit} disabled={savingId === material.id}><X {...iconProps(15)} /></button></> : <><a className="refactor-button refactor-button--compact" href={material.url} target="_blank" rel="noreferrer">预览</a><button type="button" className="refactor-icon-button" title="编辑素材名称" onClick={() => beginEdit(material)}><Pencil {...iconProps(15)} /></button><button type="button" className="refactor-icon-button" title="删除素材" onClick={() => onDelete(material.id)}><Trash2 {...iconProps(15)} /></button></>}</div>)}</div> : <div className="empty media-empty"><FolderOpen className="empty__mark" {...iconProps(28)} /><b className="empty__title">还没有素材</b><p className="empty__body">上传图片或视频后，就可以在发布任务中重复使用。</p></div>}</section>
 }
 
 function AccountsView({ data, form, setForm, onSubmit, onDelete, onUploadCookie, onLogin, loginJobs }) {

@@ -4182,6 +4182,7 @@ input {
 .media-material-row__main b, .media-material-row__main small, .media-account-row__main b, .media-account-row__main small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .media-material-row__main b, .media-account-row__main b { font-size: 12px; font-weight: 600; }
 .media-material-row__main small, .media-account-row__main small { margin-top: 3px; color: var(--ink-3); font-size: 10px; }
+.media-material-name-input { width: 100%; min-height: 30px; }
 .media-account-form { display: grid; gap: 12px; }
 .media-account-row { gap: 10px; }
 .media-account-row .tag { flex: none; }

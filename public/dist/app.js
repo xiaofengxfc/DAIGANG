@@ -23766,6 +23766,17 @@ function MediaPage({ reloadKey = 0 }) {
 			toastErr(err);
 		}
 	}
+	async function renameMaterial(id, filename) {
+		try {
+			await api.patch(`/api/media/materials/${id}`, { filename });
+			toast("素材名称已更新", "ok");
+			await load({ quiet: true });
+			return true;
+		} catch (err) {
+			toastErr(err);
+			return false;
+		}
+	}
 	async function uploadCookie(accountId, event) {
 		const file = event.target.files?.[0];
 		event.target.value = "";
@@ -23972,6 +23983,7 @@ function MediaPage({ reloadKey = 0 }) {
 				data,
 				onUpload: () => fileRef.current?.click(),
 				onDelete: deleteMaterial,
+				onRename: renameMaterial,
 				uploading,
 				fileRef,
 				uploadFiles
@@ -24159,7 +24171,29 @@ function PublishComposer({ data, draft, updateDraft, toggleDraftValue, accountOp
 		})]
 	});
 }
-function MaterialsView({ data, onUpload, onDelete, uploading, fileRef, uploadFiles }) {
+function MaterialsView({ data, onUpload, onDelete, onRename, uploading, fileRef, uploadFiles }) {
+	const [editingId, setEditingId] = (0, import_react.useState)(null);
+	const [editingName, setEditingName] = (0, import_react.useState)("");
+	const [savingId, setSavingId] = (0, import_react.useState)(null);
+	function beginEdit(material) {
+		setEditingId(material.id);
+		setEditingName(material.filename);
+	}
+	async function saveEdit(material) {
+		const name = editingName.trim();
+		if (!name) return toast("素材名称不能为空", "warn");
+		setSavingId(material.id);
+		const saved = await onRename(material.id, name);
+		setSavingId(null);
+		if (saved) {
+			setEditingId(null);
+			setEditingName("");
+		}
+	}
+	function cancelEdit() {
+		setEditingId(null);
+		setEditingName("");
+	}
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 		className: "panel media-panel",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -24189,7 +24223,17 @@ function MaterialsView({ data, onUpload, onDelete, uploading, fileRef, uploadFil
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "media-material-row__main",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: material.filename }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+						children: [editingId === material.id ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							className: "refactor-input media-material-name-input",
+							value: editingName,
+							maxLength: 180,
+							autoFocus: true,
+							onChange: (event) => setEditingName(event.target.value),
+							onKeyDown: (event) => {
+								if (event.key === "Enter") saveEdit(material);
+								if (event.key === "Escape") cancelEdit();
+							}
+						}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: material.filename }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
 							material.mime_type,
 							" · ",
 							formatBytes(material.file_size),
@@ -24197,20 +24241,43 @@ function MaterialsView({ data, onUpload, onDelete, uploading, fileRef, uploadFil
 							formatDate(material.created_at)
 						] })]
 					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-						className: "refactor-button refactor-button--compact",
-						href: material.url,
-						target: "_blank",
-						rel: "noreferrer",
-						children: "预览"
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+					editingId === material.id ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						type: "button",
 						className: "refactor-icon-button",
-						title: "删除素材",
-						onClick: () => onDelete(material.id),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$1(15) })
-					})
+						title: "保存名称",
+						onClick: () => saveEdit(material),
+						disabled: savingId === material.id,
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$1(15) })
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						type: "button",
+						className: "refactor-icon-button",
+						title: "取消编辑",
+						onClick: cancelEdit,
+						disabled: savingId === material.id,
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { ...iconProps$1(15) })
+					})] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+							className: "refactor-button refactor-button--compact",
+							href: material.url,
+							target: "_blank",
+							rel: "noreferrer",
+							children: "预览"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							type: "button",
+							className: "refactor-icon-button",
+							title: "编辑素材名称",
+							onClick: () => beginEdit(material),
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$1(15) })
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							type: "button",
+							className: "refactor-icon-button",
+							title: "删除素材",
+							onClick: () => onDelete(material.id),
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$1(15) })
+						})
+					] })
 				]
 			}, material.id))
 		}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
