@@ -78,6 +78,7 @@ export const HOST = argv.host || process.env.XFC_HOST || (LOCAL_ONLY ? '127.0.0.
 export const DATA_DIR = path.resolve(process.env.XFC_DATA_DIR || path.join(ROOT, 'data'))
 export const PUBLIC_DIR = path.join(ROOT, 'public')
 export const UPLOAD_DIR = path.join(DATA_DIR, 'uploads')
+export const MEDIA_COOKIE_DIR = path.join(DATA_DIR, 'media-cookies')
 export const DB_FILE = path.join(DATA_DIR, 'console.db')
 export const SESSION_COOKIE = 'xfc_sid'
 
@@ -121,6 +122,12 @@ export const MAX_MEDIA_UPLOAD_BYTES = Math.max(16 * 1024 * 1024, Number(process.
 // 可选的 MediaPublishPlatform 执行器。未配置时仍可创建、排期和管理任务。
 export const MEDIA_EXECUTOR_URL = String(process.env.XFC_MEDIA_EXECUTOR_URL || '').replace(/\/+$/, '')
 export const MEDIA_EXECUTOR_TOKEN = String(process.env.XFC_MEDIA_EXECUTOR_TOKEN || '')
+export const MEDIA_PUBLISH_ROOT = path.join(ROOT, 'integrations', 'media-publish')
+export const MEDIA_REQUIREMENTS_FILE = path.join(MEDIA_PUBLISH_ROOT, 'requirements.txt')
+export const MEDIA_EXECUTOR_SCRIPT = path.join(MEDIA_PUBLISH_ROOT, 'media_executor.py')
+export const MEDIA_PYTHON = String(process.env.XFC_MEDIA_PYTHON || '')
+export const MEDIA_EXECUTOR_PORT = Math.max(1024, Number(process.env.XFC_MEDIA_EXECUTOR_PORT || 5409))
+export const MEDIA_EXECUTOR_AUTO_START = process.env.XFC_MEDIA_EXECUTOR_AUTOSTART !== '0'
 
 /**
  * 截图识别的上传上限，单独一条。

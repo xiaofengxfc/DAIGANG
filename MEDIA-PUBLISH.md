@@ -11,6 +11,10 @@
 
 管理与排期功能不依赖 Python。未配置执行器时，任务会保存在本机队列中，发布记录会明确显示「管理模式」。
 
+项目已经附带目标仓库的 Python / Playwright 执行器。打开「自媒体」后，执行环境卡片会检测 Python、Flask、Playwright 和 Chromium，并提供安装按钮；依赖完整时 Node 会自动启动 `integrations/media-publish/media_executor.py`，不需要单独维护一套前端。
+
+在「账号管理」中添加账号后，可以点击「打开登录」手动完成平台登录，浏览器关闭前会把 Playwright 登录态保存到本机 `data/media-cookies/`。也可以直接导入 Playwright `storage_state` JSON。系统不会代替用户输入账号密码。
+
 如果需要接入目标仓库的 Playwright 发布服务，在启动 Node 服务前设置：
 
 ```powershell

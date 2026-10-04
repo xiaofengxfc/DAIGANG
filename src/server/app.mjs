@@ -27,6 +27,7 @@ import { HttpError } from '../util.mjs'
 import { readSession, purgeExpiredSessions, isSetUp } from '../auth.mjs'
 import { lock, status as vaultStatus } from '../vault.mjs'
 import { registerAll } from '../routes/index.mjs'
+import { stopMediaExecutor } from '../media-deps.mjs'
 
 const PUBLIC_PATHS = new Set(['/api/auth/me', '/api/auth/login', '/api/setup', '/api/health'])
 const QUIET_PATHS = new Set(['/api/dashboard', '/api/auth/me', '/api/vault/status', '/api/health'])
@@ -187,6 +188,7 @@ export function createApplication() {
   function shutdown(signal = 'SIGTERM') {
     console.log(`\n收到 ${signal}，正在关闭…`)
     clearInterval(timer)
+    stopMediaExecutor()
     lock('shutdown')
     server.close(() => {
       try {

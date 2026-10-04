@@ -23644,6 +23644,9 @@ function MediaPage({ reloadKey = 0 }) {
 	});
 	const [uploading, setUploading] = (0, import_react.useState)(false);
 	const [saving, setSaving] = (0, import_react.useState)(false);
+	const [dependencyStatus, setDependencyStatus] = (0, import_react.useState)(null);
+	const [dependencyInstalling, setDependencyInstalling] = (0, import_react.useState)(false);
+	const [loginJobs, setLoginJobs] = (0, import_react.useState)({});
 	const fileRef = (0, import_react.useRef)(null);
 	const load = async ({ quiet = false } = {}) => {
 		if (quiet) setRefreshing(true);
@@ -23659,6 +23662,9 @@ function MediaPage({ reloadKey = 0 }) {
 	};
 	(0, import_react.useEffect)(() => {
 		load();
+	}, [reloadKey]);
+	(0, import_react.useEffect)(() => {
+		api.get("/api/media/dependencies").then(setDependencyStatus).catch(() => {});
 	}, [reloadKey]);
 	const selectedPlatforms = (0, import_react.useMemo)(() => new Set(draft.platform_keys), [draft.platform_keys]);
 	const accountOptions = (0, import_react.useMemo)(() => data.accounts.filter((account) => account.auth_state !== "disabled" && (!selectedPlatforms.size || selectedPlatforms.has(account.platform))), [data.accounts, selectedPlatforms]);
@@ -23759,6 +23765,80 @@ function MediaPage({ reloadKey = 0 }) {
 			toastErr(err);
 		}
 	}
+	async function uploadCookie(accountId, event) {
+		const file = event.target.files?.[0];
+		event.target.value = "";
+		if (!file) return;
+		try {
+			const response = await fetch(`/api/media/accounts/${accountId}/cookie`, {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: file,
+				credentials: "same-origin"
+			});
+			const body = await response.json().catch(() => ({}));
+			if (!response.ok) throw new Error(body.error || "登录态导入失败");
+			toast("登录态已导入，账号标记为已验证", "ok");
+			await load({ quiet: true });
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	async function loginAccount(accountId) {
+		try {
+			const started = await api.post(`/api/media/accounts/${accountId}/login`, {});
+			setLoginJobs((current) => ({
+				...current,
+				[accountId]: {
+					job: started.job,
+					status: "running",
+					message: "浏览器已打开，请完成登录"
+				}
+			}));
+			for (let i = 0; i < 220; i += 1) {
+				await new Promise((resolve) => window.setTimeout(resolve, 1500));
+				const status = await api.get(`/api/media/accounts/${accountId}/login/status`, { job: started.job });
+				setLoginJobs((current) => ({
+					...current,
+					[accountId]: status
+				}));
+				if (["success", "failed"].includes(status.status)) {
+					toast(status.status === "success" ? "账号登录态已保存" : status.message || "账号登录失败", status.status === "success" ? "ok" : "warn");
+					await load({ quiet: true });
+					break;
+				}
+			}
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	async function installDependencies() {
+		setDependencyInstalling(true);
+		try {
+			const started = await api.post("/api/media/dependencies/install", {});
+			if (!started.ok) {
+				setDependencyStatus(started.status || dependencyStatus);
+				toast(started.error || "暂时不能安装依赖", "warn");
+				return;
+			}
+			toast("开始安装 Python 依赖和 Chromium，请稍候", "ok", 5e3);
+			for (let i = 0; i < 120; i += 1) {
+				await new Promise((resolve) => window.setTimeout(resolve, 1500));
+				const status = await api.get("/api/media/dependencies/install/status", { job: started.job });
+				setDependencyStatus((current) => ({
+					...current || {},
+					install_job: status
+				}));
+				if (["success", "failed"].includes(status.status)) break;
+			}
+			const fresh = await api.get("/api/media/dependencies");
+			setDependencyStatus(fresh);
+		} catch (err) {
+			toastErr(err);
+		} finally {
+			setDependencyInstalling(false);
+		}
+	}
 	async function taskAction(path, successMessage) {
 		try {
 			const result = await api.post(path, {});
@@ -23850,6 +23930,12 @@ function MediaPage({ reloadKey = 0 }) {
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { ...iconProps$1(16) }), label]
 				}, key))
 			}),
+			!data.executor?.configured || activeTab === "accounts" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MediaDependencyCard, {
+				status: dependencyStatus,
+				installing: dependencyInstalling,
+				onInstall: installDependencies,
+				onRefresh: () => api.get("/api/media/dependencies", { force: 1 }).then(setDependencyStatus)
+			}) : null,
 			activeTab === "publish" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PublishComposer, {
 				data,
 				draft,
@@ -23876,7 +23962,10 @@ function MediaPage({ reloadKey = 0 }) {
 				form: accountForm,
 				setForm: setAccountForm,
 				onSubmit: addAccount,
-				onDelete: deleteAccount
+				onDelete: deleteAccount,
+				onUploadCookie: uploadCookie,
+				onLogin: loginAccount,
+				loginJobs
 			}) : null,
 			activeTab === "records" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RecordsView, {
 				tasks: data.tasks,
@@ -24124,14 +24213,14 @@ function MaterialsView({ data, onUpload, onDelete, uploading, fileRef, uploadFil
 		})]
 	});
 }
-function AccountsView({ data, form, setForm, onSubmit, onDelete }) {
+function AccountsView({ data, form, setForm, onSubmit, onDelete, onUploadCookie, onLogin, loginJobs }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "media-two-column",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 			className: "panel media-panel",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "media-panel__head",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "添加发布账号" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "先登记账号，登录态由执行器或平台浏览器维护。" })] })
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "添加发布账号" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "先登记账号，再导入目标平台的 Playwright 登录态。" })] })
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
 				className: "media-account-form",
 				onSubmit,
@@ -24217,30 +24306,49 @@ function AccountsView({ data, form, setForm, onSubmit, onDelete }) {
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "已登记账号" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", { children: [data.accounts.length, " 个账号"] })] })
 			}), data.accounts.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "media-account-list",
-				children: data.accounts.map((account) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "media-account-row",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							className: "media-account-row__mark",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserRound, { ...iconProps$1(17) })
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "media-account-row__main",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: account.account_name }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [account.platform_name, account.profile_url ? ` · ${account.profile_url}` : ""] })]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: `tag tag--${account.auth_state === "ready" ? "jade" : account.auth_state === "disabled" ? "outline" : "amber"}`,
-							children: account.auth_state === "ready" ? "已验证" : account.auth_state === "disabled" ? "已停用" : "待验证"
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-							type: "button",
-							className: "refactor-icon-button",
-							title: "删除账号",
-							onClick: () => onDelete(account.id),
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$1(15) })
-						})
-					]
-				}, account.id))
+				children: data.accounts.map((account) => {
+					const login = loginJobs[account.id];
+					return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "media-account-row",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "media-account-row__mark",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserRound, { ...iconProps$1(17) })
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "media-account-row__main",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: account.account_name }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [account.platform_name, account.profile_url ? ` · ${account.profile_url}` : ""] })]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: `tag tag--${account.auth_state === "ready" ? "jade" : account.auth_state === "disabled" ? "outline" : "amber"}`,
+								children: account.auth_state === "ready" ? "已验证" : account.auth_state === "disabled" ? "已停用" : "待验证"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+								type: "button",
+								className: "refactor-button refactor-button--compact",
+								onClick: () => onLogin(account.id),
+								disabled: login?.status === "running",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserRound, { ...iconProps$1(13) }), login?.status === "running" ? "登录中…" : "打开登录"]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+								className: "media-cookie-button",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									type: "file",
+									accept: "application/json,.json",
+									onChange: (event) => onUploadCookie(account.id, event),
+									hidden: true
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: account.has_cookie ? "替换登录态" : "导入登录态" })]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								type: "button",
+								className: "refactor-icon-button",
+								title: "删除账号",
+								onClick: () => onDelete(account.id),
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$1(15) })
+							})
+						]
+					}, account.id);
+				})
 			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "empty media-empty",
 				children: [
@@ -24259,6 +24367,77 @@ function AccountsView({ data, form, setForm, onSubmit, onDelete }) {
 				]
 			})]
 		})]
+	});
+}
+function MediaDependencyCard({ status, installing, onInstall, onRefresh }) {
+	const python = status?.python;
+	const ready = Boolean(status?.executor?.ready);
+	const job = status?.install_job;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+		className: `media-dependency-card${ready ? " is-ready" : ""}`,
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "media-dependency-card__head",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "refactor-eyebrow",
+					children: "执行环境"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: ready ? "Python 发布执行器可用" : "需要安装 Python 发布依赖" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					type: "button",
+					className: "refactor-button refactor-button--compact",
+					onClick: onRefresh,
+					disabled: installing,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps$1(14) }), "重新检测"]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "media-dependency-grid",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: python?.available ? "is-ok" : "",
+						children: ["Python ", python?.available ? python.version : "未检测到"]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: python?.dependencies ? "is-ok" : "",
+						children: ["Flask ", python?.dependencies ? "已安装" : "未安装"]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: python?.playwright ? "is-ok" : "",
+						children: ["Playwright ", python?.playwright ? "已安装" : "未安装"]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: python?.browser ? "is-ok" : "",
+						children: ["Chromium ", python?.browser ? "已安装" : "未安装"]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: status?.chrome?.available ? "is-ok" : "",
+						children: ["Chrome ", status?.chrome?.available ? "已找到" : "未找到"]
+					})
+				]
+			}),
+			job?.status === "running" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+				className: "media-dependency-log",
+				children: [
+					job.step || "安装中…",
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: job.log?.slice(-240) || "正在准备安装" })
+				]
+			}) : null,
+			!python?.available ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+				className: "media-dependency-note",
+				children: ["请先安装 Python 3.10+，再点击安装。", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+					href: status?.install?.python_download || "https://www.python.org/downloads/windows/",
+					target: "_blank",
+					rel: "noreferrer",
+					children: "打开 Python 下载页"
+				})]
+			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				type: "button",
+				className: "refactor-button refactor-button--primary",
+				onClick: onInstall,
+				disabled: installing || ready,
+				children: installing ? "安装进行中…" : ready ? "依赖已就绪" : "安装 Python 依赖与 Chromium"
+			})
+		]
 	});
 }
 function RecordsView({ tasks, onAction }) {

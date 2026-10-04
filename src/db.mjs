@@ -1,10 +1,11 @@
 import fs from 'node:fs'
 import { DatabaseSync } from 'node:sqlite'
-import { DB_FILE, DATA_DIR, UPLOAD_DIR } from './config.mjs'
+import { DB_FILE, DATA_DIR, UPLOAD_DIR, MEDIA_COOKIE_DIR } from './config.mjs'
 import { localDate, makeNo } from './util.mjs'
 
 fs.mkdirSync(DATA_DIR, { recursive: true })
 fs.mkdirSync(UPLOAD_DIR, { recursive: true })
+fs.mkdirSync(MEDIA_COOKIE_DIR, { recursive: true })
 
 export const db = new DatabaseSync(DB_FILE)
 
@@ -369,6 +370,9 @@ const MIGRATIONS = [
   );
   CREATE INDEX IF NOT EXISTS idx_media_tasks_status ON media_tasks (status, publish_at, id DESC);
   `,
+
+  // v13：媒体账号的 Playwright storage_state 登录态路径。文件只存本机 data/media-cookies。
+  `ALTER TABLE media_accounts ADD COLUMN cookie_path TEXT NOT NULL DEFAULT '';`,
 ]
 
 export function migrate() {

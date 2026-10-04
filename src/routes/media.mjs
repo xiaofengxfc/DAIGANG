@@ -2,7 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import { db, stamp } from '../db.mjs'
-import { UPLOAD_DIR, MAX_MEDIA_UPLOAD_BYTES, MEDIA_EXECUTOR_URL, MEDIA_EXECUTOR_TOKEN } from '../config.mjs'
+import { UPLOAD_DIR, MEDIA_COOKIE_DIR, MAX_MEDIA_UPLOAD_BYTES, MEDIA_EXECUTOR_TOKEN } from '../config.mjs'
+import { mediaDependencyStatus, startMediaDependencyInstall, mediaDependencyInstallStatus, startMediaExecutor, mediaExecutorInfo, mediaExecutorBaseUrl } from '../media-deps.mjs'
 import { get, post, patch, del, postRaw } from '../http.mjs'
 import { bad, notFound, int, clampStr, parseJSON, stringifyJSON, fail } from '../util.mjs'
 
@@ -26,7 +27,9 @@ function listJSON(value, fallback = []) {
 }
 
 function accountRow(row) {
-  return { ...row, platform_name: PLATFORMS.find((p) => p.key === row.platform)?.name || row.platform }
+  const { cookie_path: _cookiePath, ...safe } = row
+  const hasCookie = Boolean(row.cookie_path && fs.existsSync(path.join(MEDIA_COOKIE_DIR, row.cookie_path)))
+  return { ...safe, has_cookie: hasCookie, platform_name: PLATFORMS.find((p) => p.key === row.platform)?.name || row.platform }
 }
 
 function materialRow(row) {
@@ -58,7 +61,9 @@ function validateIds(values) {
 async function dispatchTask(id) {
   const row = db.prepare('SELECT * FROM media_tasks WHERE id = ?').get(id)
   if (!row) notFound('发布任务不存在')
-  if (!MEDIA_EXECUTOR_URL) return { ok: false, available: false, status: row.status, message: '未配置发布执行器，任务已保留在队列中' }
+  startMediaExecutor()
+  const executorUrl = mediaExecutorBaseUrl()
+  if (!executorUrl) return { ok: false, available: false, status: row.status, message: '未配置发布执行器，任务已保留在队列中' }
   if (['success', 'cancelled'].includes(row.status)) return { ok: false, available: true, status: row.status, message: '这个任务当前不能再次发布' }
   const now = stamp()
   db.prepare('UPDATE media_tasks SET status = ?, error_msg = ?, updated_at = ? WHERE id = ?').run('publishing', '', now, id)
@@ -66,14 +71,17 @@ async function dispatchTask(id) {
     const accountIds = listJSON(row.account_ids)
     const materialIds = listJSON(row.material_ids)
     const accounts = accountIds.length
-      ? db.prepare(`SELECT id, platform, account_name, profile_url, auth_state FROM media_accounts WHERE id IN (${accountIds.map(() => '?').join(',')})`).all(...accountIds)
+      ? db.prepare(`SELECT id, platform, account_name, profile_url, auth_state, cookie_path FROM media_accounts WHERE id IN (${accountIds.map(() => '?').join(',')})`).all(...accountIds).map((account) => {
+        const cookiePath = account.cookie_path ? path.resolve(MEDIA_COOKIE_DIR, account.cookie_path) : ''
+        return { ...account, cookie_path: cookiePath && fs.existsSync(cookiePath) ? cookiePath : '' }
+      })
       : []
     const materials = materialIds.length
       ? db.prepare(`SELECT id, filename, file_path, mime_type, file_size FROM media_materials WHERE id IN (${materialIds.map(() => '?').join(',')})`).all(...materialIds).map((material) => ({ ...material, url: `/uploads/${material.file_path.replace(/\\/g, '/')}`, absolute_path: path.resolve(UPLOAD_DIR, material.file_path) }))
       : []
     const headers = { 'content-type': 'application/json' }
     if (MEDIA_EXECUTOR_TOKEN) headers.authorization = `Bearer ${MEDIA_EXECUTOR_TOKEN}`
-    const response = await fetch(`${MEDIA_EXECUTOR_URL}/tasks`, {
+    const response = await fetch(`${executorUrl}/tasks`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -92,8 +100,9 @@ async function dispatchTask(id) {
     })
     if (!response.ok) throw new Error(`执行器返回 ${response.status}`)
     const result = await response.json().catch(() => ({}))
-    db.prepare('UPDATE media_tasks SET status = ?, result = ?, error_msg = ?, updated_at = ? WHERE id = ?').run(result.status || 'success', stringifyJSON(result), '', stamp(), id)
-    return { ok: true, available: true, status: result.status || 'success', result }
+    const resultStatus = TASK_STATES.has(result.status) ? result.status : 'success'
+    db.prepare('UPDATE media_tasks SET status = ?, result = ?, error_msg = ?, updated_at = ? WHERE id = ?').run(resultStatus, stringifyJSON(result), '', stamp(), id)
+    return { ok: true, available: true, status: resultStatus, result }
   } catch (err) {
     db.prepare('UPDATE media_tasks SET status = ?, error_msg = ?, updated_at = ? WHERE id = ?').run('failed', clampStr(err.message, 500), stamp(), id)
     return { ok: false, available: true, status: 'failed', message: err.message }
@@ -101,9 +110,10 @@ async function dispatchTask(id) {
 }
 
 export function register() {
+  startMediaExecutor()
   get('/api/media/bootstrap', () => ({
     platforms: PLATFORMS,
-    executor: { configured: Boolean(MEDIA_EXECUTOR_URL), url: MEDIA_EXECUTOR_URL ? `${MEDIA_EXECUTOR_URL}/tasks` : '' },
+    executor: startMediaExecutor(),
     accounts: db.prepare('SELECT * FROM media_accounts ORDER BY updated_at DESC, id DESC').all().map(accountRow),
     materials: db.prepare("SELECT * FROM media_materials WHERE status = 'active' ORDER BY created_at DESC, id DESC").all().map(materialRow),
     tasks: db.prepare('SELECT * FROM media_tasks ORDER BY id DESC LIMIT 100').all().map(taskRow),
@@ -111,6 +121,9 @@ export function register() {
   }))
 
   get('/api/media/platforms', () => ({ items: PLATFORMS }))
+  get('/api/media/dependencies', (ctx) => mediaDependencyStatus({ force: ctx.query.force === '1' }))
+  post('/api/media/dependencies/install', () => startMediaDependencyInstall())
+  get('/api/media/dependencies/install/status', (ctx) => mediaDependencyInstallStatus(ctx.query.job))
 
   get('/api/media/accounts', (ctx) => {
     const q = clampStr(ctx.query.q, 80).trim()
@@ -140,12 +153,73 @@ export function register() {
     db.prepare('UPDATE media_accounts SET platform = ?, account_name = ?, profile_url = ?, auth_state = ?, note = ?, updated_at = ? WHERE id = ?').run(platform, accountName, ctx.body.profile_url === undefined ? existing.profile_url : clampStr(ctx.body.profile_url, 500), authState, ctx.body.note === undefined ? existing.note : clampStr(ctx.body.note, 1000), stamp(), id)
     return accountRow(db.prepare('SELECT * FROM media_accounts WHERE id = ?').get(id))
   })
+  post('/api/media/accounts/:id/login', async (ctx) => {
+    const id = int(ctx.params.id)
+    const account = db.prepare('SELECT * FROM media_accounts WHERE id = ?').get(id)
+    if (!account) notFound('账号不存在')
+    startMediaExecutor()
+    const executor = mediaExecutorInfo()
+    if (!executor.configured) fail(503, '发布执行器未启动，请先安装依赖或配置执行器', 'executor_unavailable')
+    const base = executor.url.replace(/\/tasks$/, '')
+    const filename = `account-${id}-login.json`
+    const cookiePath = path.join(MEDIA_COOKIE_DIR, filename)
+    try {
+      const response = await fetch(`${base}/accounts/login`, { method: 'POST', headers: { 'content-type': 'application/json', ...(MEDIA_EXECUTOR_TOKEN ? { authorization: `Bearer ${MEDIA_EXECUTOR_TOKEN}` } : {}) }, body: JSON.stringify({ platform: account.platform, account_name: account.account_name, cookie_path: cookiePath }), signal: AbortSignal.timeout(10000) })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) fail(response.status, result.error || '登录窗口启动失败', 'login_failed')
+      return { ...result, account_id: id }
+    } catch (err) {
+      if (err?.code === 'login_failed' || err?.status) throw err
+      fail(503, `执行器连接失败：${err.message}`, 'executor_unavailable')
+    }
+  })
+  get('/api/media/accounts/:id/login/status', async (ctx) => {
+    const id = int(ctx.params.id)
+    const account = db.prepare('SELECT * FROM media_accounts WHERE id = ?').get(id)
+    if (!account) notFound('账号不存在')
+    const job = clampStr(ctx.query.job, 80)
+    if (!job) bad('缺少登录任务编号', 'missing_job')
+    startMediaExecutor()
+    const executor = mediaExecutorInfo()
+    if (!executor.configured) fail(503, '发布执行器未启动', 'executor_unavailable')
+    const base = executor.url.replace(/\/tasks$/, '')
+    const response = await fetch(`${base}/accounts/login/status/${encodeURIComponent(job)}`, { headers: MEDIA_EXECUTOR_TOKEN ? { authorization: `Bearer ${MEDIA_EXECUTOR_TOKEN}` } : {}, signal: AbortSignal.timeout(10000) })
+    const result = await response.json().catch(() => ({}))
+    if (!response.ok) fail(response.status, result.error || '登录状态查询失败', 'login_status_failed')
+    if (result.status === 'success') {
+      const filename = `account-${id}-login.json`
+      const ready = fs.existsSync(path.join(MEDIA_COOKIE_DIR, filename))
+      db.prepare('UPDATE media_accounts SET cookie_path = ?, auth_state = ?, updated_at = ? WHERE id = ?').run(ready ? filename : '', ready ? 'ready' : 'pending', stamp(), id)
+    }
+    return { ...result, account_id: id }
+  })
   del('/api/media/accounts/:id', (ctx) => {
     const id = int(ctx.params.id)
+    const row = db.prepare('SELECT cookie_path FROM media_accounts WHERE id = ?').get(id)
     const result = db.prepare('DELETE FROM media_accounts WHERE id = ?').run(id)
     if (!result.changes) notFound('账号不存在')
+    if (row?.cookie_path) {
+      try { fs.unlinkSync(path.join(MEDIA_COOKIE_DIR, row.cookie_path)) } catch {}
+    }
     return { deleted: true, id }
   })
+
+  postRaw('/api/media/accounts/:id/cookie', async (ctx) => {
+    const id = int(ctx.params.id)
+    const account = db.prepare('SELECT * FROM media_accounts WHERE id = ?').get(id)
+    if (!account) notFound('账号不存在')
+    let payload
+    try { payload = JSON.parse((ctx.rawBody || Buffer.alloc(0)).toString('utf8')) } catch { bad('登录态不是合法 JSON', 'bad_cookie') }
+    if (!payload || typeof payload !== 'object' || (!Array.isArray(payload.cookies) && !payload.origins)) bad('请选择 Playwright storage_state JSON 文件', 'bad_cookie')
+    const name = `account-${id}-${Date.now().toString(36)}.json`
+    fs.mkdirSync(MEDIA_COOKIE_DIR, { recursive: true })
+    fs.writeFileSync(path.join(MEDIA_COOKIE_DIR, name), JSON.stringify(payload))
+    if (account.cookie_path && account.cookie_path !== name) {
+      try { fs.unlinkSync(path.join(MEDIA_COOKIE_DIR, account.cookie_path)) } catch {}
+    }
+    db.prepare("UPDATE media_accounts SET cookie_path = ?, auth_state = 'ready', updated_at = ? WHERE id = ?").run(name, stamp(), id)
+    return accountRow(db.prepare('SELECT * FROM media_accounts WHERE id = ?').get(id))
+  }, { maxBytes: 2 * 1024 * 1024 })
 
   postRaw('/api/media/materials/upload', async (ctx) => {
     const body = ctx.rawBody || Buffer.alloc(0)
