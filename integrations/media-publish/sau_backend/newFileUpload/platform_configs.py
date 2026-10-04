@@ -10,15 +10,24 @@ PLATFORM_CONFIGS = {
         #平台登录URL
         "login_url": "https://creator.xiaohongshu.com/login",
         #平台视频发布URL
-        "creator_video_url": "https://creator.xiaohongshu.com/publish/publish?from=homepage&target=video&openFilePicker=true",
+        # 不自动打开系统文件选择器，由执行器直接设置隐藏 input[type=file]。
+        "creator_video_url": "https://creator.xiaohongshu.com/publish/publish?from=homepage&target=video",
         #平台图片发布URL
-        "creator_image_url": "https://creator.xiaohongshu.com/publish/publish?from=homepage&target=image&openFilePicker=true",
+        "creator_image_url": "https://creator.xiaohongshu.com/publish/publish?from=homepage&target=image",
         "selectors": {
             #上传按钮选择器
             "upload_button": ['input.upload-input[type="file"]'],
             #发布按钮选择器
             # 新版页面发布按钮由 div.publish-video 承载，没有 button 标签。
-            "publish_button": ['div.publish-video .btn-wrapper', 'div.publish-video', 'div.d-button-content span.d-text:has-text("发布")'],
+            # 优先点击实际文字按钮，避免命中外层发布区域容器后没有触发提交事件。
+            "publish_button": [
+                'div.publish-video [role="button"]:has-text("发布")',
+                'div.publish-video button:has-text("发布")',
+                'div.publish-video span:has-text("发布")',
+                'div.d-button-content span.d-text:has-text("发布")',
+                'div.publish-video .btn-wrapper',
+                'div.publish-video',
+            ],
             #标题编辑器选择器
             "title_editor": [
                 'input.d-text[type="text"][placeholder*="填写标题"]',

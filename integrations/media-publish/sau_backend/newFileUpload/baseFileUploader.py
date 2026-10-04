@@ -142,6 +142,8 @@ class BaseFileUploader(object):
         self.schedule_supported = self.config["features"]["schedule"]
         # 视频/图文发布状态
         self.publish_status = False
+        self.publish_response_events = []
+        self._xiaohongshu_button_debugged = False
         #按钮等待可见超时时间
         self.button_visible_timeout = 30000
         #网页加载超时时间
@@ -254,6 +256,7 @@ class BaseFileUploader(object):
 
             # step3.创建新页面，导航到上传页面，明确指定等待domcontentloaded状态
             page = await context.new_page()
+            page.on("response", self._track_publish_response)
             #tiktok平台需要先切换到英文
             if self.platform_name == "tiktok":
                 await self.change_language(page)
@@ -442,6 +445,158 @@ class BaseFileUploader(object):
         self.logger.info("未找到任何按钮定位器")
         return None
 
+    async def _find_xiaohongshu_publish_button(self, bottom_only=False):
+        """查找小红书发布按钮，可排除左侧“发布笔记”入口。"""
+        if bottom_only:
+            locator = self.locator_base.locator(
+                'button,[role="button"],a,[class*="publish"],[class*="submit"],'
+                '[class*="footer"],[class*="bottom"]'
+            )
+            deadline = asyncio.get_running_loop().time() + self.button_visible_timeout / 1000
+            while asyncio.get_running_loop().time() < deadline:
+                try:
+                    records = await locator.evaluate_all(
+                        """(nodes) => {
+                            const viewportHeight = window.innerHeight;
+                            return nodes.map((el, index) => {
+                                const rect = el.getBoundingClientRect();
+                                const style = getComputedStyle(el);
+                                const text = (el.innerText || el.textContent || '').trim();
+                                const className = typeof el.className === 'string' ? el.className : '';
+                                const parent = el.parentElement;
+                                const parentClass = parent && typeof parent.className === 'string' ? parent.className : '';
+                                return {
+                                    index,
+                                    text,
+                                    tag: el.tagName,
+                                    className,
+                                    parentClass,
+                                    x: rect.x,
+                                    y: rect.y,
+                                    width: rect.width,
+                                    height: rect.height,
+                                    bottom: rect.bottom,
+                                    viewportHeight,
+                                    position: style.position,
+                                    disabled: el.hasAttribute('disabled') || el.getAttribute('aria-disabled') === 'true'
+                                };
+                            }).filter(item =>
+                                !item.disabled && item.width > 0 && item.height > 0 &&
+                                /^(发布|发布笔记|发布视频|立即发布|发表)$/.test(item.text) &&
+                                !/publish-video/.test(item.className + ' ' + item.parentClass) &&
+                                (item.bottom >= item.viewportHeight * 0.65 ||
+                                 item.position === 'fixed' || item.position === 'sticky')
+                            ).sort((a, b) =>
+                                (b.bottom - a.bottom) ||
+                                ((a.width * a.height) - (b.width * b.height))
+                            );
+                        }"""
+                    )
+                    if records:
+                        record = records[0]
+                        candidate = locator.nth(record["index"])
+                        self.logger.info(
+                            f"找到小红书底部实际发布按钮: tag={record['tag']}, "
+                            f"class={record['className']}, text={record['text']!r}, "
+                            f"y={round(record['y'])}, bottom={round(record['bottom'])}"
+                        )
+                        return candidate
+                except Exception:
+                    pass
+                await asyncio.sleep(0.25)
+            self.logger.info("未找到小红书底部实际发布按钮")
+            return None
+
+        selectors = (
+            'div.publish-video [role="button"]',
+            'div.publish-video button',
+            'div.publish-video .btn-inner',
+            'div.publish-video .d-button-content span.d-text',
+            'div.publish-video span',
+        )
+        button_texts = {"发布", "发布笔记"}
+        deadline = asyncio.get_running_loop().time() + self.button_visible_timeout / 1000
+        while asyncio.get_running_loop().time() < deadline:
+            if hasattr(self.locator_base, "is_closed") and self.locator_base.is_closed():
+                return None
+            for selector in selectors:
+                try:
+                    locator = self.locator_base.locator(selector)
+                    count = await locator.count()
+                    for index in reversed(range(count)):
+                        candidate = locator.nth(index)
+                        if not await candidate.is_visible():
+                            continue
+                        if (await candidate.inner_text()).strip() not in button_texts:
+                            continue
+                        if await candidate.get_attribute("disabled") is not None:
+                            continue
+                        if (await candidate.get_attribute("aria-disabled")) == "true":
+                            continue
+                        self.logger.info(f"找到小红书实际发布按钮: {selector}")
+                        return candidate
+                except Exception:
+                    continue
+            if not self._xiaohongshu_button_debugged:
+                self._xiaohongshu_button_debugged = True
+                for debug_selector in ("div.publish-video", "div.publish-video .btn-wrapper"):
+                    try:
+                        debug_locator = self.locator_base.locator(debug_selector)
+                        debug_count = await debug_locator.count()
+                        self.logger.warning(
+                            f"小红书发布区域诊断: {debug_selector}, count={debug_count}"
+                        )
+                        for debug_index in range(min(debug_count, 3)):
+                            debug_node = debug_locator.nth(debug_index)
+                            self.logger.warning(
+                                f"小红书发布区域[{debug_index}] text="
+                                f"{(await debug_node.inner_text()).strip()[:200]!r} "
+                                f"html={(await debug_node.evaluate('element => element.outerHTML'))[:1600]}"
+                            )
+                    except Exception as exc:
+                        self.logger.warning(f"小红书发布区域诊断失败: {exc}")
+            await asyncio.sleep(0.25)
+        self.logger.info("未找到小红书文字为“发布”的实际按钮")
+        return None
+
+    async def _log_xiaohongshu_publish_candidates(self, page):
+        """记录发布编辑页所有可见发布控件的位置，避免命中左侧入口。"""
+        try:
+            candidates = await page.locator("body").evaluate(
+                """body => {
+                    const nodes = Array.from(body.querySelectorAll(
+                        'button,[role="button"],a,div,span'
+                    ));
+                    return nodes.map((el, index) => {
+                        const text = (el.innerText || el.textContent || '').trim();
+                        const rect = el.getBoundingClientRect();
+                        const style = getComputedStyle(el);
+                        const parent = el.parentElement;
+                        return {
+                            index,
+                            tag: el.tagName,
+                            text: text.slice(0, 100),
+                            className: typeof el.className === 'string' ? el.className.slice(0, 180) : '',
+                            role: el.getAttribute('role') || '',
+                            x: Math.round(rect.x),
+                            y: Math.round(rect.y),
+                            width: Math.round(rect.width),
+                            height: Math.round(rect.height),
+                            position: style.position,
+                            parentTag: parent ? parent.tagName : '',
+                            parentClass: parent && typeof parent.className === 'string' ? parent.className.slice(0, 180) : ''
+                        };
+                    }).filter(item =>
+                        item.text.includes('发布') && item.width > 0 && item.height > 0
+                    ).sort((a, b) => (b.y + b.height) - (a.y + a.height)).slice(0, 40);
+                }"""
+            )
+            self.logger.warning(
+                f"小红书发布控件坐标诊断: {json.dumps(candidates, ensure_ascii=False)}"
+            )
+        except Exception as exc:
+            self.logger.warning(f"小红书发布控件坐标诊断失败: {exc}")
+
     async def find_file_input(self, selector_list, timeout=None):
         """查找文件输入控件，允许控件隐藏但必须确实是 input[type=file]。"""
         timeout = self.button_visible_timeout if timeout is None else timeout
@@ -603,7 +758,11 @@ class BaseFileUploader(object):
                         await asyncio.sleep(self.check_interval)
                 else:
                     # 其他平台，使用find_button方法查找发布按钮，发布按钮能点了就代表上传完毕了
-                    publish_button = await self.find_button(self.publish_button_selectors)               
+                    publish_button = (
+                        await self._find_xiaohongshu_publish_button()
+                        if self.platform_name == "xiaohongshu"
+                        else await self.find_button(self.publish_button_selectors)
+                    )
                     # 检查发布按钮是否可点击
                     if publish_button and await publish_button.get_attribute("disabled") is None:
                         # 抖音等平台会先渲染“发布”按钮，再异步挂载标题和正文编辑器。
@@ -652,6 +811,8 @@ class BaseFileUploader(object):
         return True
 
     async def _publish_button_enabled(self):
+        if self.platform_name == "xiaohongshu":
+            return await self._find_xiaohongshu_publish_button() is not None
         for selector in self.publish_button_selectors:
             try:
                 locator = self.locator_base.locator(selector)
@@ -697,6 +858,56 @@ class BaseFileUploader(object):
             "上传失败", "上传出错", "发布失败", "发表失败", "投稿失败", "审核未通过",
             "Upload failed", "Publish failed", "Post failed",
         ))
+
+    def _track_publish_response(self, response):
+        """记录发布阶段的关键接口响应，便于区分页面跳转和平台拒绝。"""
+        if self.platform_name != "xiaohongshu":
+            return
+        try:
+            request = response.request
+            method = request.method.upper()
+            url = response.url
+            lowered = url.lower()
+            if method in {"POST", "PUT", "PATCH"} and any(
+                marker in lowered for marker in ("publish", "note", "upload", "creator")
+            ):
+                self.publish_response_events.append((method, response.status, url))
+                self.publish_response_events = self.publish_response_events[-20:]
+        except Exception:
+            pass
+
+    async def _verify_xiaohongshu_publish(self, page):
+        """在小红书内容管理页确认标题已落库，避免把页面跳转误判为发布成功。"""
+        if not self.title:
+            return False
+        if self.publish_response_events:
+            self.logger.info(f"{self.platform_name}发布阶段接口响应: {self.publish_response_events[-10:]}")
+        management_urls = (
+            "https://creator.xiaohongshu.com/new/content/manage",
+            "https://creator.xiaohongshu.com/new/home",
+        )
+        for target_url in management_urls:
+            try:
+                await page.goto(target_url, wait_until="domcontentloaded", timeout=30000)
+                self.logger.info(f"{self.platform_name}发布后校验页面: {page.url}")
+                deadline = asyncio.get_running_loop().time() + 45000 / 1000
+                while asyncio.get_running_loop().time() < deadline:
+                    if page.is_closed():
+                        return False
+                    body = await self._body_text(page)
+                    if self.title in body and not self._publish_failed(body):
+                        self.logger.info(f"{self.platform_name}内容管理页已找到本次作品标题")
+                        return True
+                    await page.wait_for_timeout(1000)
+            except Exception as exc:
+                self.logger.debug(f"{self.platform_name}内容管理页校验失败: {exc}")
+        try:
+            body = await self._body_text(page)
+            preview = " ".join(body.split())[:500]
+            self.logger.warning(f"{self.platform_name}发布校验未找到标题，当前页面: {page.url}，反馈: {preview}")
+        except Exception:
+            pass
+        return False
 
     async def wait_for_upload_completion(self, page, timeout=None):
         """等待所有平台完成远端上传和文件解析。"""
@@ -958,15 +1169,41 @@ class BaseFileUploader(object):
         while attempt < max_attempts and not self.publish_status:
             attempt += 1
             try:
+                if page.is_closed():
+                    self.logger.error(f"{self.platform_name}发布页面已关闭，无法继续点击发布")
+                    break
                 # 步骤1: 查找并点击发布按钮
-                publish_button = await self.find_button(self.publish_button_selectors)
+                if self.platform_name == "xiaohongshu":
+                    await page.evaluate(
+                        "window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'instant'})"
+                    )
+                    await page.wait_for_timeout(300)
+                    await self._log_xiaohongshu_publish_candidates(page)
+                publish_button = (
+                    await self._find_xiaohongshu_publish_button(bottom_only=True)
+                    if self.platform_name == "xiaohongshu"
+                    else await self.find_button(self.publish_button_selectors)
+                )
                 if publish_button:
+                    if self.platform_name == "xiaohongshu":
+                        try:
+                            html = await publish_button.evaluate("element => element.outerHTML")
+                            self.logger.info(f"xiaohongshu发布按钮DOM: {html[:1200]}")
+                        except Exception:
+                            pass
                     if not await publish_button.is_enabled():
                         self.logger.error(f"{self.platform_name}发布按钮当前不可用，页面仍在等待必填项或平台处理")
                         await asyncio.sleep(min(attempt * 2, self.max_retry_delay))
                         continue
                     publish_origin_url = page.url
-                    await publish_button.click()
+                    click_error = None
+                    try:
+                        # 发布按钮可能会立即触发页面跳转。禁止 click 等待导航，
+                        # 让后面的确认逻辑独立判断提交结果，避免“已点击但被判失败”。
+                        await publish_button.click(no_wait_after=True, timeout=10000)
+                    except Exception as exc:
+                        click_error = exc
+                        self.logger.warning(f"{self.platform_name}发布按钮点击后页面发生变化: {exc}")
                     await asyncio.sleep(self.check_interval)
                     # tiktok平台发布时要检查并处理版权检查弹窗
                     if self.platform_name == "tiktok":
@@ -985,8 +1222,15 @@ class BaseFileUploader(object):
                     if await self.wait_for_publish_confirmation(page, publish_origin_url):
                         self.publish_status = True
                         break
-                    self.logger.error(f"{self.platform_name}未确认本次作品已提交，保持任务失败")
-                    break
+                    if click_error:
+                        self.logger.warning(f"{self.platform_name}点击后仍未确认作品提交，准备重试")
+                    else:
+                        self.logger.warning(f"{self.platform_name}未确认本次作品已提交，准备重试")
+                    if self.platform_name == "xiaohongshu":
+                        # 校验已跳转到管理页/首页后不要重新点击首页的“发布视频”入口。
+                        break
+                    await asyncio.sleep(min(attempt * 2, self.max_retry_delay))
+                    continue
 
 
                 self.logger.warning(f"{self.platform_name}未找到发布按钮，等待页面稳定后重试")
@@ -1015,8 +1259,13 @@ class BaseFileUploader(object):
         )
         logged_at = 0
         changed_at = None
+        xiaohongshu_checked = False
+        confirmation_started_at = asyncio.get_running_loop().time()
         while asyncio.get_running_loop().time() < deadline:
             try:
+                if page.is_closed():
+                    self.logger.warning(f"{self.platform_name}发布页面已关闭，无法读取发布结果")
+                    return False
                 current_url = page.url
                 body = await self._body_text(page)
                 feedback = await self._visible_feedback_text()
@@ -1041,11 +1290,30 @@ class BaseFileUploader(object):
                             if any(status in card_text for status in accepted_statuses):
                                 self.logger.info(f"{self.platform_name}内容管理页已确认本次作品状态")
                                 return True
+                if (
+                    self.platform_name == "xiaohongshu"
+                    and not xiaohongshu_checked
+                    and asyncio.get_running_loop().time() - confirmation_started_at >= 15
+                ):
+                    xiaohongshu_checked = True
+                    if await self._verify_xiaohongshu_publish(page):
+                        return True
+                    self.logger.error(f"{self.platform_name}内容管理页未找到本次作品标题")
+                    return False
                 if origin_url and current_url != origin_url:
-                    changed_at = changed_at or asyncio.get_running_loop().time()
+                    if self.platform_name == "xiaohongshu":
+                        # 小红书页面跳转可能只是编辑器刷新，必须通过内容管理页校验。
+                        changed_at = None
+                    else:
+                        changed_at = changed_at or asyncio.get_running_loop().time()
                     # URL 跳转不是充分条件，但页面没有活动上传状态并稳定一段时间后，
                     # 可作为没有平台专用成功提示时的通用兜底。
-                    if not await self._upload_still_active(page, body) and asyncio.get_running_loop().time() - changed_at >= self.publish_page_settle_seconds:
+                    if (
+                        self.platform_name != "xiaohongshu"
+                        and changed_at
+                        and not await self._upload_still_active(page, body)
+                        and asyncio.get_running_loop().time() - changed_at >= self.publish_page_settle_seconds
+                    ):
                         self.logger.info(f"{self.platform_name}提交页面已稳定")
                         return True
                 now = asyncio.get_running_loop().time()
@@ -1054,6 +1322,8 @@ class BaseFileUploader(object):
                     logged_at = now
             except Exception as exc:
                 self.logger.debug(f"读取{self.platform_name}发布状态失败: {exc}")
+                if page.is_closed():
+                    return False
             await page.wait_for_timeout(1000)
         self.logger.error(f"等待{self.platform_name}作品发布确认超时")
         return False
