@@ -29,6 +29,8 @@ app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 TOKEN = os.environ.get('XFC_MEDIA_EXECUTOR_TOKEN', '')
 LOGIN_JOBS = {}
 PLATFORM_ALIASES = {'wechat_channels': 'tencent'}
+BROWSER_WIDTH = max(1280, int(os.environ.get('XFC_MEDIA_BROWSER_WIDTH', '1440')))
+BROWSER_HEIGHT = max(720, int(os.environ.get('XFC_MEDIA_BROWSER_HEIGHT', '900')))
 
 
 def authorized():
@@ -109,11 +111,11 @@ async def login_browser(job_id, platform, cookie_path):
                     '--disable-dev-shm-usage',
                     '--disable-gpu',
                     '--ignore-certificate-errors',
-                    '--start-maximized',
+                    f'--window-size={BROWSER_WIDTH},{BROWSER_HEIGHT}',
                     '--disable-blink-features=AutomationControlled',
                 ],
             )
-            context = await browser.new_context()
+            context = await browser.new_context(viewport={'width': BROWSER_WIDTH, 'height': BROWSER_HEIGHT})
             context = await set_init_script(context)
             page = await context.new_page()
             await page.goto(config['login_url'], wait_until='domcontentloaded', timeout=60000)
@@ -121,6 +123,14 @@ async def login_browser(job_id, platform, cookie_path):
             while time.time() < deadline:
                 current_url = page.url.lower()
                 if 'login' not in current_url:
+                    if platform_key(platform) == 'kuaishou':
+                        # 快手登录页可能跳到公共介绍页，只有创作者页不再显示“立即登录”才算真正登录。
+                        await page.goto(config['personal_url'], wait_until='domcontentloaded', timeout=60000)
+                        await page.wait_for_timeout(3000)
+                        body = (await page.locator('body').inner_text()).lower()
+                        if any(marker in body for marker in ('立即登录', '登录/注册', '扫码登录')):
+                            await asyncio.sleep(1.5)
+                            continue
                     Path(cookie_path).parent.mkdir(parents=True, exist_ok=True)
                     await context.storage_state(path=cookie_path)
                     LOGIN_JOBS[job_id].update({'status': 'success', 'cookie_path': cookie_path, 'message': '登录态已保存'})

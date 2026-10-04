@@ -165,8 +165,8 @@ class BaseFileUploader(object):
             '--disable-gpu',
             # 忽略证书错误，允许加载不安全的页面
             '--ignore-certificate-errors',
-            # 启动时最大化窗口，避免元素遮挡
-            '--start-maximized',
+            # 固定桌面窗口尺寸，保证创作者后台的上传控件不会被窄视口折叠。
+            '--window-size=1440,900',
             # 禁用自动化控制特征，防止被检测为自动化工具
             '--disable-blink-features=AutomationControlled'
         ]
@@ -217,13 +217,17 @@ class BaseFileUploader(object):
             # step1.创建浏览器实例
             browser = await playwright.chromium.launch(
                 headless=self.headless, 
-                executable_path=self.local_executable_path
+                executable_path=self.local_executable_path,
+                args=self.browser_args,
             )
             self.logger.info(f"step1: {self.platform_name}浏览器实例创建成功")
 
 
             # step2.创建上下文并加载cookie
-            context = await browser.new_context(storage_state=f"{self.account_file}")
+            context = await browser.new_context(
+                storage_state=f"{self.account_file}",
+                viewport={"width": 1440, "height": 900},
+            )
             context = await set_init_script(context)
             self.logger.info(f"step2: {self.platform_name}浏览器上下文创建成功")
 
