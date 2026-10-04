@@ -11715,7 +11715,7 @@ function createLucideIcon(iconDataOrName, iconNode = [], aliases = []) {
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$42 = {
+var __iconData$52 = {
 	name: "activity",
 	size: 24,
 	node: [["path", {
@@ -11723,8 +11723,8 @@ var __iconData$42 = {
 		key: "169zse"
 	}]]
 };
-__iconData$42.node;
-var Activity = createLucideIcon(__iconData$42);
+__iconData$52.node;
+var Activity = createLucideIcon(__iconData$52);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/archive-restore.mjs
 /**
@@ -11733,7 +11733,7 @@ var Activity = createLucideIcon(__iconData$42);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$41 = {
+var __iconData$51 = {
 	name: "archive-restore",
 	size: 24,
 	node: [
@@ -11763,8 +11763,8 @@ var __iconData$41 = {
 		}]
 	]
 };
-__iconData$41.node;
-var ArchiveRestore = createLucideIcon(__iconData$41);
+__iconData$51.node;
+var ArchiveRestore = createLucideIcon(__iconData$51);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/archive.mjs
 /**
@@ -11773,7 +11773,7 @@ var ArchiveRestore = createLucideIcon(__iconData$41);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$40 = {
+var __iconData$50 = {
 	name: "archive",
 	size: 24,
 	node: [
@@ -11795,8 +11795,8 @@ var __iconData$40 = {
 		}]
 	]
 };
-__iconData$40.node;
-var Archive = createLucideIcon(__iconData$40);
+__iconData$50.node;
+var Archive = createLucideIcon(__iconData$50);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/arrow-right.mjs
 /**
@@ -11805,7 +11805,7 @@ var Archive = createLucideIcon(__iconData$40);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$39 = {
+var __iconData$49 = {
 	name: "arrow-right",
 	size: 24,
 	node: [["path", {
@@ -11816,8 +11816,8 @@ var __iconData$39 = {
 		key: "xquz4c"
 	}]]
 };
-__iconData$39.node;
-var ArrowRight = createLucideIcon(__iconData$39);
+__iconData$49.node;
+var ArrowRight = createLucideIcon(__iconData$49);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/arrow-up-right.mjs
 /**
@@ -11826,7 +11826,7 @@ var ArrowRight = createLucideIcon(__iconData$39);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$38 = {
+var __iconData$48 = {
 	name: "arrow-up-right",
 	size: 24,
 	node: [["path", {
@@ -11837,8 +11837,50 @@ var __iconData$38 = {
 		key: "1vkiza"
 	}]]
 };
-__iconData$38.node;
-var ArrowUpRight = createLucideIcon(__iconData$38);
+__iconData$48.node;
+var ArrowUpRight = createLucideIcon(__iconData$48);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/calendar-clock.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$47 = {
+	name: "calendar-clock",
+	size: 24,
+	node: [
+		["path", {
+			d: "M16 14v2.2l1.6 1",
+			key: "fo4ql5"
+		}],
+		["path", {
+			d: "M16 2v3",
+			key: "otl347"
+		}],
+		["path", {
+			d: "M21 7.338V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h2.338",
+			key: "7hb8p4"
+		}],
+		["path", {
+			d: "M3 9h5.859",
+			key: "numkqi"
+		}],
+		["path", {
+			d: "M8 2v3",
+			key: "1ioesn"
+		}],
+		["circle", {
+			cx: "16",
+			cy: "16",
+			r: "6",
+			key: "qoo3c4"
+		}]
+	]
+};
+__iconData$47.node;
+var CalendarClock = createLucideIcon(__iconData$47);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/calendar-days.mjs
 /**
@@ -11847,7 +11889,7 @@ var ArrowUpRight = createLucideIcon(__iconData$38);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$37 = {
+var __iconData$46 = {
 	name: "calendar-days",
 	size: 24,
 	node: [
@@ -11897,8 +11939,8 @@ var __iconData$37 = {
 		}]
 	]
 };
-__iconData$37.node;
-var CalendarDays = createLucideIcon(__iconData$37);
+__iconData$46.node;
+var CalendarDays = createLucideIcon(__iconData$46);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/check.mjs
 /**
@@ -11907,7 +11949,7 @@ var CalendarDays = createLucideIcon(__iconData$37);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$36 = {
+var __iconData$45 = {
 	name: "check",
 	size: 24,
 	node: [["path", {
@@ -11915,8 +11957,8 @@ var __iconData$36 = {
 		key: "1gmf2c"
 	}]]
 };
-__iconData$36.node;
-var Check = createLucideIcon(__iconData$36);
+__iconData$45.node;
+var Check = createLucideIcon(__iconData$45);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/chevron-down.mjs
 /**
@@ -11925,7 +11967,7 @@ var Check = createLucideIcon(__iconData$36);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$35 = {
+var __iconData$44 = {
 	name: "chevron-down",
 	size: 24,
 	node: [["path", {
@@ -11933,8 +11975,8 @@ var __iconData$35 = {
 		key: "qrunsl"
 	}]]
 };
-__iconData$35.node;
-var ChevronDown = createLucideIcon(__iconData$35);
+__iconData$44.node;
+var ChevronDown = createLucideIcon(__iconData$44);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/chevron-right.mjs
 /**
@@ -11943,7 +11985,7 @@ var ChevronDown = createLucideIcon(__iconData$35);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$34 = {
+var __iconData$43 = {
 	name: "chevron-right",
 	size: 24,
 	node: [["path", {
@@ -11951,8 +11993,8 @@ var __iconData$34 = {
 		key: "mthhwq"
 	}]]
 };
-__iconData$34.node;
-var ChevronRight = createLucideIcon(__iconData$34);
+__iconData$43.node;
+var ChevronRight = createLucideIcon(__iconData$43);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/circle-alert.mjs
 /**
@@ -11961,7 +12003,7 @@ var ChevronRight = createLucideIcon(__iconData$34);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$33 = {
+var __iconData$42 = {
 	name: "circle-alert",
 	size: 24,
 	node: [
@@ -11988,8 +12030,8 @@ var __iconData$33 = {
 	],
 	aliases: ["alert-circle"]
 };
-__iconData$33.node;
-var CircleAlert = createLucideIcon(__iconData$33);
+__iconData$42.node;
+var CircleAlert = createLucideIcon(__iconData$42);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/circle-dollar-sign.mjs
 /**
@@ -11998,7 +12040,7 @@ var CircleAlert = createLucideIcon(__iconData$33);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$32 = {
+var __iconData$41 = {
 	name: "circle-dollar-sign",
 	size: 24,
 	node: [
@@ -12018,8 +12060,8 @@ var __iconData$32 = {
 		}]
 	]
 };
-__iconData$32.node;
-var CircleDollarSign = createLucideIcon(__iconData$32);
+__iconData$41.node;
+var CircleDollarSign = createLucideIcon(__iconData$41);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/clipboard-list.mjs
 /**
@@ -12028,7 +12070,7 @@ var CircleDollarSign = createLucideIcon(__iconData$32);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$31 = {
+var __iconData$40 = {
 	name: "clipboard-list",
 	size: 24,
 	node: [
@@ -12063,8 +12105,8 @@ var __iconData$31 = {
 		}]
 	]
 };
-__iconData$31.node;
-var ClipboardList = createLucideIcon(__iconData$31);
+__iconData$40.node;
+var ClipboardList = createLucideIcon(__iconData$40);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/clock-3.mjs
 /**
@@ -12073,7 +12115,7 @@ var ClipboardList = createLucideIcon(__iconData$31);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$30 = {
+var __iconData$39 = {
 	name: "clock-3",
 	size: 24,
 	node: [["circle", {
@@ -12086,8 +12128,8 @@ var __iconData$30 = {
 		key: "135r8i"
 	}]]
 };
-__iconData$30.node;
-var Clock3 = createLucideIcon(__iconData$30);
+__iconData$39.node;
+var Clock3 = createLucideIcon(__iconData$39);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/command.mjs
 /**
@@ -12096,7 +12138,7 @@ var Clock3 = createLucideIcon(__iconData$30);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$29 = {
+var __iconData$38 = {
 	name: "command",
 	size: 24,
 	node: [["path", {
@@ -12104,8 +12146,8 @@ var __iconData$29 = {
 		key: "11bfej"
 	}]]
 };
-__iconData$29.node;
-var Command = createLucideIcon(__iconData$29);
+__iconData$38.node;
+var Command = createLucideIcon(__iconData$38);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/contact-round.mjs
 /**
@@ -12114,7 +12156,7 @@ var Command = createLucideIcon(__iconData$29);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$28 = {
+var __iconData$37 = {
 	name: "contact-round",
 	size: 24,
 	node: [
@@ -12147,8 +12189,8 @@ var __iconData$28 = {
 	],
 	aliases: ["contact-2"]
 };
-__iconData$28.node;
-var ContactRound = createLucideIcon(__iconData$28);
+__iconData$37.node;
+var ContactRound = createLucideIcon(__iconData$37);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/copy.mjs
 /**
@@ -12157,7 +12199,7 @@ var ContactRound = createLucideIcon(__iconData$28);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$27 = {
+var __iconData$36 = {
 	name: "copy",
 	size: 24,
 	node: [["rect", {
@@ -12173,8 +12215,8 @@ var __iconData$27 = {
 		key: "zix9uf"
 	}]]
 };
-__iconData$27.node;
-var Copy = createLucideIcon(__iconData$27);
+__iconData$36.node;
+var Copy = createLucideIcon(__iconData$36);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/credit-card.mjs
 /**
@@ -12183,7 +12225,7 @@ var Copy = createLucideIcon(__iconData$27);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$26 = {
+var __iconData$35 = {
 	name: "credit-card",
 	size: 24,
 	node: [
@@ -12208,8 +12250,8 @@ var __iconData$26 = {
 		}]
 	]
 };
-__iconData$26.node;
-var CreditCard = createLucideIcon(__iconData$26);
+__iconData$35.node;
+var CreditCard = createLucideIcon(__iconData$35);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/ellipsis.mjs
 /**
@@ -12218,7 +12260,7 @@ var CreditCard = createLucideIcon(__iconData$26);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$25 = {
+var __iconData$34 = {
 	name: "ellipsis",
 	size: 24,
 	node: [
@@ -12243,8 +12285,8 @@ var __iconData$25 = {
 	],
 	aliases: ["more-horizontal"]
 };
-__iconData$25.node;
-var Ellipsis = createLucideIcon(__iconData$25);
+__iconData$34.node;
+var Ellipsis = createLucideIcon(__iconData$34);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/eye.mjs
 /**
@@ -12253,7 +12295,7 @@ var Ellipsis = createLucideIcon(__iconData$25);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$24 = {
+var __iconData$33 = {
 	name: "eye",
 	size: 24,
 	node: [["path", {
@@ -12266,8 +12308,37 @@ var __iconData$24 = {
 		key: "1v7zrd"
 	}]]
 };
-__iconData$24.node;
-var Eye = createLucideIcon(__iconData$24);
+__iconData$33.node;
+var Eye = createLucideIcon(__iconData$33);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/file-play.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$32 = {
+	name: "file-play",
+	size: 24,
+	node: [
+		["path", {
+			d: "M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z",
+			key: "1oefj6"
+		}],
+		["path", {
+			d: "M14 2v5a1 1 0 0 0 1 1h5",
+			key: "wfsgrz"
+		}],
+		["path", {
+			d: "M15.033 13.44a.647.647 0 0 1 0 1.12l-4.065 2.352a.645.645 0 0 1-.968-.56v-4.704a.645.645 0 0 1 .967-.56z",
+			key: "1tzo1f"
+		}]
+	],
+	aliases: ["file-video"]
+};
+__iconData$32.node;
+var FilePlay = createLucideIcon(__iconData$32);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/file-text.mjs
 /**
@@ -12276,7 +12347,7 @@ var Eye = createLucideIcon(__iconData$24);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$23 = {
+var __iconData$31 = {
 	name: "file-text",
 	size: 24,
 	node: [
@@ -12302,8 +12373,26 @@ var __iconData$23 = {
 		}]
 	]
 };
-__iconData$23.node;
-var FileText = createLucideIcon(__iconData$23);
+__iconData$31.node;
+var FileText = createLucideIcon(__iconData$31);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/folder-open.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$30 = {
+	name: "folder-open",
+	size: 24,
+	node: [["path", {
+		d: "m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2",
+		key: "usdka0"
+	}]]
+};
+__iconData$30.node;
+var FolderOpen = createLucideIcon(__iconData$30);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/folder-plus.mjs
 /**
@@ -12312,7 +12401,7 @@ var FileText = createLucideIcon(__iconData$23);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$22 = {
+var __iconData$29 = {
 	name: "folder-plus",
 	size: 24,
 	node: [
@@ -12330,8 +12419,8 @@ var __iconData$22 = {
 		}]
 	]
 };
-__iconData$22.node;
-var FolderPlus = createLucideIcon(__iconData$22);
+__iconData$29.node;
+var FolderPlus = createLucideIcon(__iconData$29);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/gamepad-2.mjs
 /**
@@ -12340,7 +12429,7 @@ var FolderPlus = createLucideIcon(__iconData$22);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$21 = {
+var __iconData$28 = {
 	name: "gamepad-2",
 	size: 24,
 	node: [
@@ -12378,8 +12467,8 @@ var __iconData$21 = {
 		}]
 	]
 };
-__iconData$21.node;
-var Gamepad2 = createLucideIcon(__iconData$21);
+__iconData$28.node;
+var Gamepad2 = createLucideIcon(__iconData$28);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/layers.mjs
 /**
@@ -12388,7 +12477,7 @@ var Gamepad2 = createLucideIcon(__iconData$21);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$20 = {
+var __iconData$27 = {
 	name: "layers",
 	size: 24,
 	node: [
@@ -12407,8 +12496,8 @@ var __iconData$20 = {
 	],
 	aliases: ["layers-3"]
 };
-__iconData$20.node;
-var Layers = createLucideIcon(__iconData$20);
+__iconData$27.node;
+var Layers = createLucideIcon(__iconData$27);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/layout-dashboard.mjs
 /**
@@ -12417,7 +12506,7 @@ var Layers = createLucideIcon(__iconData$20);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$19 = {
+var __iconData$26 = {
 	name: "layout-dashboard",
 	size: 24,
 	node: [
@@ -12455,8 +12544,8 @@ var __iconData$19 = {
 		}]
 	]
 };
-__iconData$19.node;
-var LayoutDashboard = createLucideIcon(__iconData$19);
+__iconData$26.node;
+var LayoutDashboard = createLucideIcon(__iconData$26);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/list-filter.mjs
 /**
@@ -12465,7 +12554,7 @@ var LayoutDashboard = createLucideIcon(__iconData$19);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$18 = {
+var __iconData$25 = {
 	name: "list-filter",
 	size: 24,
 	node: [
@@ -12483,8 +12572,8 @@ var __iconData$18 = {
 		}]
 	]
 };
-__iconData$18.node;
-var ListFilter = createLucideIcon(__iconData$18);
+__iconData$25.node;
+var ListFilter = createLucideIcon(__iconData$25);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/list-todo.mjs
 /**
@@ -12493,7 +12582,7 @@ var ListFilter = createLucideIcon(__iconData$18);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$17 = {
+var __iconData$24 = {
 	name: "list-todo",
 	size: 24,
 	node: [
@@ -12523,8 +12612,8 @@ var __iconData$17 = {
 		}]
 	]
 };
-__iconData$17.node;
-var ListTodo = createLucideIcon(__iconData$17);
+__iconData$24.node;
+var ListTodo = createLucideIcon(__iconData$24);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/lock-keyhole.mjs
 /**
@@ -12533,7 +12622,7 @@ var ListTodo = createLucideIcon(__iconData$17);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$16 = {
+var __iconData$23 = {
 	name: "lock-keyhole",
 	size: 24,
 	node: [
@@ -12557,8 +12646,8 @@ var __iconData$16 = {
 		}]
 	]
 };
-__iconData$16.node;
-var LockKeyhole = createLucideIcon(__iconData$16);
+__iconData$23.node;
+var LockKeyhole = createLucideIcon(__iconData$23);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/log-out.mjs
 /**
@@ -12567,7 +12656,7 @@ var LockKeyhole = createLucideIcon(__iconData$16);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$15 = {
+var __iconData$22 = {
 	name: "log-out",
 	size: 24,
 	node: [
@@ -12585,8 +12674,8 @@ var __iconData$15 = {
 		}]
 	]
 };
-__iconData$15.node;
-var LogOut = createLucideIcon(__iconData$15);
+__iconData$22.node;
+var LogOut = createLucideIcon(__iconData$22);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/moon.mjs
 /**
@@ -12595,7 +12684,7 @@ var LogOut = createLucideIcon(__iconData$15);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$14 = {
+var __iconData$21 = {
 	name: "moon",
 	size: 24,
 	node: [["path", {
@@ -12603,8 +12692,8 @@ var __iconData$14 = {
 		key: "kfwtm"
 	}]]
 };
-__iconData$14.node;
-var Moon = createLucideIcon(__iconData$14);
+__iconData$21.node;
+var Moon = createLucideIcon(__iconData$21);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/pen-line.mjs
 /**
@@ -12613,7 +12702,7 @@ var Moon = createLucideIcon(__iconData$14);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$13 = {
+var __iconData$20 = {
 	name: "pen-line",
 	size: 24,
 	node: [["path", {
@@ -12625,8 +12714,8 @@ var __iconData$13 = {
 	}]],
 	aliases: ["edit-3"]
 };
-__iconData$13.node;
-var PenLine = createLucideIcon(__iconData$13);
+__iconData$20.node;
+var PenLine = createLucideIcon(__iconData$20);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/pencil.mjs
 /**
@@ -12635,7 +12724,7 @@ var PenLine = createLucideIcon(__iconData$13);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$12 = {
+var __iconData$19 = {
 	name: "pencil",
 	size: 24,
 	node: [["path", {
@@ -12646,8 +12735,8 @@ var __iconData$12 = {
 		key: "1mk7zo"
 	}]]
 };
-__iconData$12.node;
-var Pencil = createLucideIcon(__iconData$12);
+__iconData$19.node;
+var Pencil = createLucideIcon(__iconData$19);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/plus.mjs
 /**
@@ -12656,7 +12745,7 @@ var Pencil = createLucideIcon(__iconData$12);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$11 = {
+var __iconData$18 = {
 	name: "plus",
 	size: 24,
 	node: [["path", {
@@ -12667,8 +12756,46 @@ var __iconData$11 = {
 		key: "s699le"
 	}]]
 };
-__iconData$11.node;
-var Plus = createLucideIcon(__iconData$11);
+__iconData$18.node;
+var Plus = createLucideIcon(__iconData$18);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/radio.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$17 = {
+	name: "radio",
+	size: 24,
+	node: [
+		["path", {
+			d: "M16.247 7.761a6 6 0 0 1 0 8.478",
+			key: "1fwjs5"
+		}],
+		["path", {
+			d: "M19.075 4.933a10 10 0 0 1 0 14.134",
+			key: "ehdyv1"
+		}],
+		["path", {
+			d: "M4.925 19.067a10 10 0 0 1 0-14.134",
+			key: "1q22gi"
+		}],
+		["path", {
+			d: "M7.753 16.239a6 6 0 0 1 0-8.478",
+			key: "r2q7qm"
+		}],
+		["circle", {
+			cx: "12",
+			cy: "12",
+			r: "2",
+			key: "1c9p78"
+		}]
+	]
+};
+__iconData$17.node;
+var Radio = createLucideIcon(__iconData$17);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/refresh-cw.mjs
 /**
@@ -12677,7 +12804,7 @@ var Plus = createLucideIcon(__iconData$11);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$10 = {
+var __iconData$16 = {
 	name: "refresh-cw",
 	size: 24,
 	node: [
@@ -12699,8 +12826,29 @@ var __iconData$10 = {
 		}]
 	]
 };
-__iconData$10.node;
-var RefreshCw = createLucideIcon(__iconData$10);
+__iconData$16.node;
+var RefreshCw = createLucideIcon(__iconData$16);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/rotate-ccw.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$15 = {
+	name: "rotate-ccw",
+	size: 24,
+	node: [["path", {
+		d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8",
+		key: "1357e3"
+	}], ["path", {
+		d: "M3 3v5h5",
+		key: "1xhq8a"
+	}]]
+};
+__iconData$15.node;
+var RotateCcw = createLucideIcon(__iconData$15);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/search.mjs
 /**
@@ -12709,7 +12857,7 @@ var RefreshCw = createLucideIcon(__iconData$10);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$9 = {
+var __iconData$14 = {
 	name: "search",
 	size: 24,
 	node: [["path", {
@@ -12722,8 +12870,29 @@ var __iconData$9 = {
 		key: "4ej97u"
 	}]]
 };
-__iconData$9.node;
-var Search = createLucideIcon(__iconData$9);
+__iconData$14.node;
+var Search = createLucideIcon(__iconData$14);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/send.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$13 = {
+	name: "send",
+	size: 24,
+	node: [["path", {
+		d: "M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z",
+		key: "1ffxy3"
+	}], ["path", {
+		d: "m21.854 2.147-10.94 10.939",
+		key: "12cjpa"
+	}]]
+};
+__iconData$13.node;
+var Send = createLucideIcon(__iconData$13);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/settings-2.mjs
 /**
@@ -12732,7 +12901,7 @@ var Search = createLucideIcon(__iconData$9);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$8 = {
+var __iconData$12 = {
 	name: "settings-2",
 	size: 24,
 	node: [
@@ -12758,8 +12927,8 @@ var __iconData$8 = {
 		}]
 	]
 };
-__iconData$8.node;
-var Settings2 = createLucideIcon(__iconData$8);
+__iconData$12.node;
+var Settings2 = createLucideIcon(__iconData$12);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/shield-check.mjs
 /**
@@ -12768,7 +12937,7 @@ var Settings2 = createLucideIcon(__iconData$8);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$7 = {
+var __iconData$11 = {
 	name: "shield-check",
 	size: 24,
 	node: [["path", {
@@ -12779,8 +12948,8 @@ var __iconData$7 = {
 		key: "dzmm74"
 	}]]
 };
-__iconData$7.node;
-var ShieldCheck = createLucideIcon(__iconData$7);
+__iconData$11.node;
+var ShieldCheck = createLucideIcon(__iconData$11);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/sliders-horizontal.mjs
 /**
@@ -12789,7 +12958,7 @@ var ShieldCheck = createLucideIcon(__iconData$7);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$6 = {
+var __iconData$10 = {
 	name: "sliders-horizontal",
 	size: 24,
 	node: [
@@ -12831,8 +13000,8 @@ var __iconData$6 = {
 		}]
 	]
 };
-__iconData$6.node;
-var SlidersHorizontal = createLucideIcon(__iconData$6);
+__iconData$10.node;
+var SlidersHorizontal = createLucideIcon(__iconData$10);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/sun.mjs
 /**
@@ -12841,7 +13010,7 @@ var SlidersHorizontal = createLucideIcon(__iconData$6);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$5 = {
+var __iconData$9 = {
 	name: "sun",
 	size: 24,
 	node: [
@@ -12885,8 +13054,8 @@ var __iconData$5 = {
 		}]
 	]
 };
-__iconData$5.node;
-var Sun = createLucideIcon(__iconData$5);
+__iconData$9.node;
+var Sun = createLucideIcon(__iconData$9);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/tags.mjs
 /**
@@ -12895,7 +13064,7 @@ var Sun = createLucideIcon(__iconData$5);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$4 = {
+var __iconData$8 = {
 	name: "tags",
 	size: 24,
 	node: [
@@ -12916,8 +13085,8 @@ var __iconData$4 = {
 		}]
 	]
 };
-__iconData$4.node;
-var Tags = createLucideIcon(__iconData$4);
+__iconData$8.node;
+var Tags = createLucideIcon(__iconData$8);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/trash.mjs
 /**
@@ -12926,7 +13095,7 @@ var Tags = createLucideIcon(__iconData$4);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$3 = {
+var __iconData$7 = {
 	name: "trash",
 	size: 24,
 	node: [
@@ -12953,8 +13122,8 @@ var __iconData$3 = {
 	],
 	aliases: ["trash-2"]
 };
-__iconData$3.node;
-var Trash = createLucideIcon(__iconData$3);
+__iconData$7.node;
+var Trash = createLucideIcon(__iconData$7);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/trending-up.mjs
 /**
@@ -12963,7 +13132,7 @@ var Trash = createLucideIcon(__iconData$3);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$2 = {
+var __iconData$6 = {
 	name: "trending-up",
 	size: 24,
 	node: [["path", {
@@ -12974,8 +13143,89 @@ var __iconData$2 = {
 		key: "1t1m79"
 	}]]
 };
-__iconData$2.node;
-var TrendingUp = createLucideIcon(__iconData$2);
+__iconData$6.node;
+var TrendingUp = createLucideIcon(__iconData$6);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/triangle-alert.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$5 = {
+	name: "triangle-alert",
+	size: 24,
+	node: [
+		["path", {
+			d: "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3",
+			key: "wmoenq"
+		}],
+		["path", {
+			d: "M12 9v4",
+			key: "juzpu7"
+		}],
+		["path", {
+			d: "M12 17h.01",
+			key: "p32p05"
+		}]
+	],
+	aliases: ["alert-triangle"]
+};
+__iconData$5.node;
+var TriangleAlert = createLucideIcon(__iconData$5);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/upload.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$4 = {
+	name: "upload",
+	size: 24,
+	node: [
+		["path", {
+			d: "M12 3v12",
+			key: "1x0j5s"
+		}],
+		["path", {
+			d: "m17 8-5-5-5 5",
+			key: "7q97r8"
+		}],
+		["path", {
+			d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4",
+			key: "ih7n3h"
+		}]
+	]
+};
+__iconData$4.node;
+var Upload = createLucideIcon(__iconData$4);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/user-round.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$3 = {
+	name: "user-round",
+	size: 24,
+	node: [["circle", {
+		cx: "12",
+		cy: "8",
+		r: "5",
+		key: "1hypcn"
+	}], ["path", {
+		d: "M20 21a8 8 0 0 0-16 0",
+		key: "rfgkzh"
+	}]],
+	aliases: ["user-2"]
+};
+__iconData$3.node;
+var UserRound = createLucideIcon(__iconData$3);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/users.mjs
 /**
@@ -12984,7 +13234,7 @@ var TrendingUp = createLucideIcon(__iconData$2);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$1 = {
+var __iconData$2 = {
 	name: "users",
 	size: 24,
 	node: [
@@ -13008,8 +13258,8 @@ var __iconData$1 = {
 		}]
 	]
 };
-__iconData$1.node;
-var Users = createLucideIcon(__iconData$1);
+__iconData$2.node;
+var Users = createLucideIcon(__iconData$2);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/wallet-cards.mjs
 /**
@@ -13018,7 +13268,7 @@ var Users = createLucideIcon(__iconData$1);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData = {
+var __iconData$1 = {
 	name: "wallet-cards",
 	size: 24,
 	node: [
@@ -13040,8 +13290,29 @@ var __iconData = {
 		}]
 	]
 };
+__iconData$1.node;
+var WalletCards = createLucideIcon(__iconData$1);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/x.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData = {
+	name: "x",
+	size: 24,
+	node: [["path", {
+		d: "M18 6 6 18",
+		key: "1bl5f8"
+	}], ["path", {
+		d: "m6 6 12 12",
+		key: "d8bk6v"
+	}]]
+};
 __iconData.node;
-var WalletCards = createLucideIcon(__iconData);
+var X = createLucideIcon(__iconData);
 //#endregion
 //#region shared/domain.js
 var import_client = require_client();
@@ -20528,7 +20799,7 @@ var import_jsx_runtime = (/* @__PURE__ */ __commonJSMin(((exports, module) => {
 	module.exports = require_react_jsx_runtime_production();
 })))();
 var STATUS_LABEL$1 = ORDER_STATUS_LABEL;
-var iconProps$7 = (size = 16) => ({
+var iconProps$8 = (size = 16) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -20624,7 +20895,7 @@ function EmptyOnboarding({ navigate }) {
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "react-dashboard-empty__icon",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$7(21) })
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$8(21) })
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "帐桌支好了，先录第一批价格" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "这个后台不预置任何数据。按下面顺序录入，十分钟就能接手第一单。" }),
@@ -20641,7 +20912,7 @@ function EmptyOnboarding({ navigate }) {
 					className: "refactor-button refactor-button--primary",
 					type: "button",
 					onClick: () => navigate("/games"),
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$7(15) }), "先加一个游戏"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$8(15) }), "先加一个游戏"]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 					className: "refactor-button",
 					type: "button",
@@ -20706,21 +20977,21 @@ function OrderRow$1({ order, navigate, onReload }) {
 						type: "button",
 						title: "记进度",
 						onClick: () => progressDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$7(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$8(14) })
 					}),
 					due > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "记收款",
 						onClick: () => paymentDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$7(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$8(14) })
 					}) : null,
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "看详情",
 						onClick: () => navigate(`/orders/${order.id}`),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$7(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$8(14) })
 					})
 				]
 			})
@@ -20748,14 +21019,14 @@ function OpenOrders({ orders, count, navigate, onReload }) {
 			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "react-panel-empty",
 				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$7(19) }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$8(19) }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "现在手上没有在做的单" }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "开一单试试，价格会在下单时冻结。" }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 						className: "refactor-button",
 						type: "button",
 						onClick: () => navigate("/orders/new"),
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$7(14) }), "开一张新单"]
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$8(14) }), "开一张新单"]
 					})
 				]
 			}),
@@ -20765,7 +21036,7 @@ function OpenOrders({ orders, count, navigate, onReload }) {
 					className: "refactor-button",
 					type: "button",
 					onClick: () => navigate("/orders?status=open"),
-					children: ["看全部在做的单 ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$7(14) })]
+					children: ["看全部在做的单 ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$8(14) })]
 				})
 			}) : null
 		]
@@ -20818,7 +21089,7 @@ function DashboardSide({ data, navigate, onReload }) {
 						type: "button",
 						title: "记收款",
 						onClick: () => paymentDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CreditCard, { ...iconProps$7(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CreditCard, { ...iconProps$8(14) })
 					})] })]
 				}, order.id)
 			}),
@@ -20856,7 +21127,7 @@ function DashboardSide({ data, navigate, onReload }) {
 								toastErr(err);
 							}
 						},
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$7(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$8(14) })
 					})] })]
 				}, payment.id)
 			})
@@ -20953,7 +21224,7 @@ var SORTS = [
 	}
 ];
 var STATUS_LABEL = ORDER_STATUS_LABEL;
-var iconProps$6 = (size = 15) => ({
+var iconProps$7 = (size = 15) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -21084,21 +21355,21 @@ function OrderRow({ order, navigate, onReload }) {
 						type: "button",
 						title: "记进度",
 						onClick: () => progressDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$6(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$7(14) })
 					}),
 					due > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "记收款",
 						onClick: () => paymentDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$6(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$7(14) })
 					}) : null,
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "看详情",
 						onClick: () => navigate(`/orders/${order.id}`),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$6(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$7(14) })
 					})
 				]
 			})
@@ -21111,14 +21382,14 @@ function EmptyOrders({ search, status, onNew }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "orders-empty",
 		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListFilter, { ...iconProps$6(21) }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListFilter, { ...iconProps$7(21) }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: title }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: body }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 				className: "refactor-button refactor-button--primary",
 				type: "button",
 				onClick: onNew,
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$6(15) }), "开新单"]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$7(15) }), "开新单"]
 			})
 		]
 	});
@@ -21206,7 +21477,7 @@ function OrdersPage({ route, navigate, onNew, onReload, reloadKey }) {
 					className: "refactor-button refactor-button--primary",
 					type: "button",
 					onClick: onNew,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$6(15) }), "开新单"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$7(15) }), "开新单"]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
@@ -21241,7 +21512,7 @@ function OrdersPage({ route, navigate, onNew, onReload, reloadKey }) {
 						title: "取消客户筛选",
 						onClick: () => update({ customerId: "" }),
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Users, { ...iconProps$6(13) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Users, { ...iconProps$7(13) }),
 							"只看「",
 							customer?.name || "这个客户",
 							"」",
@@ -21265,7 +21536,7 @@ function OrdersPage({ route, navigate, onNew, onReload, reloadKey }) {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 						className: "orders-search",
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$6(15) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$7(15) }),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 								type: "search",
 								value: search,
@@ -21284,7 +21555,7 @@ function OrdersPage({ route, navigate, onNew, onReload, reloadKey }) {
 			}),
 			queryFilters.status === "daily_done" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "orders-note",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$6(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "这些是今天标了「今日已完成」的单，过了凌晨 4 点会自动回到「在做的」。点进订单可以撤销。" })]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$7(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "这些是今天标了「今日已完成」的单，过了凌晨 4 点会自动回到「在做的」。点进订单可以撤销。" })]
 			}) : null,
 			error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "refactor-alert",
@@ -21344,7 +21615,7 @@ var FILTERS = [
 		label: "回头客"
 	}
 ];
-var iconProps$5 = (size = 16) => ({
+var iconProps$6 = (size = 16) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -21418,7 +21689,7 @@ function CustomerRow({ customer, navigate }) {
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "customers-row__credentials",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$5(14) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: customer.credential_count || 0 })]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$6(14) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: customer.credential_count || 0 })]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 				className: "react-mini-button customers-row__open",
@@ -21428,7 +21699,7 @@ function CustomerRow({ customer, navigate }) {
 					event.stopPropagation();
 					navigate(`/customers/${customer.id}`);
 				},
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$5(15) })
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$6(15) })
 			})
 		]
 	});
@@ -21437,14 +21708,14 @@ function EmptyCustomers({ filtered, onNew }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "customers-empty",
 		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ContactRound, { ...iconProps$5(22) }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ContactRound, { ...iconProps$6(22) }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: filtered ? "没有符合条件的客户" : "还没有客户" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: filtered ? "换个关键词试试，或者清空筛选。" : "建立客户档案后，可以直接查看订单、收款和登录凭证。" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 				className: "refactor-button refactor-button--primary",
 				type: "button",
 				onClick: onNew,
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$5(15) }), "建第一个客户"]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$6(15) }), "建第一个客户"]
 			})
 		]
 	});
@@ -21512,7 +21783,7 @@ function CustomersPage({ route, navigate, onNew, reloadKey }) {
 					className: "refactor-button refactor-button--primary",
 					type: "button",
 					onClick: onNew,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$5(15) }), "新建客户"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$6(15) }), "新建客户"]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
@@ -21543,7 +21814,7 @@ function CustomersPage({ route, navigate, onNew, reloadKey }) {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 						className: "customers-search",
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$5(15) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$6(15) }),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 								type: "search",
 								value: search,
@@ -21600,7 +21871,7 @@ function CustomersPage({ route, navigate, onNew, reloadKey }) {
 }
 //#endregion
 //#region client/games.jsx
-var iconProps$4 = (size = 16) => ({
+var iconProps$5 = (size = 16) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -21679,21 +21950,21 @@ function GameRow({ game, navigate, onEdit, onToggle, onDelete }) {
 						type: "button",
 						title: "编辑游戏",
 						onClick: () => onEdit(game),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$4(15) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$5(15) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: game.status === "active" ? "归档游戏" : "恢复上架",
 						onClick: () => onToggle(game),
-						children: game.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$4(15) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps$4(15) })
+						children: game.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$5(15) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps$5(15) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button games-delete",
 						type: "button",
 						title: "彻底删除",
 						onClick: () => onDelete(game),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$4(15) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$5(15) })
 					})
 				]
 			})
@@ -21704,14 +21975,14 @@ function EmptyGames({ filtered, onNew }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "games-empty",
 		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gamepad2, { ...iconProps$4(23) }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gamepad2, { ...iconProps$5(23) }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: filtered ? "没有符合条件的游戏" : "还没有加游戏" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: filtered ? "换个关键词试试，或者清空筛选。" : "先添加正在代肝的游戏，区服和货币也可以一起设置。" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 				className: "refactor-button refactor-button--primary",
 				type: "button",
 				onClick: onNew,
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$4(15) }), "新建游戏"]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$5(15) }), "新建游戏"]
 			})
 		]
 	});
@@ -21818,7 +22089,7 @@ function GamesPage({ route, navigate, onNew, onReload, reloadKey }) {
 					className: "refactor-button refactor-button--primary",
 					type: "button",
 					onClick: onNew,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$4(15) }), "新建游戏"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$5(15) }), "新建游戏"]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
@@ -21860,7 +22131,7 @@ function GamesPage({ route, navigate, onNew, onReload, reloadKey }) {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 						className: "games-search",
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$4(15) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$5(15) }),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 								type: "search",
 								value: search,
@@ -21921,7 +22192,7 @@ function GamesPage({ route, navigate, onNew, onReload, reloadKey }) {
 }
 //#endregion
 //#region client/price.jsx
-var iconProps$3 = (size = 15) => ({
+var iconProps$4 = (size = 15) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -22026,35 +22297,35 @@ function ServiceRow({ service, currency = "", onEdit, onPeek, onAdvanced, onTogg
 						type: "button",
 						title: "查看服务详情",
 						onClick: () => onPeek(service),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eye, { ...iconProps$3(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eye, { ...iconProps$4(14) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "高级设置：阶梯价和增项",
 						onClick: () => onAdvanced(service),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SlidersHorizontal, { ...iconProps$3(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SlidersHorizontal, { ...iconProps$4(14) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "编辑服务",
 						onClick: () => onEdit(service),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PenLine, { ...iconProps$3(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PenLine, { ...iconProps$4(14) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: service.status === "active" ? "归档服务" : "恢复服务",
 						onClick: () => onToggle(service),
-						children: service.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$3(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArchiveRestore, { ...iconProps$3(14) })
+						children: service.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$4(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArchiveRestore, { ...iconProps$4(14) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button price-danger",
 						type: "button",
 						title: "删除服务",
 						onClick: () => onDelete(service),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$3(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$4(14) })
 					})
 				]
 			})
@@ -22074,7 +22345,7 @@ function CategoryBlock({ category, currency = "", open, onOpenChange, onEdit, on
 					type: "button",
 					"aria-expanded": open,
 					onClick: () => onOpenChange(!open),
-					children: [open ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronDown, { ...iconProps$3(16) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronRight, { ...iconProps$3(16) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: category.name }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+					children: [open ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronDown, { ...iconProps$4(16) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronRight, { ...iconProps$4(16) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: category.name }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
 						services.length,
 						" 项 · ",
 						priceRange(services)
@@ -22092,7 +22363,7 @@ function CategoryBlock({ category, currency = "", open, onOpenChange, onEdit, on
 							type: "button",
 							title: "在此分类添加服务",
 							onClick: () => onService(category),
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$3(14) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "添加服务" })]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$4(14) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "添加服务" })]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 							className: "react-mini-button",
@@ -22100,28 +22371,28 @@ function CategoryBlock({ category, currency = "", open, onOpenChange, onEdit, on
 							title: "组合报价",
 							onClick: () => onSum(category),
 							disabled: !services.length,
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Copy, { ...iconProps$3(14) })
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Copy, { ...iconProps$4(14) })
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 							className: "react-mini-button",
 							type: "button",
 							title: "编辑大类",
 							onClick: () => onEdit(category),
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PenLine, { ...iconProps$3(14) })
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PenLine, { ...iconProps$4(14) })
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 							className: "react-mini-button",
 							type: "button",
 							title: category.status === "active" ? "归档大类" : "恢复大类",
 							onClick: () => onToggle(category),
-							children: category.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$3(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArchiveRestore, { ...iconProps$3(14) })
+							children: category.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$4(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArchiveRestore, { ...iconProps$4(14) })
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 							className: "react-mini-button price-danger",
 							type: "button",
 							title: "删除大类",
 							onClick: () => onDelete(category),
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$3(14) })
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$4(14) })
 						})
 					]
 				})
@@ -22193,7 +22464,7 @@ function GroupWorkspace({ group, query, onNewCategory, onService, onEditCategory
 					className: "refactor-button refactor-button--compact",
 					type: "button",
 					onClick: () => onNewCategory(group.key || ""),
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderPlus, { ...iconProps$3(14) }), "新建大类"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderPlus, { ...iconProps$4(14) }), "新建大类"]
 				})]
 			})]
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -22226,7 +22497,7 @@ function GroupWorkspace({ group, query, onNewCategory, onService, onEditCategory
 						className: "price-directory__add",
 						type: "button",
 						onClick: () => onNewCategory(group.key || ""),
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$3(14) }), "新建分类"]
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$4(14) }), "新建分类"]
 					})
 				]
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -22239,12 +22510,12 @@ function GroupWorkspace({ group, query, onNewCategory, onService, onEditCategory
 							type: "button",
 							onClick: setAllOpen,
 							disabled: !categories.length,
-							children: [allOpen ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronDown, { ...iconProps$3(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronRight, { ...iconProps$3(14) }), allOpen ? "全部收起" : "全部展开"]
+							children: [allOpen ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronDown, { ...iconProps$4(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronRight, { ...iconProps$4(14) }), allOpen ? "全部收起" : "全部展开"]
 						}), selected !== "all" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							className: "refactor-button refactor-button--compact",
 							type: "button",
 							onClick: () => onService(categories.find((category) => String(category.id) === selected)),
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$3(14) }), "添加服务"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$4(14) }), "添加服务"]
 						}) : null] })]
 					}),
 					visible.map((category) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CategoryBlock, {
@@ -22510,25 +22781,25 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 							className: "refactor-button",
 							type: "button",
 							onClick: () => openExporter(null, { games: data.games || [] }),
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Copy, { ...iconProps$3(15) }), "导出"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Copy, { ...iconProps$4(15) }), "导出"]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							className: "refactor-button",
 							type: "button",
 							onClick: onNewGame,
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gamepad2, { ...iconProps$3(15) }), "新建价格表"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gamepad2, { ...iconProps$4(15) }), "新建价格表"]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							className: "refactor-button",
 							type: "button",
 							onClick: () => createCategory(query.game),
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderPlus, { ...iconProps$3(15) }), "新建大类"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderPlus, { ...iconProps$4(15) }), "新建大类"]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							className: "refactor-button refactor-button--primary",
 							type: "button",
 							onClick: quickAddService,
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$3(15) }), "添加服务"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$4(15) }), "添加服务"]
 						})
 					]
 				})]
@@ -22587,7 +22858,7 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 						className: "price-search",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$3(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$4(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 							type: "search",
 							value: search,
 							placeholder: "搜大类、服务或说明",
@@ -22632,14 +22903,14 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 				}, group.key || "generic")) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "price-empty",
 					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Layers, { ...iconProps$3(24) }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Layers, { ...iconProps$4(24) }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: query.q ? "没有找到匹配的价格" : "还没有价格表" }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: query.q ? "换个关键词试试。" : "先新建游戏，再建立大类和服务项。" }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							className: "refactor-button refactor-button--primary",
 							type: "button",
 							onClick: onNewGame,
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$3(15) }), "新建价格表"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$4(15) }), "新建价格表"]
 						})
 					]
 				})
@@ -22649,7 +22920,7 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 }
 //#endregion
 //#region client/finance.jsx
-var iconProps$2 = (size = 16) => ({
+var iconProps$3 = (size = 16) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -22793,7 +23064,7 @@ function FinancePage({ route, navigate, reloadKey }) {
 				] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "finance-date-picker",
 					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarDays, { ...iconProps$2(15) }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarDays, { ...iconProps$3(15) }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 							type: "date",
 							value: from,
@@ -22899,7 +23170,7 @@ function FinancePage({ route, navigate, reloadKey }) {
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 							className: "finance-panel",
 							children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "每日开单" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "按下单日统计" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TrendingUp, { ...iconProps$2(17) })] }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "每日开单" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "按下单日统计" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TrendingUp, { ...iconProps$3(17) })] }),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 									className: "finance-bars",
 									children: daily.length ? daily.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -22927,7 +23198,7 @@ function FinancePage({ route, navigate, reloadKey }) {
 								summary.receivables?.length || 0,
 								" 张 · 合计 ¥",
 								fmtMoney((summary.receivables || []).reduce((sum, row) => sum + (Number(row.due_total) || 0), 0))
-							] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleDollarSign, { ...iconProps$2(17) })] }), summary.receivables?.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleDollarSign, { ...iconProps$3(17) })] }), summary.receivables?.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 								className: "finance-table",
 								children: summary.receivables.map((order) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 									type: "button",
@@ -22943,7 +23214,7 @@ function FinancePage({ route, navigate, reloadKey }) {
 											label: order.status_label
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", { children: ["¥", fmtMoney(order.due_total)] }),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$2(14) })
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$3(14) })
 									]
 								}, order.id))
 							}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
@@ -22953,7 +23224,7 @@ function FinancePage({ route, navigate, reloadKey }) {
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 							className: "finance-panel",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "收款流水" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [data.payments.length, " 笔"] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CreditCard, { ...iconProps$2(17) })] }), data.payments.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "收款流水" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [data.payments.length, " 笔"] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CreditCard, { ...iconProps$3(17) })] }), data.payments.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 								className: "finance-table",
 								children: data.payments.map((payment) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 									type: "button",
@@ -23089,7 +23360,7 @@ async function copyText(text) {
 }
 //#endregion
 //#region client/quotes.jsx
-var iconProps$1 = (size = 15) => ({
+var iconProps$2 = (size = 15) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -23187,14 +23458,14 @@ function QuotesPage({ route, navigate, onNew, onReload, reloadKey }) {
 					className: "refactor-button refactor-button--primary",
 					type: "button",
 					onClick: onNew,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(15) }), "做报价单"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$2(15) }), "做报价单"]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 				className: "quotes-toolbar",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "quotes-toolbar__spacer" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 					className: "quotes-search",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$1(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$2(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 						type: "search",
 						value: search,
 						placeholder: "搜报价单号、标题或客户",
@@ -23261,21 +23532,21 @@ function QuotesPage({ route, navigate, onNew, onReload, reloadKey }) {
 										type: "button",
 										title: "看文字版",
 										onClick: () => showText(quote),
-										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { ...iconProps$1(14) })
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { ...iconProps$2(14) })
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 										className: "react-mini-button",
 										type: "button",
 										title: "转成订单",
 										onClick: () => convert(quote),
-										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRight, { ...iconProps$1(14) })
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRight, { ...iconProps$2(14) })
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 										className: "react-mini-button quotes-danger",
 										type: "button",
 										title: "删除",
 										onClick: () => remove(quote),
-										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$1(14) })
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$2(14) })
 									})
 								]
 							})
@@ -23284,19 +23555,789 @@ function QuotesPage({ route, navigate, onNew, onReload, reloadKey }) {
 				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "quotes-empty",
 					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { ...iconProps$1(23) }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { ...iconProps$2(23) }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: query ? "没有找到报价单" : "还没做过报价单" }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: query ? "换个关键词试试。" : "从价格表勾选服务项，生成一段可以直接发给客户的报价。" }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							className: "refactor-button refactor-button--primary",
 							type: "button",
 							onClick: onNew,
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(15) }), "做第一张报价单"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$2(15) }), "做第一张报价单"]
 						})
 					]
 				})]
 			})
 		]
+	});
+}
+//#endregion
+//#region client/media.jsx
+var EMPTY = {
+	platforms: [],
+	accounts: [],
+	materials: [],
+	tasks: [],
+	summary: {},
+	executor: { configured: false }
+};
+var STATUS = {
+	queued: ["待发布", "amber"],
+	scheduled: ["已排期", "slate"],
+	publishing: ["发布中", "cinnabar"],
+	success: ["已完成", "jade"],
+	failed: ["失败", "oxblood"],
+	cancelled: ["已取消", "outline"]
+};
+function iconProps$1(size = 16) {
+	return {
+		size,
+		strokeWidth: 1.8,
+		absoluteStrokeWidth: true,
+		"aria-hidden": true
+	};
+}
+function Toggle({ active, onClick, children, disabled = false }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+		type: "button",
+		className: `media-toggle${active ? " is-selected" : ""}`,
+		onClick,
+		disabled,
+		children
+	});
+}
+function statusTag(status) {
+	const [label, tone] = STATUS[status] || [status, "outline"];
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+		className: `tag tag--${tone}`,
+		children: label
+	});
+}
+function formatBytes(bytes) {
+	const value = Number(bytes) || 0;
+	if (value < 1048576) return `${Math.max(1, Math.round(value / 1024))} KB`;
+	return `${(value / 1024 / 1024).toFixed(1)} MB`;
+}
+function formatDate(value) {
+	if (!value) return "未设置";
+	const date = new Date(value);
+	return Number.isNaN(date.getTime()) ? value : date.toLocaleString("zh-CN", { hour12: false });
+}
+function MediaPage({ reloadKey = 0 }) {
+	const [activeTab, setActiveTab] = (0, import_react.useState)("publish");
+	const [data, setData] = (0, import_react.useState)(EMPTY);
+	const [loading, setLoading] = (0, import_react.useState)(true);
+	const [refreshing, setRefreshing] = (0, import_react.useState)(false);
+	const [draft, setDraft] = (0, import_react.useState)({
+		title: "",
+		content: "",
+		topics: "",
+		publish_at: "",
+		platform_keys: [],
+		account_ids: [],
+		material_ids: []
+	});
+	const [accountForm, setAccountForm] = (0, import_react.useState)({
+		platform: "",
+		account_name: "",
+		profile_url: "",
+		note: ""
+	});
+	const [uploading, setUploading] = (0, import_react.useState)(false);
+	const [saving, setSaving] = (0, import_react.useState)(false);
+	const fileRef = (0, import_react.useRef)(null);
+	const load = async ({ quiet = false } = {}) => {
+		if (quiet) setRefreshing(true);
+		else setLoading(true);
+		try {
+			setData(await api.get("/api/media/bootstrap"));
+		} catch (err) {
+			toastErr(err);
+		} finally {
+			setLoading(false);
+			setRefreshing(false);
+		}
+	};
+	(0, import_react.useEffect)(() => {
+		load();
+	}, [reloadKey]);
+	const selectedPlatforms = (0, import_react.useMemo)(() => new Set(draft.platform_keys), [draft.platform_keys]);
+	const accountOptions = (0, import_react.useMemo)(() => data.accounts.filter((account) => account.auth_state !== "disabled" && (!selectedPlatforms.size || selectedPlatforms.has(account.platform))), [data.accounts, selectedPlatforms]);
+	const updateDraft = (key, value) => setDraft((current) => ({
+		...current,
+		[key]: value
+	}));
+	const toggleDraftValue = (key, value) => setDraft((current) => ({
+		...current,
+		[key]: current[key].includes(value) ? current[key].filter((item) => item !== value) : [...current[key], value]
+	}));
+	async function uploadFiles(event) {
+		const files = [...event.target.files || []];
+		event.target.value = "";
+		if (!files.length) return;
+		setUploading(true);
+		try {
+			for (const file of files) {
+				const response = await fetch("/api/media/materials/upload", {
+					method: "POST",
+					headers: {
+						"content-type": file.type || "application/octet-stream",
+						"x-file-name": encodeURIComponent(file.name)
+					},
+					body: file,
+					credentials: "same-origin"
+				});
+				const body = await response.json().catch(() => ({}));
+				if (!response.ok) throw new Error(body.error || `上传「${file.name}」失败`);
+			}
+			toast(`已上传 ${files.length} 个素材`, "ok");
+			await load({ quiet: true });
+		} catch (err) {
+			toastErr(err);
+		} finally {
+			setUploading(false);
+		}
+	}
+	async function createTask(event) {
+		event.preventDefault();
+		if (!draft.title.trim()) return toast("请先填写标题", "warn");
+		if (!draft.platform_keys.length) return toast("至少选择一个发布平台", "warn");
+		if (!draft.account_ids.length) return toast("至少选择一个账号", "warn");
+		if (!draft.material_ids.length) return toast("至少选择一个素材", "warn");
+		setSaving(true);
+		try {
+			const saved = await api.post("/api/media/tasks", draft);
+			setDraft({
+				title: "",
+				content: "",
+				topics: "",
+				publish_at: "",
+				platform_keys: [],
+				account_ids: [],
+				material_ids: []
+			});
+			toast(saved.status === "scheduled" ? "发布任务已排期" : "发布任务已加入队列", "ok");
+			setActiveTab("records");
+			await load({ quiet: true });
+		} catch (err) {
+			toastErr(err);
+		} finally {
+			setSaving(false);
+		}
+	}
+	async function addAccount(event) {
+		event.preventDefault();
+		if (!accountForm.platform || !accountForm.account_name.trim()) return toast("请填写平台和账号名称", "warn");
+		try {
+			await api.post("/api/media/accounts", accountForm);
+			setAccountForm({
+				platform: "",
+				account_name: "",
+				profile_url: "",
+				note: ""
+			});
+			toast("账号已添加", "ok");
+			await load({ quiet: true });
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	async function deleteAccount(id) {
+		if (!window.confirm("删除这个账号记录？已创建的发布任务不会被删除。")) return;
+		try {
+			await api.del(`/api/media/accounts/${id}`);
+			await load({ quiet: true });
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	async function deleteMaterial(id) {
+		if (!window.confirm("删除这个素材文件？")) return;
+		try {
+			await api.del(`/api/media/materials/${id}`);
+			await load({ quiet: true });
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	async function taskAction(path, successMessage) {
+		try {
+			const result = await api.post(path, {});
+			if (result.available === false) toast("任务已保留，配置执行器后可继续发布", "warn");
+			else toast(successMessage, result.status === "failed" ? "warn" : "ok");
+			await load({ quiet: true });
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	if (loading) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "refactor-loading",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+		]
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "media-page",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "media-page__head",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "refactor-eyebrow",
+						children: "MEDIA PUBLISH"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "自媒体发布" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "统一管理素材、平台账号和跨平台发布任务。" })
+				] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "media-page__head-actions",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: `media-executor${data.executor?.configured ? " is-ready" : ""}`,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", {}), data.executor?.configured ? "执行器已连接" : "管理模式"]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						type: "button",
+						className: "refactor-icon-button",
+						title: "刷新媒体数据",
+						onClick: () => load({ quiet: true }),
+						disabled: refreshing,
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, {
+							className: refreshing ? "spin" : "",
+							...iconProps$1(16)
+						})
+					})]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "media-summary",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Radio, { ...iconProps$1(17) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: data.summary?.queued || 0 }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "待处理任务" })] })] }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderOpen, { ...iconProps$1(17) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: data.summary?.materials || 0 }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "素材文件" })] })] }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserRound, { ...iconProps$1(17) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: data.summary?.accounts || 0 }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "可用账号" })] })] }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TriangleAlert, { ...iconProps$1(17) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: data.summary?.failed || 0 }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "失败任务" })] })] })
+				]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "media-tabs",
+				role: "tablist",
+				"aria-label": "自媒体模块",
+				children: [
+					[
+						"publish",
+						"发布任务",
+						Send
+					],
+					[
+						"materials",
+						"素材库",
+						FolderOpen
+					],
+					[
+						"accounts",
+						"账号管理",
+						UserRound
+					],
+					[
+						"records",
+						"发布记录",
+						Clock3
+					]
+				].map(([key, label, Icon]) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					type: "button",
+					role: "tab",
+					"aria-selected": activeTab === key,
+					className: activeTab === key ? "is-active" : "",
+					onClick: () => setActiveTab(key),
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { ...iconProps$1(16) }), label]
+				}, key))
+			}),
+			activeTab === "publish" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PublishComposer, {
+				data,
+				draft,
+				updateDraft,
+				toggleDraftValue,
+				accountOptions,
+				onSubmit: createTask,
+				onUpload: () => fileRef.current?.click(),
+				uploading,
+				saving,
+				fileRef,
+				uploadFiles
+			}) : null,
+			activeTab === "materials" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MaterialsView, {
+				data,
+				onUpload: () => fileRef.current?.click(),
+				onDelete: deleteMaterial,
+				uploading,
+				fileRef,
+				uploadFiles
+			}) : null,
+			activeTab === "accounts" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AccountsView, {
+				data,
+				form: accountForm,
+				setForm: setAccountForm,
+				onSubmit: addAccount,
+				onDelete: deleteAccount
+			}) : null,
+			activeTab === "records" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RecordsView, {
+				tasks: data.tasks,
+				onAction: taskAction
+			}) : null
+		]
+	});
+}
+function PublishComposer({ data, draft, updateDraft, toggleDraftValue, accountOptions, onSubmit, onUpload, uploading, saving, fileRef, uploadFiles }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+		className: "media-composer",
+		onSubmit,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+			className: "panel media-panel",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "media-panel__head",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "创建发布任务" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "一次选择多个平台和账号，任务会保存在本机队列。" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						type: "button",
+						className: "refactor-button refactor-button--compact",
+						onClick: onUpload,
+						disabled: uploading,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Upload, { ...iconProps$1(14) }), uploading ? "上传中…" : "上传素材"]
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+					ref: fileRef,
+					type: "file",
+					accept: "video/*,image/*",
+					multiple: true,
+					hidden: true,
+					onChange: uploadFiles
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+					className: "refactor-field",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: "refactor-field__label",
+						children: ["标题", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "*" })]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+						className: "refactor-input",
+						value: draft.title,
+						onChange: (event) => updateDraft("title", event.target.value),
+						placeholder: "例如：本周代肝攻略分享",
+						maxLength: 180,
+						required: true
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+					className: "refactor-field",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "refactor-field__label",
+						children: "正文"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("textarea", {
+						className: "refactor-input media-textarea",
+						value: draft.content,
+						onChange: (event) => updateDraft("content", event.target.value),
+						placeholder: "填写平台通用正文，支持换行",
+						rows: 6,
+						maxLength: 1e4
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "media-form-grid",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "refactor-field",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "refactor-field__label",
+							children: "话题"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							className: "refactor-input",
+							value: draft.topics,
+							onChange: (event) => updateDraft("topics", event.target.value),
+							placeholder: "用逗号分隔，例如：代肝,游戏攻略"
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "refactor-field",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "refactor-field__label",
+							children: "定时发布"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							className: "refactor-input",
+							type: "datetime-local",
+							value: draft.publish_at,
+							onChange: (event) => updateDraft("publish_at", event.target.value)
+						})]
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("fieldset", {
+					className: "media-fieldset",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("legend", { children: ["发布平台", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "*" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "media-option-grid",
+						children: data.platforms.map((platform) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Toggle, {
+							active: draft.platform_keys.includes(platform.key),
+							onClick: () => toggleDraftValue("platform_keys", platform.key),
+							children: [platform.name, /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: platform.kind })]
+						}, platform.key))
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("fieldset", {
+					className: "media-fieldset",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("legend", { children: ["发布账号", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "*" })] }), accountOptions.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "media-option-grid",
+						children: accountOptions.map((account) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Toggle, {
+							active: draft.account_ids.includes(account.id),
+							onClick: () => toggleDraftValue("account_ids", account.id),
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: account.account_name }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+								account.platform_name,
+								" · ",
+								account.auth_state === "ready" ? "已验证" : "待验证"
+							] })]
+						}, account.id))
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "media-inline-empty",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserRound, { ...iconProps$1(16) }), "请先在“账号管理”添加与平台匹配的账号"]
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("fieldset", {
+					className: "media-fieldset",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("legend", { children: ["素材文件", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "*" })] }), data.materials.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "media-material-options",
+						children: data.materials.map((material) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+							className: `media-material-option${draft.material_ids.includes(material.id) ? " is-selected" : ""}`,
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									type: "checkbox",
+									checked: draft.material_ids.includes(material.id),
+									onChange: () => toggleDraftValue("material_ids", material.id)
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FilePlay, { ...iconProps$1(16) }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: material.filename }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+									formatBytes(material.file_size),
+									" · ",
+									formatDate(material.created_at)
+								] })] })
+							]
+						}, material.id))
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "media-inline-empty",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderOpen, { ...iconProps$1(16) }), "还没有素材，点击右上角上传文件"]
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "media-submit-row",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "创建后可在发布记录里取消、重试或交给执行器。" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						type: "submit",
+						className: "refactor-button refactor-button--primary",
+						disabled: saving,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Send, { ...iconProps$1(15) }), saving ? "创建中…" : "创建发布任务"]
+					})]
+				})
+			]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("aside", {
+			className: "media-side-column",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+				className: "panel media-panel",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "media-panel__head",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "已选内容" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "提交前快速确认任务范围。" })] })
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "media-preview-list",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "平台" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: draft.platform_keys.length ? draft.platform_keys.map((key) => data.platforms.find((p) => p.key === key)?.name || key).join("、") : "尚未选择" })] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "账号" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: draft.account_ids.length ? `${draft.account_ids.length} 个账号` : "尚未选择" })] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "素材" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: draft.material_ids.length ? `${draft.material_ids.length} 个文件` : "尚未选择" })] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "发布时间" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: draft.publish_at ? formatDate(draft.publish_at) : "创建后立即进入队列" })] })
+					]
+				})]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+				className: "media-hint",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarClock, { ...iconProps$1(17) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "任务状态会持续保留" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "未配置执行器时，任务停留在本机队列；配置 `XFC_MEDIA_EXECUTOR_URL` 后即可交给目标项目的发布服务。" })] })]
+			})]
+		})]
+	});
+}
+function MaterialsView({ data, onUpload, onDelete, uploading, fileRef, uploadFiles }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+		className: "panel media-panel",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "media-panel__head",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "素材库" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "图片和视频统一保存在本机 data/uploads/media 目录。" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+				type: "button",
+				className: "refactor-button refactor-button--primary",
+				onClick: onUpload,
+				disabled: uploading,
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Upload, { ...iconProps$1(15) }), uploading ? "上传中…" : "上传素材"]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+				ref: fileRef,
+				type: "file",
+				accept: "video/*,image/*",
+				multiple: true,
+				hidden: true,
+				onChange: uploadFiles
+			})] })]
+		}), data.materials.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "media-material-list",
+			children: data.materials.map((material) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "media-material-row",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "media-material-row__icon",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FilePlay, { ...iconProps$1(19) })
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "media-material-row__main",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: material.filename }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+							material.mime_type,
+							" · ",
+							formatBytes(material.file_size),
+							" · ",
+							formatDate(material.created_at)
+						] })]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+						className: "refactor-button refactor-button--compact",
+						href: material.url,
+						target: "_blank",
+						rel: "noreferrer",
+						children: "预览"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						type: "button",
+						className: "refactor-icon-button",
+						title: "删除素材",
+						onClick: () => onDelete(material.id),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$1(15) })
+					})
+				]
+			}, material.id))
+		}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "empty media-empty",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderOpen, {
+					className: "empty__mark",
+					...iconProps$1(28)
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", {
+					className: "empty__title",
+					children: "还没有素材"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "empty__body",
+					children: "上传图片或视频后，就可以在发布任务中重复使用。"
+				})
+			]
+		})]
+	});
+}
+function AccountsView({ data, form, setForm, onSubmit, onDelete }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "media-two-column",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+			className: "panel media-panel",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "media-panel__head",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "添加发布账号" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "先登记账号，登录态由执行器或平台浏览器维护。" })] })
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+				className: "media-account-form",
+				onSubmit,
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "refactor-field",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							className: "refactor-field__label",
+							children: ["平台", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "*" })]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
+							className: "refactor-input",
+							value: form.platform,
+							onChange: (event) => setForm((current) => ({
+								...current,
+								platform: event.target.value
+							})),
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+								value: "",
+								children: "选择平台"
+							}), data.platforms.map((platform) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+								value: platform.key,
+								children: platform.name
+							}, platform.key))]
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "refactor-field",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							className: "refactor-field__label",
+							children: ["账号名称", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "*" })]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							className: "refactor-input",
+							value: form.account_name,
+							onChange: (event) => setForm((current) => ({
+								...current,
+								account_name: event.target.value
+							})),
+							placeholder: "例如：主账号"
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "refactor-field",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "refactor-field__label",
+							children: "主页地址"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							className: "refactor-input",
+							value: form.profile_url,
+							onChange: (event) => setForm((current) => ({
+								...current,
+								profile_url: event.target.value
+							})),
+							placeholder: "可选"
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "refactor-field",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "refactor-field__label",
+							children: "备注"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("textarea", {
+							className: "refactor-input media-textarea",
+							rows: 4,
+							value: form.note,
+							onChange: (event) => setForm((current) => ({
+								...current,
+								note: event.target.value
+							})),
+							placeholder: "可记录账号用途或登录提示"
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						type: "submit",
+						className: "refactor-button refactor-button--primary",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(15) }), "添加账号"]
+					})
+				]
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+			className: "panel media-panel",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "media-panel__head",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "已登记账号" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", { children: [data.accounts.length, " 个账号"] })] })
+			}), data.accounts.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "media-account-list",
+				children: data.accounts.map((account) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "media-account-row",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "media-account-row__mark",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserRound, { ...iconProps$1(17) })
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "media-account-row__main",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: account.account_name }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [account.platform_name, account.profile_url ? ` · ${account.profile_url}` : ""] })]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: `tag tag--${account.auth_state === "ready" ? "jade" : account.auth_state === "disabled" ? "outline" : "amber"}`,
+							children: account.auth_state === "ready" ? "已验证" : account.auth_state === "disabled" ? "已停用" : "待验证"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							type: "button",
+							className: "refactor-icon-button",
+							title: "删除账号",
+							onClick: () => onDelete(account.id),
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$1(15) })
+						})
+					]
+				}, account.id))
+			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "empty media-empty",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserRound, {
+						className: "empty__mark",
+						...iconProps$1(28)
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", {
+						className: "empty__title",
+						children: "还没有账号"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "empty__body",
+						children: "添加账号后即可在发布任务中选择。"
+					})
+				]
+			})]
+		})]
+	});
+}
+function RecordsView({ tasks, onAction }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+		className: "panel media-panel",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "media-panel__head",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "发布记录" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "任务会保留标题、平台、账号和执行结果。" })] })
+		}), tasks.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "media-task-list",
+			children: tasks.map((task) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", {
+				className: "media-task-row",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "media-task-row__main",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "media-task-row__title",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: task.title }), statusTag(task.status)]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", { children: [
+							task.platform_names?.join("、") || "未选择平台",
+							" · ",
+							task.account_ids?.length || 0,
+							" 个账号 · ",
+							task.material_ids?.length || 0,
+							" 个素材"
+						] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [task.publish_at ? `计划 ${formatDate(task.publish_at)}` : `创建于 ${formatDate(task.created_at)}`, task.error_msg ? ` · ${task.error_msg}` : ""] })
+					]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "media-task-row__actions",
+					children: [
+						[
+							"queued",
+							"scheduled",
+							"failed"
+						].includes(task.status) ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							type: "button",
+							className: "refactor-button refactor-button--compact",
+							onClick: () => onAction(`/api/media/tasks/${task.id}/dispatch`, "已提交发布执行器"),
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Send, { ...iconProps$1(14) }), "发布"]
+						}) : null,
+						[
+							"queued",
+							"scheduled",
+							"publishing"
+						].includes(task.status) ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							type: "button",
+							className: "refactor-button refactor-button--compact",
+							onClick: () => onAction(`/api/media/tasks/${task.id}/cancel`, "任务已取消"),
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { ...iconProps$1(14) }), "取消"]
+						}) : null,
+						task.status === "failed" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							type: "button",
+							className: "refactor-icon-button",
+							title: "重试任务",
+							onClick: () => onAction(`/api/media/tasks/${task.id}/retry`, "任务已重新排队"),
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RotateCcw, { ...iconProps$1(15) })
+						}) : null
+					]
+				})]
+			}, task.id))
+		}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "empty media-empty",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, {
+					className: "empty__mark",
+					...iconProps$1(28)
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", {
+					className: "empty__title",
+					children: "还没有发布记录"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "empty__body",
+					children: "创建第一个发布任务后，它会出现在这里。"
+				})
+			]
+		})]
 	});
 }
 //#endregion
@@ -23472,6 +24513,13 @@ var NAV = [
 		icon: FileText,
 		group: "工具",
 		view: quotes_default
+	},
+	{
+		seg: "media",
+		label: "自媒体",
+		icon: Radio,
+		group: "工具",
+		badge: (c) => c.media_pending
 	},
 	{
 		seg: "settings",
@@ -23936,7 +24984,7 @@ function Shell({ me, onLogout }) {
 								type: "button",
 								onClick: createQuote,
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps(15) }), "做报价单"]
-							}) : current.seg === "finance" && !route.sub ? null : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							}) : current.seg === "finance" && !route.sub ? null : current.seg === "media" && !route.sub ? null : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 								className: "refactor-button refactor-button--primary refactor-top-action",
 								type: "button",
 								onClick: () => navigate("/orders/new"),
@@ -23988,7 +25036,7 @@ function Shell({ me, onLogout }) {
 						onNew: createQuote,
 						onReload: refresh,
 						reloadKey
-					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LegacyPage, {
+					}) : current.seg === "media" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MediaPage, { reloadKey }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LegacyPage, {
 						route,
 						item: current,
 						setActions: updateActions,

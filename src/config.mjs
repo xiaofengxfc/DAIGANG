@@ -115,6 +115,13 @@ export const SESSION_TTL_MS = 14 * 24 * 60 * 60 * 1000
 export const MAX_JSON_BYTES = 8 * 1024 * 1024
 export const MAX_UPLOAD_BYTES = 3 * 1024 * 1024
 
+// 自媒体素材走二进制上传，不占用 JSON 请求体配额。
+export const MAX_MEDIA_UPLOAD_BYTES = Math.max(16 * 1024 * 1024, Number(process.env.XFC_MEDIA_MAX_UPLOAD_BYTES || 512 * 1024 * 1024))
+
+// 可选的 MediaPublishPlatform 执行器。未配置时仍可创建、排期和管理任务。
+export const MEDIA_EXECUTOR_URL = String(process.env.XFC_MEDIA_EXECUTOR_URL || '').replace(/\/+$/, '')
+export const MEDIA_EXECUTOR_TOKEN = String(process.env.XFC_MEDIA_EXECUTOR_TOKEN || '')
+
 /**
  * 截图识别的上传上限，单独一条。
  *

@@ -9,7 +9,7 @@ import { HttpError, fail } from './util.mjs'
 const routes = []
 
 /** 同一方法 + 同一路径后注册的覆盖先注册的，方便专用处理器盖掉通用 CRUD */
-export function route(method, pattern, handler) {
+export function route(method, pattern, handler, { raw = false, maxBytes = 0 } = {}) {
   const m = method.toUpperCase()
   const norm = pattern.replace(/\/+$/, '') || '/'
   const keys = []
@@ -24,7 +24,7 @@ export function route(method, pattern, handler) {
       return seg.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     })
     .join('/')
-  const entry = { method: m, pattern: norm, rx: new RegExp(`^${body}/?$`), keys, handler, maxBytes: 0 }
+  const entry = { method: m, pattern: norm, rx: new RegExp(`^${body}/?$`), keys, handler, maxBytes, raw }
   const at = routes.findIndex((r) => r.method === m && r.pattern === norm)
   if (at >= 0) routes[at] = entry
   else routes.push(entry)
@@ -44,6 +44,7 @@ export function setBodyLimit(pattern, maxBytes) {
 
 export const get = (p, h) => route('GET', p, h)
 export const post = (p, h) => route('POST', p, h)
+export const postRaw = (p, h, options = {}) => route('POST', p, h, { ...options, raw: true })
 export const patch = (p, h) => route('PATCH', p, h)
 export const put = (p, h) => route('PUT', p, h)
 export const del = (p, h) => route('DELETE', p, h)
@@ -57,7 +58,7 @@ export function match(method, pathname) {
     r.keys.forEach((k, i) => {
       params[k] = decodeURIComponent(m[i + 1])
     })
-    return { handler: r.handler, params, maxBytes: r.maxBytes || 0 }
+    return { handler: r.handler, params, maxBytes: r.maxBytes || 0, raw: Boolean(r.raw) }
   }
   return null
 }
@@ -123,6 +124,18 @@ export async function readJSON(req, { maxBytes = MAX_JSON_BYTES } = {}) {
   } catch {
     fail(400, '提交内容不是合法 JSON', 'bad_json')
   }
+}
+
+/** 读取二进制请求体，供视频/图片素材上传使用。 */
+export async function readRawBody(req, { maxBytes = MAX_JSON_BYTES } = {}) {
+  const chunks = []
+  let size = 0
+  for await (const chunk of req) {
+    size += chunk.length
+    if (size > maxBytes) fail(413, '上传文件过大', 'upload_too_large')
+    chunks.push(chunk)
+  }
+  return Buffer.concat(chunks)
 }
 
 /**

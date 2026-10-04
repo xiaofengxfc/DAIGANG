@@ -14,6 +14,7 @@ import {
   Moon,
   MoreHorizontal,
   Plus,
+  Radio,
   RefreshCw,
   Search,
   Settings2,
@@ -32,6 +33,7 @@ import GamesPage from './games.jsx'
 import PricePage from './price.jsx'
 import FinancePage from './finance.jsx'
 import QuotesPage from './quotes.jsx'
+import MediaPage from './media.jsx'
 import { toast, toastErr } from './lib/legacy-ui.js'
 import LegacyPage from './app/legacy-page.jsx'
 import ActionsSlot from './app/actions-slot.jsx'
@@ -47,6 +49,7 @@ const NAV = [
   { seg: 'vault', label: '保险箱', icon: LockKeyhole, group: '工具', view: vaultView, badge: (c) => c.credentials },
   { seg: 'finance', label: '财务', icon: WalletCards, group: '工具', view: financeView },
   { seg: 'quotes', label: '报价单', icon: FileText, group: '工具', view: quotesView },
+  { seg: 'media', label: '自媒体', icon: Radio, group: '工具', badge: (c) => c.media_pending },
   { seg: 'settings', label: '设置', icon: Settings2, group: '工具', view: settingsView },
 ]
 
@@ -353,12 +356,12 @@ function Shell({ me, onLogout }) {
         <div className="react-topbar__tools">
           <span className="react-online"><i />本机运行</span>
           <button className="react-icon-button" type="button" title="刷新数据" onClick={refresh}><RefreshCw {...iconProps(17)} /></button>
-          {actions.length ? <ActionsSlot nodes={actions} /> : current.seg === 'customers' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createCustomer}><Plus {...iconProps(15)} />新建客户</button> : current.seg === 'games' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createGame}><Plus {...iconProps(15)} />新建游戏</button> : current.seg === 'price' && !route.sub ? null : current.seg === 'quotes' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createQuote}><Plus {...iconProps(15)} />做报价单</button> : current.seg === 'finance' && !route.sub ? null : <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={() => go('/orders/new')}><Plus {...iconProps(15)} />开新单</button>}
+          {actions.length ? <ActionsSlot nodes={actions} /> : current.seg === 'customers' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createCustomer}><Plus {...iconProps(15)} />新建客户</button> : current.seg === 'games' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createGame}><Plus {...iconProps(15)} />新建游戏</button> : current.seg === 'price' && !route.sub ? null : current.seg === 'quotes' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createQuote}><Plus {...iconProps(15)} />做报价单</button> : current.seg === 'finance' && !route.sub ? null : current.seg === 'media' && !route.sub ? null : <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={() => go('/orders/new')}><Plus {...iconProps(15)} />开新单</button>}
         </div>
       </header>
       <main className="react-main">
         <div className="react-main__inner">
-          {current.seg === '' ? <DashboardPage data={dashboard} navigate={go} onReload={refresh} /> : current.seg === 'orders' && !route.sub && route.query.get('new') !== '1' ? <OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'customers' && !route.sub ? <CustomersPage route={route} navigate={go} onNew={createCustomer} reloadKey={reloadKey} /> : current.seg === 'games' && !route.sub ? <GamesPage route={route} navigate={go} onNew={createGame} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'price' && !route.sub ? <PricePage route={route} navigate={go} onNewGame={createGame} onNewCategory={createCategory} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'finance' && !route.sub ? <FinancePage route={route} navigate={go} reloadKey={reloadKey} /> : current.seg === 'quotes' && !route.sub ? <QuotesPage route={route} navigate={go} onNew={createQuote} onReload={refresh} reloadKey={reloadKey} /> : <LegacyPage key={`${route.seg}/${route.sub}?${route.query.toString()}-${reloadKey}`} route={route} item={current} setActions={updateActions} onReload={refresh} counts={counts} settings={settings} vaultgate={vaultgate} navigate={go} />}
+          {current.seg === '' ? <DashboardPage data={dashboard} navigate={go} onReload={refresh} /> : current.seg === 'orders' && !route.sub && route.query.get('new') !== '1' ? <OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'customers' && !route.sub ? <CustomersPage route={route} navigate={go} onNew={createCustomer} reloadKey={reloadKey} /> : current.seg === 'games' && !route.sub ? <GamesPage route={route} navigate={go} onNew={createGame} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'price' && !route.sub ? <PricePage route={route} navigate={go} onNewGame={createGame} onNewCategory={createCategory} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'finance' && !route.sub ? <FinancePage route={route} navigate={go} reloadKey={reloadKey} /> : current.seg === 'quotes' && !route.sub ? <QuotesPage route={route} navigate={go} onNew={createQuote} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'media' && !route.sub ? <MediaPage reloadKey={reloadKey} /> : <LegacyPage key={`${route.seg}/${route.sub}?${route.query.toString()}-${reloadKey}`} route={route} item={current} setActions={updateActions} onReload={refresh} counts={counts} settings={settings} vaultgate={vaultgate} navigate={go} />}
         </div>
       </main>
       <nav className="react-mobile-tabs" aria-label="移动端导航">

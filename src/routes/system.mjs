@@ -118,6 +118,7 @@ function buildDashboard() {
       credentials: db.prepare("SELECT COUNT(*) AS c FROM credentials WHERE status='active'").get().c,
       services: db.prepare("SELECT COUNT(*) AS c FROM services WHERE status='active'").get().c,
       games: db.prepare("SELECT COUNT(*) AS c FROM games WHERE status='active'").get().c,
+      media_pending: db.prepare("SELECT COUNT(*) AS c FROM media_tasks WHERE status IN ('queued','scheduled','publishing')").get().c,
     },
     today_money: {
       ordered_count: ordersToday.c,
@@ -651,6 +652,9 @@ export function register() {
     'quotes',
     'vault_audit',
     'integration_outbox',
+    'media_accounts',
+    'media_materials',
+    'media_tasks',
   ]
 
   get('/api/backup/export', () => {
@@ -697,7 +701,7 @@ export function register() {
   /* ===== 清空业务数据（保留登录与保险箱设置） ===== */
   post('/api/system/reset', (ctx) => {
     if (ctx.body?.confirm !== 'CLEAR') bad('需要确认才可清空', 'need_confirm')
-    const tables = ['integration_outbox', 'orders', 'order_items', 'order_progress', 'payments', 'quotes', 'credentials', 'customers', 'services', 'service_tiers', 'service_options', 'service_categories', 'games', 'vault_audit']
+    const tables = ['integration_outbox', 'media_tasks', 'media_materials', 'media_accounts', 'orders', 'order_items', 'order_progress', 'payments', 'quotes', 'credentials', 'customers', 'services', 'service_tiers', 'service_options', 'service_categories', 'games', 'vault_audit']
     transaction(() => {
       for (const t of tables) db.prepare(`DELETE FROM ${t}`).run()
     })

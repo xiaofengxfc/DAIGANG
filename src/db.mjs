@@ -325,6 +325,50 @@ const MIGRATIONS = [
   // v11：清理已经回滚、且当前代码完全不再使用的游客留言板遗留表。
   // v6 的历史迁移仍保留，避免老库版本号错乱；这里只删除当前确认为空的废弃表。
   `DROP TABLE IF EXISTS guest_messages;`,
+
+  // v12：自媒体发布模块。素材文件落在 data/uploads/media，业务数据独立于订单域。
+  `
+  CREATE TABLE IF NOT EXISTS media_accounts (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    platform     TEXT NOT NULL,
+    account_name TEXT NOT NULL,
+    profile_url  TEXT NOT NULL DEFAULT '',
+    auth_state   TEXT NOT NULL DEFAULT 'pending',
+    note         TEXT NOT NULL DEFAULT '',
+    created_at   TEXT NOT NULL,
+    updated_at   TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_media_accounts_platform ON media_accounts (platform, auth_state);
+
+  CREATE TABLE IF NOT EXISTS media_materials (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    filename    TEXT NOT NULL,
+    file_path   TEXT NOT NULL,
+    mime_type   TEXT NOT NULL DEFAULT 'application/octet-stream',
+    file_size   INTEGER NOT NULL DEFAULT 0,
+    status      TEXT NOT NULL DEFAULT 'active',
+    created_at  TEXT NOT NULL,
+    updated_at  TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_media_materials_created ON media_materials (created_at DESC);
+
+  CREATE TABLE IF NOT EXISTS media_tasks (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    title        TEXT NOT NULL DEFAULT '',
+    content      TEXT NOT NULL DEFAULT '',
+    topics       TEXT NOT NULL DEFAULT '[]',
+    platform_keys TEXT NOT NULL DEFAULT '[]',
+    account_ids  TEXT NOT NULL DEFAULT '[]',
+    material_ids TEXT NOT NULL DEFAULT '[]',
+    publish_at   TEXT,
+    status       TEXT NOT NULL DEFAULT 'queued',
+    result       TEXT NOT NULL DEFAULT '{}',
+    error_msg    TEXT NOT NULL DEFAULT '',
+    created_at   TEXT NOT NULL,
+    updated_at   TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_media_tasks_status ON media_tasks (status, publish_at, id DESC);
+  `,
 ]
 
 export function migrate() {

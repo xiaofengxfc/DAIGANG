@@ -18,6 +18,7 @@ import {
   sessionCookie,
   clearCookie,
   readJSON,
+  readRawBody,
   resolveSafe,
   serveFile,
   securityHeaders,
@@ -93,7 +94,8 @@ async function handleAPI(req, res, url, pathname) {
 
   try {
     if (['POST', 'PATCH', 'PUT', 'DELETE'].includes(req.method)) {
-      ctx.body = await readJSON(req, hit.maxBytes ? { maxBytes: hit.maxBytes } : undefined)
+      if (hit.raw) ctx.rawBody = await readRawBody(req, { maxBytes: hit.maxBytes })
+      else ctx.body = await readJSON(req, hit.maxBytes ? { maxBytes: hit.maxBytes } : undefined)
     }
     const result = await hit.handler(ctx)
     if (!res.writableEnded) sendJSON(res, 200, result === undefined ? { ok: true } : result)
