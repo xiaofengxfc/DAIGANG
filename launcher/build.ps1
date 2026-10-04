@@ -10,8 +10,13 @@ if (-not $csc) { throw 'CSharp compiler was not found.' }
 
 $source = Join-Path $PSScriptRoot 'DaiganLauncher.cs'
 $output = Join-Path $projectRoot 'DaiganLauncher.exe'
+$icon = Join-Path $PSScriptRoot 'daigan.ico'
+if (-not (Test-Path -LiteralPath $icon)) {
+  throw "Launcher icon was not found: $icon. Generate it with .\launcher\generate-icon.ps1 first."
+}
 & $csc /nologo /target:winexe /platform:anycpu /optimize+ /debug- /utf8output /codepage:65001 `
   /out:$output `
+  /win32icon:$icon `
   /reference:System.dll `
   /reference:System.Core.dll `
   /reference:System.Drawing.dll `

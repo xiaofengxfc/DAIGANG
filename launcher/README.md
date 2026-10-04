@@ -28,5 +28,8 @@ DaiganLauncher.exe --host 0.0.0.0 --port 8888
 重新编译：
 
 ```powershell
+powershell -ExecutionPolicy Bypass -File .\launcher\generate-icon.ps1
 powershell -ExecutionPolicy Bypass -File .\launcher\build.ps1
 ```
+
+`generate-icon.ps1` 会直接渲染 `public/favicon.svg`，生成包含多个尺寸的 `launcher/daigan.ico`。网页 favicon 或其视觉内容变更后，先重新生成 ICO，再重新编译启动器。

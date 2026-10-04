@@ -308,6 +308,7 @@ namespace DaiganLauncher
         internal LauncherForm(string[] args)
         {
             ParseArguments(args ?? new string[0]);
+            try { Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
             BuildUi();
             LoadSettings();
             _timer.Interval = 1000;
@@ -433,7 +434,7 @@ namespace DaiganLauncher
             rail.Controls.Add(railGrid);
 
             var brandRow = new Panel { Dock = DockStyle.Fill, Margin = new Padding(0) };
-            var brandMark = new Label { Text = "D", AutoSize = false, Size = new Size(38, 38), TextAlign = ContentAlignment.MiddleCenter, BackColor = Color.FromArgb(92, 84, 199), ForeColor = Color.White, Font = new Font("Segoe UI", 17F, FontStyle.Bold), Location = new Point(0, 0) };
+            var brandMark = new Label { Text = "代", AutoSize = false, Size = new Size(38, 38), TextAlign = ContentAlignment.MiddleCenter, BackColor = Color.FromArgb(184, 64, 42), ForeColor = Color.FromArgb(255, 246, 242), Font = new Font("Microsoft YaHei UI", 17F, FontStyle.Bold), Location = new Point(0, 0) };
             var brand = new Label { Text = "代肝价格查询", AutoSize = true, ForeColor = Color.FromArgb(243, 245, 247), Font = new Font("Microsoft YaHei UI", 12F, FontStyle.Bold), Location = new Point(48, 1) };
             var brandSub = new Label { Text = "运营后台控制台", AutoSize = true, ForeColor = Color.FromArgb(115, 126, 139), Location = new Point(48, 27) };
             brandRow.Controls.Add(brandMark); brandRow.Controls.Add(brand); brandRow.Controls.Add(brandSub); railGrid.Controls.Add(brandRow, 0, 0);
