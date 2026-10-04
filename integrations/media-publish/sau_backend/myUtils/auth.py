@@ -60,7 +60,8 @@ async def check_cookie_generic(type, file_path):
 
             # 访问个人中心页面
             await page.goto(personal_url, wait_until='domcontentloaded', timeout=60000)
-            await asyncio.sleep(2)
+            # 创作者平台通常先渲染骨架，再异步加载登录入口；给正文留出加载时间。
+            await asyncio.sleep(5)
 
             # 检查是否跳转到登录页面
             current_url = page.url
@@ -76,21 +77,21 @@ async def check_cookie_generic(type, file_path):
                 await browser.close()
                 return False
 
-            # 根据不同平台的特征元素进行检查
-            # 2.检查页面内容是否包含登录相关的文本（douyin特征，就算没登录也可以到个人中心url）
-            if platform_name in ["douyin"]:
-                try:
-                    content = await page.content()
-                    # 检查是否包含登录按钮或登录提示
-                    login_texts = ["登录", "Sign in", "Log in", "登录/注册", "扫码登录"]
-                    for text in login_texts:
-                        if text in content:
-                            logger.error(f"[{platform_name}] 页面包含登录文本: {text}")
-                            await context.close()
-                            await browser.close()
-                            return False
-                except Exception as e:
-                    logger.warning(f"[{platform_name}] 读取页面内容失败: {str(e)}")
+            # 页面可能停留在公开介绍页，URL 不含 login，但仍会显示登录入口。
+            # 所有平台统一检查正文和可见登录控件，避免把失效登录态标成有效。
+            try:
+                content = (await page.locator("body").inner_text()).lower()
+                login_texts = [
+                    "登录", "立即登录", "登录/注册", "扫码登录",
+                    "sign in", "log in", "login", "continue with google",
+                ]
+                if any(text.lower() in content for text in login_texts):
+                    logger.error(f"[{platform_name}] 页面包含登录文本，账号未登录")
+                    await context.close()
+                    await browser.close()
+                    return False
+            except Exception as e:
+                logger.warning(f"[{platform_name}] 读取页面内容失败: {str(e)}")
 
             # 检查是否成功加载个人中心页面的特征元素
 

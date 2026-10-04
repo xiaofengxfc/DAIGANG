@@ -17,7 +17,8 @@ PLATFORM_CONFIGS = {
             #上传按钮选择器
             "upload_button": ['input.upload-input[type="file"]'],
             #发布按钮选择器
-            "publish_button": ['div.d-button-content span.d-text:has-text("发布")'],
+            # 新版页面发布按钮由 div.publish-video 承载，没有 button 标签。
+            "publish_button": ['div.publish-video .btn-wrapper', 'div.publish-video', 'div.d-button-content span.d-text:has-text("发布")'],
             #标题编辑器选择器
             "title_editor": [
                 'input.d-text[type="text"][placeholder*="填写标题"]',
@@ -351,7 +352,9 @@ PLATFORM_CONFIGS = {
                 'div.ql-editor.ql-blank[contenteditable="true"][data-placeholder="填写更全面的相关信息，让更多的人能找到你的视频吧"]'
             ],
             "thumbnail_button": ["//span[contains(text(), '添加封面')]"],
-            "thumbnail_finish": ['button:has-text("完成")'],
+            "thumbnail_finish": ['div.button.submit:has-text("完成")', 'button:has-text("完成")'],
+            "content_declaration_trigger": ['input[placeholder="请选择符合您视频内容的创作声明"]'],
+            "content_declaration": ['text="内容无需标注"', 'label:has-text("内容无需标注")'],
             "schedule_button": ['button:has-text("定时发布")'],
             "date_input": ['.date-picker-input'],
             "time_input": ['.time-picker-input'],
@@ -368,8 +371,8 @@ PLATFORM_CONFIGS = {
             "textbox": True,
             #是否支持标签
             "tags": True,
-            #是否支持封面
-            "thumbnail": False,
+            # B站投稿必须先选择封面，未提供自定义封面时使用系统推荐封面。
+            "thumbnail": True,
             #是否支持地点
             "location": False,
             #是否支持定时发布

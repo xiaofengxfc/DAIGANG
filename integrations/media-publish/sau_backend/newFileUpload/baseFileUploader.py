@@ -92,6 +92,9 @@ class BaseFileUploader(object):
         self.thumbnail_button_selectors = self.config["selectors"]["thumbnail_button"]
         # 封面完成确认选择器
         self.thumbnail_finish_selectors = self.config["selectors"]["thumbnail_finish"]
+        # 内容声明选择器（B站投稿要求选择创作声明）
+        self.content_declaration_selectors = self.config["selectors"].get("content_declaration", [])
+        self.content_declaration_trigger_selectors = self.config["selectors"].get("content_declaration_trigger", [])
         # 发布时间选择器
         self.schedule_button_selectors = self.config["selectors"]["schedule_button"]
         
@@ -271,6 +274,10 @@ class BaseFileUploader(object):
             else:
                 self.logger.info(f"step8: {self.platform_name}跳过设置缩略图")
 
+            if self.content_declaration_selectors:
+                await self.set_content_declaration(page)
+                self.logger.info(f"step8.1: {self.platform_name}内容声明设置完成")
+
             # step9.添加地点
             if self.location_supported and self.location:
                 await self.set_location(page)
@@ -389,23 +396,47 @@ class BaseFileUploader(object):
         Returns:
             找到的按钮定位器对象，如果没找到则返回None
         """
-        for selector in selector_list:
-            locator = self.locator_base.locator(selector)
-            count = await locator.count()
-            for index in range(count):
-                candidate = locator.nth(index)
+        deadline = asyncio.get_running_loop().time() + self.button_visible_timeout / 1000
+        while asyncio.get_running_loop().time() < deadline:
+            if hasattr(self.locator_base, "is_closed") and self.locator_base.is_closed():
+                break
+            for selector in selector_list:
                 try:
-                    if not await candidate.is_visible():
-                        continue
-                    await candidate.wait_for(state="visible", timeout=self.button_visible_timeout)
-                    self.logger.info(f"找到按钮定位器: {selector}, 是否可见: True")
-                    # 返回单个元素，避免 contenteditable 多行节点触发 strict mode。
-                    return candidate
+                    locator = self.locator_base.locator(selector)
+                    count = await locator.count()
+                    for index in range(count):
+                        candidate = locator.nth(index)
+                        if await candidate.is_visible():
+                            self.logger.info(f"找到按钮定位器: {selector}, 是否可见: True")
+                            # 返回单个元素，避免 contenteditable 多行节点触发 strict mode。
+                            return candidate
                 except Exception:
                     continue
+            await asyncio.sleep(0.25)
 
         # 如果所有选择器都没找到，返回None
         self.logger.info("未找到任何按钮定位器")
+        return None
+
+    async def find_file_input(self, selector_list, timeout=None):
+        """查找文件输入控件，允许控件隐藏但必须确实是 input[type=file]。"""
+        timeout = self.button_visible_timeout if timeout is None else timeout
+        deadline = asyncio.get_running_loop().time() + timeout / 1000
+        while asyncio.get_running_loop().time() < deadline:
+            if hasattr(self.locator_base, "is_closed") and self.locator_base.is_closed():
+                return None
+            for selector in selector_list:
+                try:
+                    locator = self.locator_base.locator(selector)
+                    for index in range(await locator.count()):
+                        candidate = locator.nth(index)
+                        tag_name = await candidate.evaluate("element => element.tagName")
+                        input_type = await candidate.get_attribute("type")
+                        if tag_name.lower() == "input" and input_type == "file":
+                            return candidate
+                except Exception:
+                    continue
+            await asyncio.sleep(0.25)
         return None
 
     @staticmethod
@@ -476,21 +507,39 @@ class BaseFileUploader(object):
         try:
             # 使用find_button方法查找上传按钮，支持中文和英文界面
             await asyncio.sleep(self.check_interval)
-            await asyncio.sleep(5)
+            # 小红书等平台的上传入口本身就是隐藏 input，优先直接设置文件。
+            configured_file_inputs = [
+                selector for selector in self.upload_button_selectors
+                if "input" in selector.lower() and "file" in selector.lower()
+            ]
+            if configured_file_inputs:
+                file_input = await self.find_file_input(configured_file_inputs)
+                if file_input:
+                    await file_input.set_input_files(self.file_path)
+                    self.file_upload_started_at = asyncio.get_running_loop().time()
+                    self.logger.info(f"通过隐藏文件输入控件上传文件: {self.file_path}")
+                    return True
+
             upload_button = await self.find_button(self.upload_button_selectors)
-            if not upload_button:
-                raise Exception("未找到上传图文/视频按钮")
-            self.logger.info("  [-] 将点击上传图文/视频按钮")
-            await upload_button.wait_for(state='visible', timeout=self.button_visible_timeout)
-            
-            # 上传按钮，需要点击触发系统文件选择器
-            async with page.expect_file_chooser() as fc_info:
-                await upload_button.click()
-            file_chooser = await fc_info.value
-            await file_chooser.set_files(self.file_path)
-            self.file_upload_started_at = asyncio.get_running_loop().time()
-            self.logger.info(f"通过系统文件选择器上传文件: {self.file_path}")
-            return True
+            if upload_button:
+                self.logger.info("  [-] 将点击上传图文/视频按钮")
+                # 上传按钮，需要点击触发系统文件选择器
+                async with page.expect_file_chooser() as fc_info:
+                    await upload_button.click()
+                file_chooser = await fc_info.value
+                await file_chooser.set_files(self.file_path)
+                self.file_upload_started_at = asyncio.get_running_loop().time()
+                self.logger.info(f"通过系统文件选择器上传文件: {self.file_path}")
+                return True
+
+            # 页面按钮结构变化时回退到页面上的视频文件 input。
+            file_input = await self.find_file_input(["input[type=\"file\"]"], timeout=5000)
+            if file_input:
+                await file_input.set_input_files(self.file_path)
+                self.file_upload_started_at = asyncio.get_running_loop().time()
+                self.logger.info(f"通过页面文件输入控件上传文件: {self.file_path}")
+                return True
+            raise Exception("未找到上传图文/视频按钮或文件输入控件")
         except Exception as e:
             self.logger.error(f"选择图文/视频文件失败: {str(e)}")
             return False
@@ -774,7 +823,8 @@ class BaseFileUploader(object):
                     self.logger.info("Setting the %s tag" % index)
                     await page.keyboard.insert_text(f"#{tag}")
                     if index < len(self.tags):
-                        await page.keyboard.press("Space")
+                        # 部分平台会吞掉 Space 按键来处理话题联想，直接插入文本空格更稳定。
+                        await page.keyboard.insert_text(" ")
                     # 等待300毫秒
                     await page.wait_for_timeout(self.wait_timeout_500ms)
             return True
@@ -808,6 +858,19 @@ class BaseFileUploader(object):
             if thumbnail_finish:
                 await thumbnail_finish.click()
             await page.wait_for_timeout(2000)  # 等待2秒
+
+    async def set_content_declaration(self, page):
+        """选择平台要求的内容声明，默认使用不含 AI/虚构内容的选项。"""
+        if self.content_declaration_trigger_selectors and not await self._has_visible_selector(self.content_declaration_selectors):
+            trigger = await self.find_button(self.content_declaration_trigger_selectors)
+            if trigger:
+                await trigger.click()
+                await page.wait_for_timeout(self.wait_timeout_500ms)
+        declaration = await self.find_button(self.content_declaration_selectors)
+        if not declaration:
+            raise Exception("未找到内容声明选项")
+        await declaration.click()
+        await page.wait_for_timeout(self.wait_timeout_500ms)
 
 
     async def set_location(self, page):
@@ -864,6 +927,10 @@ class BaseFileUploader(object):
                 # 步骤1: 查找并点击发布按钮
                 publish_button = await self.find_button(self.publish_button_selectors)
                 if publish_button:
+                    if not await publish_button.is_enabled():
+                        self.logger.error(f"{self.platform_name}发布按钮当前不可用，页面仍在等待必填项或平台处理")
+                        await asyncio.sleep(min(attempt * 2, self.max_retry_delay))
+                        continue
                     publish_origin_url = page.url
                     await publish_button.click()
                     await asyncio.sleep(self.check_interval)
@@ -909,7 +976,7 @@ class BaseFileUploader(object):
         accepted_statuses = ("已发布", "审核中", "审核通过", "待审核", "发布成功")
         failure_statuses = ("发布失败", "发表失败", "投稿失败", "审核未通过", "Upload failed", "Publish failed", "Post failed")
         success_texts = (
-            "发布成功", "发表成功", "投稿成功", "作品发布成功", "Post published",
+            "发布成功", "发表成功", "投稿成功", "稿件投递成功", "作品发布成功", "Post published",
             "Published successfully", "Your video is live", "Your post is published",
         )
         logged_at = 0
@@ -919,10 +986,10 @@ class BaseFileUploader(object):
                 current_url = page.url
                 body = await self._body_text(page)
                 feedback = await self._visible_feedback_text()
-                if await self._has_visible_selector(self.publish_error_selectors) or self._publish_failed(feedback):
+                if await self._has_visible_selector(self.publish_error_selectors) or self._publish_failed(feedback) or self._publish_failed(body):
                     self.logger.error(f"{self.platform_name}页面报告作品发布失败")
                     return False
-                if await self._has_visible_selector(self.publish_success_selectors) or any(text in feedback for text in success_texts):
+                if await self._has_visible_selector(self.publish_success_selectors) or any(text in feedback or text in body for text in success_texts):
                     self.logger.info(f"{self.platform_name}页面已确认作品发布成功")
                     return True
                 if self.title and ("content/manage" in current_url or "manage" in current_url):
