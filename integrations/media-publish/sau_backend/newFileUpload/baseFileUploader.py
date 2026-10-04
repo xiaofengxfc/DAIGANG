@@ -451,6 +451,8 @@ class BaseFileUploader(object):
         返回：是否添加成功
         """
         try:
+            editor_button = None
+            textbox_button = None
             # 输入标题
             if self.title_supported and self.title:
                 # 使用find_button方法定位标题输入框，支持中文和英文界面
@@ -473,8 +475,9 @@ class BaseFileUploader(object):
             # 输入正文
             if self.textbox_supported and self.text:
                 textbox_button = await self.find_button(self.textbox_selectors)
-                if textbox_button:
-                    self.logger.info(f"  [-] 将点击正文输入框: {await textbox_button.text_content()}")
+                if not textbox_button:
+                    raise Exception("未找到正文输入框")
+                self.logger.info(f"  [-] 将点击正文输入框: {await textbox_button.text_content()}")
                 await textbox_button.click()
                 # 清空现有内容（如果有）
                 await page.keyboard.press("Control+A")
@@ -487,6 +490,20 @@ class BaseFileUploader(object):
             
             # 输入标签（跟在正文后面）
             if self.tags_supported and self.tags:
+                # 正文为空时，标题输入框仍然拥有焦点。显式定位正文（或平台的
+                # 唯一编辑器）后再输入话题，避免话题被写进标题。
+                if self.textbox_supported:
+                    if textbox_button is None:
+                        textbox_button = await self.find_button(self.textbox_selectors)
+                    if not textbox_button:
+                        raise Exception("未找到正文/话题输入框")
+                    await textbox_button.click()
+                elif self.title_supported:
+                    if editor_button is None:
+                        editor_button = await self.find_button(self.editor_button_locators)
+                    if editor_button:
+                        await editor_button.click()
+
                 await page.keyboard.press("Enter")
                 await page.keyboard.press("Enter")
                     
@@ -537,7 +554,7 @@ class BaseFileUploader(object):
         await page.locator('div.semi-select span:has-text("输入地理位置")').click()
         await page.keyboard.press("Backspace")
         await page.wait_for_timeout(2000)
-        await page.keyboard.type(location)
+        await page.keyboard.type(self.location)
         await page.wait_for_selector('div[role="listbox"] [role="option"]', timeout=5000)
         await page.locator('div[role="listbox"] [role="option"]').first.click()
     

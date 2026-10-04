@@ -19,6 +19,10 @@ def get_cli_action() -> List[str]:
 
 
 async def set_init_script(context):
-    stealth_js_path = Path(BASE_DIR / "sau_backend/utils/stealth.min.js")
+    # The integrated executor keeps the source tree under integrations/media-publish;
+    # BASE_DIR points to the host application's data root for media and cookies.
+    stealth_js_path = Path(__file__).resolve().with_name("stealth.min.js")
+    if not stealth_js_path.is_file():
+        stealth_js_path = Path(BASE_DIR / "sau_backend/utils/stealth.min.js")
     await context.add_init_script(path=stealth_js_path)
     return context

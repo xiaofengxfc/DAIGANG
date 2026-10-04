@@ -21,6 +21,7 @@ sys.path.insert(0, str(BACKEND))
 
 from newFileUpload.multiFileUploader import post_multiple_files_to_multiple_platforms
 from newFileUpload.platform_configs import PLATFORM_CONFIGS
+from utils.base_social_media import set_init_script
 from playwright.async_api import async_playwright
 
 app = Flask(__name__)
@@ -58,30 +59,85 @@ def merge_results(target, result):
         current['total'] += int(item.get('total', 0))
 
 
+def _log_path(platform):
+    source_root = Path(os.environ.get('XFC_MEDIA_SOURCE_ROOT', HERE.parent.parent))
+    return source_root / 'logs' / f'{platform}.log'
+
+
+def _log_sizes(platforms):
+    sizes = {}
+    for platform in platforms:
+        try:
+            sizes[platform] = _log_path(platform).stat().st_size
+        except OSError:
+            sizes[platform] = 0
+    return sizes
+
+
+def _collect_errors(platforms, start_sizes):
+    errors = {}
+    for platform in platforms:
+        log_path = _log_path(platform)
+        try:
+            with log_path.open('rb') as handle:
+                start = start_sizes.get(platform, 0)
+                handle.seek(start if log_path.stat().st_size >= start else 0)
+                text = handle.read().decode('utf-8', errors='replace')
+        except OSError:
+            continue
+        lines = [line.strip() for line in text.splitlines() if 'ERROR' in line]
+        if lines:
+            errors[platform] = lines[-1][-1000:]
+    return errors
+
+
 async def login_browser(job_id, platform, cookie_path):
     config = PLATFORM_CONFIGS.get(platform_key(platform))
     if not config:
         raise ValueError(f'不支持的平台: {platform}')
     configured_executable = os.environ.get('XFC_MEDIA_CHROME_PATH', '')
     executable = configured_executable if configured_executable and Path(configured_executable).is_file() else None
-    async with async_playwright() as playwright:
-        browser = await playwright.chromium.launch(headless=False, executable_path=executable)
-        context = await browser.new_context()
-        page = await context.new_page()
-        await page.goto(config['login_url'], wait_until='domcontentloaded', timeout=60000)
-        initial_url = page.url
-        deadline = time.time() + 300
-        while time.time() < deadline:
-            current_url = page.url.lower()
-            if 'login' not in current_url and current_url != initial_url.lower():
-                Path(cookie_path).parent.mkdir(parents=True, exist_ok=True)
-                await context.storage_state(path=cookie_path)
-                LOGIN_JOBS[job_id].update({'status': 'success', 'cookie_path': cookie_path, 'message': '登录态已保存'})
+    browser = None
+    context = None
+    try:
+        async with async_playwright() as playwright:
+            browser = await playwright.chromium.launch(
+                headless=False,
+                executable_path=executable,
+                args=[
+                    '--no-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu',
+                    '--ignore-certificate-errors',
+                    '--start-maximized',
+                    '--disable-blink-features=AutomationControlled',
+                ],
+            )
+            context = await browser.new_context()
+            context = await set_init_script(context)
+            page = await context.new_page()
+            await page.goto(config['login_url'], wait_until='domcontentloaded', timeout=60000)
+            deadline = time.time() + 300
+            while time.time() < deadline:
+                current_url = page.url.lower()
+                if 'login' not in current_url:
+                    Path(cookie_path).parent.mkdir(parents=True, exist_ok=True)
+                    await context.storage_state(path=cookie_path)
+                    LOGIN_JOBS[job_id].update({'status': 'success', 'cookie_path': cookie_path, 'message': '登录态已保存'})
+                    return
+                await asyncio.sleep(1.5)
+            raise TimeoutError('等待登录超时（5分钟）')
+    finally:
+        if context is not None:
+            try:
                 await context.close()
+            except Exception:
+                pass
+        if browser is not None:
+            try:
                 await browser.close()
-                return
-            await asyncio.sleep(1.5)
-        raise TimeoutError('等待登录超时（5分钟）')
+            except Exception:
+                pass
 
 
 def begin_login(platform, cookie_path):
@@ -160,6 +216,7 @@ def execute_task():
 
     try:
         result = {}
+        log_sizes = _log_sizes(normalized_platforms)
         for file_type, group_files in material_groups(materials):
             merge_results(result, post_multiple_files_to_multiple_platforms(
                 platforms=normalized_platforms,
@@ -173,8 +230,17 @@ def execute_task():
                 location='',
                 enableTimer=False,
             ))
+        errors = _collect_errors(normalized_platforms, log_sizes)
+        for platform, item in result.items():
+            if int(item.get('success', 0)) < int(item.get('total', 0)) and platform in errors:
+                item['error'] = errors[platform]
         success = bool(result) and all(int(item.get('success', 0)) >= int(item.get('total', 0)) for item in result.values())
-        return jsonify({'status': 'success' if success else 'failed', 'results': result})
+        error_messages = [f"{platform}: {item['error']}" for platform, item in result.items() if item.get('error')]
+        return jsonify({
+            'status': 'success' if success else 'failed',
+            'results': result,
+            'error': '; '.join(error_messages)[:2000] if error_messages else ('' if success else '平台发布失败，请查看执行器日志'),
+        })
     except Exception as exc:
         return jsonify({'status': 'failed', 'error': str(exc)}), 500
 

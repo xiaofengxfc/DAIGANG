@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import { db, stamp } from '../db.mjs'
-import { UPLOAD_DIR, MEDIA_COOKIE_DIR, MAX_MEDIA_UPLOAD_BYTES, MEDIA_EXECUTOR_TOKEN } from '../config.mjs'
+import { UPLOAD_DIR, MEDIA_COOKIE_DIR, MAX_MEDIA_UPLOAD_BYTES, MEDIA_EXECUTOR_TOKEN, MEDIA_EXECUTOR_TIMEOUT_MS } from '../config.mjs'
 import { mediaDependencyStatus, startMediaDependencyInstall, mediaDependencyInstallStatus, startMediaExecutor, mediaExecutorInfo, mediaExecutorBaseUrl } from '../media-deps.mjs'
 import { get, post, patch, del, postRaw } from '../http.mjs'
 import { bad, notFound, int, clampStr, parseJSON, stringifyJSON, fail } from '../util.mjs'
@@ -58,6 +58,14 @@ function validateIds(values) {
   return [...new Set((Array.isArray(values) ? values : []).map((value) => int(value, 0)).filter((value) => value > 0))]
 }
 
+function executorResultError(result) {
+  if (result?.error) return clampStr(result.error, 500)
+  const failures = Object.entries(result?.results || {})
+    .filter(([, item]) => Number(item?.success || 0) < Number(item?.total || 0))
+    .map(([platform, item]) => `${platform}: ${item?.error || `成功 ${Number(item?.success || 0)}/${Number(item?.total || 0)}`}`)
+  return clampStr(failures.join('; '), 500)
+}
+
 async function dispatchTask(id) {
   const row = db.prepare('SELECT * FROM media_tasks WHERE id = ?').get(id)
   if (!row) notFound('发布任务不存在')
@@ -65,6 +73,7 @@ async function dispatchTask(id) {
   const executorUrl = mediaExecutorBaseUrl()
   if (!executorUrl) return { ok: false, available: false, status: row.status, message: '未配置发布执行器，任务已保留在队列中' }
   if (['success', 'cancelled'].includes(row.status)) return { ok: false, available: true, status: row.status, message: '这个任务当前不能再次发布' }
+  if (row.status === 'publishing') return { ok: false, available: true, status: row.status, message: '这个任务正在发布，请等待当前执行完成' }
   const now = stamp()
   db.prepare('UPDATE media_tasks SET status = ?, error_msg = ?, updated_at = ? WHERE id = ?').run('publishing', '', now, id)
   try {
@@ -96,12 +105,17 @@ async function dispatchTask(id) {
         materials,
         publish_at: row.publish_at,
       }),
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(MEDIA_EXECUTOR_TIMEOUT_MS),
     })
-    if (!response.ok) throw new Error(`执行器返回 ${response.status}`)
     const result = await response.json().catch(() => ({}))
-    const resultStatus = TASK_STATES.has(result.status) ? result.status : 'success'
-    db.prepare('UPDATE media_tasks SET status = ?, result = ?, error_msg = ?, updated_at = ? WHERE id = ?').run(resultStatus, stringifyJSON(result), '', stamp(), id)
+    if (!response.ok) throw new Error(clampStr(result.error || result.message || `执行器返回 ${response.status}`, 500))
+    const resultError = executorResultError(result)
+    const resultStatus = TASK_STATES.has(result.status)
+      ? result.status
+      : resultError
+        ? 'failed'
+        : 'success'
+    db.prepare('UPDATE media_tasks SET status = ?, result = ?, error_msg = ?, updated_at = ? WHERE id = ?').run(resultStatus, stringifyJSON(result), resultError, stamp(), id)
     return { ok: true, available: true, status: resultStatus, result }
   } catch (err) {
     db.prepare('UPDATE media_tasks SET status = ?, error_msg = ?, updated_at = ? WHERE id = ?').run('failed', clampStr(err.message, 500), stamp(), id)
