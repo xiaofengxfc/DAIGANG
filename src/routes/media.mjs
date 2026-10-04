@@ -254,7 +254,9 @@ export function register() {
     if (!fs.existsSync(oldAbsolute)) bad('素材文件不存在', 'missing_file')
     const extension = path.extname(row.file_path).toLowerCase()
     const typedExtension = path.extname(requested)
-    const baseName = path.basename(requested, typedExtension || undefined).trim()
+    const baseName = typedExtension.toLowerCase() === extension
+      ? path.basename(requested, typedExtension).trim()
+      : requested
     if (!baseName) bad('请填写素材名称', 'missing_filename')
     const storedName = `${baseName}${extension}`
     const nextRelative = path.join(path.dirname(row.file_path), storedName)
