@@ -181,6 +181,8 @@ class BaseFileUploader(object):
         """
         作用：执行单个视频上传到某个平台
         """
+        browser = None
+        context = None
         try:
             self.logger.info(f'开始上传视频: {self.title}')
             # step1.创建浏览器实例
@@ -272,12 +274,26 @@ class BaseFileUploader(object):
             # step13.关闭所有页面和浏览器上下文
             await context.close()
             await browser.close()
+            context = None
+            browser = None
             self.logger.info(f"step13：{self.platform_name}浏览器窗口已关闭")
 
             return self.publish_status
         except Exception as e:
             self.logger.error(f"{self.platform_name}视频上传失败: {str(e)}")
             return False
+        finally:
+            # 上传任一步骤失败时也释放浏览器资源，避免任务重试累积 Chromium 进程。
+            if context is not None:
+                try:
+                    await context.close()
+                except Exception:
+                    pass
+            if browser is not None:
+                try:
+                    await browser.close()
+                except Exception:
+                    pass
 
     async def choose_base_locator(self, page):
         """
@@ -400,6 +416,10 @@ class BaseFileUploader(object):
                 if self.platform_name == "kuaishou":
                     number = await page.locator("text=上传中").count()
                     if number == 0:
+                        if not await self.wait_for_editors(page):
+                            self.logger.info("编辑器尚未就绪，继续等待页面完成渲染")
+                            await asyncio.sleep(self.check_interval)
+                            continue
                         self.logger.success("图文/视频上传完毕")
                         break
                     else:
@@ -410,6 +430,12 @@ class BaseFileUploader(object):
                     publish_button = await self.find_button(self.publish_button_selectors)               
                     # 检查发布按钮是否可点击
                     if publish_button and await publish_button.get_attribute("disabled") is None:
+                        # 抖音等平台会先渲染“发布”按钮，再异步挂载标题和正文编辑器。
+                        # 只有编辑器也可见时才算真正进入编辑状态。
+                        if not await self.wait_for_editors(page):
+                            self.logger.info("编辑器尚未就绪，继续等待页面完成渲染")
+                            await asyncio.sleep(self.check_interval)
+                            continue
                         self.logger.info("图文/视频上传完毕")
                         break
                     else:
@@ -425,6 +451,40 @@ class BaseFileUploader(object):
                 await asyncio.sleep(self.check_interval)
                 return False
         return True
+
+    async def wait_for_editors(self, page, timeout=30000):
+        """等待当前平台需要填写的编辑器完成异步渲染。"""
+        required = []
+        if self.title_supported and self.title:
+            required.append(("标题", self.editor_button_locators))
+        if self.textbox_supported and (self.text or (self.tags_supported and self.tags)):
+            required.append(("正文/话题", self.textbox_selectors))
+        if not required:
+            return True
+
+        deadline = asyncio.get_running_loop().time() + timeout / 1000
+        while asyncio.get_running_loop().time() < deadline:
+            ready = True
+            for label, selectors in required:
+                found = False
+                for selector in selectors:
+                    try:
+                        locator = self.locator_base.locator(selector)
+                        count = await locator.count()
+                        if count and await locator.first.is_visible():
+                            found = True
+                            break
+                    except Exception:
+                        continue
+                if not found:
+                    ready = False
+                    self.logger.debug(f"等待{label}编辑器渲染")
+                    break
+            if ready:
+                return True
+            await page.wait_for_timeout(500)
+        self.logger.error("等待标题/正文编辑器超时")
+        return False
 
     async def handle_upload_error(self, page):
         """
