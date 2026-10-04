@@ -4,6 +4,7 @@
 """
 import os
 import asyncio
+import json
 import re
 from datetime import datetime
 from playwright.async_api import Playwright, async_playwright
@@ -35,7 +36,7 @@ class BaseFileUploader(object):
         self.file_path = file_path
         self.title = title
         self.text = text
-        self.tags = tags
+        self.tags = self._normalize_tags(tags)
         self.thumbnail_path = thumbnail_path
         self.location = location
         self.publish_date = publish_date
@@ -389,18 +390,82 @@ class BaseFileUploader(object):
             找到的按钮定位器对象，如果没找到则返回None
         """
         for selector in selector_list:
-            # 检查当前选择器是否在页面上存在匹配的元素
-            count = await self.locator_base.locator(selector).count()
-            if count > 0:
-                # 异步等待元素可交互（避免元素未加载完成）
-                await self.locator_base.locator(selector).wait_for(state="visible", timeout=self.button_visible_timeout)
-                self.logger.info(f"找到按钮定位器: {selector}, 是否可见: {await self.locator_base.locator(selector).is_visible()}")
-                # 返回找到的按钮定位器
-                return self.locator_base.locator(selector)
+            locator = self.locator_base.locator(selector)
+            count = await locator.count()
+            for index in range(count):
+                candidate = locator.nth(index)
+                try:
+                    if not await candidate.is_visible():
+                        continue
+                    await candidate.wait_for(state="visible", timeout=self.button_visible_timeout)
+                    self.logger.info(f"找到按钮定位器: {selector}, 是否可见: True")
+                    # 返回单个元素，避免 contenteditable 多行节点触发 strict mode。
+                    return candidate
+                except Exception:
+                    continue
 
         # 如果所有选择器都没找到，返回None
         self.logger.info("未找到任何按钮定位器")
         return None
+
+    @staticmethod
+    def _normalize_tags(tags):
+        """将接口传入的标签统一为去重后的纯文本列表。"""
+        if tags is None:
+            return []
+        if isinstance(tags, str):
+            value = tags.strip()
+            if not value:
+                return []
+            # 前端可能直接传 JSON 数组，也兼容旧接口的逗号/空格分隔格式。
+            if value.startswith("["):
+                try:
+                    decoded = json.loads(value)
+                    tags = decoded if isinstance(decoded, list) else [value]
+                except (TypeError, ValueError):
+                    tags = re.split(r"[,，;；\s]+", value)
+            else:
+                tags = re.split(r"[,，;；\s]+", value)
+        elif not isinstance(tags, (list, tuple, set)):
+            tags = [tags]
+
+        normalized = []
+        seen = set()
+        for tag in tags:
+            tag = str(tag).strip().lstrip("#")
+            if tag and tag not in seen:
+                normalized.append(tag)
+                seen.add(tag)
+        return normalized
+
+    @staticmethod
+    def _normalize_text(text):
+        return str(text or "").replace("\r\n", "\n").replace("\r", "\n")
+
+    async def _clear_editor(self, page, editor):
+        """清空 input、textarea 和 contenteditable，兼容各平台的富文本实现。"""
+        try:
+            await editor.fill("")
+        except Exception:
+            await editor.click()
+            await page.keyboard.press("Control+A")
+            await page.keyboard.press("Backspace")
+
+    async def _insert_text_lines(self, page, editor, text):
+        """逐行输入正文，使用真实 Enter 创建段落，避免换行被当作普通字符。"""
+        lines = self._normalize_text(text).split("\n")
+        for index, line in enumerate(lines):
+            if line:
+                await page.keyboard.insert_text(line)
+            if index < len(lines) - 1:
+                await page.keyboard.press("Enter")
+
+    async def _move_editor_to_end(self, page, editor):
+        """将光标移到编辑器末尾，避免重新点击多行定位器导致话题插入到正文中间。"""
+        try:
+            await editor.press("Control+End")
+        except Exception:
+            await page.keyboard.press("Control+End")
 
     async def upload_video_file(self, page):
         """
@@ -647,6 +712,7 @@ class BaseFileUploader(object):
         try:
             editor_button = None
             textbox_button = None
+            body_was_entered = False
             # 输入标题
             if self.title_supported and self.title:
                 # 使用find_button方法定位标题输入框，支持中文和英文界面
@@ -657,8 +723,7 @@ class BaseFileUploader(object):
                 await editor_button.click()
                 
                 # 清空现有内容
-                await page.keyboard.press("Control+A")
-                await page.keyboard.press("Delete")
+                await self._clear_editor(page, editor_button)
                 await page.wait_for_timeout(self.wait_timeout_500ms)  # 等待500毫秒
                     
                 # 输入标题
@@ -674,36 +739,42 @@ class BaseFileUploader(object):
                 self.logger.info(f"  [-] 将点击正文输入框: {await textbox_button.text_content()}")
                 await textbox_button.click()
                 # 清空现有内容（如果有）
-                await page.keyboard.press("Control+A")
-                await page.keyboard.press("Delete")
+                await self._clear_editor(page, textbox_button)
                 await page.wait_for_timeout(self.wait_timeout_500ms)  # 等待500毫秒
                         
-                # 输入正文
-                await page.keyboard.insert_text(self.text)
+                # 按行输入正文，确保富文本编辑器创建独立段落。
+                await self._insert_text_lines(page, textbox_button, self.text)
+                body_was_entered = bool(self._normalize_text(self.text))
                 await page.wait_for_timeout(self.wait_timeout_500ms)  # 等待500毫秒
             
             # 输入标签（跟在正文后面）
             if self.tags_supported and self.tags:
-                # 正文为空时，标题输入框仍然拥有焦点。显式定位正文（或平台的
-                # 唯一编辑器）后再输入话题，避免话题被写进标题。
+                # 正文已经输入时不要再次点击多行定位器，否则会把光标移回正文开头。
                 if self.textbox_supported:
                     if textbox_button is None:
                         textbox_button = await self.find_button(self.textbox_selectors)
                     if not textbox_button:
                         raise Exception("未找到正文/话题输入框")
-                    await textbox_button.click()
+                    if not body_was_entered:
+                        await textbox_button.click()
+                        await self._clear_editor(page, textbox_button)
+                    await self._move_editor_to_end(page, textbox_button)
                 elif self.title_supported:
                     if editor_button is None:
                         editor_button = await self.find_button(self.editor_button_locators)
                     if editor_button:
                         await editor_button.click()
+                        await self._move_editor_to_end(page, editor_button)
 
-                await page.keyboard.press("Enter")
-                await page.keyboard.press("Enter")
+                # 只创建一个明确的新段落；连续 Enter 在部分富文本编辑器中会被折叠。
+                if body_was_entered:
+                    await page.keyboard.press("Enter")
                     
                 for index, tag in enumerate(self.tags, start=1):
                     self.logger.info("Setting the %s tag" % index)
-                    await page.keyboard.insert_text(f"#{tag} ")
+                    await page.keyboard.insert_text(f"#{tag}")
+                    if index < len(self.tags):
+                        await page.keyboard.press("Space")
                     # 等待300毫秒
                     await page.wait_for_timeout(self.wait_timeout_500ms)
             return True
