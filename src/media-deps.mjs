@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { spawn, spawnSync } from 'node:child_process'
-import { MEDIA_COOKIE_DIR, MEDIA_EXECUTOR_AUTO_START, MEDIA_EXECUTOR_PORT, MEDIA_EXECUTOR_SCRIPT, MEDIA_EXECUTOR_TOKEN, MEDIA_EXECUTOR_URL, MEDIA_PUBLISH_ROOT, MEDIA_REQUIREMENTS_FILE, MEDIA_EXECUTOR_REQUIREMENTS_FILE, MEDIA_PYTHON, ROOT } from './config.mjs'
+import { DATA_DIR, MEDIA_COOKIE_DIR, MEDIA_EXECUTOR_AUTO_START, MEDIA_EXECUTOR_PORT, MEDIA_EXECUTOR_SCRIPT, MEDIA_EXECUTOR_TOKEN, MEDIA_EXECUTOR_URL, MEDIA_PUBLISH_ROOT, MEDIA_REQUIREMENTS_FILE, MEDIA_EXECUTOR_REQUIREMENTS_FILE, MEDIA_PYTHON, ROOT } from './config.mjs'
 
 const jobs = new Map()
 let cachedProbe = null
@@ -141,7 +141,19 @@ export function startMediaExecutor() {
   if (MEDIA_EXECUTOR_URL || !MEDIA_EXECUTOR_AUTO_START || executorProcess || !fs.existsSync(MEDIA_EXECUTOR_SCRIPT)) return mediaExecutorInfo()
   const probe = mediaDependencyStatus()
   if (!probe.executor.ready) return mediaExecutorInfo()
-  const env = { ...process.env, XFC_MEDIA_SOURCE_ROOT: ROOT, XFC_MEDIA_COOKIE_DIR: MEDIA_COOKIE_DIR, XFC_MEDIA_EXECUTOR_PORT: String(MEDIA_EXECUTOR_PORT), XFC_MEDIA_EXECUTOR_TOKEN: MEDIA_EXECUTOR_TOKEN, XFC_MEDIA_CHROME_PATH: process.env.XFC_MEDIA_CHROME_PATH || probe.python.browser_path || probe.chrome.path || '' }
+  const executorTempDir = path.join(DATA_DIR, 'media-tmp')
+  fs.mkdirSync(executorTempDir, { recursive: true })
+  const env = {
+    ...process.env,
+    TEMP: executorTempDir,
+    TMP: executorTempDir,
+    TMPDIR: executorTempDir,
+    XFC_MEDIA_SOURCE_ROOT: ROOT,
+    XFC_MEDIA_COOKIE_DIR: MEDIA_COOKIE_DIR,
+    XFC_MEDIA_EXECUTOR_PORT: String(MEDIA_EXECUTOR_PORT),
+    XFC_MEDIA_EXECUTOR_TOKEN: MEDIA_EXECUTOR_TOKEN,
+    XFC_MEDIA_CHROME_PATH: process.env.XFC_MEDIA_CHROME_PATH || probe.python.browser_path || probe.chrome.path || '',
+  }
   try {
     executorProcess = spawn(probe.python.bin, [MEDIA_EXECUTOR_SCRIPT], { cwd: MEDIA_PUBLISH_ROOT, env, stdio: 'ignore', windowsHide: true })
     executorProcess.unref()
