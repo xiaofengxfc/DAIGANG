@@ -23646,6 +23646,7 @@ function MediaPage({ reloadKey = 0 }) {
 	const [saving, setSaving] = (0, import_react.useState)(false);
 	const [dependencyStatus, setDependencyStatus] = (0, import_react.useState)(null);
 	const [dependencyInstalling, setDependencyInstalling] = (0, import_react.useState)(false);
+	const [dependencyRefreshing, setDependencyRefreshing] = (0, import_react.useState)(false);
 	const [loginJobs, setLoginJobs] = (0, import_react.useState)({});
 	const fileRef = (0, import_react.useRef)(null);
 	const load = async ({ quiet = false } = {}) => {
@@ -23822,9 +23823,11 @@ function MediaPage({ reloadKey = 0 }) {
 				return;
 			}
 			toast("开始安装 Python 依赖和 Chromium，请稍候", "ok", 5e3);
+			let finalJob = null;
 			for (let i = 0; i < 120; i += 1) {
 				await new Promise((resolve) => window.setTimeout(resolve, 1500));
 				const status = await api.get("/api/media/dependencies/install/status", { job: started.job });
+				finalJob = status;
 				setDependencyStatus((current) => ({
 					...current || {},
 					install_job: status
@@ -23832,11 +23835,26 @@ function MediaPage({ reloadKey = 0 }) {
 				if (["success", "failed"].includes(status.status)) break;
 			}
 			const fresh = await api.get("/api/media/dependencies");
-			setDependencyStatus(fresh);
+			setDependencyStatus({
+				...fresh,
+				install_job: finalJob
+			});
+			if (finalJob?.status === "failed") toast(finalJob.error || "依赖安装失败，请查看安装日志", "warn", 8e3);
 		} catch (err) {
 			toastErr(err);
 		} finally {
 			setDependencyInstalling(false);
+		}
+	}
+	async function refreshDependencies() {
+		setDependencyRefreshing(true);
+		try {
+			setDependencyStatus(await api.get("/api/media/dependencies", { force: 1 }));
+			toast("依赖检测已完成", "ok");
+		} catch (err) {
+			toastErr(err);
+		} finally {
+			setDependencyRefreshing(false);
 		}
 	}
 	async function taskAction(path, successMessage) {
@@ -23933,8 +23951,9 @@ function MediaPage({ reloadKey = 0 }) {
 			!data.executor?.configured || activeTab === "accounts" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MediaDependencyCard, {
 				status: dependencyStatus,
 				installing: dependencyInstalling,
+				refreshing: dependencyRefreshing,
 				onInstall: installDependencies,
-				onRefresh: () => api.get("/api/media/dependencies", { force: 1 }).then(setDependencyStatus)
+				onRefresh: refreshDependencies
 			}) : null,
 			activeTab === "publish" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PublishComposer, {
 				data,
@@ -24369,7 +24388,7 @@ function AccountsView({ data, form, setForm, onSubmit, onDelete, onUploadCookie,
 		})]
 	});
 }
-function MediaDependencyCard({ status, installing, onInstall, onRefresh }) {
+function MediaDependencyCard({ status, installing, refreshing, onInstall, onRefresh }) {
 	const python = status?.python;
 	const ready = Boolean(status?.executor?.ready);
 	const job = status?.install_job;
@@ -24385,8 +24404,8 @@ function MediaDependencyCard({ status, installing, onInstall, onRefresh }) {
 					type: "button",
 					className: "refactor-button refactor-button--compact",
 					onClick: onRefresh,
-					disabled: installing,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps$1(14) }), "重新检测"]
+					disabled: installing || refreshing,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps$1(14) }), refreshing ? "检测中…" : "重新检测"]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -24420,6 +24439,14 @@ function MediaDependencyCard({ status, installing, onInstall, onRefresh }) {
 					job.step || "安装中…",
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: job.log?.slice(-240) || "正在准备安装" })
+				]
+			}) : null,
+			job?.status === "failed" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+				className: "media-dependency-log is-error",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: job.error || "依赖安装失败" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: job.log?.slice(-1200) || "没有返回安装日志" })
 				]
 			}) : null,
 			!python?.available ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {

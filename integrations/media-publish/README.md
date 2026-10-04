@@ -8,7 +8,7 @@
 
 ```powershell
 python -m venv .venv-media
-.\.venv-media\Scripts\python.exe -m pip install -r integrations\media-publish\requirements.txt
+.\.venv-media\Scripts\python.exe -m pip install -r integrations\media-publish\requirements-executor.txt
 .\.venv-media\Scripts\python.exe -m playwright install chromium
 $env:XFC_MEDIA_SOURCE_ROOT = (Resolve-Path .).Path
 $env:XFC_MEDIA_CHROME_PATH = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
@@ -19,3 +19,5 @@ $env:XFC_MEDIA_EXECUTOR_TOKEN = 'change-me'
 Node 侧设置同一个 `XFC_MEDIA_EXECUTOR_URL=http://127.0.0.1:5409` 和 `XFC_MEDIA_EXECUTOR_TOKEN`，然后在“自媒体 / 发布记录”点击“发布”。
 
 执行器使用原项目的九个平台配置和 Playwright 上传器。每个账号必须提供 Playwright `storage_state` JSON 登录态，账号状态和 Cookie 上传由主项目管理。
+
+`requirements.txt` 保留原仓库的完整锁定依赖，适合按原项目文档使用 Python 3.10 环境运行完整原项目；当前集成执行器只需要 `requirements-executor.txt`，可兼容 Python 3.14。主项目「自媒体」页面的安装按钮使用后者。

@@ -86,6 +86,7 @@ input {
 .media-dependency-note a { margin-left: 8px; }
 .media-dependency-log { padding: 8px 10px; border-radius: 7px; background: var(--surface-inset); }
 .media-dependency-log small { color: var(--ink-3); white-space: pre-wrap; }
+.media-dependency-log.is-error { border: 1px solid var(--cinnabar-line); color: var(--cinnabar); }
 
 .media-composer { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(250px, .7fr); align-items: start; gap: 14px; }
 .media-two-column { display: grid; grid-template-columns: minmax(260px, .75fr) minmax(0, 1.25fr); align-items: start; gap: 14px; }

@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { spawn, spawnSync } from 'node:child_process'
-import { MEDIA_COOKIE_DIR, MEDIA_EXECUTOR_AUTO_START, MEDIA_EXECUTOR_PORT, MEDIA_EXECUTOR_SCRIPT, MEDIA_EXECUTOR_TOKEN, MEDIA_EXECUTOR_URL, MEDIA_PUBLISH_ROOT, MEDIA_REQUIREMENTS_FILE, MEDIA_PYTHON, ROOT } from './config.mjs'
+import { MEDIA_COOKIE_DIR, MEDIA_EXECUTOR_AUTO_START, MEDIA_EXECUTOR_PORT, MEDIA_EXECUTOR_SCRIPT, MEDIA_EXECUTOR_TOKEN, MEDIA_EXECUTOR_URL, MEDIA_PUBLISH_ROOT, MEDIA_REQUIREMENTS_FILE, MEDIA_EXECUTOR_REQUIREMENTS_FILE, MEDIA_PYTHON, ROOT } from './config.mjs'
 
 const jobs = new Map()
 let cachedProbe = null
@@ -66,11 +66,12 @@ export function mediaDependencyStatus({ force = false } = {}) {
     python,
     chrome,
     requirements: { exists: fs.existsSync(MEDIA_REQUIREMENTS_FILE), path: MEDIA_REQUIREMENTS_FILE },
+    executor_requirements: { exists: fs.existsSync(MEDIA_EXECUTOR_REQUIREMENTS_FILE), path: MEDIA_EXECUTOR_REQUIREMENTS_FILE },
     source: { exists: fs.existsSync(path.join(MEDIA_PUBLISH_ROOT, 'sau_backend')), path: path.join(MEDIA_PUBLISH_ROOT, 'sau_backend') },
     executor: { ready: Boolean(python.available && python.dependencies && python.playwright && (python.browser || chrome.available)) },
     install: {
-      requirements: MEDIA_REQUIREMENTS_FILE,
-      commands: python.available ? [`${python.bin} -m pip install -r "${MEDIA_REQUIREMENTS_FILE}"`, `${python.bin} -m playwright install chromium`] : ['安装 Python 3.10 或更高版本后，再回到这里安装依赖'],
+      requirements: MEDIA_EXECUTOR_REQUIREMENTS_FILE,
+      commands: python.available ? [`${python.bin} -m pip install -r "${MEDIA_EXECUTOR_REQUIREMENTS_FILE}"`, `${python.bin} -m playwright install chromium`] : ['安装 Python 3.10 或更高版本后，再回到这里安装依赖'],
       python_download: 'https://www.python.org/downloads/windows/',
     },
   }
@@ -102,7 +103,7 @@ export function startMediaDependencyInstall() {
   const job = { id, status: 'running', step: '准备安装', log: '', started_at: new Date().toISOString(), finished_at: null, error: '' }
   jobs.set(id, job)
   ;(async () => {
-    const pip = await spawnStep(job, probe.python.bin, ['-m', 'pip', 'install', '-r', MEDIA_REQUIREMENTS_FILE], '安装 Python 依赖')
+    const pip = await spawnStep(job, probe.python.bin, ['-m', 'pip', 'install', '-r', MEDIA_EXECUTOR_REQUIREMENTS_FILE], '安装执行器依赖')
     if (pip.code !== 0) {
       job.status = 'failed'
       job.error = 'Python 依赖安装失败，请查看安装日志'

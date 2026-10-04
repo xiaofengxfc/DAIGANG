@@ -124,6 +124,7 @@ export const MEDIA_EXECUTOR_URL = String(process.env.XFC_MEDIA_EXECUTOR_URL || '
 export const MEDIA_EXECUTOR_TOKEN = String(process.env.XFC_MEDIA_EXECUTOR_TOKEN || '')
 export const MEDIA_PUBLISH_ROOT = path.join(ROOT, 'integrations', 'media-publish')
 export const MEDIA_REQUIREMENTS_FILE = path.join(MEDIA_PUBLISH_ROOT, 'requirements.txt')
+export const MEDIA_EXECUTOR_REQUIREMENTS_FILE = path.join(MEDIA_PUBLISH_ROOT, 'requirements-executor.txt')
 export const MEDIA_EXECUTOR_SCRIPT = path.join(MEDIA_PUBLISH_ROOT, 'media_executor.py')
 export const MEDIA_PYTHON = String(process.env.XFC_MEDIA_PYTHON || '')
 export const MEDIA_EXECUTOR_PORT = Math.max(1024, Number(process.env.XFC_MEDIA_EXECUTOR_PORT || 5409))

@@ -1,0 +1,6 @@
+# Dependencies required by the integrated Flask/Playwright executor.
+# The original full lock file remains in requirements.txt for running the
+# standalone MediaPublishPlatform application on its supported Python version.
+Flask[async]>=3.1,<4
+loguru>=0.7,<1
+playwright>=1.52,<2

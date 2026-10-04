@@ -49,6 +49,7 @@ export default function MediaPage({ reloadKey = 0 }) {
   const [saving, setSaving] = useState(false)
   const [dependencyStatus, setDependencyStatus] = useState(null)
   const [dependencyInstalling, setDependencyInstalling] = useState(false)
+  const [dependencyRefreshing, setDependencyRefreshing] = useState(false)
   const [loginJobs, setLoginJobs] = useState({})
   const fileRef = useRef(null)
 
@@ -183,15 +184,26 @@ export default function MediaPage({ reloadKey = 0 }) {
         return
       }
       toast('开始安装 Python 依赖和 Chromium，请稍候', 'ok', 5000)
+      let finalJob = null
       for (let i = 0; i < 120; i += 1) {
         await new Promise((resolve) => window.setTimeout(resolve, 1500))
         const status = await api.get('/api/media/dependencies/install/status', { job: started.job })
+        finalJob = status
         setDependencyStatus((current) => ({ ...(current || {}), install_job: status }))
         if (['success', 'failed'].includes(status.status)) break
       }
       const fresh = await api.get('/api/media/dependencies')
-      setDependencyStatus(fresh)
+      setDependencyStatus({ ...fresh, install_job: finalJob })
+      if (finalJob?.status === 'failed') toast(finalJob.error || '依赖安装失败，请查看安装日志', 'warn', 8000)
     } catch (err) { toastErr(err) } finally { setDependencyInstalling(false) }
+  }
+
+  async function refreshDependencies() {
+    setDependencyRefreshing(true)
+    try {
+      setDependencyStatus(await api.get('/api/media/dependencies', { force: 1 }))
+      toast('依赖检测已完成', 'ok')
+    } catch (err) { toastErr(err) } finally { setDependencyRefreshing(false) }
   }
 
   async function taskAction(path, successMessage) {
@@ -230,7 +242,7 @@ export default function MediaPage({ reloadKey = 0 }) {
         {[["publish", "发布任务", Send], ["materials", "素材库", FolderOpen], ["accounts", "账号管理", UserRound], ["records", "发布记录", Clock3]].map(([key, label, Icon]) => <button key={key} type="button" role="tab" aria-selected={activeTab === key} className={activeTab === key ? 'is-active' : ''} onClick={() => setActiveTab(key)}><Icon {...iconProps(16)} />{label}</button>)}
       </div>
 
-      {!data.executor?.configured || activeTab === 'accounts' ? <MediaDependencyCard status={dependencyStatus} installing={dependencyInstalling} onInstall={installDependencies} onRefresh={() => api.get('/api/media/dependencies', { force: 1 }).then(setDependencyStatus)} /> : null}
+      {!data.executor?.configured || activeTab === 'accounts' ? <MediaDependencyCard status={dependencyStatus} installing={dependencyInstalling} refreshing={dependencyRefreshing} onInstall={installDependencies} onRefresh={refreshDependencies} /> : null}
 
       {activeTab === 'publish' ? <PublishComposer data={data} draft={draft} updateDraft={updateDraft} toggleDraftValue={toggleDraftValue} accountOptions={accountOptions} onSubmit={createTask} onUpload={() => fileRef.current?.click()} uploading={uploading} saving={saving} fileRef={fileRef} uploadFiles={uploadFiles} /> : null}
       {activeTab === 'materials' ? <MaterialsView data={data} onUpload={() => fileRef.current?.click()} onDelete={deleteMaterial} uploading={uploading} fileRef={fileRef} uploadFiles={uploadFiles} /> : null}
@@ -267,11 +279,11 @@ function AccountsView({ data, form, setForm, onSubmit, onDelete, onUploadCookie,
   return <div className="media-two-column"><section className="panel media-panel"><div className="media-panel__head"><div><h3>添加发布账号</h3><p>先登记账号，再导入目标平台的 Playwright 登录态。</p></div></div><form className="media-account-form" onSubmit={onSubmit}><label className="refactor-field"><span className="refactor-field__label">平台<b>*</b></span><select className="refactor-input" value={form.platform} onChange={(event) => setForm((current) => ({ ...current, platform: event.target.value }))}><option value="">选择平台</option>{data.platforms.map((platform) => <option key={platform.key} value={platform.key}>{platform.name}</option>)}</select></label><label className="refactor-field"><span className="refactor-field__label">账号名称<b>*</b></span><input className="refactor-input" value={form.account_name} onChange={(event) => setForm((current) => ({ ...current, account_name: event.target.value }))} placeholder="例如：主账号" /></label><label className="refactor-field"><span className="refactor-field__label">主页地址</span><input className="refactor-input" value={form.profile_url} onChange={(event) => setForm((current) => ({ ...current, profile_url: event.target.value }))} placeholder="可选" /></label><label className="refactor-field"><span className="refactor-field__label">备注</span><textarea className="refactor-input media-textarea" rows={4} value={form.note} onChange={(event) => setForm((current) => ({ ...current, note: event.target.value }))} placeholder="可记录账号用途或登录提示" /></label><button type="submit" className="refactor-button refactor-button--primary"><Plus {...iconProps(15)} />添加账号</button></form></section><section className="panel media-panel"><div className="media-panel__head"><div><h3>已登记账号</h3><p>{data.accounts.length} 个账号</p></div></div>{data.accounts.length ? <div className="media-account-list">{data.accounts.map((account) => { const login = loginJobs[account.id]; return <div className="media-account-row" key={account.id}><div className="media-account-row__mark"><UserRound {...iconProps(17)} /></div><div className="media-account-row__main"><b>{account.account_name}</b><small>{account.platform_name}{account.profile_url ? ` · ${account.profile_url}` : ''}</small></div><span className={`tag tag--${account.auth_state === 'ready' ? 'jade' : account.auth_state === 'disabled' ? 'outline' : 'amber'}`}>{account.auth_state === 'ready' ? '已验证' : account.auth_state === 'disabled' ? '已停用' : '待验证'}</span><button type="button" className="refactor-button refactor-button--compact" onClick={() => onLogin(account.id)} disabled={login?.status === 'running'}><UserRound {...iconProps(13)} />{login?.status === 'running' ? '登录中…' : '打开登录'}</button><label className="media-cookie-button"><input type="file" accept="application/json,.json" onChange={(event) => onUploadCookie(account.id, event)} hidden /><span>{account.has_cookie ? '替换登录态' : '导入登录态'}</span></label><button type="button" className="refactor-icon-button" title="删除账号" onClick={() => onDelete(account.id)}><Trash2 {...iconProps(15)} /></button></div> })}</div> : <div className="empty media-empty"><UserRound className="empty__mark" {...iconProps(28)} /><b className="empty__title">还没有账号</b><p className="empty__body">添加账号后即可在发布任务中选择。</p></div>}</section></div>
 }
 
-function MediaDependencyCard({ status, installing, onInstall, onRefresh }) {
+function MediaDependencyCard({ status, installing, refreshing, onInstall, onRefresh }) {
   const python = status?.python
   const ready = Boolean(status?.executor?.ready)
   const job = status?.install_job
-  return <section className={`media-dependency-card${ready ? ' is-ready' : ''}`}><div className="media-dependency-card__head"><div><span className="refactor-eyebrow">执行环境</span><h3>{ready ? 'Python 发布执行器可用' : '需要安装 Python 发布依赖'}</h3></div><button type="button" className="refactor-button refactor-button--compact" onClick={onRefresh} disabled={installing}><RefreshCw {...iconProps(14)} />重新检测</button></div><div className="media-dependency-grid"><span className={python?.available ? 'is-ok' : ''}>Python {python?.available ? python.version : '未检测到'}</span><span className={python?.dependencies ? 'is-ok' : ''}>Flask {python?.dependencies ? '已安装' : '未安装'}</span><span className={python?.playwright ? 'is-ok' : ''}>Playwright {python?.playwright ? '已安装' : '未安装'}</span><span className={python?.browser ? 'is-ok' : ''}>Chromium {python?.browser ? '已安装' : '未安装'}</span><span className={status?.chrome?.available ? 'is-ok' : ''}>Chrome {status?.chrome?.available ? '已找到' : '未找到'}</span></div>{job?.status === 'running' ? <p className="media-dependency-log">{job.step || '安装中…'}<br /><small>{job.log?.slice(-240) || '正在准备安装'}</small></p> : null}{!python?.available ? <p className="media-dependency-note">请先安装 Python 3.10+，再点击安装。<a href={status?.install?.python_download || 'https://www.python.org/downloads/windows/'} target="_blank" rel="noreferrer">打开 Python 下载页</a></p> : <button type="button" className="refactor-button refactor-button--primary" onClick={onInstall} disabled={installing || ready}>{installing ? '安装进行中…' : ready ? '依赖已就绪' : '安装 Python 依赖与 Chromium'}</button>}</section>
+  return <section className={`media-dependency-card${ready ? ' is-ready' : ''}`}><div className="media-dependency-card__head"><div><span className="refactor-eyebrow">执行环境</span><h3>{ready ? 'Python 发布执行器可用' : '需要安装 Python 发布依赖'}</h3></div><button type="button" className="refactor-button refactor-button--compact" onClick={onRefresh} disabled={installing || refreshing}><RefreshCw {...iconProps(14)} />{refreshing ? '检测中…' : '重新检测'}</button></div><div className="media-dependency-grid"><span className={python?.available ? 'is-ok' : ''}>Python {python?.available ? python.version : '未检测到'}</span><span className={python?.dependencies ? 'is-ok' : ''}>Flask {python?.dependencies ? '已安装' : '未安装'}</span><span className={python?.playwright ? 'is-ok' : ''}>Playwright {python?.playwright ? '已安装' : '未安装'}</span><span className={python?.browser ? 'is-ok' : ''}>Chromium {python?.browser ? '已安装' : '未安装'}</span><span className={status?.chrome?.available ? 'is-ok' : ''}>Chrome {status?.chrome?.available ? '已找到' : '未找到'}</span></div>{job?.status === 'running' ? <p className="media-dependency-log">{job.step || '安装中…'}<br /><small>{job.log?.slice(-240) || '正在准备安装'}</small></p> : null}{job?.status === 'failed' ? <p className="media-dependency-log is-error"><b>{job.error || '依赖安装失败'}</b><br /><small>{job.log?.slice(-1200) || '没有返回安装日志'}</small></p> : null}{!python?.available ? <p className="media-dependency-note">请先安装 Python 3.10+，再点击安装。<a href={status?.install?.python_download || 'https://www.python.org/downloads/windows/'} target="_blank" rel="noreferrer">打开 Python 下载页</a></p> : <button type="button" className="refactor-button refactor-button--primary" onClick={onInstall} disabled={installing || ready}>{installing ? '安装进行中…' : ready ? '依赖已就绪' : '安装 Python 依赖与 Chromium'}</button>}</section>
 }
 
 function RecordsView({ tasks, onAction }) {
