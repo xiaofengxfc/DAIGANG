@@ -4,6 +4,7 @@
 """
 import os
 import asyncio
+import re
 from datetime import datetime
 from playwright.async_api import Playwright, async_playwright
 from conf import LOCAL_CHROME_PATH, LOCAL_CHROME_HEADLESS, BASE_DIR
@@ -64,6 +65,24 @@ class BaseFileUploader(object):
         self.upload_button_selectors = self.config["selectors"]["upload_button"]
         # 发布按钮选择器
         self.publish_button_selectors = self.config["selectors"]["publish_button"]
+        # 上传完成/失败状态选择器（部分平台会在按钮可用前异步处理文件）
+        self.upload_complete_selectors = self.config["selectors"].get("upload_complete", [])
+        self.upload_error_selectors = self.config["selectors"].get("upload_error", [
+            'text="上传失败"', 'text="上传出错"', 'text="Upload failed"',
+        ])
+        self.upload_active_selectors = self.config["selectors"].get("upload_active", [
+            'text="上传中"', 'text="正在上传"', 'text="文件解析中"', 'text="处理中"',
+            'text="Uploading"', 'text="Processing"',
+        ])
+        self.publish_success_selectors = self.config["selectors"].get("publish_success", [])
+        self.publish_error_selectors = self.config["selectors"].get("publish_error", [
+            'text="发布失败"', 'text="发表失败"', 'text="投稿失败"',
+            'text="审核未通过"', 'text="Publish failed"', 'text="Post failed"',
+        ])
+        self.feedback_selectors = self.config["selectors"].get("feedback", [
+            '[role="alert"]', '[role="status"]', '.semi-toast-content', '.semi-message-content',
+            '.ant-message-notice-content', '.weui-desktop-toast', '[class*="toast"]', '[class*="Toast"]',
+        ])
         # 标题编辑器输入框选择器
         self.editor_button_locators = self.config["selectors"]["title_editor"]
         # 正文编辑器输入框选择器
@@ -111,6 +130,12 @@ class BaseFileUploader(object):
         self.wait_timeout_500ms = 500
         # 登录等待超时时间
         self.login_wait_timeout = 10000
+        # 上传和提交后的平台处理等待上限
+        self.upload_wait_timeout = 15 * 60 * 1000
+        self.publish_wait_timeout = 15 * 60 * 1000
+        self.upload_min_settle_seconds = 30
+        self.publish_page_settle_seconds = 30
+        self.file_upload_started_at = None
         # 最大发布尝试次数
         self.max_publish_attempts = 3
         # 最大重试延迟时间
@@ -398,6 +423,7 @@ class BaseFileUploader(object):
                 await upload_button.click()
             file_chooser = await fc_info.value
             await file_chooser.set_files(self.file_path)
+            self.file_upload_started_at = asyncio.get_running_loop().time()
             self.logger.info(f"通过系统文件选择器上传文件: {self.file_path}")
             return True
         except Exception as e:
@@ -412,6 +438,8 @@ class BaseFileUploader(object):
         """
         while True:
             try:
+                if not await self.wait_for_upload_completion(page):
+                    return False
                 #快手平台比较特殊，没传完也可以点击发布按钮，需要等编辑画布按钮出现，才算是上传完毕
                 if self.platform_name == "kuaishou":
                     number = await page.locator("text=上传中").count()
@@ -451,6 +479,112 @@ class BaseFileUploader(object):
                 await asyncio.sleep(self.check_interval)
                 return False
         return True
+
+    async def _has_visible_selector(self, selectors):
+        for selector in selectors:
+            try:
+                locator = self.locator_base.locator(selector)
+                count = await locator.count()
+                for index in range(count):
+                    if await locator.nth(index).is_visible():
+                        return True
+            except Exception:
+                continue
+        return False
+
+    async def _editors_visible(self):
+        required = []
+        if self.title_supported and self.title:
+            required.append(self.editor_button_locators)
+        if self.textbox_supported and (self.text or (self.tags_supported and self.tags)):
+            required.append(self.textbox_selectors)
+        for selectors in required:
+            if not await self._has_visible_selector(selectors):
+                return False
+        return True
+
+    async def _publish_button_enabled(self):
+        for selector in self.publish_button_selectors:
+            try:
+                locator = self.locator_base.locator(selector)
+                count = await locator.count()
+                for index in range(count):
+                    candidate = locator.nth(index)
+                    if await candidate.is_visible() and await candidate.get_attribute("disabled") is None:
+                        return True
+            except Exception:
+                continue
+        return False
+
+    async def _body_text(self, page):
+        try:
+            return await page.locator("body").inner_text()
+        except Exception:
+            return ""
+
+    async def _visible_feedback_text(self):
+        texts = []
+        for selector in self.feedback_selectors:
+            try:
+                locator = self.locator_base.locator(selector)
+                for index in range(await locator.count()):
+                    item = locator.nth(index)
+                    if await item.is_visible():
+                        text = (await item.inner_text()).strip()
+                        if text:
+                            texts.append(text)
+            except Exception:
+                continue
+        return "\n".join(texts)
+
+    async def _upload_still_active(self, page, body):
+        if await self._has_visible_selector(self.upload_active_selectors):
+            return True
+        # 抖音等页面用百分比表示远端上传进度，而不是显示 progress 元素。
+        return bool(re.search(r"(?<![\d/])(?:0|[1-9]\d?|100)%", body))
+
+    @staticmethod
+    def _publish_failed(body):
+        return any(marker in body for marker in (
+            "上传失败", "上传出错", "发布失败", "发表失败", "投稿失败", "审核未通过",
+            "Upload failed", "Publish failed", "Post failed",
+        ))
+
+    async def wait_for_upload_completion(self, page, timeout=None):
+        """等待所有平台完成远端上传和文件解析。"""
+        timeout = self.upload_wait_timeout if timeout is None else timeout
+        deadline = asyncio.get_running_loop().time() + timeout / 1000
+        logged_at = 0
+        stable_polls = 0
+        started_at = self.file_upload_started_at or asyncio.get_running_loop().time()
+        while asyncio.get_running_loop().time() < deadline:
+            if await self._has_visible_selector(self.upload_complete_selectors):
+                self.logger.info("平台已确认视频上传完成")
+                return True
+            if await self._has_visible_selector(self.upload_error_selectors):
+                self.logger.error("平台报告视频上传失败")
+                return False
+            body = await self._body_text(page)
+            if await self._upload_still_active(page, body):
+                stable_polls = 0
+            elif (
+                asyncio.get_running_loop().time() - started_at >= self.upload_min_settle_seconds
+                and await self._editors_visible()
+                and await self._publish_button_enabled()
+            ):
+                stable_polls += 1
+                if stable_polls >= 5:
+                    self.logger.info("平台上传状态已稳定，编辑器和发布按钮均已就绪")
+                    return True
+            else:
+                stable_polls = 0
+            now = asyncio.get_running_loop().time()
+            if now - logged_at >= 10:
+                self.logger.info("等待平台完成视频上传和解析...")
+                logged_at = now
+            await page.wait_for_timeout(1000)
+        self.logger.error("等待视频上传完成超时")
+        return False
 
     async def wait_for_editors(self, page, timeout=30000):
         """等待当前平台需要填写的编辑器完成异步渲染。"""
@@ -659,6 +793,7 @@ class BaseFileUploader(object):
                 # 步骤1: 查找并点击发布按钮
                 publish_button = await self.find_button(self.publish_button_selectors)
                 if publish_button:
+                    publish_origin_url = page.url
                     await publish_button.click()
                     await asyncio.sleep(self.check_interval)
                     # tiktok平台发布时要检查并处理版权检查弹窗
@@ -675,28 +810,15 @@ class BaseFileUploader(object):
                         except Exception as e:
                             self.logger.warning(f"  [-]未检测到版权检查弹窗或点击失败: {str(e)}")
 
+                    if await self.wait_for_publish_confirmation(page, publish_origin_url):
+                        self.publish_status = True
+                        break
+                    self.logger.error(f"{self.platform_name}未确认本次作品已提交，保持任务失败")
+                    break
 
-                # 步骤2: 等待视频处理完成（通过检查上传按钮重新出现）
-                self.logger.info("等待发布完成...")
-                current_url = page.url
-                self.logger.info(f"当前url: {current_url}")
-                #ks平台、视频号平台等待发布完成的逻辑：如果当前url已不在发布页面，说明发布成功
-                if self.file_type == 1:
-                    target_url = self.creator_image_url
-                else:
-                    target_url = self.creator_video_url
-                if target_url not in current_url:
-                    self.publish_status = True
-                    break
-                #xx平台等待发布完成：尝试查找上传按钮，如果上传按钮可见，也能说明发布成功
-                upload_button = await self.find_button(self.upload_button_selectors)
-                if upload_button:
-                    self.logger.info(f"发布尝试 {attempt}，上传按钮可见状态: {await upload_button.is_visible()}")
-                    await upload_button.wait_for(state='visible', timeout=self.button_visible_timeout)
-                    self.publish_status = True
-                    break
-                else:
-                    self.logger.info(f"发布尝试 {attempt}，未找到上传按钮")
+
+                self.logger.warning(f"{self.platform_name}未找到发布按钮，等待页面稳定后重试")
+                await asyncio.sleep(min(attempt * 2, self.max_retry_delay))
             except Exception:
                 # 等待后重试
                 self.logger.warning(f"发布尝试 {attempt} 失败，等待重试...")
@@ -708,6 +830,61 @@ class BaseFileUploader(object):
         else:
             self.logger.error(f"视频发布失败，已尝试 {max_attempts} 次")
         return self.publish_status
+
+    async def wait_for_publish_confirmation(self, page, origin_url="", timeout=None):
+        """等待各平台确认提交完成后再关闭浏览器。"""
+        timeout = self.publish_wait_timeout if timeout is None else timeout
+        deadline = asyncio.get_running_loop().time() + timeout / 1000
+        accepted_statuses = ("已发布", "审核中", "审核通过", "待审核", "发布成功")
+        failure_statuses = ("发布失败", "发表失败", "投稿失败", "审核未通过", "Upload failed", "Publish failed", "Post failed")
+        success_texts = (
+            "发布成功", "发表成功", "投稿成功", "作品发布成功", "Post published",
+            "Published successfully", "Your video is live", "Your post is published",
+        )
+        logged_at = 0
+        changed_at = None
+        while asyncio.get_running_loop().time() < deadline:
+            try:
+                current_url = page.url
+                body = await self._body_text(page)
+                feedback = await self._visible_feedback_text()
+                if await self._has_visible_selector(self.publish_error_selectors) or self._publish_failed(feedback):
+                    self.logger.error(f"{self.platform_name}页面报告作品发布失败")
+                    return False
+                if await self._has_visible_selector(self.publish_success_selectors) or any(text in feedback for text in success_texts):
+                    self.logger.info(f"{self.platform_name}页面已确认作品发布成功")
+                    return True
+                if self.title and ("content/manage" in current_url or "manage" in current_url):
+                    title_nodes = page.get_by_text(self.title, exact=False)
+                    for index in range(await title_nodes.count()):
+                        title_node = title_nodes.nth(index)
+                        if not await title_node.is_visible():
+                            continue
+                        card = title_node.locator("xpath=ancestor::*[contains(@class, 'video-card')][1]")
+                        if await card.count():
+                            card_text = await card.inner_text()
+                            if any(status in card_text for status in failure_statuses):
+                                self.logger.error(f"{self.platform_name}本次作品状态为失败")
+                                return False
+                            if any(status in card_text for status in accepted_statuses):
+                                self.logger.info(f"{self.platform_name}内容管理页已确认本次作品状态")
+                                return True
+                if origin_url and current_url != origin_url:
+                    changed_at = changed_at or asyncio.get_running_loop().time()
+                    # URL 跳转不是充分条件，但页面没有活动上传状态并稳定一段时间后，
+                    # 可作为没有平台专用成功提示时的通用兜底。
+                    if not await self._upload_still_active(page, body) and asyncio.get_running_loop().time() - changed_at >= self.publish_page_settle_seconds:
+                        self.logger.info(f"{self.platform_name}提交页面已稳定")
+                        return True
+                now = asyncio.get_running_loop().time()
+                if now - logged_at >= 10:
+                    self.logger.info(f"等待{self.platform_name}确认作品状态...")
+                    logged_at = now
+            except Exception as exc:
+                self.logger.debug(f"读取{self.platform_name}发布状态失败: {exc}")
+            await page.wait_for_timeout(1000)
+        self.logger.error(f"等待{self.platform_name}作品发布确认超时")
+        return False
 
 
     async def platform_setup(self, handle=False):

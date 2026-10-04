@@ -117,6 +117,9 @@ PLATFORM_CONFIGS = {
         "selectors": {
             "upload_button": ['span.semi-button-content-right:has-text("上传视频")', 'span.semi-button-content-right:has-text("上传图文")'],
             "publish_button": ['role=button[name="发布"]', 'button:has-text("发布"):not(:has-text("高清发布"))', 'text="发布"'],
+            # 抖音会先显示“发布”按钮，文件仍可能在后台上传/解析。
+            "upload_complete": ['text="上传成功"'],
+            "upload_error": ['text="上传失败"', 'text="上传出错"'],
             "title_editor": ['input[placeholder="填写作品标题，为作品获得更多流量"]', 'input.semi-input.semi-input-default'],
             "textbox_selectors": ['div[data-line-wrapper="true"]', 'div.zone-container.editor-kit-container.editor.editor-comp-publish[contenteditable="true"]'],
             "thumbnail_button": ["//span[contains(text(), '添加封面')]"],
