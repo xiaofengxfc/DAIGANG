@@ -17,6 +17,24 @@ from .platform_configs import PLATFORM_CONFIGS, get_type_by_platform_key
 from myUtils.auth import check_cookie_generic
 
 
+def _env_float(name, default):
+    try:
+        return float(os.environ.get(name, default))
+    except (TypeError, ValueError):
+        return float(default)
+
+
+BROWSER_WIDTH = max(1280, int(os.environ.get('XFC_MEDIA_BROWSER_WIDTH', '1440')))
+BROWSER_HEIGHT = max(720, int(os.environ.get('XFC_MEDIA_BROWSER_HEIGHT', '900')))
+# Grant a harmless fixed location to prevent Chromium's permission bubble from
+# covering the creator page. Location publishing remains disabled by platform
+# configuration unless explicitly supported.
+BROWSER_GEOLOCATION = {
+    'latitude': _env_float('XFC_MEDIA_GEOLOCATION_LATITUDE', '39.9042'),
+    'longitude': _env_float('XFC_MEDIA_GEOLOCATION_LONGITUDE', '116.4074'),
+}
+
+
 class BaseFileUploader(object):
     """
     单个视频上传器通用基类参数说明：
@@ -166,7 +184,7 @@ class BaseFileUploader(object):
             # 忽略证书错误，允许加载不安全的页面
             '--ignore-certificate-errors',
             # 固定桌面窗口尺寸，保证创作者后台的上传控件不会被窄视口折叠。
-            '--window-size=1440,900',
+            f'--window-size={BROWSER_WIDTH},{BROWSER_HEIGHT}',
             # 禁用自动化控制特征，防止被检测为自动化工具
             '--disable-blink-features=AutomationControlled'
         ]
@@ -226,7 +244,9 @@ class BaseFileUploader(object):
             # step2.创建上下文并加载cookie
             context = await browser.new_context(
                 storage_state=f"{self.account_file}",
-                viewport={"width": 1440, "height": 900},
+                viewport={"width": BROWSER_WIDTH, "height": BROWSER_HEIGHT},
+                permissions=["geolocation"],
+                geolocation=BROWSER_GEOLOCATION,
             )
             context = await set_init_script(context)
             self.logger.info(f"step2: {self.platform_name}浏览器上下文创建成功")
@@ -524,6 +544,16 @@ class BaseFileUploader(object):
                     self.logger.info(f"通过隐藏文件输入控件上传文件: {self.file_path}")
                     return True
 
+            # Many creator pages keep the real input hidden while displaying a
+            # styled button. Set the input directly whenever it is already in
+            # the DOM so no native file picker can be opened accidentally.
+            file_input = await self.find_file_input(["input[type=\"file\"]"], timeout=5000)
+            if file_input:
+                await file_input.set_input_files(self.file_path)
+                self.file_upload_started_at = asyncio.get_running_loop().time()
+                self.logger.info(f"通过页面文件输入控件上传文件: {self.file_path}")
+                return True
+
             upload_button = await self.find_button(self.upload_button_selectors)
             if upload_button:
                 self.logger.info("  [-] 将点击上传图文/视频按钮")
@@ -536,7 +566,7 @@ class BaseFileUploader(object):
                 self.logger.info(f"通过系统文件选择器上传文件: {self.file_path}")
                 return True
 
-            # 页面按钮结构变化时回退到页面上的视频文件 input。
+            # 页面按钮结构变化时再次回退到页面上的视频文件 input。
             file_input = await self.find_file_input(["input[type=\"file\"]"], timeout=5000)
             if file_input:
                 await file_input.set_input_files(self.file_path)

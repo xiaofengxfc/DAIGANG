@@ -33,6 +33,19 @@ BROWSER_WIDTH = max(1280, int(os.environ.get('XFC_MEDIA_BROWSER_WIDTH', '1440'))
 BROWSER_HEIGHT = max(720, int(os.environ.get('XFC_MEDIA_BROWSER_HEIGHT', '900')))
 
 
+def _env_float(name, default):
+    try:
+        return float(os.environ.get(name, default))
+    except (TypeError, ValueError):
+        return float(default)
+
+
+BROWSER_GEOLOCATION = {
+    'latitude': _env_float('XFC_MEDIA_GEOLOCATION_LATITUDE', '39.9042'),
+    'longitude': _env_float('XFC_MEDIA_GEOLOCATION_LONGITUDE', '116.4074'),
+}
+
+
 def authorized():
     if not TOKEN:
         return True
@@ -115,7 +128,11 @@ async def login_browser(job_id, platform, cookie_path):
                     '--disable-blink-features=AutomationControlled',
                 ],
             )
-            context = await browser.new_context(viewport={'width': BROWSER_WIDTH, 'height': BROWSER_HEIGHT})
+            context = await browser.new_context(
+                viewport={'width': BROWSER_WIDTH, 'height': BROWSER_HEIGHT},
+                permissions=['geolocation'],
+                geolocation=BROWSER_GEOLOCATION,
+            )
             context = await set_init_script(context)
             page = await context.new_page()
             await page.goto(config['login_url'], wait_until='domcontentloaded', timeout=60000)
