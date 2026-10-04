@@ -256,21 +256,21 @@ export function register() {
     const typedExtension = path.extname(requested)
     const baseName = path.basename(requested, typedExtension || undefined).trim()
     if (!baseName) bad('请填写素材名称', 'missing_filename')
-    const filename = `${baseName}${extension}`
-    const nextRelative = path.join(path.dirname(row.file_path), filename)
+    const storedName = `${baseName}${extension}`
+    const nextRelative = path.join(path.dirname(row.file_path), storedName)
     const nextAbsolute = path.resolve(UPLOAD_DIR, nextRelative)
     if (nextAbsolute !== oldAbsolute && fs.existsSync(nextAbsolute)) bad('同名素材已经存在', 'filename_exists')
 
     if (nextAbsolute !== oldAbsolute) {
       fs.renameSync(oldAbsolute, nextAbsolute)
       try {
-        db.prepare('UPDATE media_materials SET filename = ?, file_path = ?, updated_at = ? WHERE id = ?').run(filename, nextRelative, stamp(), id)
+        db.prepare('UPDATE media_materials SET filename = ?, file_path = ?, updated_at = ? WHERE id = ?').run(requested, nextRelative, stamp(), id)
       } catch (error) {
         try { fs.renameSync(nextAbsolute, oldAbsolute) } catch {}
         throw error
       }
     } else {
-      db.prepare('UPDATE media_materials SET filename = ?, updated_at = ? WHERE id = ?').run(filename, stamp(), id)
+      db.prepare('UPDATE media_materials SET filename = ?, updated_at = ? WHERE id = ?').run(requested, stamp(), id)
     }
     return materialRow(db.prepare('SELECT * FROM media_materials WHERE id = ?').get(id))
   })
