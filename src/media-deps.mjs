@@ -17,7 +17,19 @@ function run(bin, args, timeoutMs = 8000) {
 }
 
 function pythonCandidates() {
-  return [...new Set([MEDIA_PYTHON, process.env.XFC_PYTHON, process.platform === 'win32' ? 'python' : 'python3', 'python3', 'python'].filter(Boolean))]
+  const raw = [...new Set([MEDIA_PYTHON, process.env.XFC_PYTHON, process.platform === 'win32' ? 'python' : 'python3', 'python3', 'python'].filter(Boolean))]
+  const resolved = []
+  for (const bin of raw) {
+    // WindowsApps' python.exe is an alias. Resolve it before spawning Playwright;
+    // the alias can pass import probes but fails when Playwright creates artifacts.
+    if (!path.isAbsolute(bin)) {
+      const probe = run(bin, ['-c', 'import sys; print(sys.executable)'])
+      const executable = String(probe.stdout || '').trim().split(/\r?\n/).pop() || ''
+      if (executable && path.isAbsolute(executable) && fs.existsSync(executable)) resolved.push(executable)
+    }
+    resolved.push(bin)
+  }
+  return [...new Set(resolved)]
 }
 
 function probePython() {
