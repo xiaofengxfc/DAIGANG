@@ -1,7 +1,7 @@
-import React, { useRef, useState } from 'react'
+﻿import React, { useRef, useState } from 'react'
 import { Upload } from 'lucide-react'
 import { api } from '../lib/api.js'
-import { toast } from '../lib/legacy-ui.js'
+import { toast } from './toast-store.js'
 
 /* ============================================================
    表单字段（React 版）

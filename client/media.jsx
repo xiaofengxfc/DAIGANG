@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { AlertTriangle, CalendarClock, Check, CheckCircle2, Clock3, FileVideo, FolderOpen, Pencil, Plus, Radio, RefreshCw, RotateCcw, Send, Trash2, Upload, UserRound, X } from 'lucide-react'
 import { api } from './lib/api.js'
-import { toast, toastErr } from './lib/legacy-ui.js'
+import { toast, toastErr } from './app/toast-store.js'
 
 const EMPTY = { platforms: [], accounts: [], materials: [], tasks: [], summary: {}, executor: { configured: false } }
 const STATUS = {

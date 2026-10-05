@@ -4088,6 +4088,124 @@ input {
   padding-bottom: 28px;
 }
 
+/* 保险箱（React 版）：骨架照抄 orders-page，凭证列表沿用旧的 .itemlist / .vaultbar */
+.vault-page {
+  display: grid;
+  gap: 14px;
+}
+
+.vault-page__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.vault-page__head h2 {
+  margin: 3px 0 0;
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.vault-page__head p {
+  margin: 7px 0 0;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.vault-page__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .vault-page__head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .vault-page__actions {
+    width: 100%;
+  }
+}
+
+/* 设置（React 版）：骨架照抄 orders-page / vault-page，面板沿用旧的 .panel / .itemlist / .install */
+.settings-page {
+  display: grid;
+  gap: 14px;
+}
+
+.settings-page__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.settings-page__head h2 {
+  margin: 3px 0 0;
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.settings-page__head p {
+  margin: 7px 0 0;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+@media (max-width: 720px) {
+  .settings-page__head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+/* 客户档案（React 版）：旧页面用的就是 .pagehead / .split / .panel，这里只补抬头那一行 */
+.customer-detail {
+  display: grid;
+  gap: 14px;
+}
+
+.customer-detail__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.customer-detail__head h1 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.customer-detail__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 720px) {
+  .customer-detail__head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .customer-detail__actions {
+    width: 100%;
+  }
+}
+
 .media-page__head,
 .media-panel__head,
 .media-submit-row,

@@ -11715,7 +11715,7 @@ function createLucideIcon(iconDataOrName, iconNode = [], aliases = []) {
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$53 = {
+var __iconData$59 = {
 	name: "activity",
 	size: 24,
 	node: [["path", {
@@ -11723,8 +11723,8 @@ var __iconData$53 = {
 		key: "169zse"
 	}]]
 };
-__iconData$53.node;
-var Activity = createLucideIcon(__iconData$53);
+__iconData$59.node;
+var Activity = createLucideIcon(__iconData$59);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/archive-restore.mjs
 /**
@@ -11733,7 +11733,7 @@ var Activity = createLucideIcon(__iconData$53);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$52 = {
+var __iconData$58 = {
 	name: "archive-restore",
 	size: 24,
 	node: [
@@ -11763,8 +11763,8 @@ var __iconData$52 = {
 		}]
 	]
 };
-__iconData$52.node;
-var ArchiveRestore = createLucideIcon(__iconData$52);
+__iconData$58.node;
+var ArchiveRestore = createLucideIcon(__iconData$58);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/archive.mjs
 /**
@@ -11773,7 +11773,7 @@ var ArchiveRestore = createLucideIcon(__iconData$52);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$51 = {
+var __iconData$57 = {
 	name: "archive",
 	size: 24,
 	node: [
@@ -11795,8 +11795,8 @@ var __iconData$51 = {
 		}]
 	]
 };
-__iconData$51.node;
-var Archive = createLucideIcon(__iconData$51);
+__iconData$57.node;
+var Archive = createLucideIcon(__iconData$57);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/arrow-right.mjs
 /**
@@ -11805,7 +11805,7 @@ var Archive = createLucideIcon(__iconData$51);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$50 = {
+var __iconData$56 = {
 	name: "arrow-right",
 	size: 24,
 	node: [["path", {
@@ -11816,8 +11816,8 @@ var __iconData$50 = {
 		key: "xquz4c"
 	}]]
 };
-__iconData$50.node;
-var ArrowRight = createLucideIcon(__iconData$50);
+__iconData$56.node;
+var ArrowRight = createLucideIcon(__iconData$56);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/arrow-up-right.mjs
 /**
@@ -11826,7 +11826,7 @@ var ArrowRight = createLucideIcon(__iconData$50);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$49 = {
+var __iconData$55 = {
 	name: "arrow-up-right",
 	size: 24,
 	node: [["path", {
@@ -11837,8 +11837,8 @@ var __iconData$49 = {
 		key: "1vkiza"
 	}]]
 };
-__iconData$49.node;
-var ArrowUpRight = createLucideIcon(__iconData$49);
+__iconData$55.node;
+var ArrowUpRight = createLucideIcon(__iconData$55);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/calendar-clock.mjs
 /**
@@ -11847,7 +11847,7 @@ var ArrowUpRight = createLucideIcon(__iconData$49);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$48 = {
+var __iconData$54 = {
 	name: "calendar-clock",
 	size: 24,
 	node: [
@@ -11879,8 +11879,8 @@ var __iconData$48 = {
 		}]
 	]
 };
-__iconData$48.node;
-var CalendarClock = createLucideIcon(__iconData$48);
+__iconData$54.node;
+var CalendarClock = createLucideIcon(__iconData$54);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/calendar-days.mjs
 /**
@@ -11889,7 +11889,7 @@ var CalendarClock = createLucideIcon(__iconData$48);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$47 = {
+var __iconData$53 = {
 	name: "calendar-days",
 	size: 24,
 	node: [
@@ -11939,8 +11939,8 @@ var __iconData$47 = {
 		}]
 	]
 };
-__iconData$47.node;
-var CalendarDays = createLucideIcon(__iconData$47);
+__iconData$53.node;
+var CalendarDays = createLucideIcon(__iconData$53);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/check.mjs
 /**
@@ -11949,7 +11949,7 @@ var CalendarDays = createLucideIcon(__iconData$47);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$46 = {
+var __iconData$52 = {
 	name: "check",
 	size: 24,
 	node: [["path", {
@@ -11957,8 +11957,8 @@ var __iconData$46 = {
 		key: "1gmf2c"
 	}]]
 };
-__iconData$46.node;
-var Check = createLucideIcon(__iconData$46);
+__iconData$52.node;
+var Check = createLucideIcon(__iconData$52);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/chevron-down.mjs
 /**
@@ -11967,7 +11967,7 @@ var Check = createLucideIcon(__iconData$46);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$45 = {
+var __iconData$51 = {
 	name: "chevron-down",
 	size: 24,
 	node: [["path", {
@@ -11975,8 +11975,8 @@ var __iconData$45 = {
 		key: "qrunsl"
 	}]]
 };
-__iconData$45.node;
-var ChevronDown = createLucideIcon(__iconData$45);
+__iconData$51.node;
+var ChevronDown = createLucideIcon(__iconData$51);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/chevron-right.mjs
 /**
@@ -11985,7 +11985,7 @@ var ChevronDown = createLucideIcon(__iconData$45);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$44 = {
+var __iconData$50 = {
 	name: "chevron-right",
 	size: 24,
 	node: [["path", {
@@ -11993,8 +11993,8 @@ var __iconData$44 = {
 		key: "mthhwq"
 	}]]
 };
-__iconData$44.node;
-var ChevronRight = createLucideIcon(__iconData$44);
+__iconData$50.node;
+var ChevronRight = createLucideIcon(__iconData$50);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/circle-alert.mjs
 /**
@@ -12003,7 +12003,7 @@ var ChevronRight = createLucideIcon(__iconData$44);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$43 = {
+var __iconData$49 = {
 	name: "circle-alert",
 	size: 24,
 	node: [
@@ -12030,8 +12030,8 @@ var __iconData$43 = {
 	],
 	aliases: ["alert-circle"]
 };
-__iconData$43.node;
-var CircleAlert = createLucideIcon(__iconData$43);
+__iconData$49.node;
+var CircleAlert = createLucideIcon(__iconData$49);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/circle-dollar-sign.mjs
 /**
@@ -12040,7 +12040,7 @@ var CircleAlert = createLucideIcon(__iconData$43);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$42 = {
+var __iconData$48 = {
 	name: "circle-dollar-sign",
 	size: 24,
 	node: [
@@ -12060,8 +12060,49 @@ var __iconData$42 = {
 		}]
 	]
 };
-__iconData$42.node;
-var CircleDollarSign = createLucideIcon(__iconData$42);
+__iconData$48.node;
+var CircleDollarSign = createLucideIcon(__iconData$48);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/clipboard-copy.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$47 = {
+	name: "clipboard-copy",
+	size: 24,
+	node: [
+		["rect", {
+			width: "8",
+			height: "4",
+			x: "8",
+			y: "2",
+			rx: "1",
+			ry: "1",
+			key: "tgr4d6"
+		}],
+		["path", {
+			d: "M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2",
+			key: "4jdomd"
+		}],
+		["path", {
+			d: "M16 4h2a2 2 0 0 1 2 2v4",
+			key: "3hqy98"
+		}],
+		["path", {
+			d: "M21 14H11",
+			key: "1bme5i"
+		}],
+		["path", {
+			d: "m15 10-4 4 4 4",
+			key: "5dvupr"
+		}]
+	]
+};
+__iconData$47.node;
+var ClipboardCopy = createLucideIcon(__iconData$47);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/clipboard-list.mjs
 /**
@@ -12070,7 +12111,7 @@ var CircleDollarSign = createLucideIcon(__iconData$42);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$41 = {
+var __iconData$46 = {
 	name: "clipboard-list",
 	size: 24,
 	node: [
@@ -12105,8 +12146,8 @@ var __iconData$41 = {
 		}]
 	]
 };
-__iconData$41.node;
-var ClipboardList = createLucideIcon(__iconData$41);
+__iconData$46.node;
+var ClipboardList = createLucideIcon(__iconData$46);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/clock-3.mjs
 /**
@@ -12115,7 +12156,7 @@ var ClipboardList = createLucideIcon(__iconData$41);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$40 = {
+var __iconData$45 = {
 	name: "clock-3",
 	size: 24,
 	node: [["circle", {
@@ -12128,8 +12169,31 @@ var __iconData$40 = {
 		key: "135r8i"
 	}]]
 };
-__iconData$40.node;
-var Clock3 = createLucideIcon(__iconData$40);
+__iconData$45.node;
+var Clock3 = createLucideIcon(__iconData$45);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/clock.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$44 = {
+	name: "clock",
+	size: 24,
+	node: [["circle", {
+		cx: "12",
+		cy: "12",
+		r: "10",
+		key: "1mglay"
+	}], ["path", {
+		d: "M12 6v6l4 2",
+		key: "mmk7yg"
+	}]]
+};
+__iconData$44.node;
+var Clock = createLucideIcon(__iconData$44);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/command.mjs
 /**
@@ -12138,7 +12202,7 @@ var Clock3 = createLucideIcon(__iconData$40);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$39 = {
+var __iconData$43 = {
 	name: "command",
 	size: 24,
 	node: [["path", {
@@ -12146,8 +12210,8 @@ var __iconData$39 = {
 		key: "11bfej"
 	}]]
 };
-__iconData$39.node;
-var Command = createLucideIcon(__iconData$39);
+__iconData$43.node;
+var Command = createLucideIcon(__iconData$43);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/contact-round.mjs
 /**
@@ -12156,7 +12220,7 @@ var Command = createLucideIcon(__iconData$39);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$38 = {
+var __iconData$42 = {
 	name: "contact-round",
 	size: 24,
 	node: [
@@ -12189,8 +12253,8 @@ var __iconData$38 = {
 	],
 	aliases: ["contact-2"]
 };
-__iconData$38.node;
-var ContactRound = createLucideIcon(__iconData$38);
+__iconData$42.node;
+var ContactRound = createLucideIcon(__iconData$42);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/copy.mjs
 /**
@@ -12199,7 +12263,7 @@ var ContactRound = createLucideIcon(__iconData$38);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$37 = {
+var __iconData$41 = {
 	name: "copy",
 	size: 24,
 	node: [["rect", {
@@ -12215,8 +12279,8 @@ var __iconData$37 = {
 		key: "zix9uf"
 	}]]
 };
-__iconData$37.node;
-var Copy = createLucideIcon(__iconData$37);
+__iconData$41.node;
+var Copy = createLucideIcon(__iconData$41);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/credit-card.mjs
 /**
@@ -12225,7 +12289,7 @@ var Copy = createLucideIcon(__iconData$37);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$36 = {
+var __iconData$40 = {
 	name: "credit-card",
 	size: 24,
 	node: [
@@ -12250,8 +12314,8 @@ var __iconData$36 = {
 		}]
 	]
 };
-__iconData$36.node;
-var CreditCard = createLucideIcon(__iconData$36);
+__iconData$40.node;
+var CreditCard = createLucideIcon(__iconData$40);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/download.mjs
 /**
@@ -12260,7 +12324,7 @@ var CreditCard = createLucideIcon(__iconData$36);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$35 = {
+var __iconData$39 = {
 	name: "download",
 	size: 24,
 	node: [
@@ -12278,8 +12342,8 @@ var __iconData$35 = {
 		}]
 	]
 };
-__iconData$35.node;
-var Download = createLucideIcon(__iconData$35);
+__iconData$39.node;
+var Download = createLucideIcon(__iconData$39);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/ellipsis.mjs
 /**
@@ -12288,7 +12352,7 @@ var Download = createLucideIcon(__iconData$35);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$34 = {
+var __iconData$38 = {
 	name: "ellipsis",
 	size: 24,
 	node: [
@@ -12313,8 +12377,8 @@ var __iconData$34 = {
 	],
 	aliases: ["more-horizontal"]
 };
-__iconData$34.node;
-var Ellipsis = createLucideIcon(__iconData$34);
+__iconData$38.node;
+var Ellipsis = createLucideIcon(__iconData$38);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/eye.mjs
 /**
@@ -12323,7 +12387,7 @@ var Ellipsis = createLucideIcon(__iconData$34);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$33 = {
+var __iconData$37 = {
 	name: "eye",
 	size: 24,
 	node: [["path", {
@@ -12336,8 +12400,8 @@ var __iconData$33 = {
 		key: "1v7zrd"
 	}]]
 };
-__iconData$33.node;
-var Eye = createLucideIcon(__iconData$33);
+__iconData$37.node;
+var Eye = createLucideIcon(__iconData$37);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/file-play.mjs
 /**
@@ -12346,7 +12410,7 @@ var Eye = createLucideIcon(__iconData$33);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$32 = {
+var __iconData$36 = {
 	name: "file-play",
 	size: 24,
 	node: [
@@ -12365,8 +12429,8 @@ var __iconData$32 = {
 	],
 	aliases: ["file-video"]
 };
-__iconData$32.node;
-var FilePlay = createLucideIcon(__iconData$32);
+__iconData$36.node;
+var FilePlay = createLucideIcon(__iconData$36);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/file-text.mjs
 /**
@@ -12375,7 +12439,7 @@ var FilePlay = createLucideIcon(__iconData$32);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$31 = {
+var __iconData$35 = {
 	name: "file-text",
 	size: 24,
 	node: [
@@ -12401,8 +12465,8 @@ var __iconData$31 = {
 		}]
 	]
 };
-__iconData$31.node;
-var FileText = createLucideIcon(__iconData$31);
+__iconData$35.node;
+var FileText = createLucideIcon(__iconData$35);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/folder-open.mjs
 /**
@@ -12411,7 +12475,7 @@ var FileText = createLucideIcon(__iconData$31);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$30 = {
+var __iconData$34 = {
 	name: "folder-open",
 	size: 24,
 	node: [["path", {
@@ -12419,8 +12483,8 @@ var __iconData$30 = {
 		key: "usdka0"
 	}]]
 };
-__iconData$30.node;
-var FolderOpen = createLucideIcon(__iconData$30);
+__iconData$34.node;
+var FolderOpen = createLucideIcon(__iconData$34);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/folder-plus.mjs
 /**
@@ -12429,7 +12493,7 @@ var FolderOpen = createLucideIcon(__iconData$30);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$29 = {
+var __iconData$33 = {
 	name: "folder-plus",
 	size: 24,
 	node: [
@@ -12447,8 +12511,8 @@ var __iconData$29 = {
 		}]
 	]
 };
-__iconData$29.node;
-var FolderPlus = createLucideIcon(__iconData$29);
+__iconData$33.node;
+var FolderPlus = createLucideIcon(__iconData$33);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/gamepad-2.mjs
 /**
@@ -12457,7 +12521,7 @@ var FolderPlus = createLucideIcon(__iconData$29);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$28 = {
+var __iconData$32 = {
 	name: "gamepad-2",
 	size: 24,
 	node: [
@@ -12495,8 +12559,8 @@ var __iconData$28 = {
 		}]
 	]
 };
-__iconData$28.node;
-var Gamepad2 = createLucideIcon(__iconData$28);
+__iconData$32.node;
+var Gamepad2 = createLucideIcon(__iconData$32);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/layers.mjs
 /**
@@ -12505,7 +12569,7 @@ var Gamepad2 = createLucideIcon(__iconData$28);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$27 = {
+var __iconData$31 = {
 	name: "layers",
 	size: 24,
 	node: [
@@ -12524,8 +12588,8 @@ var __iconData$27 = {
 	],
 	aliases: ["layers-3"]
 };
-__iconData$27.node;
-var Layers = createLucideIcon(__iconData$27);
+__iconData$31.node;
+var Layers = createLucideIcon(__iconData$31);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/layout-dashboard.mjs
 /**
@@ -12534,7 +12598,7 @@ var Layers = createLucideIcon(__iconData$27);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$26 = {
+var __iconData$30 = {
 	name: "layout-dashboard",
 	size: 24,
 	node: [
@@ -12572,8 +12636,29 @@ var __iconData$26 = {
 		}]
 	]
 };
-__iconData$26.node;
-var LayoutDashboard = createLucideIcon(__iconData$26);
+__iconData$30.node;
+var LayoutDashboard = createLucideIcon(__iconData$30);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/link.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$29 = {
+	name: "link",
+	size: 24,
+	node: [["path", {
+		d: "M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71",
+		key: "1cjeqo"
+	}], ["path", {
+		d: "M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71",
+		key: "19qd67"
+	}]]
+};
+__iconData$29.node;
+var Link = createLucideIcon(__iconData$29);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/list-filter.mjs
 /**
@@ -12582,7 +12667,7 @@ var LayoutDashboard = createLucideIcon(__iconData$26);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$25 = {
+var __iconData$28 = {
 	name: "list-filter",
 	size: 24,
 	node: [
@@ -12600,8 +12685,8 @@ var __iconData$25 = {
 		}]
 	]
 };
-__iconData$25.node;
-var ListFilter = createLucideIcon(__iconData$25);
+__iconData$28.node;
+var ListFilter = createLucideIcon(__iconData$28);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/list-todo.mjs
 /**
@@ -12610,7 +12695,7 @@ var ListFilter = createLucideIcon(__iconData$25);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$24 = {
+var __iconData$27 = {
 	name: "list-todo",
 	size: 24,
 	node: [
@@ -12640,8 +12725,8 @@ var __iconData$24 = {
 		}]
 	]
 };
-__iconData$24.node;
-var ListTodo = createLucideIcon(__iconData$24);
+__iconData$27.node;
+var ListTodo = createLucideIcon(__iconData$27);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/lock-keyhole.mjs
 /**
@@ -12650,7 +12735,7 @@ var ListTodo = createLucideIcon(__iconData$24);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$23 = {
+var __iconData$26 = {
 	name: "lock-keyhole",
 	size: 24,
 	node: [
@@ -12674,8 +12759,35 @@ var __iconData$23 = {
 		}]
 	]
 };
-__iconData$23.node;
-var LockKeyhole = createLucideIcon(__iconData$23);
+__iconData$26.node;
+var LockKeyhole = createLucideIcon(__iconData$26);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/lock-open.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$25 = {
+	name: "lock-open",
+	size: 24,
+	node: [["rect", {
+		width: "18",
+		height: "11",
+		x: "3",
+		y: "11",
+		rx: "2",
+		ry: "2",
+		key: "1w4ew1"
+	}], ["path", {
+		d: "M7 11V7a5 5 0 0 1 9.9-1",
+		key: "1mm8w8"
+	}]],
+	aliases: ["unlock"]
+};
+__iconData$25.node;
+var LockOpen = createLucideIcon(__iconData$25);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/log-out.mjs
 /**
@@ -12684,7 +12796,7 @@ var LockKeyhole = createLucideIcon(__iconData$23);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$22 = {
+var __iconData$24 = {
 	name: "log-out",
 	size: 24,
 	node: [
@@ -12702,8 +12814,8 @@ var __iconData$22 = {
 		}]
 	]
 };
-__iconData$22.node;
-var LogOut = createLucideIcon(__iconData$22);
+__iconData$24.node;
+var LogOut = createLucideIcon(__iconData$24);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/moon.mjs
 /**
@@ -12712,7 +12824,7 @@ var LogOut = createLucideIcon(__iconData$22);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$21 = {
+var __iconData$23 = {
 	name: "moon",
 	size: 24,
 	node: [["path", {
@@ -12720,8 +12832,8 @@ var __iconData$21 = {
 		key: "kfwtm"
 	}]]
 };
-__iconData$21.node;
-var Moon = createLucideIcon(__iconData$21);
+__iconData$23.node;
+var Moon = createLucideIcon(__iconData$23);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/pen-line.mjs
 /**
@@ -12730,7 +12842,7 @@ var Moon = createLucideIcon(__iconData$21);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$20 = {
+var __iconData$22 = {
 	name: "pen-line",
 	size: 24,
 	node: [["path", {
@@ -12742,8 +12854,8 @@ var __iconData$20 = {
 	}]],
 	aliases: ["edit-3"]
 };
-__iconData$20.node;
-var PenLine = createLucideIcon(__iconData$20);
+__iconData$22.node;
+var PenLine = createLucideIcon(__iconData$22);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/pencil.mjs
 /**
@@ -12752,7 +12864,7 @@ var PenLine = createLucideIcon(__iconData$20);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$19 = {
+var __iconData$21 = {
 	name: "pencil",
 	size: 24,
 	node: [["path", {
@@ -12763,8 +12875,8 @@ var __iconData$19 = {
 		key: "1mk7zo"
 	}]]
 };
-__iconData$19.node;
-var Pencil = createLucideIcon(__iconData$19);
+__iconData$21.node;
+var Pencil = createLucideIcon(__iconData$21);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/plus.mjs
 /**
@@ -12773,7 +12885,7 @@ var Pencil = createLucideIcon(__iconData$19);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$18 = {
+var __iconData$20 = {
 	name: "plus",
 	size: 24,
 	node: [["path", {
@@ -12784,8 +12896,29 @@ var __iconData$18 = {
 		key: "s699le"
 	}]]
 };
-__iconData$18.node;
-var Plus = createLucideIcon(__iconData$18);
+__iconData$20.node;
+var Plus = createLucideIcon(__iconData$20);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/quote.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$19 = {
+	name: "quote",
+	size: 24,
+	node: [["path", {
+		d: "M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z",
+		key: "rib7q0"
+	}], ["path", {
+		d: "M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z",
+		key: "1ymkrd"
+	}]]
+};
+__iconData$19.node;
+var Quote = createLucideIcon(__iconData$19);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/radio.mjs
 /**
@@ -12794,7 +12927,7 @@ var Plus = createLucideIcon(__iconData$18);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$17 = {
+var __iconData$18 = {
 	name: "radio",
 	size: 24,
 	node: [
@@ -12822,8 +12955,8 @@ var __iconData$17 = {
 		}]
 	]
 };
-__iconData$17.node;
-var Radio = createLucideIcon(__iconData$17);
+__iconData$18.node;
+var Radio = createLucideIcon(__iconData$18);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/refresh-cw.mjs
 /**
@@ -12832,7 +12965,7 @@ var Radio = createLucideIcon(__iconData$17);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$16 = {
+var __iconData$17 = {
 	name: "refresh-cw",
 	size: 24,
 	node: [
@@ -12854,8 +12987,8 @@ var __iconData$16 = {
 		}]
 	]
 };
-__iconData$16.node;
-var RefreshCw = createLucideIcon(__iconData$16);
+__iconData$17.node;
+var RefreshCw = createLucideIcon(__iconData$17);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/rotate-ccw.mjs
 /**
@@ -12864,7 +12997,7 @@ var RefreshCw = createLucideIcon(__iconData$16);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$15 = {
+var __iconData$16 = {
 	name: "rotate-ccw",
 	size: 24,
 	node: [["path", {
@@ -12875,8 +13008,8 @@ var __iconData$15 = {
 		key: "1xhq8a"
 	}]]
 };
-__iconData$15.node;
-var RotateCcw = createLucideIcon(__iconData$15);
+__iconData$16.node;
+var RotateCcw = createLucideIcon(__iconData$16);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/search.mjs
 /**
@@ -12885,7 +13018,7 @@ var RotateCcw = createLucideIcon(__iconData$15);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$14 = {
+var __iconData$15 = {
 	name: "search",
 	size: 24,
 	node: [["path", {
@@ -12898,8 +13031,8 @@ var __iconData$14 = {
 		key: "4ej97u"
 	}]]
 };
-__iconData$14.node;
-var Search = createLucideIcon(__iconData$14);
+__iconData$15.node;
+var Search = createLucideIcon(__iconData$15);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/send.mjs
 /**
@@ -12908,7 +13041,7 @@ var Search = createLucideIcon(__iconData$14);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$13 = {
+var __iconData$14 = {
 	name: "send",
 	size: 24,
 	node: [["path", {
@@ -12919,8 +13052,8 @@ var __iconData$13 = {
 		key: "12cjpa"
 	}]]
 };
-__iconData$13.node;
-var Send = createLucideIcon(__iconData$13);
+__iconData$14.node;
+var Send = createLucideIcon(__iconData$14);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/settings-2.mjs
 /**
@@ -12929,7 +13062,7 @@ var Send = createLucideIcon(__iconData$13);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$12 = {
+var __iconData$13 = {
 	name: "settings-2",
 	size: 24,
 	node: [
@@ -12955,8 +13088,8 @@ var __iconData$12 = {
 		}]
 	]
 };
-__iconData$12.node;
-var Settings2 = createLucideIcon(__iconData$12);
+__iconData$13.node;
+var Settings2 = createLucideIcon(__iconData$13);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/shield-check.mjs
 /**
@@ -12965,7 +13098,7 @@ var Settings2 = createLucideIcon(__iconData$12);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$11 = {
+var __iconData$12 = {
 	name: "shield-check",
 	size: 24,
 	node: [["path", {
@@ -12976,8 +13109,8 @@ var __iconData$11 = {
 		key: "dzmm74"
 	}]]
 };
-__iconData$11.node;
-var ShieldCheck = createLucideIcon(__iconData$11);
+__iconData$12.node;
+var ShieldCheck = createLucideIcon(__iconData$12);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/sliders-horizontal.mjs
 /**
@@ -12986,7 +13119,7 @@ var ShieldCheck = createLucideIcon(__iconData$11);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$10 = {
+var __iconData$11 = {
 	name: "sliders-horizontal",
 	size: 24,
 	node: [
@@ -13028,8 +13161,8 @@ var __iconData$10 = {
 		}]
 	]
 };
-__iconData$10.node;
-var SlidersHorizontal = createLucideIcon(__iconData$10);
+__iconData$11.node;
+var SlidersHorizontal = createLucideIcon(__iconData$11);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/sun.mjs
 /**
@@ -13038,7 +13171,7 @@ var SlidersHorizontal = createLucideIcon(__iconData$10);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$9 = {
+var __iconData$10 = {
 	name: "sun",
 	size: 24,
 	node: [
@@ -13082,8 +13215,8 @@ var __iconData$9 = {
 		}]
 	]
 };
-__iconData$9.node;
-var Sun = createLucideIcon(__iconData$9);
+__iconData$10.node;
+var Sun = createLucideIcon(__iconData$10);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/tags.mjs
 /**
@@ -13092,7 +13225,7 @@ var Sun = createLucideIcon(__iconData$9);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$8 = {
+var __iconData$9 = {
 	name: "tags",
 	size: 24,
 	node: [
@@ -13113,8 +13246,8 @@ var __iconData$8 = {
 		}]
 	]
 };
-__iconData$8.node;
-var Tags = createLucideIcon(__iconData$8);
+__iconData$9.node;
+var Tags = createLucideIcon(__iconData$9);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/trash.mjs
 /**
@@ -13123,7 +13256,7 @@ var Tags = createLucideIcon(__iconData$8);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$7 = {
+var __iconData$8 = {
 	name: "trash",
 	size: 24,
 	node: [
@@ -13150,8 +13283,8 @@ var __iconData$7 = {
 	],
 	aliases: ["trash-2"]
 };
-__iconData$7.node;
-var Trash = createLucideIcon(__iconData$7);
+__iconData$8.node;
+var Trash = createLucideIcon(__iconData$8);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/trending-up.mjs
 /**
@@ -13160,7 +13293,7 @@ var Trash = createLucideIcon(__iconData$7);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$6 = {
+var __iconData$7 = {
 	name: "trending-up",
 	size: 24,
 	node: [["path", {
@@ -13171,8 +13304,8 @@ var __iconData$6 = {
 		key: "1t1m79"
 	}]]
 };
-__iconData$6.node;
-var TrendingUp = createLucideIcon(__iconData$6);
+__iconData$7.node;
+var TrendingUp = createLucideIcon(__iconData$7);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/triangle-alert.mjs
 /**
@@ -13181,7 +13314,7 @@ var TrendingUp = createLucideIcon(__iconData$6);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$5 = {
+var __iconData$6 = {
 	name: "triangle-alert",
 	size: 24,
 	node: [
@@ -13200,8 +13333,8 @@ var __iconData$5 = {
 	],
 	aliases: ["alert-triangle"]
 };
-__iconData$5.node;
-var TriangleAlert = createLucideIcon(__iconData$5);
+__iconData$6.node;
+var TriangleAlert = createLucideIcon(__iconData$6);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/upload.mjs
 /**
@@ -13210,7 +13343,7 @@ var TriangleAlert = createLucideIcon(__iconData$5);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$4 = {
+var __iconData$5 = {
 	name: "upload",
 	size: 24,
 	node: [
@@ -13228,8 +13361,8 @@ var __iconData$4 = {
 		}]
 	]
 };
-__iconData$4.node;
-var Upload = createLucideIcon(__iconData$4);
+__iconData$5.node;
+var Upload = createLucideIcon(__iconData$5);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/user-round.mjs
 /**
@@ -13238,7 +13371,7 @@ var Upload = createLucideIcon(__iconData$4);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$3 = {
+var __iconData$4 = {
 	name: "user-round",
 	size: 24,
 	node: [["circle", {
@@ -13252,8 +13385,8 @@ var __iconData$3 = {
 	}]],
 	aliases: ["user-2"]
 };
-__iconData$3.node;
-var UserRound = createLucideIcon(__iconData$3);
+__iconData$4.node;
+var UserRound = createLucideIcon(__iconData$4);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/users.mjs
 /**
@@ -13262,7 +13395,7 @@ var UserRound = createLucideIcon(__iconData$3);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$2 = {
+var __iconData$3 = {
 	name: "users",
 	size: 24,
 	node: [
@@ -13286,8 +13419,8 @@ var __iconData$2 = {
 		}]
 	]
 };
-__iconData$2.node;
-var Users = createLucideIcon(__iconData$2);
+__iconData$3.node;
+var Users = createLucideIcon(__iconData$3);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/wallet-cards.mjs
 /**
@@ -13296,7 +13429,7 @@ var Users = createLucideIcon(__iconData$2);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$1 = {
+var __iconData$2 = {
 	name: "wallet-cards",
 	size: 24,
 	node: [
@@ -13318,8 +13451,29 @@ var __iconData$1 = {
 		}]
 	]
 };
+__iconData$2.node;
+var WalletCards = createLucideIcon(__iconData$2);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/wallet.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$1 = {
+	name: "wallet",
+	size: 24,
+	node: [["path", {
+		d: "M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1",
+		key: "18etb6"
+	}], ["path", {
+		d: "M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4",
+		key: "xoc0q4"
+	}]]
+};
 __iconData$1.node;
-var WalletCards = createLucideIcon(__iconData$1);
+var Wallet = createLucideIcon(__iconData$1);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/x.mjs
 /**
@@ -13529,13 +13683,13 @@ var AUDIT_ACTION_LABEL = Object.freeze({
 //#endregion
 //#region public/js/dom.js
 var SVG_NS = "http://www.w3.org/2000/svg";
-function appendChildren$1(el, children) {
+function appendChildren(el, children) {
 	for (const c of children.flat(Infinity)) {
 		if (c === null || c === void 0 || c === false || c === true || c === "") continue;
 		el.appendChild(c instanceof Node ? c : document.createTextNode(String(c)));
 	}
 }
-function h$1(spec, props, ...children) {
+function h(spec, props, ...children) {
 	const parts = String(spec).split(".");
 	const tag = parts[0] || "div";
 	const el = document.createElement(tag);
@@ -13561,7 +13715,7 @@ function h$1(spec, props, ...children) {
 			else el.setAttribute(k, v === true ? "" : String(v));
 		}
 	}
-	appendChildren$1(el, children);
+	appendChildren(el, children);
 	return el;
 }
 function svg(paths, { size = 18, fill = "none" } = {}) {
@@ -13625,7 +13779,7 @@ function fmtMoney$1(n) {
 		maximumFractionDigits: 2
 	});
 }
-function fmtQty$1(n) {
+function fmtQty$2(n) {
 	const v = Number(n) || 0;
 	return Number.isInteger(v) ? String(v) : String(Math.round(v * 100) / 100);
 }
@@ -13636,7 +13790,7 @@ function fmtDate$1(iso) {
 	if (Number.isNaN(d.getTime())) return String(iso);
 	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
-function fmtDateTime(iso) {
+function fmtDateTime$1(iso) {
 	if (!iso) return "";
 	const d = new Date(iso);
 	if (Number.isNaN(d.getTime())) return String(iso);
@@ -13708,7 +13862,7 @@ function remainInfo$1(orderedAt, dueAt) {
 		span
 	};
 }
-function relTime(iso) {
+function relTime$1(iso) {
 	if (!iso) return "";
 	const d = new Date(iso);
 	if (Number.isNaN(d.getTime())) return "";
@@ -13738,7 +13892,7 @@ function clear(node) {
 }
 function mount(node, ...children) {
 	clear(node);
-	appendChildren$1(node, children);
+	appendChildren(node, children);
 	return node;
 }
 /**
@@ -13774,32 +13928,42 @@ async function copyText$1(text) {
 var uidCounter = 0;
 var uid = (p = "x") => `${p}-${++uidCounter}`;
 //#endregion
-//#region public/js/ui.js
-var toastHost = null;
-function ensureToastHost() {
-	if (!toastHost) {
-		toastHost = h$1("div.toasts", {
-			role: "status",
-			"aria-live": "polite"
-		});
-		document.body.appendChild(toastHost);
-	}
-	return toastHost;
+//#region client/app/toast-store.js
+var items = [];
+var seq$1 = 0;
+var listeners$1 = /* @__PURE__ */ new Set();
+function emit() {
+	const snapshot = [...items];
+	for (const listener of listeners$1) listener(snapshot);
 }
-function toast(message, tone = "info", ms = 2600) {
-	const host = ensureToastHost();
-	const el = h$1(`div.toast${tone === "err" ? ".toast--err" : tone === "ok" ? ".toast--ok" : ""}`, h$1("span.toast__ico", tone === "err" ? "!" : tone === "ok" ? "✓" : "·"), h$1("span", message));
-	host.appendChild(el);
-	requestAnimationFrame(() => el.setAttribute("data-show", "1"));
+function subscribeToasts(listener) {
+	listeners$1.add(listener);
+	return () => listeners$1.delete(listener);
+}
+function currentToasts() {
+	return [...items];
+}
+/** 弹一条。tone: info / ok / err */
+function toast$1(message, tone = "info", ms = 2600) {
+	const id = ++seq$1;
+	items = [...items, {
+		id,
+		message: String(message ?? ""),
+		tone,
+		ms
+	}];
+	emit();
 	setTimeout(() => {
-		el.removeAttribute("data-show");
-		setTimeout(() => el.remove(), 240);
-	}, ms);
-	return el;
+		items = items.filter((item) => item.id !== id);
+		emit();
+	}, ms + 240);
+	return id;
 }
-var toastErr = (e) => {
-	toast(typeof e === "string" ? e : e && e.message ? e.message : "出错了", "err", 4200);
-};
+function toastErr(error) {
+	return toast$1(typeof error === "string" ? error : error && error.message ? error.message : "出错了", "err", 4200);
+}
+//#endregion
+//#region public/js/ui.js
 function openDialog({ node, onClose }) {
 	if (!node.isConnected) document.body.appendChild(node);
 	let closed = false;
@@ -13824,15 +13988,15 @@ function openDialog({ node, onClose }) {
 	return finish;
 }
 function modal({ title, body, actions = [], wide = false, onClose }) {
-	const foot = h$1("div.modal__foot");
+	const foot = h("div.modal__foot");
 	const buttons = /* @__PURE__ */ new Map();
-	const dlg = h$1(`dialog.modal${wide ? ".modal--wide" : ""}`, h$1("div.modal__body", title ? h$1("h2.modal__title", title) : null, body), actions.length ? foot : null);
+	const dlg = h(`dialog.modal${wide ? ".modal--wide" : ""}`, h("div.modal__body", title ? h("h2.modal__title", title) : null, body), actions.length ? foot : null);
 	const finish = openDialog({
 		node: dlg,
 		onClose
 	});
 	for (const a of actions) {
-		const btn = h$1(`button.btn${a.tone === "primary" ? ".btn--primary" : a.tone === "danger" ? ".btn--danger" : ""}`, {
+		const btn = h(`button.btn${a.tone === "primary" ? ".btn--primary" : a.tone === "danger" ? ".btn--danger" : ""}`, {
 			type: "button",
 			onclick: async () => {
 				if (a.onClick) {
@@ -13859,7 +14023,7 @@ function confirmModal({ title, message, confirmLabel = "确定", tone = "primary
 		let answer = false;
 		return modal({
 			title,
-			body: h$1("div.stack.stack--tight", h$1("p.muted", message), extra),
+			body: h("div.stack.stack--tight", h("p.muted", message), extra),
 			actions: [{
 				label: "取消",
 				onClick: () => resolve(false)
@@ -13892,7 +14056,7 @@ function confirmDelete$1({ title, message, confirmLabel = "删除" }) {
 * 默认删除 = 归档，只有这里选了「彻底删除」才走 ?hard=1。
 * archiveLabel 传 null 就只给「取消 / 彻底删除」两个选择（比如已经归档过的记录）。
 */
-function choiceDialog({ title, message, archiveLabel, archiveHint, deleteLabel, deleteHint }) {
+function choiceDialog$1({ title, message, archiveLabel, archiveHint, deleteLabel, deleteHint }) {
 	return new Promise((resolve) => {
 		let done = false;
 		const finish = (v) => {
@@ -13916,23 +14080,23 @@ function choiceDialog({ title, message, archiveLabel, archiveHint, deleteLabel, 
 		modal({
 			title,
 			wide: true,
-			body: h$1("div.stack.stack--tight", h$1("p", { style: { lineHeight: "1.75" } }, message), archiveLabel && archiveHint ? h$1("div.note.note--ok", h$1("strong", `${archiveLabel}：`), h$1("span", archiveHint)) : null, deleteHint ? h$1("div.note.note--alert", h$1("strong", `${deleteLabel}：`), h$1("span", deleteHint)) : null),
+			body: h("div.stack.stack--tight", h("p", { style: { lineHeight: "1.75" } }, message), archiveLabel && archiveHint ? h("div.note.note--ok", h("strong", `${archiveLabel}：`), h("span", archiveHint)) : null, deleteHint ? h("div.note.note--alert", h("strong", `${deleteLabel}：`), h("span", deleteHint)) : null),
 			actions,
 			onClose: () => finish(null)
 		});
 	});
 }
 function drawer({ title, subtitle, body, footer, wide = false, onClose }) {
-	const bodyEl = h$1("div.drawer__body");
+	const bodyEl = h("div.drawer__body");
 	mount(bodyEl, body);
-	const dlg = h$1(`dialog.drawer${wide ? ".drawer--wide" : ""}`, h$1("div.drawer__head", h$1("div", { style: {
+	const dlg = h(`dialog.drawer${wide ? ".drawer--wide" : ""}`, h("div.drawer__head", h("div", { style: {
 		minWidth: "0",
 		flex: "1"
-	} }, h$1("div.drawer__title", title || ""), subtitle ? h$1("div.sm.dim", subtitle) : null), h$1("button.btn.btn--icon.btn--quiet", {
+	} }, h("div.drawer__title", title || ""), subtitle ? h("div.sm.dim", subtitle) : null), h("button.btn.btn--icon.btn--quiet", {
 		type: "button",
 		"aria-label": "关闭",
 		onclick: () => finish()
-	}, icon("close"))), bodyEl, footer ? h$1("div.drawer__foot", footer) : null);
+	}, icon("close"))), bodyEl, footer ? h("div.drawer__foot", footer) : null);
 	const finish = openDialog({
 		node: dlg,
 		onClose
@@ -13944,9 +14108,9 @@ function drawer({ title, subtitle, body, footer, wide = false, onClose }) {
 	};
 }
 function fieldShell(f, control) {
-	const errEl = h$1("div.err", { hidden: true });
+	const errEl = h("div.err", { hidden: true });
 	return {
-		el: h$1(`div.field${f.width === "half" ? "" : ".field--full"}`, f.label ? h$1("label.lbl", { for: control.id }, f.label, f.required ? h$1("span.req", "*") : null, f.suffix ? h$1("span.dim.tiny", `（${f.suffix}）`) : null) : null, control, f.hint ? h$1("div.hint", f.hint) : null, errEl),
+		el: h(`div.field${f.width === "half" ? "" : ".field--full"}`, f.label ? h("label.lbl", { for: control.id }, f.label, f.required ? h("span.req", "*") : null, f.suffix ? h("span.dim.tiny", `（${f.suffix}）`) : null) : null, control, f.hint ? h("div.hint", f.hint) : null, errEl),
 		errEl
 	};
 }
@@ -13960,7 +14124,7 @@ function buildControl(f, initial) {
 		autocomplete: f.autocomplete || "off"
 	};
 	if (f.type === "textarea") {
-		const ta = h$1("textarea.ta", {
+		const ta = h("textarea.ta", {
 			...common,
 			rows: f.rows || 3,
 			maxlength: f.maxlength || 4e3
@@ -13973,13 +14137,13 @@ function buildControl(f, initial) {
 		};
 	}
 	if (f.type === "select") {
-		const sel = h$1("select.sel", common);
+		const sel = h("select.sel", common);
 		const raw = initial === null || initial === void 0 ? "" : String(initial);
 		const alias = raw === "true" ? "1" : raw === "false" ? "0" : raw;
 		const wanted = alias !== raw && (f.options || []).some((o) => String(o.value) === alias) ? alias : raw;
 		let matched = false;
 		for (const opt of f.options || []) {
-			const o = h$1("option", { value: opt.value }, opt.label);
+			const o = h("option", { value: opt.value }, opt.label);
 			if (String(opt.value) === wanted) {
 				o.selected = true;
 				matched = true;
@@ -13987,7 +14151,7 @@ function buildControl(f, initial) {
 			sel.appendChild(o);
 		}
 		if (!matched) {
-			sel.insertBefore(h$1("option", { value: wanted }, wanted ? `（原值：${wanted}）` : "（未指定）"), sel.firstChild);
+			sel.insertBefore(h("option", { value: wanted }, wanted ? `（原值：${wanted}）` : "（未指定）"), sel.firstChild);
 			sel.value = wanted;
 		}
 		return {
@@ -13997,23 +14161,23 @@ function buildControl(f, initial) {
 		};
 	}
 	if (f.type === "check") {
-		const cb = h$1("input.chk", {
+		const cb = h("input.chk", {
 			...common,
 			type: "checkbox"
 		});
 		cb.checked = Boolean(initial);
 		return {
-			control: h$1("label.inline", {
+			control: h("label.inline", {
 				for: id,
 				style: { cursor: "pointer" }
-			}, cb, h$1("span", f.checkLabel || f.label || "")),
+			}, cb, h("span", f.checkLabel || f.label || "")),
 			read: () => cb.checked,
 			focus: () => cb.focus(),
 			bare: true
 		};
 	}
 	if (f.type === "tags") {
-		const inp = h$1("input.inp", {
+		const inp = h("input.inp", {
 			...common,
 			placeholder: f.placeholder || "用逗号分隔，例如：爽快, 老客户"
 		});
@@ -14031,7 +14195,7 @@ function buildControl(f, initial) {
 		password: "password",
 		text: "text"
 	};
-	const inp = h$1("input.inp", {
+	const inp = h("input.inp", {
 		...common,
 		type: types[f.type] || "text",
 		inputmode: f.type === "money" || f.type === "number" ? "decimal" : f.inputmode || void 0,
@@ -14058,11 +14222,11 @@ function buildControl(f, initial) {
 function makeField(f, initial) {
 	const { control, read, focus, bare } = buildControl(f, initial);
 	if (bare) return {
-		el: h$1("div.field.field--full", control),
+		el: h("div.field.field--full", control),
 		read,
 		focus,
 		control,
-		errEl: h$1("div.err", { hidden: true })
+		errEl: h("div.err", { hidden: true })
 	};
 	const { el, errEl } = fieldShell(f, control);
 	if (f.width !== "half") el.classList.add("field--full");
@@ -14082,16 +14246,16 @@ function makeField(f, initial) {
 function imageField({ name = "image", label = "图片", value = "", prefix = "img", shape = "square", size = 56, hint = "", placeholder = "无" } = {}) {
 	let url = value || "";
 	let preview = null;
-	const file = h$1("input", {
+	const file = h("input", {
 		type: "file",
 		accept: "image/png,image/jpeg,image/webp,image/gif,image/svg+xml",
 		style: { display: "none" }
 	});
-	const btn = h$1("button.btn.btn--sm", { type: "button" }, icon("upload", 14), "选一张图");
-	const clearBtn = h$1("button.btn.btn--sm.btn--quiet", { type: "button" }, "去掉");
+	const btn = h("button.btn.btn--sm", { type: "button" }, icon("upload", 14), "选一张图");
+	const clearBtn = h("button.btn.btn--sm.btn--quiet", { type: "button" }, "去掉");
 	function paint() {
 		if (!preview) return;
-		preview.replaceChildren(url ? h$1("img", {
+		preview.replaceChildren(url ? h("img", {
 			src: url,
 			alt: label,
 			style: {
@@ -14099,7 +14263,7 @@ function imageField({ name = "image", label = "图片", value = "", prefix = "im
 				height: "100%",
 				objectFit: "cover"
 			}
-		}) : h$1("span.dim.tiny", placeholder));
+		}) : h("span.dim.tiny", placeholder));
 		clearBtn.style.display = url ? "" : "none";
 	}
 	btn.addEventListener("click", () => file.click());
@@ -14139,7 +14303,7 @@ function imageField({ name = "image", label = "图片", value = "", prefix = "im
 		type: "custom",
 		width: "full",
 		render: () => {
-			preview = h$1("div", { style: {
+			preview = h("div", { style: {
 				width: `${size}px`,
 				height: `${size}px`,
 				borderRadius: shape === "circle" ? "50%" : "12px",
@@ -14151,7 +14315,7 @@ function imageField({ name = "image", label = "图片", value = "", prefix = "im
 				flex: "none"
 			} });
 			paint();
-			return h$1("div.field.field--full", label ? h$1("label.lbl", label) : null, h$1("div.cluster", preview, h$1("div.stack.stack--tight", h$1("div.cluster", btn, clearBtn), hint ? h$1("div.hint", hint) : null)), file);
+			return h("div.field.field--full", label ? h("label.lbl", label) : null, h("div.cluster", preview, h("div.stack.stack--tight", h("div.cluster", btn, clearBtn), hint ? h("div.hint", hint) : null)), file);
 		},
 		collect: (out) => {
 			out[name] = url;
@@ -14166,14 +14330,14 @@ function formDrawer({ title, subtitle, fields, values = {}, submitLabel = "保�
 	return new Promise((resolve) => {
 		let settled = false;
 		const built = [];
-		const grid = h$1("div.formgrid");
+		const grid = h("div.formgrid");
 		for (const f of fields) {
 			if (f.type === "section") {
-				grid.appendChild(h$1("div.formsec.field--full", h$1("div.sechead", { style: { marginBottom: "0" } }, h$1("h3", f.title), f.note ? h$1("span.sechead__note", f.note) : null)));
+				grid.appendChild(h("div.formsec.field--full", h("div.sechead", { style: { marginBottom: "0" } }, h("h3", f.title), f.note ? h("span.sechead__note", f.note) : null)));
 				continue;
 			}
 			if (f.type === "note") {
-				grid.appendChild(h$1(`div.note${f.tone ? `.note--${f.tone}` : ""}.field--full`, f.text));
+				grid.appendChild(h(`div.note${f.tone ? `.note--${f.tone}` : ""}.field--full`, f.text));
 				continue;
 			}
 			if (f.type === "custom") {
@@ -14198,15 +14362,15 @@ function formDrawer({ title, subtitle, fields, values = {}, submitLabel = "保�
 				control: built1.control
 			});
 		}
-		const errBox = h$1("div.note.note--alert", { hidden: true });
-		const bodyWrap = h$1("div.stack", intro, grid, footerNote ? h$1("div.hint", footerNote) : null, errBox);
+		const errBox = h("div.note.note--alert", { hidden: true });
+		const bodyWrap = h("div.stack", intro, grid, footerNote ? h("div.hint", footerNote) : null, errBox);
 		const formId = uid("form");
-		const form = h$1("form", {
+		const form = h("form", {
 			id: formId,
 			novalidate: true,
 			onsubmit: handleSubmit
 		}, bodyWrap);
-		const submitBtn = h$1("button.btn.btn--primary", {
+		const submitBtn = h("button.btn.btn--primary", {
 			type: "submit",
 			form: formId
 		}, submitLabel);
@@ -14215,11 +14379,11 @@ function formDrawer({ title, subtitle, fields, values = {}, submitLabel = "保�
 			subtitle,
 			body: form,
 			footer: [
-				h$1("button.btn", {
+				h("button.btn", {
 					type: "button",
 					onclick: () => finish(null)
 				}, "取消"),
-				h$1("div", { style: { flex: "1" } }),
+				h("div", { style: { flex: "1" } }),
 				submitBtn
 			],
 			wide,
@@ -14301,7 +14465,7 @@ function formDrawer({ title, subtitle, fields, values = {}, submitLabel = "保�
 	});
 }
 function emptyState({ iconName = "plus", title, body, steps, actionLabel, onAction, secondary }) {
-	return h$1("div.empty", h$1("div.empty__mark", icon(iconName, 20)), h$1("div.empty__title", title), body ? h$1("p.empty__body", body) : null, steps && steps.length ? h$1("ul.empty__steps", steps.map((s, i) => h$1("li", h$1("span.n", String(i + 1)), h$1("span", s)))) : null, actionLabel || secondary ? h$1("div.cluster", actionLabel ? h$1("button.btn.btn--primary", {
+	return h("div.empty", h("div.empty__mark", icon(iconName, 20)), h("div.empty__title", title), body ? h("p.empty__body", body) : null, steps && steps.length ? h("ul.empty__steps", steps.map((s, i) => h("li", h("span.n", String(i + 1)), h("span", s)))) : null, actionLabel || secondary ? h("div.cluster", actionLabel ? h("button.btn.btn--primary", {
 		type: "button",
 		onclick: onAction
 	}, actionLabel) : null, secondary || null) : null);
@@ -14311,10 +14475,10 @@ function emptyState({ iconName = "plus", title, body, steps, actionLabel, onActi
 * 手机上每一行折成一张卡片，td 用 data-label 显示列名。
 */
 function table({ columns, rows, onRowClick, stack = true, footer = null, compact = false }) {
-	const thead = h$1("thead", h$1("tr", columns.map((c) => h$1(`th${c.num ? ".num" : ""}`, { style: c.width ? { width: c.width } : null }, c.label))));
-	const tbody = h$1("tbody");
+	const thead = h("thead", h("tr", columns.map((c) => h(`th${c.num ? ".num" : ""}`, { style: c.width ? { width: c.width } : null }, c.label))));
+	const tbody = h("tbody");
 	rows.forEach((row, idx) => {
-		const tr = h$1("tr", {
+		const tr = h("tr", {
 			"data-clickable": onRowClick ? "1" : null,
 			tabindex: onRowClick ? "0" : null,
 			onclick: onRowClick ? (e) => {
@@ -14327,24 +14491,24 @@ function table({ columns, rows, onRowClick, stack = true, footer = null, compact
 		columns.forEach((c, ci) => {
 			const content = c.render ? c.render(row, idx) : row[c.key];
 			const isMain = c.main || ci === 0;
-			tr.appendChild(h$1(`td${c.num ? ".num" : ""}${isMain ? ".td-main" : ""}${c.cls ? "." + c.cls : ""}`, { "data-label": c.num ? c.label : isMain ? "" : c.label }, content));
+			tr.appendChild(h(`td${c.num ? ".num" : ""}${isMain ? ".td-main" : ""}${c.cls ? "." + c.cls : ""}`, { "data-label": c.num ? c.label : isMain ? "" : c.label }, content));
 		});
 		tbody.appendChild(tr);
 	});
-	return h$1(`div.tblwrap${stack ? ".tblwrap--stack" : ""}`, h$1(`table.tbl${stack ? ".tbl--stack" : ""}${compact ? ".tbl--compact" : ""}`, thead, tbody, footer));
+	return h(`div.tblwrap${stack ? ".tblwrap--stack" : ""}`, h(`table.tbl${stack ? ".tbl--stack" : ""}${compact ? ".tbl--compact" : ""}`, thead, tbody, footer));
 }
 function lamp(label, tone = "muted") {
-	return h$1(`span.lamp.lamp--${tone}`, label);
+	return h(`span.lamp.lamp--${tone}`, label);
 }
 function orderLamp(status, label) {
 	return lamp(label || status, STATUS_TONE[status] || "muted");
 }
 function tag(text, tone = "") {
-	return h$1(`span.tag${tone ? `.tag--${tone}` : ""}`, text);
+	return h(`span.tag${tone ? `.tag--${tone}` : ""}`, text);
 }
 /** 订单走的五步轨；售后/取消单独用灯表示 */
 function orderTrack(status, statusLabel) {
-	if (status === "cancelled" || status === "after_sale") return h$1("div.cluster", orderLamp(status, statusLabel), h$1("span.dim.tiny", "已离开主流程"));
+	if (status === "cancelled" || status === "after_sale") return h("div.cluster", orderLamp(status, statusLabel), h("span.dim.tiny", "已离开主流程"));
 	const at = STATUS_FLOW.indexOf(status);
 	const labels = {
 		pending_confirm: "待确认",
@@ -14355,11 +14519,11 @@ function orderTrack(status, statusLabel) {
 	};
 	const out = [];
 	STATUS_FLOW.forEach((s, i) => {
-		if (i > 0) out.push(h$1("span.track__sep"));
+		if (i > 0) out.push(h("span.track__sep"));
 		const state = i < at ? "--done" : i === at ? "--now" : "";
-		out.push(h$1(`div.track__step${state ? ".track__step" + state : ""}`, labels[s]));
+		out.push(h(`div.track__step${state ? ".track__step" + state : ""}`, labels[s]));
 	});
-	return h$1("div.track", out);
+	return h("div.track", out);
 }
 /**
 * 小标题：标题 + 可选说明 + 右侧若干个动作。
@@ -14368,10 +14532,10 @@ function orderTrack(status, statusLabel) {
 */
 function sectionHead(title, note, ...actions) {
 	const list = actions.flat().filter(Boolean);
-	return h$1("div.sechead", h$1("h3", title), note ? h$1("span.sechead__note", note) : null, ...list);
+	return h("div.sechead", h("h3", title), note ? h("span.sechead__note", note) : null, ...list);
 }
 function copyButton(text, label = "复制", { size = "sm", onCopied } = {}) {
-	return h$1(`button.btn.btn--sm${size === "icon" ? ".btn--icon" : ""}`, {
+	return h(`button.btn.btn--sm${size === "icon" ? ".btn--icon" : ""}`, {
 		type: "button",
 		title: label,
 		onclick: async (e) => {
@@ -14383,7 +14547,7 @@ function copyButton(text, label = "复制", { size = "sm", onCopied } = {}) {
 	}, size === "icon" ? icon("copy", 15) : icon("copy", 15), size === "icon" ? null : label);
 }
 //#endregion
-//#region public/js/views/orderbits.js
+//#region shared/resources.js
 /** 要盯的三个资源。名字跟 src/ocr.mjs 里的 RESOURCE_ALIASES 对应 */
 var RES_KEYS = [
 	"星声",
@@ -14455,6 +14619,17 @@ function lastResourcesAfter(order) {
 	for (let i = sorted.length - 1; i >= 0; i--) if (sorted[i].resources_after) return sorted[i].resources_after;
 	return "";
 }
+/** 「本次消耗：星声 −20 · 体力 −40」这行字 */
+function deltaText(beforeText, afterText, fmtQty = (n) => String(n)) {
+	const deltas = resourceDelta(beforeText, afterText);
+	if (!deltas.length) return "";
+	return "本次消耗：" + deltas.map((d) => {
+		const sign = d.diff < 0 ? "−" : d.diff > 0 ? "+" : "±";
+		return `${d.key} ${sign}${fmtQty(Math.abs(d.diff))}`;
+	}).join(" · ");
+}
+//#endregion
+//#region public/js/views/orderbits.js
 /**
 * 资源对比：星声 / 体力 / 贝币 各一个框，外加一个「其他」兜底。
 * 两边都能点「识别画面」看屏幕，或点「识别截图」选一张图。
@@ -14471,7 +14646,7 @@ function resourcesField({ before = "", after = "", beforeFrom = "" } = {}) {
 		const parsed = parseResources(initial);
 		const inputs = {};
 		for (const k of RES_KEYS) {
-			const inp = h$1("input.inp.inp--fig", {
+			const inp = h("input.inp.inp--fig", {
 				inputmode: "numeric",
 				style: { width: "92px" },
 				"aria-label": `${label} ${k}`
@@ -14479,30 +14654,30 @@ function resourcesField({ before = "", after = "", beforeFrom = "" } = {}) {
 			inp.value = parsed[k];
 			inputs[k] = inp;
 		}
-		const other = h$1("input.inp", {
+		const other = h("input.inp", {
 			placeholder: "其他（可选）",
 			"aria-label": `${label} 其他资源`
 		});
 		other.value = parsed.other;
-		const deltaLine = h$1("div.hint");
-		const note = h$1("div.note.note--ok", { hidden: true });
-		const file = h$1("input", {
+		const deltaLine = h("div.hint");
+		const note = h("div.note.note--ok", { hidden: true });
+		const file = h("input", {
 			type: "file",
 			accept: "image/png,image/jpeg,image/webp",
 			style: { display: "none" }
 		});
-		const shotBtn = h$1("button.btn.btn--sm", {
+		const shotBtn = h("button.btn.btn--sm", {
 			type: "button",
 			title: "选一张游戏截图，自动认星声 / 体力 / 贝币"
 		}, icon("eye", 14), "识别截图");
-		const watchBtn = h$1("button.btn.btn--sm.btn--primary", {
+		const watchBtn = h("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			title: "切到游戏，程序会一直看着屏幕，三个都认到就自动停"
 		}, icon("refresh", 14), "识别画面");
-		const box = h$1("div.field.field--full", h$1("div.cluster", h$1("label.lbl", label), h$1("div", { style: { flex: "1" } }), watchBtn, shotBtn), h$1("div.cluster", { style: {
+		const box = h("div.field.field--full", h("div.cluster", h("label.lbl", label), h("div", { style: { flex: "1" } }), watchBtn, shotBtn), h("div.cluster", { style: {
 			gap: "6px",
 			flexWrap: "wrap"
-		} }, ...RES_KEYS.map((k) => h$1("label.inline", { style: { gap: "4px" } }, h$1("span.dim.tiny", k), inputs[k]))), other, isFirst && beforeFrom ? h$1("div.hint", `「做之前」带的是${beforeFrom}，不对就直接改。`) : null, deltaLine, note, file);
+		} }, ...RES_KEYS.map((k) => h("label.inline", { style: { gap: "4px" } }, h("span.dim.tiny", k), inputs[k]))), other, isFirst && beforeFrom ? h("div.hint", `「做之前」带的是${beforeFrom}，不对就直接改。`) : null, deltaLine, note, file);
 		const rec = {
 			inputs,
 			other,
@@ -14511,7 +14686,7 @@ function resourcesField({ before = "", after = "", beforeFrom = "" } = {}) {
 		};
 		sides.push(rec);
 		shotBtn.addEventListener("click", () => {
-			if (ocrOk === false) return toast("这台机器上没法识别：装一个本地 OCR（设置页有指引），或者用 Windows 自带的那个", "err", 4200);
+			if (ocrOk === false) return toast$1("这台机器上没法识别：装一个本地 OCR（设置页有指引），或者用 Windows 自带的那个", "err", 4200);
 			file.click();
 		});
 		/**
@@ -14523,7 +14698,7 @@ function resourcesField({ before = "", after = "", beforeFrom = "" } = {}) {
 		let sessionSeq = 0;
 		watchBtn.addEventListener("click", async () => {
 			if (watching) return;
-			if (ocrOk === false) return toast("这台机器上用不了屏幕识别：装一个本地 OCR（设置页有指引），或者用 Windows 自带的那个", "err", 4200);
+			if (ocrOk === false) return toast$1("这台机器上用不了屏幕识别：装一个本地 OCR（设置页有指引），或者用 Windows 自带的那个", "err", 4200);
 			watching = true;
 			watchBtn.setAttribute("data-loading", "1");
 			const session = `w${Date.now()}-${++sessionSeq}`;
@@ -14537,13 +14712,13 @@ function resourcesField({ before = "", after = "", beforeFrom = "" } = {}) {
 			const paintProgress = (extra) => {
 				const have = RES_KEYS.filter((k) => got[k] !== void 0);
 				note.hidden = false;
-				mount(note, h$1("strong", `正在看屏幕… 已认到 ${have.length}/${RES_KEYS.length}${have.length ? "（" + have.join("、") + "）" : ""}`), engine ? h$1("div.tiny", { style: {
+				mount(note, h("strong", `正在看屏幕… 已认到 ${have.length}/${RES_KEYS.length}${have.length ? "（" + have.join("、") + "）" : ""}`), engine ? h("div.tiny", { style: {
 					marginTop: "4px",
 					opacity: ".85"
-				} }, `引擎：${engine}${seenIcons.length ? ` · 图标：${seenIcons.join("、")}` : ""}`) : null, Object.keys(pending).length ? h$1("div.tiny", { style: {
+				} }, `引擎：${engine}${seenIcons.length ? ` · 图标：${seenIcons.join("、")}` : ""}`) : null, Object.keys(pending).length ? h("div.tiny", { style: {
 					marginTop: "2px",
 					opacity: ".85"
-				} }, "正在复核：" + Object.entries(pending).map(([k, p]) => `${k} ${p.votes}/${p.need}`).join(" · ")) : null, h$1("div.tiny", { style: {
+				} }, "正在复核：" + Object.entries(pending).map(([k, p]) => `${k} ${p.votes}/${p.need}`).join(" · ")) : null, h("div.tiny", { style: {
 					marginTop: "4px",
 					opacity: ".85"
 				} }, extra || "切到游戏，停在能看到这几个资源的界面；每个数字要认到两次才采纳。"));
@@ -14584,11 +14759,11 @@ function resourcesField({ before = "", after = "", beforeFrom = "" } = {}) {
 				const n = RES_KEYS.filter((k) => got[k] !== void 0).length;
 				const missing = RES_KEYS.filter((k) => got[k] === void 0);
 				const small = Object.keys(smallText);
-				mount(note, h$1("strong", n === RES_KEYS.length ? "三个都认到了，核对一下再保存" : `认到 ${n} 个${missing.length ? `，${missing.join("、")} 没认到` : ""}`), small.length ? h$1("div.tiny.tone-amber", { style: { marginTop: "2px" } }, `${small.join("、")} 这几个字太小（顶栏文字不到 21px），自带 OCR 有时会读错位数 —— 这 ${small.length} 个请对着游戏核一遍。想要更准就装一个本地 OCR 引擎（设置页有指引）。`) : null, Object.keys(layoutFallback).length ? h$1("div.tiny.tone-amber", { style: { marginTop: "2px" } }, `${Object.keys(layoutFallback).join("、")} 是按数字格式补出的，请对照截图核对。`) : null, h$1("div.tiny", { style: {
+				mount(note, h("strong", n === RES_KEYS.length ? "三个都认到了，核对一下再保存" : `认到 ${n} 个${missing.length ? `，${missing.join("、")} 没认到` : ""}`), small.length ? h("div.tiny.tone-amber", { style: { marginTop: "2px" } }, `${small.join("、")} 这几个字太小（顶栏文字不到 21px），自带 OCR 有时会读错位数 —— 这 ${small.length} 个请对着游戏核一遍。想要更准就装一个本地 OCR 引擎（设置页有指引）。`) : null, Object.keys(layoutFallback).length ? h("div.tiny.tone-amber", { style: { marginTop: "2px" } }, `${Object.keys(layoutFallback).join("、")} 是按数字格式补出的，请对照截图核对。`) : null, h("div.tiny", { style: {
 					marginTop: "4px",
 					opacity: ".85"
 				} }, n === RES_KEYS.length ? "每个数字都认到两次以上才填进来的。" : "认不出来就先留空自己填 —— 认不准的时候它不会硬凑一个数字。"));
-				toast(n === RES_KEYS.length ? small.length ? "认到了，但有几个字太小，请核对" : "三个都认到了" : `认到 ${n} 个`, n ? "ok" : "err", small.length ? 5200 : 3600);
+				toast$1(n === RES_KEYS.length ? small.length ? "认到了，但有几个字太小，请核对" : "三个都认到了" : `认到 ${n} 个`, n ? "ok" : "err", small.length ? 5200 : 3600);
 			} finally {
 				watching = false;
 				watchBtn.removeAttribute("data-loading");
@@ -14603,7 +14778,7 @@ function resourcesField({ before = "", after = "", beforeFrom = "" } = {}) {
 			if (!f) return;
 			if (f.size > 1572864) {
 				file.value = "";
-				return toast("截图请压到 1.5MB 以内", "err", 3600);
+				return toast$1("截图请压到 1.5MB 以内", "err", 3600);
 			}
 			shotBtn.setAttribute("data-loading", "1");
 			try {
@@ -14625,22 +14800,22 @@ function resourcesField({ before = "", after = "", beforeFrom = "" } = {}) {
 				const gotKeys = new Set((r.hits || []).map((s) => s.key));
 				const weak = (r.seen || []).filter((s) => (s.value === void 0 || s.value === null) && !gotKeys.has(s.key)).map((s) => `${s.key}${s.score ? `(分${s.score})` : ""}`);
 				const fallback = (r.hits || []).filter((s) => s.source === "ocr-layout").map((s) => s.key);
-				mount(note, h$1("strong", n ? `认出 ${n} 项，请核对一下再保存` : "这三个资源一个都没认出来，可以手动填"), r.warning ? h$1("div.tiny", { style: {
+				mount(note, h("strong", n ? `认出 ${n} 项，请核对一下再保存` : "这三个资源一个都没认出来，可以手动填"), r.warning ? h("div.tiny", { style: {
 					marginTop: "2px",
 					opacity: ".85"
-				} }, r.warning) : null, r.engine ? h$1("div.tiny", { style: {
+				} }, r.warning) : null, r.engine ? h("div.tiny", { style: {
 					marginTop: "2px",
 					opacity: ".85"
-				} }, `引擎：${r.engine}${r.anchor ? ` · 定标图标：${r.anchor.key}(分${r.anchor.score})` : ""}`) : null, fallback.length ? h$1("div.tiny.tone-amber", { style: { marginTop: "2px" } }, `${fallback.join("、")} 是按数字格式补出的，请对照截图核对。`) : null, weak.length ? h$1("div.tiny", { style: {
+				} }, `引擎：${r.engine}${r.anchor ? ` · 定标图标：${r.anchor.key}(分${r.anchor.score})` : ""}`) : null, fallback.length ? h("div.tiny.tone-amber", { style: { marginTop: "2px" } }, `${fallback.join("、")} 是按数字格式补出的，请对照截图核对。`) : null, weak.length ? h("div.tiny", { style: {
 					marginTop: "2px",
 					opacity: ".85"
-				} }, `没配上数字的：${weak.join("、")}`) : null, lines.length ? h$1("div.tiny", { style: {
+				} }, `没配上数字的：${weak.join("、")}`) : null, lines.length ? h("div.tiny", { style: {
 					marginTop: "4px",
 					opacity: ".85"
 				} }, `识别到的原文：${lines.join(" ｜ ")}`) : null);
 				note.hidden = false;
 				paint();
-				toast(n ? `认出 ${n} 项，核对后再保存` : "这张图里没认出资源数字", n ? "ok" : "err", 3600);
+				toast$1(n ? `认出 ${n} 项，核对后再保存` : "这张图里没认出资源数字", n ? "ok" : "err", 3600);
 			} catch (err) {
 				toastErr(err);
 			} finally {
@@ -14660,14 +14835,14 @@ function resourcesField({ before = "", after = "", beforeFrom = "" } = {}) {
 		const deltas = resourceDelta(vals(sides[0]), vals(sides[1]));
 		sides[1].deltaLine.textContent = deltas.length ? "本次消耗：" + deltas.map((d) => {
 			const sign = d.diff < 0 ? "−" : d.diff > 0 ? "+" : "±";
-			return `${d.key} ${sign}${fmtQty$1(Math.abs(d.diff))}`;
+			return `${d.key} ${sign}${fmtQty$2(Math.abs(d.diff))}`;
 		}).join(" · ") : "";
 	}
 	return {
 		type: "custom",
 		width: "full",
 		render: () => {
-			const box = h$1("div.stack.stack--tight", buildSide("资源对比 · 做之前", before, true), buildSide("资源对比 · 做之后", after));
+			const box = h("div.stack.stack--tight", buildSide("资源对比 · 做之前", before, true), buildSide("资源对比 · 做之后", after));
 			read = () => ({
 				resources_before: vals(sides[0]),
 				resources_after: vals(sides[1])
@@ -14696,7 +14871,7 @@ function progressDrawer(order, onDone) {
 		title: "记一条进度",
 		subtitle: `${order.order_no} · ${order.title || ""}`,
 		submitLabel: "记下",
-		intro: h$1("div.hint", "以后客户问\"做到哪了\"，直接把这条发给他就行。"),
+		intro: h("div.hint", "以后客户问\"做到哪了\"，直接把这条发给他就行。"),
 		fields: [
 			{
 				name: "happened_on",
@@ -14734,7 +14909,7 @@ function progressDrawer(order, onDone) {
 		],
 		onSubmit: async (v) => {
 			await api.post(`/api/orders/${order.id}/progress`, v);
-			toast("进度记下了", "ok");
+			toast$1("进度记下了", "ok");
 			onDone();
 		}
 	});
@@ -14811,8 +14986,8 @@ function paymentDrawer(order, onDone, { presetKind } = {}) {
 			if ((await api.post("/api/payments", {
 				...v,
 				order_id: order.id
-			})).advanced_to) toast("款已收齐，订单自动推进到「进行中」", "ok", 3200);
-			else toast("收款记下了", "ok");
+			})).advanced_to) toast$1("款已收齐，订单自动推进到「进行中」", "ok", 3200);
+			else toast$1("收款记下了", "ok");
 			onDone();
 		}
 	});
@@ -14820,7 +14995,7 @@ function paymentDrawer(order, onDone, { presetKind } = {}) {
 function statusDrawer(order, onDone) {
 	const nexts = order.next_statuses || [];
 	if (!nexts.length) {
-		toast("这个状态没有下一步了", "err");
+		toast$1("这个状态没有下一步了", "err");
 		return Promise.resolve();
 	}
 	const LABEL = {
@@ -14853,7 +15028,7 @@ function statusDrawer(order, onDone) {
 		}],
 		onSubmit: async (v) => {
 			await api.post(`/api/orders/${order.id}/status`, v);
-			toast("状态已更新", "ok");
+			toast$1("状态已更新", "ok");
 			onDone();
 		}
 	});
@@ -14863,38 +15038,38 @@ function orderColumns({ showCustomer = true, ctx } = {}) {
 		key: "order_no",
 		label: "订单",
 		main: true,
-		render: (o) => h$1("div", h$1("div.tbl__primary", o.order_no, o.stale ? h$1("span.tag.tag--amber", { style: { marginLeft: "6px" } }, `${o.idle_days} 天没动`) : null, o.daily_done_today ? h$1("span.tag.tag--jade", { style: { marginLeft: "6px" } }, "今日已完成") : null), h$1("div.tbl__meta", o.title || "（没写标题）"))
+		render: (o) => h("div", h("div.tbl__primary", o.order_no, o.stale ? h("span.tag.tag--amber", { style: { marginLeft: "6px" } }, `${o.idle_days} 天没动`) : null, o.daily_done_today ? h("span.tag.tag--jade", { style: { marginLeft: "6px" } }, "今日已完成") : null), h("div.tbl__meta", o.title || "（没写标题）"))
 	}];
 	if (showCustomer) cols.push({
 		key: "customer_name",
 		label: "客户",
 		render: (o) => {
-			if (!o.customer_id) return h$1("span.dim", "散客");
+			if (!o.customer_id) return h("span.dim", "散客");
 			const n = Number(o.customer_order_count) || 0;
-			return h$1("button.custcell", {
+			return h("button.custcell", {
 				type: "button",
 				title: `看 ${o.customer_name || "这个客户"} 的档案（名下共 ${n} 张单）${o.customer_phone ? ` · ${o.customer_phone}` : ""}`,
 				onclick: (e) => {
 					e.stopPropagation();
 					ctx.navigate(`/customers/${o.customer_id}`);
 				}
-			}, o.customer_avatar ? h$1("img.avatar.avatar--xs", {
+			}, o.customer_avatar ? h("img.avatar.avatar--xs", {
 				src: o.customer_avatar,
 				alt: "",
 				loading: "lazy"
-			}) : h$1("span.avatar.avatar--xs", (o.customer_name || "?").slice(0, 1)), h$1("span.custcell__txt", h$1("span.custcell__name", o.customer_name || "没填名字"), h$1("span.custcell__n", o.customer_phone ? h$1("span.mono", o.customer_phone) : null, o.customer_phone && n > 1 ? h$1("span", " · ") : null, n > 1 ? h$1("span", `第 ${n} 单`) : null)));
+			}) : h("span.avatar.avatar--xs", (o.customer_name || "?").slice(0, 1)), h("span.custcell__txt", h("span.custcell__name", o.customer_name || "没填名字"), h("span.custcell__n", o.customer_phone ? h("span.mono", o.customer_phone) : null, o.customer_phone && n > 1 ? h("span", " · ") : null, n > 1 ? h("span", `第 ${n} 单`) : null)));
 		}
 	});
 	cols.push({
 		key: "game_name",
 		label: "游戏",
 		cls: "col-opt",
-		render: (o) => h$1("span.sm", { style: { whiteSpace: "nowrap" } }, o.game_name || "—")
+		render: (o) => h("span.sm", { style: { whiteSpace: "nowrap" } }, o.game_name || "—")
 	}, {
 		key: "progress_count",
 		label: "进度",
 		cls: "col-opt",
-		render: (o) => o.progress_count ? h$1("span.sm", `${o.progress_count} 条`, h$1("span.dim.tiny", ` · 到 ${fmtDay$1(o.last_progress_on)}`)) : h$1("span.dim.sm", "还没记")
+		render: (o) => o.progress_count ? h("span.sm", `${o.progress_count} 条`, h("span.dim.tiny", ` · 到 ${fmtDay$1(o.last_progress_on)}`)) : h("span.dim.sm", "还没记")
 	}, {
 		key: "status",
 		label: "状态",
@@ -14904,17 +15079,17 @@ function orderColumns({ showCustomer = true, ctx } = {}) {
 		label: "交付",
 		cls: "col-opt",
 		render: (o) => {
-			if (!o.due_at) return h$1("span.dim.sm", "—");
+			if (!o.due_at) return h("span.dim.sm", "—");
 			const info = ["done", "cancelled"].includes(o.status) ? {
 				kind: "ok",
 				text: ""
 			} : remainInfo$1(o.ordered_at, o.due_at);
-			return h$1("span", { style: {
+			return h("span", { style: {
 				display: "inline-flex",
 				alignItems: "center",
 				gap: "6px",
 				whiteSpace: "nowrap"
-			} }, h$1("span.sm", fmtDay$1(o.due_at)), info.kind === "invalid" ? h$1("span.duepill.duepill--bad", "填错了") : info.text ? h$1(`span.duepill.duepill--${info.kind}`, info.text) : null);
+			} }, h("span.sm", fmtDay$1(o.due_at)), info.kind === "invalid" ? h("span.duepill.duepill--bad", "填错了") : info.text ? h(`span.duepill.duepill--${info.kind}`, info.text) : null);
 		}
 	}, {
 		key: "total",
@@ -14925,26 +15100,26 @@ function orderColumns({ showCustomer = true, ctx } = {}) {
 		key: "due_total",
 		label: "尾款",
 		num: true,
-		render: (o) => o.due_total > .001 ? h$1("span.tone-amber", `¥${fmtMoney$1(o.due_total)}`) : h$1("span.dim", "已结清")
+		render: (o) => o.due_total > .001 ? h("span.tone-amber", `¥${fmtMoney$1(o.due_total)}`) : h("span.dim", "已结清")
 	}, {
 		key: "acts",
 		label: "操作",
 		cls: "td-acts",
-		render: (o) => h$1("div.tbl__acts", h$1("button.btn.btn--sm", {
+		render: (o) => h("div.tbl__acts", h("button.btn.btn--sm", {
 			type: "button",
 			title: "记进度",
 			onclick: (e) => {
 				e.stopPropagation();
 				progressDrawer(o, () => ctx.app.reload());
 			}
-		}, icon("edit", 14)), o.due_total > .001 ? h$1("button.btn.btn--sm", {
+		}, icon("edit", 14)), o.due_total > .001 ? h("button.btn.btn--sm", {
 			type: "button",
 			title: "记收款",
 			onclick: (e) => {
 				e.stopPropagation();
 				paymentDrawer(o, () => ctx.app.reload());
 			}
-		}, icon("wallet", 14)) : null, h$1("button.btn.btn--sm", {
+		}, icon("wallet", 14)) : null, h("button.btn.btn--sm", {
 			type: "button",
 			title: "看详情",
 			onclick: (e) => {
@@ -14966,21 +15141,21 @@ function orderTable(rows, ctx, opts = {}) {
 	});
 }
 /** 这一条明细能让客户拿到多少货币（快照里是每个的数量，乘上本条数量）。没配就返回空串 */
-function itemGain(it) {
+function itemGain$1(it) {
 	const g = it?.snapshot?.gain;
 	if (!g || !g.name) return "";
 	const total = Number(g.amount || 0) * (Number(it.quantity) || 1);
 	if (!Number.isFinite(total) || total <= 0) return "";
-	return `${g.name} ${fmtQty$1(total)}`;
+	return `${g.name} ${fmtQty$2(total)}`;
 }
 function orderItemsList(items) {
-	return h$1("div.itemlist", items.map((it) => h$1("div.item", { style: {
+	return h("div.itemlist", items.map((it) => h("div.item", { style: {
 		cursor: "default",
 		alignItems: "flex-start"
-	} }, h$1("div.item__main", h$1("div.item__title", it.name, it.is_daily ? tag("每天做", "jade") : null, it.snapshot?.price_overridden ? tag("改过价", "cinnabar") : null, it.snapshot?.matched_tier ? tag("阶梯价", "slate") : null), it.spec ? h$1("div.tbl__meta", it.spec) : null, itemGain(it) ? h$1("div.subitems", h$1("div.subitem", h$1("span.subitem__k", "可得"), h$1("span.strong", itemGain(it)))) : null, it.snapshot?.package_items?.length ? h$1("div.subitems", h$1("div.subitem", h$1("span.subitem__k", "套餐含"), h$1("span", it.snapshot.package_items.join(" · ")))) : null, it.snapshot?.addons?.length ? h$1("div.subitems", h$1("div.subitem", h$1("span.subitem__k", "增项"), h$1("span", it.snapshot.addons.map((a) => `${a.name}${a.price_mode === "percent" ? ` +${a.price}%` : ` +${fmtMoney$1(a.price)}元`}`).join(" · ")))) : null), h$1("div.item__right", h$1("div.item__fig", `${fmtMoney$1(it.unit_price)}`, h$1("span.dim", `${it.unit_label ? `/${it.unit_label}` : ""} × ${fmtQty$1(it.quantity)}`)), h$1("div.tbl__meta", `= ${fmtMoney$1(it.amount)} 元`)))));
+	} }, h("div.item__main", h("div.item__title", it.name, it.is_daily ? tag("每天做", "jade") : null, it.snapshot?.price_overridden ? tag("改过价", "cinnabar") : null, it.snapshot?.matched_tier ? tag("阶梯价", "slate") : null), it.spec ? h("div.tbl__meta", it.spec) : null, itemGain$1(it) ? h("div.subitems", h("div.subitem", h("span.subitem__k", "可得"), h("span.strong", itemGain$1(it)))) : null, it.snapshot?.package_items?.length ? h("div.subitems", h("div.subitem", h("span.subitem__k", "套餐含"), h("span", it.snapshot.package_items.join(" · ")))) : null, it.snapshot?.addons?.length ? h("div.subitems", h("div.subitem", h("span.subitem__k", "增项"), h("span", it.snapshot.addons.map((a) => `${a.name}${a.price_mode === "percent" ? ` +${a.price}%` : ` +${fmtMoney$1(a.price)}元`}`).join(" · ")))) : null), h("div.item__right", h("div.item__fig", `${fmtMoney$1(it.unit_price)}`, h("span.dim", `${it.unit_label ? `/${it.unit_label}` : ""} × ${fmtQty$2(it.quantity)}`)), h("div.tbl__meta", `= ${fmtMoney$1(it.amount)} 元`)))));
 }
 /** 「今天 / 昨天 / 3 天前 / 更早写日期」 */
-function relDay(dateStr) {
+function relDay$1(dateStr) {
 	const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateStr || ""));
 	if (!m) return String(dateStr || "");
 	const then = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
@@ -15001,39 +15176,39 @@ function deltaChips(p) {
 	for (const d of deltas) {
 		const tone = d.diff < 0 ? "oxblood" : d.diff > 0 ? "jade" : "muted";
 		const sign = d.diff < 0 ? "−" : d.diff > 0 ? "+" : "±";
-		out.push(h$1(`span.tl__delta.tone-${tone}`, `${d.key} ${sign}${fmtQty$1(Math.abs(d.diff))}`));
+		out.push(h(`span.tl__delta.tone-${tone}`, `${d.key} ${sign}${fmtQty$2(Math.abs(d.diff))}`));
 	}
 	return out;
 }
 function progressTimeline(list, { onEdit, onDelete } = {}) {
-	if (!list.length) return h$1("div.empty", h$1("div.empty__mark", icon("clock", 20)), h$1("div.empty__title", "还没有进度记录"), h$1("p.empty__body", "每做一段就记一条，客户问起来直接发，自己回头看也清楚。"));
+	if (!list.length) return h("div.empty", h("div.empty__mark", icon("clock", 20)), h("div.empty__title", "还没有进度记录"), h("p.empty__body", "每做一段就记一条，客户问起来直接发，自己回头看也清楚。"));
 	const sorted = [...list].sort((a, b) => String(a.happened_on || "").localeCompare(String(b.happened_on || "")) || (a.id || 0) - (b.id || 0));
 	const lastIdx = sorted.length - 1;
-	return h$1("div.timeline", sorted.map((p, i) => {
+	return h("div.timeline", sorted.map((p, i) => {
 		const chips = deltaChips(p);
 		const shots = (p.media || []).filter((m) => /\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(m));
 		const links = (p.media || []).filter((m) => !/\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(m));
-		return h$1(`div.tl${i === lastIdx ? ".tl--now" : ""}`, h$1("div.tl__rail", h$1("div.tl__dot")), h$1("div.tl__body", h$1("div.tl__head", h$1("div.tl__date", h$1("strong", relDay(p.happened_on)), h$1("span.tl__datefull", fmtDay$1(p.happened_on))), i === lastIdx ? tag("最新", "slate") : null, h$1("span.tl__step", `第 ${i + 1} 条`), h$1("div", { style: { flex: "1" } }), onEdit ? h$1("button.btn.btn--sm.btn--quiet", {
+		return h(`div.tl${i === lastIdx ? ".tl--now" : ""}`, h("div.tl__rail", h("div.tl__dot")), h("div.tl__body", h("div.tl__head", h("div.tl__date", h("strong", relDay$1(p.happened_on)), h("span.tl__datefull", fmtDay$1(p.happened_on))), i === lastIdx ? tag("最新", "slate") : null, h("span.tl__step", `第 ${i + 1} 条`), h("div", { style: { flex: "1" } }), onEdit ? h("button.btn.btn--sm.btn--quiet", {
 			type: "button",
 			title: "编辑",
 			onclick: () => onEdit(p)
-		}, icon("edit", 13)) : null, onDelete ? h$1("button.btn.btn--sm.btn--quiet", {
+		}, icon("edit", 13)) : null, onDelete ? h("button.btn.btn--sm.btn--quiet", {
 			type: "button",
 			title: "删除",
 			onclick: () => onDelete(p)
-		}, icon("trash", 13)) : null), h$1("div.tl__content", p.content), p.resources_before || p.resources_after ? h$1("div.tl__resrow", h$1("span.tl__reslabel", "资源变化"), h$1("span.tl__res", p.resources_before ? h$1("span", p.resources_before) : h$1("span.dim", "未记录"), h$1("span.tl__arrow", "→"), p.resources_after ? h$1("span", p.resources_after) : h$1("span.dim", "未记录"))) : null, chips.length ? h$1("div.tl__deltas", h$1("span.dim.tiny", "本次消耗"), ...chips) : null, shots.length ? h$1("div.tl__shots", shots.map((m) => h$1("a", {
+		}, icon("trash", 13)) : null), h("div.tl__content", p.content), p.resources_before || p.resources_after ? h("div.tl__resrow", h("span.tl__reslabel", "资源变化"), h("span.tl__res", p.resources_before ? h("span", p.resources_before) : h("span.dim", "未记录"), h("span.tl__arrow", "→"), p.resources_after ? h("span", p.resources_after) : h("span.dim", "未记录"))) : null, chips.length ? h("div.tl__deltas", h("span.dim.tiny", "本次消耗"), ...chips) : null, shots.length ? h("div.tl__shots", shots.map((m) => h("a", {
 			href: m,
 			target: "_blank",
 			rel: "noreferrer noopener"
-		}, h$1("img.shot", {
+		}, h("img.shot", {
 			src: m,
 			alt: "进度截图",
 			loading: "lazy"
-		})))) : null, links.length ? h$1("div.tl__shots", links.map((m) => h$1("a.shot-link", {
+		})))) : null, links.length ? h("div.tl__shots", links.map((m) => h("a.shot-link", {
 			href: m,
 			target: "_blank",
 			rel: "noreferrer noopener"
-		}, icon("link", 12), "录屏 / 链接"))) : null, p.note ? h$1("div.tl__note", h$1("span.tl__note-label", "备注"), p.note) : null));
+		}, icon("link", 12), "录屏 / 链接"))) : null, p.note ? h("div.tl__note", h("span.tl__note-label", "备注"), p.note) : null));
 	}));
 }
 function editProgressDrawer(p, onDone) {
@@ -15077,7 +15252,7 @@ function editProgressDrawer(p, onDone) {
 		],
 		onSubmit: async (v) => {
 			await api.patch(`/api/progress/${p.id}`, v);
-			toast("已更新", "ok");
+			toast$1("已更新", "ok");
 			onDone();
 		}
 	});
@@ -15669,103 +15844,113 @@ function downloadBlob(blob, filename) {
 	}, 1500);
 }
 //#endregion
-//#region public/js/views/orders.js
-async function shareProgress(order, ctx) {
-	let data;
-	try {
-		data = await api.get(`/api/orders/${order.id}/progress-report`);
-	} catch (err) {
-		toastErr(err);
-		return;
-	}
-	const { text, report } = data;
-	const pre = h$1("pre.report-text");
-	pre.textContent = text;
-	const imgBox = h$1("div.report-preview");
-	try {
-		imgBox.appendChild(h$1("img", {
-			src: renderProgressCard(report, { scale: 1 }).toDataURL("image/png"),
-			alt: "进度汇报预览"
-		}));
-	} catch (err) {
-		imgBox.appendChild(h$1("div.hint", `图片预览画不出来：${err.message || ""}`));
-	}
-	async function doCopy() {
-		try {
-			await navigator.clipboard.writeText(text);
-			toast("进度文字已复制，粘到微信里就能发", "ok", 3200);
-		} catch {
-			const r = document.createRange();
-			r.selectNodeContents(pre);
-			const sel = window.getSelection();
-			sel.removeAllRanges();
-			sel.addRange(r);
-			toast("已选中文字，按 Ctrl+C 复制", "ok", 3600);
-		}
-	}
-	async function doImage() {
-		try {
-			const blob = await canvasToBlob(renderProgressCard(report, { scale: 2 }));
-			if (!blob) {
-				toast("这个浏览器不支持生成图片，请换 Chrome / Edge / Safari 试试", "err", 4200);
-				return;
-			}
-			const safe = String(report.orderNo || "订单").replace(/[\\/:*?"<>|]/g, "_");
-			downloadBlob(blob, `${report.shopName}-进度-${safe}.png`);
-			toast("图片已生成，去下载文件夹看看", "ok", 3200);
-		} catch (err) {
-			toastErr(err);
-		}
-	}
-	const m = modal({
-		title: "分享进度",
-		wide: true,
-		body: h$1("div.stack", h$1("p.muted.sm", { style: { margin: "0" } }, "发给客户看这次做到哪了。图片发微信最好用，文字想改两句就复制。"), h$1("div.sechead", { style: { marginBottom: "0" } }, h$1("h3", "图片"), h$1("span.sechead__note", "一张竖图，直接发")), imgBox, h$1("div.sechead", { style: { marginBottom: "0" } }, h$1("h3", "文字"), h$1("span.sechead__note", "复制了就能粘")), pre, h$1("div.note", "进度、资源变化、截图张数都会带上。截图原图发不进这张图里，图上只会写「附 N 张截图」，图还是自己另发。")),
-		actions: [
-			{
-				label: "关闭",
-				onClick: () => m.close()
-			},
-			{
-				label: "复制文字",
-				onClick: () => {
-					doCopy();
-					return false;
-				}
-			},
-			{
-				label: "存成图片",
-				tone: "primary",
-				onClick: () => {
-					doImage();
-					return false;
-				}
-			}
-		]
-	});
-}
+//#region shared/pricing.js
+/**
+* 阶梯价与计价单位 —— 前后端共用一份。
+*
+* 为什么单独放 shared/：这条规则以前有两份实现（服务端 src/pricing.mjs、
+* 旧价格表页面 public/js/views/price.js），而它决定的是**钱**：
+* 前端组合报价显示多少、下单台就算多少。两份实现一旦漂移，客户看到的价
+* 和实际收的价就对不上，而且很难发现。现在服务端、旧页面、新的 React 组合报价
+* 都调这里，改一处就是全改。
+*
+* 纯函数、不碰数据库、不 import 任何 src/ 下的东西。
+*/
+var num = (value, fallback = 0) => {
+	if (value === "" || value === null || value === void 0) return fallback;
+	const n = Number(value);
+	return Number.isFinite(n) ? n : fallback;
+};
+var money = (value) => Math.round((Number(value) || 0) * 100) / 100;
+/**
+* 按数量找命中的那一档单价。
+* 先找完全落在区间里的；找不到就退到「起量最大且不超过这个数量」的那一档；
+* 再找不到就用服务项的基准价。
+*
+* @param {object} service 服务项（至少要有 base_price）
+* @param {Array} tiers 阶梯价列表；服务端从库里读，前端直接传 service.tiers
+* @param {number} qty 数量
+* @returns {{ price: number, tier: object|null }}
+*/
 function unitPriceFor$2(service, tiers, qty) {
 	const list = (tiers || []).filter(Boolean);
-	for (const t of list) {
-		const lo = Number(t.min_qty) || 0;
-		const hi = t.max_qty === null || t.max_qty === void 0 || t.max_qty === "" ? Infinity : Number(t.max_qty);
-		if (qty >= lo && qty <= hi) return Number(t.unit_price) || 0;
+	if (list.length) {
+		for (const tier of list) {
+			const lo = num(tier.min_qty, 0);
+			const hi = tier.max_qty === null || tier.max_qty === void 0 || tier.max_qty === "" ? Infinity : num(tier.max_qty);
+			if (qty >= lo && qty <= hi) return {
+				price: money(tier.unit_price),
+				tier
+			};
+		}
+		const sorted = [...list].sort((a, b) => num(a.min_qty, 0) - num(b.min_qty, 0));
+		let pick = null;
+		for (const tier of sorted) if (qty >= num(tier.min_qty, 0)) pick = tier;
+		if (pick) return {
+			price: money(pick.unit_price),
+			tier: pick
+		};
 	}
-	let pick = null;
-	for (const t of [...list].sort((a, b) => Number(a.min_qty) - Number(b.min_qty))) if (qty >= (Number(t.min_qty) || 0)) pick = t;
-	if (pick) return Number(pick.unit_price) || 0;
-	return Number(service.base_price) || 0;
+	return {
+		price: money(service && service.base_price),
+		tier: null
+	};
 }
-var defaultUnit$1 = (s) => s.unit_label || {
+/** 只关心单价时的便捷写法（前端展示用） */
+function unitPriceOf(service, qty) {
+	return unitPriceFor$2(service, service && service.tiers, qty).price;
+}
+/** 计价单位：服务项自己写了就用它，否则按计价方式取默认（单 / 天 / 次 / 个 / 套） */
+var UNIT_BY_TYPE = Object.freeze({
 	fixed: "单",
 	daily: "天",
 	per_time: "次",
 	per_unit: "个",
 	package: "套"
-}[s.price_type] || "单";
+});
+function unitOf$2(service) {
+	if (!service) return "单";
+	return service.unit_label || UNIT_BY_TYPE[service.price_type] || "单";
+}
+var qtyText = (value) => Number.isInteger(value) ? String(value) : String(Math.round(value * 100) / 100);
+/**
+* 「这个服务项能让客户拿到多少货币」，例：`星声 200`。
+*
+* 货币名字配在**游戏**上，服务项只填数量，所以归属要这么找：
+* 服务项自己的 game_id → 没有就跟它的大类走。
+* 游戏没配货币名、或者数量不是正数，就返回空字符串（调用方据此不显示）。
+*/
+function currencyGain(service, games = [], categories = []) {
+	const raw = service && service.currency_amount;
+	if (raw === null || raw === void 0 || raw === "") return "";
+	const amount = Number(raw);
+	if (!Number.isFinite(amount) || amount <= 0) return "";
+	let gameId = service && service.game_id || "";
+	if (!gameId && service && service.category_id) gameId = (categories || []).find((category) => String(category.id) === String(service.category_id))?.game_id || "";
+	const name = String((games || []).find((game) => String(game.id) === String(gameId))?.currency || "").trim();
+	return name ? `${name} ${qtyText(amount)}` : "";
+}
+//#endregion
+//#region shared/order-calc.js
+/**
+* 阶梯价 → 单价数字。
+* shared/pricing.js 里的 unitPriceFor 返回的是 { price, tier }（服务端要用那一档的
+* 记录去冻快照），但开单台只关心「多少钱」，旧开单台的 unitPriceFor 也是直接给数字。
+* 这里包一层，免得用的人拿到对象去做乘法 —— 那会算成 NaN，而 NaN 经过
+* fmtMoney 会安静地显示成 ¥0。
+*/
+function unitPriceFor$1(service, tiers, qty) {
+	return unitPriceFor$2(service, tiers, qty).price;
+}
+var fmtQty$1 = (n) => {
+	const v = Number(n) || 0;
+	return Number.isInteger(v) ? String(v) : String(Math.round(v * 100) / 100);
+};
+/** 默认单位：服务项自己写了就用它，没写按计价方式推 */
+var defaultUnit$1 = (s) => unitOf$2(s);
 /**
 * 这个服务项大概要做多少天。按信息量从大到小推：
-*   1. 单位写成「30天」这种 → 取那个数 × 数量（你库里日体/精托/全托都是这种）
+*   1. 单位写成「30天」这种 → 取那个数 × 数量（日体/精托/全托都是这种）
 *   2. 单位就是「天 / 日」→ 数量
 *   3. 按天计价但没写单位 → 数量
 *   4. 其它（单 / 次 / 层 / 个 / 套）→ 推不出来，返回 0（那就不自动填交付日期）
@@ -15817,20 +16002,30 @@ function gainTotal(items) {
 		return [g.name, Number(g.amount || 0) * (Number(it.quantity) || 1)];
 	}).filter(Boolean));
 }
+/**
+* 勾选的东西：旧开单台用 Map<id, sel>，React 那边用普通对象。
+* 两种都收 —— 一份算钱的口径，比统一数据结构更重要。
+*/
+function entriesOf(picked) {
+	if (!picked) return [];
+	return picked instanceof Map ? [...picked.entries()] : Object.entries(picked);
+}
+var hasOption = (sel, id) => sel.optionIds instanceof Set ? sel.optionIds.has(id) : (sel.optionIds || []).includes(id);
+/** 挑好的服务项算钱：小计 / 增项 / 每一行 */
 function calcPicked(picked, servicesById) {
 	let subtotal = 0;
 	let addons = 0;
 	const lines = [];
-	for (const [id, sel] of picked) {
-		const svc = servicesById.get(id);
+	for (const [id, sel] of entriesOf(picked)) {
+		const svc = servicesById.get(Number(id)) || servicesById.get(id);
 		if (!svc) continue;
 		const qty = Number(sel.quantity) || 1;
-		const auto = unitPriceFor$2(svc, sel.tiers, qty);
+		const auto = unitPriceFor$1(svc, sel.tiers || svc.tiers, qty);
 		const unit = sel.unitPrice === "" || sel.unitPrice === null || sel.unitPrice === void 0 ? auto : Number(sel.unitPrice);
 		const base = unit * qty;
 		let add = 0;
-		for (const o of sel.options || []) {
-			if (!sel.optionIds.has(o.id)) continue;
+		for (const o of sel.options || svc.options || []) {
+			if (!hasOption(sel, o.id)) continue;
 			add += o.price_mode === "percent" ? base * Number(o.price) / 100 : Number(o.price);
 		}
 		subtotal += base;
@@ -15849,6 +16044,100 @@ function calcPicked(picked, servicesById) {
 		subtotal,
 		addons
 	};
+}
+/** 勾着的「每天都做」服务项里，要做最久的那条要多少天（顺带记下名字好写提示） */
+function dailyPlan(picked, servicesById) {
+	let days = 0;
+	let name = "";
+	for (const [id, sel] of entriesOf(picked)) {
+		const svc = servicesById.get(Number(id)) || servicesById.get(id);
+		if (!svc || !svcIsDaily(svc)) continue;
+		const d = serviceDays(svc, sel.quantity);
+		if (d > days) {
+			days = d;
+			name = svc.name;
+		}
+	}
+	return {
+		days,
+		name
+	};
+}
+//#endregion
+//#region public/js/views/orders.js
+async function shareProgress$1(order, ctx) {
+	let data;
+	try {
+		data = await api.get(`/api/orders/${order.id}/progress-report`);
+	} catch (err) {
+		toastErr(err);
+		return;
+	}
+	const { text, report } = data;
+	const pre = h("pre.report-text");
+	pre.textContent = text;
+	const imgBox = h("div.report-preview");
+	try {
+		imgBox.appendChild(h("img", {
+			src: renderProgressCard(report, { scale: 1 }).toDataURL("image/png"),
+			alt: "进度汇报预览"
+		}));
+	} catch (err) {
+		imgBox.appendChild(h("div.hint", `图片预览画不出来：${err.message || ""}`));
+	}
+	async function doCopy() {
+		try {
+			await navigator.clipboard.writeText(text);
+			toast$1("进度文字已复制，粘到微信里就能发", "ok", 3200);
+		} catch {
+			const r = document.createRange();
+			r.selectNodeContents(pre);
+			const sel = window.getSelection();
+			sel.removeAllRanges();
+			sel.addRange(r);
+			toast$1("已选中文字，按 Ctrl+C 复制", "ok", 3600);
+		}
+	}
+	async function doImage() {
+		try {
+			const blob = await canvasToBlob(renderProgressCard(report, { scale: 2 }));
+			if (!blob) {
+				toast$1("这个浏览器不支持生成图片，请换 Chrome / Edge / Safari 试试", "err", 4200);
+				return;
+			}
+			const safe = String(report.orderNo || "订单").replace(/[\\/:*?"<>|]/g, "_");
+			downloadBlob(blob, `${report.shopName}-进度-${safe}.png`);
+			toast$1("图片已生成，去下载文件夹看看", "ok", 3200);
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	const m = modal({
+		title: "分享进度",
+		wide: true,
+		body: h("div.stack", h("p.muted.sm", { style: { margin: "0" } }, "发给客户看这次做到哪了。图片发微信最好用，文字想改两句就复制。"), h("div.sechead", { style: { marginBottom: "0" } }, h("h3", "图片"), h("span.sechead__note", "一张竖图，直接发")), imgBox, h("div.sechead", { style: { marginBottom: "0" } }, h("h3", "文字"), h("span.sechead__note", "复制了就能粘")), pre, h("div.note", "进度、资源变化、截图张数都会带上。截图原图发不进这张图里，图上只会写「附 N 张截图」，图还是自己另发。")),
+		actions: [
+			{
+				label: "关闭",
+				onClick: () => m.close()
+			},
+			{
+				label: "复制文字",
+				onClick: () => {
+					doCopy();
+					return false;
+				}
+			},
+			{
+				label: "存成图片",
+				tone: "primary",
+				onClick: () => {
+					doImage();
+					return false;
+				}
+			}
+		]
+	});
 }
 async function openComposer(ctx, { existing = null, presetCustomer = null } = {}) {
 	const [book, custRes, gameRes] = await Promise.all([
@@ -15892,29 +16181,29 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 		});
 		else unmappable.push(it);
 	}
-	const custSel = h$1("select.sel");
-	custSel.appendChild(h$1("option", { value: "" }, "— 选客户 —"));
+	const custSel = h("select.sel");
+	custSel.appendChild(h("option", { value: "" }, "— 选客户 —"));
 	for (const c of customers) {
-		const o = h$1("option", { value: String(c.id) }, `${c.name}${c.phone ? ` · ${c.phone}` : ""}`);
+		const o = h("option", { value: String(c.id) }, `${c.name}${c.phone ? ` · ${c.phone}` : ""}`);
 		if (existing ? existing.customer_id === c.id : presetCustomer === c.id) o.selected = true;
 		custSel.appendChild(o);
 	}
-	const gameSel = h$1("select.sel");
-	gameSel.appendChild(h$1("option", { value: "" }, "— 选游戏 —"));
+	const gameSel = h("select.sel");
+	gameSel.appendChild(h("option", { value: "" }, "— 选游戏 —"));
 	for (const g of games) {
-		const o = h$1("option", { value: String(g.id) }, g.name);
+		const o = h("option", { value: String(g.id) }, g.name);
 		if (existing && existing.game_id === g.id) o.selected = true;
 		gameSel.appendChild(o);
 	}
-	const dateInp = h$1("input.inp", {
+	const dateInp = h("input.inp", {
 		type: "date",
 		value: existing ? fmtDate$1(existing.ordered_at) : todayStr$1()
 	});
-	const titleInp = h$1("input.inp", {
+	const titleInp = h("input.inp", {
 		placeholder: "不填就用服务名拼一个",
 		value: existing?.title || ""
 	});
-	const dueInp = h$1("input.inp", {
+	const dueInp = h("input.inp", {
 		type: "date",
 		value: existing?.due_at ? fmtDate$1(existing.due_at) : ""
 	});
@@ -15923,26 +16212,26 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 		days: 0,
 		name: ""
 	};
-	const remainBox = h$1("div.remain");
+	const remainBox = h("div.remain");
 	function paintRemain() {
 		remainBox.replaceChildren();
 		remainBox.className = "remain";
 		const info = remainInfo$1(dateInp.value, dueInp.value);
 		if (info.kind === "none") {
 			remainBox.classList.add("remain--none");
-			if (!dueInp.value) remainBox.appendChild(h$1("span.dim.sm", "填了交付日期，这里会算还剩几天"));
+			if (!dueInp.value) remainBox.appendChild(h("span.dim.sm", "填了交付日期，这里会算还剩几天"));
 			return;
 		}
 		if (info.kind === "invalid") {
 			remainBox.classList.add("remain--bad");
-			remainBox.appendChild(h$1("span.remain__big", "交付日期比下单日期还早"));
-			remainBox.appendChild(h$1("span.dim.sm", `下单到交付 ${info.span} 天，检查一下`));
+			remainBox.appendChild(h("span.remain__big", "交付日期比下单日期还早"));
+			remainBox.appendChild(h("span.dim.sm", `下单到交付 ${info.span} 天，检查一下`));
 			return;
 		}
 		remainBox.classList.add(`remain--${info.kind}`);
-		remainBox.appendChild(h$1("span.remain__big", info.text));
-		if (info.span !== null) remainBox.appendChild(h$1("span.dim.sm", `下单到交付 ${info.span} 天`));
-		if (dueAuto.days > 0) remainBox.appendChild(h$1("span.dim.sm", `${dueAuto.name ? `按「${dueAuto.name}」` : ""}${dueAuto.days} 天自动填的，可以直接改`));
+		remainBox.appendChild(h("span.remain__big", info.text));
+		if (info.span !== null) remainBox.appendChild(h("span.dim.sm", `下单到交付 ${info.span} 天`));
+		if (dueAuto.days > 0) remainBox.appendChild(h("span.dim.sm", `${dueAuto.name ? `按「${dueAuto.name}」` : ""}${dueAuto.days} 天自动填的，可以直接改`));
 	}
 	dateInp.addEventListener("input", paintRemain);
 	dateInp.addEventListener("change", paintRemain);
@@ -15958,36 +16247,36 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 		paintRemain();
 	});
 	dueInp.addEventListener("change", paintRemain);
-	const noteInp = h$1("textarea.ta", {
+	const noteInp = h("textarea.ta", {
 		rows: 2,
 		placeholder: "给客户看的备注"
 	});
 	noteInp.value = existing?.note || "";
-	const innerInp = h$1("textarea.ta", {
+	const innerInp = h("textarea.ta", {
 		rows: 2,
 		placeholder: "只有自己看得到的备注"
 	});
 	innerInp.value = existing?.internal_note || "";
-	const discountInp = h$1("input.inp.inp--fig", {
+	const discountInp = h("input.inp.inp--fig", {
 		inputmode: "decimal",
 		value: String(existing?.discount ?? 0)
 	});
-	const feeInp = h$1("input.inp.inp--fig", {
+	const feeInp = h("input.inp.inp--fig", {
 		inputmode: "decimal",
 		value: String(existing?.platform_fee ?? 0)
 	});
-	const costInp = h$1("input.inp.inp--fig", {
+	const costInp = h("input.inp.inp--fig", {
 		inputmode: "decimal",
 		value: String(existing?.cost ?? 0)
 	});
-	const svcSearch = h$1("input.inp", {
+	const svcSearch = h("input.inp", {
 		type: "search",
 		placeholder: "搜服务名…"
 	});
-	const svcList = h$1("div.picker__scroll");
-	const pickerFoot = h$1("div.picker__foot");
-	const summaryBox = h$1("div.stack.stack--tight");
-	const totalFig = h$1("span.quote-sheet__totalfig");
+	const svcList = h("div.picker__scroll");
+	const pickerFoot = h("div.picker__foot");
+	const summaryBox = h("div.stack.stack--tight");
+	const totalFig = h("span.quote-sheet__totalfig");
 	let gameFilter = "";
 	function renderServices() {
 		const q = svcSearch.value.trim().toLowerCase();
@@ -16004,14 +16293,14 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 		}
 		svcList.replaceChildren();
 		if (!cats.size) {
-			svcList.appendChild(h$1("div.empty", h$1("div.empty__body", "没有匹配的服务项。"), h$1("button.btn.btn--sm", {
+			svcList.appendChild(h("div.empty", h("div.empty__body", "没有匹配的服务项。"), h("button.btn.btn--sm", {
 				type: "button",
 				onclick: () => ctx.navigate("/price")
 			}, "去价格表加一个")));
 			return;
 		}
 		for (const [catName, list] of cats) {
-			const group = h$1("div.pickgroup", h$1("div.pickgroup__head", h$1("span.pickgroup__name", catName), h$1("span.pickgroup__n", `${list.length} 项`)));
+			const group = h("div.pickgroup", h("div.pickgroup__head", h("span.pickgroup__name", catName), h("span.pickgroup__n", `${list.length} 项`)));
 			for (const s of list) group.appendChild(serviceRow(s));
 			svcList.appendChild(group);
 		}
@@ -16020,7 +16309,7 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 	/** 「已选 N 项 + 共多少钱」，顺带一个清空 */
 	function paintPickerFoot() {
 		const n = picked.size;
-		mount(pickerFoot, n ? h$1("span.cluster", { style: { gap: "6px" } }, h$1("span.pickcount", String(n)), h$1("span", "已选")) : h$1("span.dim", "还没勾服务项"), h$1("div", { style: { flex: "1" } }), n ? h$1("button.btn.btn--sm.btn--quiet", {
+		mount(pickerFoot, n ? h("span.cluster", { style: { gap: "6px" } }, h("span.pickcount", String(n)), h("span", "已选")) : h("span.dim", "还没勾服务项"), h("div", { style: { flex: "1" } }), n ? h("button.btn.btn--sm.btn--quiet", {
 			type: "button",
 			onclick: () => {
 				picked.clear();
@@ -16042,31 +16331,31 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 	}
 	const svcGain = (s) => {
 		const pair = svcGainPair(s);
-		return pair ? `${pair[0]} ${fmtQty$1(pair[1])}` : "";
+		return pair ? `${pair[0]} ${fmtQty$2(pair[1])}` : "";
 	};
 	function serviceRow(s) {
-		const cb = h$1("input.chk", {
+		const cb = h("input.chk", {
 			type: "checkbox",
 			"aria-label": `选择 ${s.name}`
 		});
 		cb.checked = picked.has(s.id);
 		const gain = svcGain(s);
-		const qty = h$1("input.inp.inp--fig", {
+		const qty = h("input.inp.inp--fig", {
 			inputmode: "decimal",
 			style: { width: "76px" },
 			"aria-label": `${s.name} 数量`
 		});
-		const price = h$1("input.inp.inp--fig", {
+		const price = h("input.inp.inp--fig", {
 			inputmode: "decimal",
 			style: { width: "86px" },
 			placeholder: "改价",
 			"aria-label": `${s.name} 单价`
 		});
-		const optWrap = h$1("div.cluster", { style: { gap: "10px" } });
-		const tierHint = h$1("span.dim.tiny");
-		const ctrl = h$1("div.pickrow__ctrl", h$1("div.cluster", { style: { gap: "6px" } }, qty, h$1("span.dim.tiny", defaultUnit$1(s)), price, h$1("span.dim.tiny", "元")));
-		const detail = h$1("div.pickrow__detail");
-		const row = h$1("div.pickrow");
+		const optWrap = h("div.cluster", { style: { gap: "10px" } });
+		const tierHint = h("span.dim.tiny");
+		const ctrl = h("div.pickrow__ctrl", h("div.cluster", { style: { gap: "6px" } }, qty, h("span.dim.tiny", defaultUnit$1(s)), price, h("span.dim.tiny", "元")));
+		const detail = h("div.pickrow__detail");
+		const row = h("div.pickrow");
 		/** 只重画选中/未选中的外观，不重建输入框（否则打字会掉焦点） */
 		function paintRow() {
 			const cur = picked.get(s.id);
@@ -16077,8 +16366,8 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 			if (!cur) return;
 			if (document.activeElement !== qty) qty.value = String(cur.quantity);
 			if (document.activeElement !== price) price.value = cur.unitPrice === "" ? "" : String(cur.unitPrice);
-			const auto = unitPriceFor$2(s, s.tiers, Number(cur.quantity) || 1);
-			tierHint.textContent = Number(cur.quantity) >= 1 ? `按 ${fmtQty$1(cur.quantity)} ${defaultUnit$1(s)} 算，基准单价 ¥${fmtMoney$1(auto)}` : "";
+			const auto = unitPriceFor$1(s, s.tiers, Number(cur.quantity) || 1);
+			tierHint.textContent = Number(cur.quantity) >= 1 ? `按 ${fmtQty$2(cur.quantity)} ${defaultUnit$1(s)} 算，基准单价 ¥${fmtMoney$1(auto)}` : "";
 		}
 		/** 增项只在勾选状态变化时重建 */
 		function buildOptions() {
@@ -16086,24 +16375,24 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 			optWrap.replaceChildren();
 			if (!cur) return;
 			for (const o of cur.options || []) {
-				const oc = h$1("input.chk", { type: "checkbox" });
+				const oc = h("input.chk", { type: "checkbox" });
 				oc.checked = cur.optionIds.has(o.id);
 				oc.addEventListener("change", () => {
 					if (oc.checked) cur.optionIds.add(o.id);
 					else cur.optionIds.delete(o.id);
 					paintSummary();
 				});
-				optWrap.appendChild(h$1("label.inline", { style: {
+				optWrap.appendChild(h("label.inline", { style: {
 					cursor: "pointer",
 					gap: "5px"
-				} }, oc, h$1("span.sm", o.name), h$1("span.dim.tiny", o.price_mode === "percent" ? `+${o.price}%` : o.price ? `+${fmtMoney$1(o.price)}元` : "不加价")));
+				} }, oc, h("span.sm", o.name), h("span.dim.tiny", o.price_mode === "percent" ? `+${o.price}%` : o.price ? `+${fmtMoney$1(o.price)}元` : "不加价")));
 			}
-			if (!optWrap.childElementCount) optWrap.appendChild(h$1("span.dim.tiny", "这个服务项没有增项"));
+			if (!optWrap.childElementCount) optWrap.appendChild(h("span.dim.tiny", "这个服务项没有增项"));
 		}
-		row.append(h$1("div.pickrow__top", cb, h$1("button.pickrow__main", {
+		row.append(h("div.pickrow__top", cb, h("button.pickrow__main", {
 			type: "button",
 			onclick: () => toggle()
-		}, h$1("span.pickrow__line", h$1("span.pickrow__name", s.name), gain ? h$1("span.pickrow__gain", gain) : null, h$1("span.pickrow__fig", `¥${fmtMoney$1(s.base_price)}`, h$1("em", `/${defaultUnit$1(s)}`))), h$1("span.pickrow__meta", [
+		}, h("span.pickrow__line", h("span.pickrow__name", s.name), gain ? h("span.pickrow__gain", gain) : null, h("span.pickrow__fig", `¥${fmtMoney$1(s.base_price)}`, h("em", `/${defaultUnit$1(s)}`))), h("span.pickrow__meta", [
 			PRICE_TYPE_LABEL[s.price_type] || s.price_type,
 			s.tiers?.length ? `${s.tiers.length} 档阶梯价` : null,
 			s.description || null
@@ -16194,12 +16483,12 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 				name: ""
 			};
 		}
-		summaryBox.replaceChildren(h$1("div", { style: {
+		summaryBox.replaceChildren(h("div", { style: {
 			display: "grid",
 			gridTemplateColumns: "1fr auto",
 			gap: "4px 12px",
 			fontSize: "var(--fs-sm)"
-		} }, h$1("span.dim", `服务小计（${lines.length} 项）`), h$1("span.num", `¥${fmtMoney$1(subtotal)}`), h$1("span.dim", "增项合计"), h$1("span.num", `¥${fmtMoney$1(addons)}`), h$1("span.dim", "折扣"), h$1("span.num.tone-oxblood", `−¥${fmtMoney$1(discount)}`), h$1("span.dim", "利润预估"), h$1("span.num", `¥${fmtMoney$1(total - fee - cost)}`), gainText ? h$1("span.dim", "可得") : null, gainText ? h$1("span.num", gainText) : null));
+		} }, h("span.dim", `服务小计（${lines.length} 项）`), h("span.num", `¥${fmtMoney$1(subtotal)}`), h("span.dim", "增项合计"), h("span.num", `¥${fmtMoney$1(addons)}`), h("span.dim", "折扣"), h("span.num.tone-oxblood", `−¥${fmtMoney$1(discount)}`), h("span.dim", "利润预估"), h("span.num", `¥${fmtMoney$1(total - fee - cost)}`), gainText ? h("span.dim", "可得") : null, gainText ? h("span.num", gainText) : null));
 		for (const p of recordPainters) if (p) p();
 		paintPickerFoot();
 	}
@@ -16209,17 +16498,17 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 		feeInp,
 		costInp
 	]) inp.addEventListener("input", paintSummary);
-	const gameFilterSel = h$1("select.sel", {
+	const gameFilterSel = h("select.sel", {
 		style: {
 			width: "auto",
 			minWidth: "130px"
 		},
 		"aria-label": "按游戏筛选"
 	});
-	gameFilterSel.appendChild(h$1("option", { value: "" }, "全部游戏"));
-	for (const g of games) gameFilterSel.appendChild(h$1("option", { value: String(g.id) }, g.name));
+	gameFilterSel.appendChild(h("option", { value: "" }, "全部游戏"));
+	for (const g of games) gameFilterSel.appendChild(h("option", { value: String(g.id) }, g.name));
 	let catFilter = "";
-	const catFilterSel = h$1("select.sel", {
+	const catFilterSel = h("select.sel", {
 		style: {
 			width: "auto",
 			minWidth: "130px"
@@ -16235,7 +16524,7 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 	function paintCatFilter() {
 		const list = pickableCats();
 		if (catFilter && !list.some((c) => String(c.id) === catFilter)) catFilter = "";
-		catFilterSel.replaceChildren(h$1("option", { value: "" }, "全部大类"), ...list.map((c) => h$1("option", { value: String(c.id) }, c.name)));
+		catFilterSel.replaceChildren(h("option", { value: "" }, "全部大类"), ...list.map((c) => h("option", { value: String(c.id) }, c.name)));
 		catFilterSel.value = catFilter;
 	}
 	catFilterSel.addEventListener("change", () => {
@@ -16251,39 +16540,39 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 	renderServices();
 	paintSummary();
 	paintRemain();
-	const body = h$1("div.stack", h$1("div.formgrid", h$1("div.field", h$1("label.lbl", "客户 *"), h$1("div.cluster", { style: {
+	const body = h("div.stack", h("div.formgrid", h("div.field", h("label.lbl", "客户 *"), h("div.cluster", { style: {
 		gap: "6px",
 		flexWrap: "nowrap"
-	} }, h$1("div", { style: {
+	} }, h("div", { style: {
 		flex: "1 1 auto",
 		minWidth: "0"
-	} }, custSel), addCustomerBtn())), h$1("div.field", h$1("label.lbl", "游戏"), gameSel), h$1("div.field", h$1("label.lbl", "下单日期"), dateInp), h$1("div.field", h$1("label.lbl", "交付日期"), dueInp), h$1("div.field.field--full", remainBox), h$1("div.field.field--full", h$1("label.lbl", "订单标题"), titleInp)), h$1("div", h$1("div.sechead", h$1("h3", "挑服务"), h$1("span.sechead__note", "勾上就进单子，数量可以改"))), h$1("div.cluster", { style: { marginBottom: "6px" } }, svcSearch, gameFilterSel, catFilterSel), h$1("div.picker", svcList, pickerFoot), h$1("div", h$1("div.sechead", h$1("h3", "金额"))), h$1("div.formgrid", h$1("div.field", h$1("label.lbl", "折扣（元）"), discountInp), h$1("div.field", h$1("label.lbl", "平台手续费（元）"), feeInp), h$1("div.field", h$1("label.lbl", "成本（元）"), costInp)), summaryBox, unmappable.length ? h$1("div.note.note--warn", `这张单有 ${unmappable.length} 条明细（${unmappable.map((i) => i.name).join("、")}）在价格表里已经找不到对应的服务项，多半是从报价单转过来的。这几条在这里改不了，保存时会原样保留（不会被删掉，也不会被重算）。其它明细的改动照常保存。`) : null, h$1("div", h$1("div.sechead", h$1("h3", "备注"))), h$1("div.field.field--full", h$1("label.lbl", "给客户看的备注"), noteInp), h$1("div.field.field--full", h$1("label.lbl", "只有自己看得到的备注"), innerInp), h$1("div.note", "提交后，服务名、单价、数量、套餐内容、增项会一起冻进这张单的快照里。之后你在价格表里怎么改价，这张单都不受影响。"));
+	} }, custSel), addCustomerBtn())), h("div.field", h("label.lbl", "游戏"), gameSel), h("div.field", h("label.lbl", "下单日期"), dateInp), h("div.field", h("label.lbl", "交付日期"), dueInp), h("div.field.field--full", remainBox), h("div.field.field--full", h("label.lbl", "订单标题"), titleInp)), h("div", h("div.sechead", h("h3", "挑服务"), h("span.sechead__note", "勾上就进单子，数量可以改"))), h("div.cluster", { style: { marginBottom: "6px" } }, svcSearch, gameFilterSel, catFilterSel), h("div.picker", svcList, pickerFoot), h("div", h("div.sechead", h("h3", "金额"))), h("div.formgrid", h("div.field", h("label.lbl", "折扣（元）"), discountInp), h("div.field", h("label.lbl", "平台手续费（元）"), feeInp), h("div.field", h("label.lbl", "成本（元）"), costInp)), summaryBox, unmappable.length ? h("div.note.note--warn", `这张单有 ${unmappable.length} 条明细（${unmappable.map((i) => i.name).join("、")}）在价格表里已经找不到对应的服务项，多半是从报价单转过来的。这几条在这里改不了，保存时会原样保留（不会被删掉，也不会被重算）。其它明细的改动照常保存。`) : null, h("div", h("div.sechead", h("h3", "备注"))), h("div.field.field--full", h("label.lbl", "给客户看的备注"), noteInp), h("div.field.field--full", h("label.lbl", "只有自己看得到的备注"), innerInp), h("div.note", "提交后，服务名、单价、数量、套餐内容、增项会一起冻进这张单的快照里。之后你在价格表里怎么改价，这张单都不受影响。"));
 	function addCustomerBtn() {
-		return h$1("button.btn.btn--sm", {
+		return h("button.btn.btn--sm", {
 			type: "button",
 			onclick: async () => {
 				const created = await customerForm();
 				if (!created) return;
-				const o = h$1("option", { value: String(created.id) }, `${created.name}${created.phone ? ` · ${created.phone}` : ""}`);
+				const o = h("option", { value: String(created.id) }, `${created.name}${created.phone ? ` · ${created.phone}` : ""}`);
 				custSel.appendChild(o);
 				custSel.value = String(created.id);
 			}
 		}, icon("plus", 14), "新客户");
 	}
-	const submitBtn = h$1("button.btn.btn--primary", { type: "button" }, existing ? "保存改动" : "开单");
+	const submitBtn = h("button.btn.btn--primary", { type: "button" }, existing ? "保存改动" : "开单");
 	const d = drawer({
 		title: existing ? `改单 · ${existing.order_no}` : "开一张新单",
 		subtitle: existing ? "改完会重算金额并替换明细快照" : "选客户、挑服务，价格自动算",
 		wide: true,
 		body,
 		footer: [
-			h$1("div", { style: {
+			h("div", { style: {
 				display: "flex",
 				alignItems: "baseline",
 				gap: "8px",
 				flex: "1"
-			} }, h$1("span.sm.dim", "合计"), totalFig),
-			h$1("button.btn", {
+			} }, h("span.sm.dim", "合计"), totalFig),
+			h("button.btn", {
 				type: "button",
 				onclick: () => d.close()
 			}, "取消"),
@@ -16292,15 +16581,15 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 	});
 	submitBtn.addEventListener("click", async () => {
 		if (!custSel.value && !gameSel.value && !picked.size) {
-			toast("至少选一个客户和一个服务项", "err");
+			toast$1("至少选一个客户和一个服务项", "err");
 			return;
 		}
 		if (!picked.size) {
-			toast("还没挑服务项", "err");
+			toast$1("还没挑服务项", "err");
 			return;
 		}
 		if (!custSel.value) {
-			toast("先选客户，或者点「新客户」建一个", "err");
+			toast$1("先选客户，或者点「新客户」建一个", "err");
 			custSel.focus();
 			return;
 		}
@@ -16344,8 +16633,8 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 		submitBtn.disabled = true;
 		try {
 			const saved = existing ? await api.patch(`/api/orders/${existing.id}`, payload) : await api.post("/api/orders", payload);
-			if (existing && unmappable.length) toast("单据已更新（那几条改不了的明细原样保留）", "ok", 3400);
-			else toast(existing ? "单据已更新" : `开单成功 · ${saved.order_no}`, "ok");
+			if (existing && unmappable.length) toast$1("单据已更新（那几条改不了的明细原样保留）", "ok", 3400);
+			else toast$1(existing ? "单据已更新" : `开单成功 · ${saved.order_no}`, "ok");
 			d.close();
 			if (!existing) ctx.navigate(`/orders/${saved.id}`);
 			else ctx.app.reload();
@@ -16449,7 +16738,7 @@ async function renderDetail(ctx, id) {
 		}
 		try {
 			await api.post(`/api/orders/${o.id}/daily-done`, { done });
-			toast(done ? "标成今日完成，过了凌晨 4 点自动回到「在做的」" : "已撤销，回到「在做的」", "ok", 3400);
+			toast$1(done ? "标成今日完成，过了凌晨 4 点自动回到「在做的」" : "已撤销，回到「在做的」", "ok", 3400);
 			ctx.app.reload();
 		} catch (err) {
 			toastErr(err);
@@ -16464,7 +16753,7 @@ async function renderDetail(ctx, id) {
 		})) return;
 		try {
 			await api.post(`/api/orders/${o.id}/status`, { status: "done" });
-			toast("订单已完成", "ok");
+			toast$1("订单已完成", "ok");
 			ctx.app.reload();
 		} catch (err) {
 			toastErr(err);
@@ -16473,9 +16762,9 @@ async function renderDetail(ctx, id) {
 	/** 拆单：把几个服务项挪到一张新单上，两边各自收款结单 */
 	const splitOrder = () => {
 		const pickedIds = /* @__PURE__ */ new Set();
-		const list = h$1("div.itemlist");
+		const list = h("div.itemlist");
 		for (const it of o.items) {
-			const cb = h$1("input.chk", {
+			const cb = h("input.chk", {
 				type: "checkbox",
 				"aria-label": `拆出 ${it.name}`
 			});
@@ -16484,21 +16773,21 @@ async function renderDetail(ctx, id) {
 				else pickedIds.delete(it.id);
 				paintFoot();
 			});
-			list.appendChild(h$1("label.item", { style: {
+			list.appendChild(h("label.item", { style: {
 				cursor: "pointer",
 				alignItems: "center",
 				gap: "10px"
-			} }, cb, h$1("div.item__main", h$1("div.item__title", it.name, it.is_daily ? tag("每天做", "jade") : null), it.spec ? h$1("div.tbl__meta", it.spec) : null), h$1("div.item__right", h$1("div.item__fig", `¥${fmtMoney$1(it.amount)}`))));
+			} }, cb, h("div.item__main", h("div.item__title", it.name, it.is_daily ? tag("每天做", "jade") : null), it.spec ? h("div.tbl__meta", it.spec) : null), h("div.item__right", h("div.item__fig", `¥${fmtMoney$1(it.amount)}`))));
 		}
-		const foot = h$1("div.note.note--warn");
-		const paySel = h$1("select.sel", { "aria-label": "收款怎么分" }, h$1("option", { value: "proportional" }, "按金额比例分到两张单（推荐）"), h$1("option", { value: "keep" }, "全部留在原单"));
-		const progSel = h$1("select.sel", { "aria-label": "进度时间线怎么处理" }, h$1("option", { value: "keep" }, "留在原单"), h$1("option", { value: "move" }, "跟到新单"));
+		const foot = h("div.note.note--warn");
+		const paySel = h("select.sel", { "aria-label": "收款怎么分" }, h("option", { value: "proportional" }, "按金额比例分到两张单（推荐）"), h("option", { value: "keep" }, "全部留在原单"));
+		const progSel = h("select.sel", { "aria-label": "进度时间线怎么处理" }, h("option", { value: "keep" }, "留在原单"), h("option", { value: "move" }, "跟到新单"));
 		const hasPay = (o.payments || []).length > 0;
 		const hasProg = (o.progress || []).length > 0;
 		const m = modal({
 			title: `拆单 · ${o.order_no}`,
 			wide: true,
-			body: h$1("div.stack", h$1("p.sm", "适合「30天日体 + 几个活动」这种单：把活动拆出去单独结算，日体那张继续天天标今日完成。"), h$1("p.sm.dim", "勾上要拆出去的 —— 选中的会变成一张新单，没选的留在原单。"), list, hasPay ? h$1("div.field", h$1("label.lbl", `收款怎么分（这张单已收 ¥${fmtMoney$1(o.paid_total)}）`), paySel) : null, hasProg ? h$1("div.field", h$1("label.lbl", `进度时间线（现有 ${o.progress.length} 条）`), progSel) : null, foot),
+			body: h("div.stack", h("p.sm", "适合「30天日体 + 几个活动」这种单：把活动拆出去单独结算，日体那张继续天天标今日完成。"), h("p.sm.dim", "勾上要拆出去的 —— 选中的会变成一张新单，没选的留在原单。"), list, hasPay ? h("div.field", h("label.lbl", `收款怎么分（这张单已收 ¥${fmtMoney$1(o.paid_total)}）`), paySel) : null, hasProg ? h("div.field", h("label.lbl", `进度时间线（现有 ${o.progress.length} 条）`), progSel) : null, foot),
 			actions: [{ label: "取消" }, {
 				label: "拆成新单",
 				tone: "primary",
@@ -16514,8 +16803,8 @@ async function renderDetail(ctx, id) {
 						const bits = [`已拆出 ${r.moved_count} 项，新单 ${r.created.order_no}`];
 						if (r.payments_moved) bits.push(`收款分了 ${r.payments_moved} 笔`);
 						if (r.progress_moved) bits.push(`进度跟过去 ${r.progress_moved} 条`);
-						toast(bits.join(" · "), "ok", 4600);
-						if (r.original_overpaid > .001) setTimeout(() => toast(`注意：原单还留着 ¥${fmtMoney$1(r.original_paid)} 的收款，但金额只剩 ¥${fmtMoney$1(r.original.total)}，多收了 ¥${fmtMoney$1(r.original_overpaid)}`, "err", 9e3), 400);
+						toast$1(bits.join(" · "), "ok", 4600);
+						if (r.original_overpaid > .001) setTimeout(() => toast$1(`注意：原单还留着 ¥${fmtMoney$1(r.original_paid)} 的收款，但金额只剩 ¥${fmtMoney$1(r.original.total)}，多收了 ¥${fmtMoney$1(r.original_overpaid)}`, "err", 9e3), 400);
 						ctx.app.reload();
 					} catch (err) {
 						toastErr(err);
@@ -16527,36 +16816,36 @@ async function renderDetail(ctx, id) {
 		function paintFoot() {
 			const n = pickedIds.size;
 			const rest = o.items.length - n;
-			foot.replaceChildren(h$1("span", n === 0 ? "还没勾任何服务项。" : rest === 0 ? "不能全拆走 —— 原单得至少留一个服务项（整张都要挪的话，不如直接改这一张）。" : `拆出去 ${n} 项，原单留 ${rest} 项。折扣 / 手续费 / 成本留在原单，新单从 0 开始。`));
+			foot.replaceChildren(h("span", n === 0 ? "还没勾任何服务项。" : rest === 0 ? "不能全拆走 —— 原单得至少留一个服务项（整张都要挪的话，不如直接改这一张）。" : `拆出去 ${n} 项，原单留 ${rest} 项。折扣 / 手续费 / 成本留在原单，新单从 0 开始。`));
 			if (m.setDisabled) m.setDisabled("go", n === 0 || rest === 0);
 		}
 		paintFoot();
 	};
-	ctx.setActions(h$1("button.btn.btn--sm", {
+	ctx.setActions(h("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => progressDrawer(o, () => ctx.app.reload())
-	}, icon("edit", 14), "记进度"), o.due_total > .001 ? h$1("button.btn.btn--sm", {
+	}, icon("edit", 14), "记进度"), o.due_total > .001 ? h("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => paymentDrawer(o, () => ctx.app.reload())
-	}, icon("wallet", 14), "记收款") : null, !closed ? h$1("button.btn.btn--sm", {
+	}, icon("wallet", 14), "记收款") : null, !closed ? h("button.btn.btn--sm", {
 		type: "button",
 		title: o.daily_done_today ? "撤销今日完成，重新回到「在做」" : "今天这份做完了，先挪出「在做」，明天自动回来",
 		onclick: () => dailyDone(!o.daily_done_today)
-	}, icon(o.daily_done_today ? "refresh" : "check", 14), o.daily_done_today ? "撤销今日完成" : "今日已完成") : null, !closed && (o.next_statuses || []).includes("done") ? h$1("button.btn.btn--sm.btn--primary", {
+	}, icon(o.daily_done_today ? "refresh" : "check", 14), o.daily_done_today ? "撤销今日完成" : "今日已完成") : null, !closed && (o.next_statuses || []).includes("done") ? h("button.btn.btn--sm.btn--primary", {
 		type: "button",
 		title: "整张单结束",
 		onclick: finishNow
-	}, icon("check", 14), "标记完成") : null, h$1("button.btn.btn--sm", {
+	}, icon("check", 14), "标记完成") : null, h("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => statusDrawer(o, () => ctx.app.reload())
-	}, "推进状态"), h$1("button.btn.btn--sm", {
+	}, "推进状态"), h("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => openComposer(ctx, { existing: o })
-	}, icon("price", 14), "改明细"), o.items.length > 1 ? h$1("button.btn.btn--sm", {
+	}, icon("price", 14), "改明细"), o.items.length > 1 ? h("button.btn.btn--sm", {
 		type: "button",
 		title: "把其中几个服务项拆成一张新单",
 		onclick: splitOrder
-	}, icon("copy", 14), "拆单") : null, h$1("button.btn.btn--sm.btn--icon", {
+	}, icon("copy", 14), "拆单") : null, h("button.btn.btn--sm.btn--icon", {
 		type: "button",
 		title: "删除订单",
 		onclick: async () => {
@@ -16566,7 +16855,7 @@ async function renderDetail(ctx, id) {
 			})) return;
 			try {
 				await api.del(`/api/orders/${o.id}`);
-				toast("订单已删除", "ok");
+				toast$1("订单已删除", "ok");
 				ctx.navigate("/orders");
 			} catch (err) {
 				toastErr(err);
@@ -16580,33 +16869,33 @@ async function renderDetail(ctx, id) {
 		["平台手续费", `¥${fmtMoney$1(o.platform_fee)}`],
 		["成本", `¥${fmtMoney$1(o.cost)}`]
 	];
-	return h$1("div.stack", h$1("section.panel", h$1("div.panel__body", h$1("div.cluster", { style: {
+	return h("div.stack", h("section.panel", h("div.panel__body", h("div.cluster", { style: {
 		justifyContent: "space-between",
 		alignItems: "flex-start"
-	} }, h$1("div", { style: { minWidth: "0" } }, h$1("div.cluster", h$1("span.mono.strong", o.order_no), lamp(o.status_label, STATUS_TONE[o.status] || "muted"), copyButton(o.order_no, "复单号", { size: "icon" })), h$1("h1", { style: { marginTop: "4px" } }, o.title || "（没写标题）"), h$1("div.cluster.sm.dim", { style: { marginTop: "4px" } }, h$1("span", o.customer_name || "散客"), h$1("span", "·"), h$1("span", o.game_name || "未指定游戏"), h$1("span", "·"), h$1("span", `下单 ${fmtDateTime(o.ordered_at)}`), o.due_at ? h$1("span", `· 交付 ${fmtDay$1(o.due_at)}`) : null, (() => {
+	} }, h("div", { style: { minWidth: "0" } }, h("div.cluster", h("span.mono.strong", o.order_no), lamp(o.status_label, STATUS_TONE[o.status] || "muted"), copyButton(o.order_no, "复单号", { size: "icon" })), h("h1", { style: { marginTop: "4px" } }, o.title || "（没写标题）"), h("div.cluster.sm.dim", { style: { marginTop: "4px" } }, h("span", o.customer_name || "散客"), h("span", "·"), h("span", o.game_name || "未指定游戏"), h("span", "·"), h("span", `下单 ${fmtDateTime$1(o.ordered_at)}`), o.due_at ? h("span", `· 交付 ${fmtDay$1(o.due_at)}`) : null, (() => {
 		if (["done", "cancelled"].includes(o.status)) return null;
 		const info = remainInfo$1(o.ordered_at, o.due_at);
 		if (info.kind === "none") return null;
-		if (info.kind === "invalid") return h$1("span.duepill.duepill--bad", "交付日期填错了");
-		return h$1(`span.duepill.duepill--${info.kind}`, info.text);
-	})())), h$1("div", { style: { textAlign: "right" } }, h$1("div.cell__lbl", "订单总额"), h$1("div", { style: {
+		if (info.kind === "invalid") return h("span.duepill.duepill--bad", "交付日期填错了");
+		return h(`span.duepill.duepill--${info.kind}`, info.text);
+	})())), h("div", { style: { textAlign: "right" } }, h("div.cell__lbl", "订单总额"), h("div", { style: {
 		fontFamily: "var(--font-fig)",
 		fontSize: "var(--fs-2xl)",
 		fontWeight: "600",
 		letterSpacing: "-0.02em"
-	} }, `¥${fmtMoney$1(o.total)}`), h$1("div.sm", o.due_total > .001 ? h$1("span.tone-amber", `还差 ¥${fmtMoney$1(o.due_total)}`) : h$1("span.tone-jade", "已结清")))), h$1("div", { style: { marginTop: "var(--sp-4)" } }, orderTrack(o.status, o.status_label)), o.customer_id ? h$1("div.cluster", { style: { marginTop: "var(--sp-3)" } }, h$1("button.btn.btn--sm", {
+	} }, `¥${fmtMoney$1(o.total)}`), h("div.sm", o.due_total > .001 ? h("span.tone-amber", `还差 ¥${fmtMoney$1(o.due_total)}`) : h("span.tone-jade", "已结清")))), h("div", { style: { marginTop: "var(--sp-4)" } }, orderTrack(o.status, o.status_label)), o.customer_id ? h("div.cluster", { style: { marginTop: "var(--sp-3)" } }, h("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => ctx.navigate(`/customers/${o.customer_id}`)
-	}, "看客户档案"), o.credentials?.length ? h$1("button.btn.btn--sm", {
+	}, "看客户档案"), o.credentials?.length ? h("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => ctx.navigate(`/vault?customer=${o.customer_id}`)
-	}, icon("vault", 14), `这个客户有 ${o.credentials.length} 条登录凭证`) : null) : null)), h$1("div.split", h$1("div.stack", h$1("section.panel", h$1("div.panel__body", sectionHead("服务明细（下单时的快照）", "改价格表不影响这里")), h$1("div.panel__body.panel__body--flush", orderItemsList(o.items)), h$1("div.panel__foot", h$1("span.sm.dim", `共 ${o.items.length} 项`), gainTotal(o.items) ? h$1("span.sm.dim", { style: { marginLeft: "10px" } }, `可得 ${gainTotal(o.items)}`) : null, h$1("div", { style: { flex: "1" } }), h$1("span.sm.dim", "合计"), h$1("span.strong", `¥${fmtMoney$1(o.total)}`))), h$1("section.panel", h$1("div.panel__body", sectionHead("进度时间线", `${o.progress.length} 条`, h$1("button.btn.btn--sm", {
+	}, icon("vault", 14), `这个客户有 ${o.credentials.length} 条登录凭证`) : null) : null)), h("div.split", h("div.stack", h("section.panel", h("div.panel__body", sectionHead("服务明细（下单时的快照）", "改价格表不影响这里")), h("div.panel__body.panel__body--flush", orderItemsList(o.items)), h("div.panel__foot", h("span.sm.dim", `共 ${o.items.length} 项`), gainTotal(o.items) ? h("span.sm.dim", { style: { marginLeft: "10px" } }, `可得 ${gainTotal(o.items)}`) : null, h("div", { style: { flex: "1" } }), h("span.sm.dim", "合计"), h("span.strong", `¥${fmtMoney$1(o.total)}`))), h("section.panel", h("div.panel__body", sectionHead("进度时间线", `${o.progress.length} 条`, h("button.btn.btn--sm", {
 		type: "button",
-		onclick: () => shareProgress(o, ctx)
-	}, icon("quotes", 14), "分享进度"), h$1("button.btn.btn--sm.btn--primary", {
+		onclick: () => shareProgress$1(o, ctx)
+	}, icon("quotes", 14), "分享进度"), h("button.btn.btn--sm.btn--primary", {
 		type: "button",
 		onclick: () => progressDrawer(o, () => ctx.app.reload())
-	}, icon("plus", 14), "记一条"))), h$1("div.panel__body", { style: { paddingTop: "0" } }, progressTimeline(o.progress, {
+	}, icon("plus", 14), "记一条"))), h("div.panel__body", { style: { paddingTop: "0" } }, progressTimeline(o.progress, {
 		onEdit: (p) => editProgressDrawer(p, () => ctx.app.reload()),
 		onDelete: async (p) => {
 			if (!await confirmDelete$1({
@@ -16615,29 +16904,29 @@ async function renderDetail(ctx, id) {
 			})) return;
 			try {
 				await api.del(`/api/progress/${p.id}`);
-				toast("已删除", "ok");
+				toast$1("已删除", "ok");
 				ctx.app.reload();
 			} catch (err) {
 				toastErr(err);
 			}
 		}
-	})))), h$1("div.stack", h$1("section.panel", h$1("div.panel__body", sectionHead("钱")), h$1("div.panel__body", { style: { paddingTop: "0" } }, h$1("div", { style: {
+	})))), h("div.stack", h("section.panel", h("div.panel__body", sectionHead("钱")), h("div.panel__body", { style: { paddingTop: "0" } }, h("div", { style: {
 		display: "grid",
 		gridTemplateColumns: "1fr auto",
 		gap: "6px 12px",
 		fontSize: "var(--fs-base)"
-	} }, ...moneyRows.flatMap(([k, v]) => [h$1("span.dim", k), h$1("span.num", v)]), h$1("span.strong", { style: {
+	} }, ...moneyRows.flatMap(([k, v]) => [h("span.dim", k), h("span.num", v)]), h("span.strong", { style: {
 		borderTop: "1px solid var(--line)",
 		paddingTop: "6px",
 		marginTop: "4px"
-	} }, "合计"), h$1("span.num.strong", { style: {
+	} }, "合计"), h("span.num.strong", { style: {
 		borderTop: "1px solid var(--line)",
 		paddingTop: "6px",
 		marginTop: "4px"
-	} }, `¥${fmtMoney$1(o.total)}`), h$1("span.dim.tone-jade", "已收"), h$1("span.num.tone-jade", `¥${fmtMoney$1(o.paid_total)}`), h$1("span.dim", o.due_total > .001 ? "还差" : "尾款"), h$1("span.num", o.due_total > .001 ? `¥${fmtMoney$1(o.due_total)}` : "0"), h$1("span.dim", "利润"), h$1("span.num", `¥${fmtMoney$1(o.profit)}`))), h$1("div.panel__body", { style: { paddingTop: "0" } }, h$1("div.cluster", h$1("button.btn.btn--sm.btn--block", {
+	} }, `¥${fmtMoney$1(o.total)}`), h("span.dim.tone-jade", "已收"), h("span.num.tone-jade", `¥${fmtMoney$1(o.paid_total)}`), h("span.dim", o.due_total > .001 ? "还差" : "尾款"), h("span.num", o.due_total > .001 ? `¥${fmtMoney$1(o.due_total)}` : "0"), h("span.dim", "利润"), h("span.num", `¥${fmtMoney$1(o.profit)}`))), h("div.panel__body", { style: { paddingTop: "0" } }, h("div.cluster", h("button.btn.btn--sm.btn--block", {
 		type: "button",
 		onclick: () => paymentDrawer(o, () => ctx.app.reload())
-	}, icon("plus", 14), "记一笔收款")))), h$1("section.panel", h$1("div.panel__body", sectionHead("收款记录", `${o.payments.length} 笔`)), o.payments.length ? h$1("div.itemlist", o.payments.map((p) => h$1("div.item", { style: { cursor: "default" } }, h$1("div.item__main", h$1("div.item__title", PAY_KIND_LABEL[p.kind] || p.kind, tag(PAY_METHOD_LABEL[p.method] || p.method)), h$1("div.item__meta", h$1("span", fmtDay$1(p.paid_at)), p.note ? h$1("span", p.note) : null)), h$1("div.item__right", h$1(`div.item__fig${p.kind === "refund" ? ".tone-oxblood" : ".tone-jade"}`, `${p.kind === "refund" ? "−" : "+"}¥${fmtMoney$1(p.amount)}`), h$1("button.btn.btn--sm.btn--quiet", {
+	}, icon("plus", 14), "记一笔收款")))), h("section.panel", h("div.panel__body", sectionHead("收款记录", `${o.payments.length} 笔`)), o.payments.length ? h("div.itemlist", o.payments.map((p) => h("div.item", { style: { cursor: "default" } }, h("div.item__main", h("div.item__title", PAY_KIND_LABEL[p.kind] || p.kind, tag(PAY_METHOD_LABEL[p.method] || p.method)), h("div.item__meta", h("span", fmtDay$1(p.paid_at)), p.note ? h("span", p.note) : null)), h("div.item__right", h(`div.item__fig${p.kind === "refund" ? ".tone-oxblood" : ".tone-jade"}`, `${p.kind === "refund" ? "−" : "+"}¥${fmtMoney$1(p.amount)}`), h("button.btn.btn--sm.btn--quiet", {
 		type: "button",
 		title: "删除这笔",
 		onclick: async () => {
@@ -16647,13 +16936,13 @@ async function renderDetail(ctx, id) {
 			})) return;
 			try {
 				await api.del(`/api/payments/${p.id}`);
-				toast("已删除", "ok");
+				toast$1("已删除", "ok");
 				ctx.app.reload();
 			} catch (err) {
 				toastErr(err);
 			}
 		}
-	}, icon("trash", 13)))))) : h$1("div.panel__body", h$1("p.dim.sm", "还没有收款记录。"))), o.note || o.internal_note ? h$1("section.panel", h$1("div.panel__body", sectionHead("备注")), h$1("div.panel__body", { style: { paddingTop: "0" } }, o.note ? h$1("div", h$1("div.tbl__meta", "给客户看的"), h$1("p", { style: { whiteSpace: "pre-wrap" } }, o.note)) : null, o.internal_note ? h$1("div", { style: { marginTop: "10px" } }, h$1("div.tbl__meta", "只有自己看得到"), h$1("p", { style: { whiteSpace: "pre-wrap" } }, o.internal_note)) : null)) : null)));
+	}, icon("trash", 13)))))) : h("div.panel__body", h("p.dim.sm", "还没有收款记录。"))), o.note || o.internal_note ? h("section.panel", h("div.panel__body", sectionHead("备注")), h("div.panel__body", { style: { paddingTop: "0" } }, o.note ? h("div", h("div.tbl__meta", "给客户看的"), h("p", { style: { whiteSpace: "pre-wrap" } }, o.note)) : null, o.internal_note ? h("div", { style: { marginTop: "10px" } }, h("div.tbl__meta", "只有自己看得到"), h("p", { style: { whiteSpace: "pre-wrap" } }, o.internal_note)) : null)) : null)));
 }
 var FILTERS$2 = [
 	{
@@ -16711,7 +17000,7 @@ async function renderList(ctx, status) {
 		const q = ctx.query.get("q") || "";
 		const custId = ctx.query.get("customer_id") || "";
 		const sort = ctx.query.get("sort") || "";
-		ctx.setActions(h$1("button.btn.btn--sm.btn--primary", {
+		ctx.setActions(h("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			onclick: () => openComposer(ctx)
 		}, icon("plus", 14), "开新单"));
@@ -16741,12 +17030,12 @@ async function renderList(ctx, status) {
 			if (so) p.set("sort", so);
 			return `/orders?${p.toString()}`;
 		};
-		const seg = h$1("div.seg", FILTERS$2.map((f) => h$1("button.seg__btn", {
+		const seg = h("div.seg", FILTERS$2.map((f) => h("button.seg__btn", {
 			type: "button",
 			"aria-pressed": String(f.key === status),
 			onclick: () => ctx.navigate(href({ status: f.key }))
 		}, f.label)));
-		const sortSel = h$1("select.sel", {
+		const sortSel = h("select.sel", {
 			style: { width: "auto" },
 			"aria-label": "排序方式"
 		}, ...[
@@ -16766,10 +17055,10 @@ async function renderList(ctx, status) {
 				v: "amount",
 				l: "按金额排"
 			}
-		].map((o) => h$1("option", { value: o.v }, o.l)));
+		].map((o) => h("option", { value: o.v }, o.l)));
 		sortSel.value = sort;
 		sortSel.addEventListener("change", () => ctx.navigate(href({ sort: sortSel.value })));
-		const searchInput = h$1("input.inp", {
+		const searchInput = h("input.inp", {
 			type: "search",
 			placeholder: "搜单号 / 标题 / 客户名",
 			value: q,
@@ -16788,11 +17077,11 @@ async function renderList(ctx, status) {
 		});
 		const custCount = new Set(items.filter((o) => o.customer_id).map((o) => o.customer_id)).size;
 		const walkIn = items.filter((o) => !o.customer_id).length;
-		return h$1("div.stack", h$1("div.pagehead", h$1("div.pagehead__txt", h$1("h1", custId ? `${cust?.name || "这个客户"}的单` : status === "open" ? "在做的单" : status === "daily_done" ? "今日已完成" : "订单"), h$1("p.pagehead__sub", items.length ? `${items.length} 张单 · ${custCount} 位客户${walkIn ? ` + ${walkIn} 张散客` : ""} · 合计 ¥${fmtMoney$1(total.amount)} · 未收 ¥${fmtMoney$1(total.due)}` : ""))), h$1("div.toolbar", seg, custId ? h$1("button.filterchip", {
+		return h("div.stack", h("div.pagehead", h("div.pagehead__txt", h("h1", custId ? `${cust?.name || "这个客户"}的单` : status === "open" ? "在做的单" : status === "daily_done" ? "今日已完成" : "订单"), h("p.pagehead__sub", items.length ? `${items.length} 张单 · ${custCount} 位客户${walkIn ? ` + ${walkIn} 张散客` : ""} · 合计 ¥${fmtMoney$1(total.amount)} · 未收 ¥${fmtMoney$1(total.due)}` : ""))), h("div.toolbar", seg, custId ? h("button.filterchip", {
 			type: "button",
 			title: "取消「只看这个客户」",
 			onclick: () => ctx.navigate(href({ customer_id: "" }))
-		}, `只看「${cust?.name || "这个客户"}」`, icon("close", 12)) : null, h$1("div.toolbar__grow"), sortSel, searchInput), status === "daily_done" ? h$1("div.note.note--ok", h$1("span", { style: { flex: "none" } }, icon("check", 15)), h$1("span", "这些是这个「今天」标了「今日已完成」的单 —— 今天不用再管，过了凌晨 4 点它们会自动回到「在做的」。点单号进去可以撤销。")) : null, h$1("section.panel", h$1("div.panel__body.panel__body--flush", items.length ? orderTable(items, ctx) : emptyState({
+		}, `只看「${cust?.name || "这个客户"}」`, icon("close", 12)) : null, h("div.toolbar__grow"), sortSel, searchInput), status === "daily_done" ? h("div.note.note--ok", h("span", { style: { flex: "none" } }, icon("check", 15)), h("span", "这些是这个「今天」标了「今日已完成」的单 —— 今天不用再管，过了凌晨 4 点它们会自动回到「在做的」。点单号进去可以撤销。")) : null, h("section.panel", h("div.panel__body.panel__body--flush", items.length ? orderTable(items, ctx) : emptyState({
 			iconName: "orders",
 			title: q ? "没搜到符合条件的单" : status === "open" ? "手上没有在做的单" : "这个状态下没有单",
 			body: q ? "换个单号或者客户名试试。" : "开一张新单：选客户、挑服务，价格会自动算出来。",
@@ -16804,7 +17093,7 @@ async function renderList(ctx, status) {
 //#endregion
 //#region public/js/views/customers.js
 /** 处理一位客户：归档，或者彻底删除 */
-async function removeCustomer(ctx, c) {
+async function removeCustomer$1(ctx, c) {
 	let p = null;
 	try {
 		p = await api.get(`/api/customers/${c.id}/profile`);
@@ -16813,7 +17102,7 @@ async function removeCustomer(ctx, c) {
 	const creds = p?.credentials?.length ?? 0;
 	const quotes = p?.quotes?.length ?? 0;
 	const busy = orders + creds + quotes > 0;
-	const choice = await choiceDialog({
+	const choice = await choiceDialog$1({
 		title: `处理客户「${c.name}」`,
 		message: busy ? `这位客户名下有 ${orders} 张订单、${creds} 条登录凭证、${quotes} 份报价单。` : "这位客户名下还没有订单、凭证和报价单。",
 		archiveLabel: busy ? "归档客户" : null,
@@ -16825,11 +17114,11 @@ async function removeCustomer(ctx, c) {
 	try {
 		if (choice === "archive") {
 			await api.patch(`/api/customers/${c.id}`, { status: "archived" });
-			toast(`客户「${c.name}」已归档`, "ok");
+			toast$1(`客户「${c.name}」已归档`, "ok");
 			ctx.navigate("/customers");
 		} else {
 			await api.del(`/api/customers/${c.id}`, { hard: "1" });
-			toast(`客户「${c.name}」已彻底删除`, "ok");
+			toast$1(`客户「${c.name}」已彻底删除`, "ok");
 			ctx.navigate("/customers");
 		}
 	} catch (err) {
@@ -16837,14 +17126,14 @@ async function removeCustomer(ctx, c) {
 	}
 }
 function customerRow(c, ctx) {
-	return h$1("button.item", {
+	return h("button.item", {
 		type: "button",
 		onclick: () => ctx.navigate(`/customers/${c.id}`)
-	}, c.avatar ? h$1("img.avatar", {
+	}, c.avatar ? h("img.avatar", {
 		src: c.avatar,
 		alt: "",
 		loading: "lazy"
-	}) : h$1("div.avatar", (c.name || "?").slice(0, 1)), h$1("div.item__main", h$1("div.item__title", c.name, c.status === "archived" ? tag("已归档", "oxblood") : null, ...(c.tags || []).slice(0, 3).map((t) => tag(t))), h$1("div.item__meta", c.phone ? h$1("span.mono", c.phone) : h$1("span.dim", "没填手机号"), c.wechat ? h$1("span", `微信 ${c.wechat}`) : null, c.qq ? h$1("span", `QQ ${c.qq}`) : null, c.source ? h$1("span", c.source) : null)), h$1("div.item__right", h$1("div.item__fig", `${c.order_count} 单`), h$1("div.tbl__meta", c.due_total > .001 ? h$1("span.tone-amber", `未收 ¥${fmtMoney$1(c.due_total)}`) : h$1("span.dim", `累计 ¥${fmtMoney$1(c.order_total)}`))));
+	}) : h("div.avatar", (c.name || "?").slice(0, 1)), h("div.item__main", h("div.item__title", c.name, c.status === "archived" ? tag("已归档", "oxblood") : null, ...(c.tags || []).slice(0, 3).map((t) => tag(t))), h("div.item__meta", c.phone ? h("span.mono", c.phone) : h("span.dim", "没填手机号"), c.wechat ? h("span", `微信 ${c.wechat}`) : null, c.qq ? h("span", `QQ ${c.qq}`) : null, c.source ? h("span", c.source) : null)), h("div.item__right", h("div.item__fig", `${c.order_count} 单`), h("div.tbl__meta", c.due_total > .001 ? h("span.tone-amber", `未收 ¥${fmtMoney$1(c.due_total)}`) : h("span.dim", `累计 ¥${fmtMoney$1(c.order_total)}`))));
 }
 /** 在做 / 已结束 的一张订单行 */
 function orderLine(ctx, o) {
@@ -16854,10 +17143,10 @@ function orderLine(ctx, o) {
 		text: ""
 	} : remainInfo$1(o.ordered_at, o.due_at);
 	const due = Number(o.due_total) || 0;
-	return h$1("button.item", {
+	return h("button.item", {
 		type: "button",
 		onclick: () => ctx.navigate(`/orders/${o.id}`)
-	}, h$1("div.item__main", h$1("div.item__title", o.order_no, lamp(o.status_label, STATUS_TONE[o.status] || "muted"), !done && info.text ? h$1(`span.duepill.duepill--${info.kind}`, info.text) : null), h$1("div.item__meta", h$1("span", o.title || "没写标题"), h$1("span", fmtDay$1(o.ordered_at)), o.due_at ? h$1("span", `交付 ${fmtDay$1(o.due_at)}`) : null)), h$1("div.item__right", h$1("div.item__fig", `¥${fmtMoney$1(o.total)}`), h$1("div.tbl__meta", due > .001 ? h$1("span.tone-amber", `未收 ¥${fmtMoney$1(due)}`) : h$1("span.dim", "已结清"))));
+	}, h("div.item__main", h("div.item__title", o.order_no, lamp(o.status_label, STATUS_TONE[o.status] || "muted"), !done && info.text ? h(`span.duepill.duepill--${info.kind}`, info.text) : null), h("div.item__meta", h("span", o.title || "没写标题"), h("span", fmtDay$1(o.ordered_at)), o.due_at ? h("span", `交付 ${fmtDay$1(o.due_at)}`) : null)), h("div.item__right", h("div.item__fig", `¥${fmtMoney$1(o.total)}`), h("div.tbl__meta", due > .001 ? h("span.tone-amber", `未收 ¥${fmtMoney$1(due)}`) : h("span.dim", "已结清"))));
 }
 /**
 * 客户名下的订单。
@@ -16870,90 +17159,90 @@ function customerOrders(ctx, c, orders) {
 	const ACTIVE_MAX = 6;
 	const CLOSED_MAX = 3;
 	const unpaid = active.filter((o) => Number(o.due_total) > .001).length;
-	const head = h$1("div.custorder__sum", h$1("span", `在做 ${active.length}`), closed.length ? h$1("span.dim", `· 已结束 ${closed.length}`) : null, unpaid ? h$1("span.tone-amber", `· ${unpaid} 张没收齐`) : null);
-	const body = h$1("div.itemlist");
+	const head = h("div.custorder__sum", h("span", `在做 ${active.length}`), closed.length ? h("span.dim", `· 已结束 ${closed.length}`) : null, unpaid ? h("span.tone-amber", `· ${unpaid} 张没收齐`) : null);
+	const body = h("div.itemlist");
 	for (const o of active.slice(0, ACTIVE_MAX)) body.appendChild(orderLine(ctx, o));
-	if (active.length > ACTIVE_MAX) body.appendChild(h$1("button.item.item--more", {
+	if (active.length > ACTIVE_MAX) body.appendChild(h("button.item.item--more", {
 		type: "button",
 		onclick: () => ctx.navigate(`/orders?customer_id=${c.id}&status=open`)
-	}, h$1("span.sm", `还有 ${active.length - ACTIVE_MAX} 张在做的单`), icon("right", 13)));
+	}, h("span.sm", `还有 ${active.length - ACTIVE_MAX} 张在做的单`), icon("right", 13)));
 	if (closed.length) {
-		body.appendChild(h$1("div.custorder__sep", h$1("span.sm.dim", "已结束")));
+		body.appendChild(h("div.custorder__sep", h("span.sm.dim", "已结束")));
 		for (const o of closed.slice(0, CLOSED_MAX)) body.appendChild(orderLine(ctx, o));
-		if (closed.length > CLOSED_MAX) body.appendChild(h$1("button.item.item--more", {
+		if (closed.length > CLOSED_MAX) body.appendChild(h("button.item.item--more", {
 			type: "button",
 			onclick: () => ctx.navigate(`/orders?customer_id=${c.id}&status=`)
-		}, h$1("span.sm", `还有 ${closed.length - CLOSED_MAX} 张已结束的单`), icon("right", 13)));
+		}, h("span.sm", `还有 ${closed.length - CLOSED_MAX} 张已结束的单`), icon("right", 13)));
 	}
-	return h$1("div", head, body);
+	return h("div", head, body);
 }
 async function renderCustomerDetail(ctx, id) {
 	const p = await api.get(`/api/customers/${id}/profile`);
 	const c = p.customer;
 	const s = p.summary;
-	ctx.setActions(h$1("button.btn.btn--sm.btn--primary", {
+	ctx.setActions(h("button.btn.btn--sm.btn--primary", {
 		type: "button",
 		onclick: () => openComposer(ctx, { presetCustomer: c.id })
-	}, icon("plus", 14), "给 TA 开单"), h$1("button.btn.btn--sm", {
+	}, icon("plus", 14), "给 TA 开单"), h("button.btn.btn--sm", {
 		type: "button",
 		onclick: async () => {
 			if (await customerForm(c, { title: "改客户资料" })) ctx.app.reload();
 		}
-	}, icon("edit", 14), "改资料"), c.status === "archived" ? h$1("button.btn.btn--sm", {
+	}, icon("edit", 14), "改资料"), c.status === "archived" ? h("button.btn.btn--sm", {
 		type: "button",
 		onclick: async () => {
 			try {
 				await api.patch(`/api/customers/${c.id}`, { status: "active" });
-				toast(`客户「${c.name}」已恢复`, "ok");
+				toast$1(`客户「${c.name}」已恢复`, "ok");
 				ctx.app.reload();
 			} catch (err) {
 				toastErr(err);
 			}
 		}
-	}, icon("refresh", 14), "恢复") : null, h$1("button.btn.btn--sm.btn--quiet", {
+	}, icon("refresh", 14), "恢复") : null, h("button.btn.btn--sm.btn--quiet", {
 		type: "button",
 		title: "归档或彻底删除这位客户",
-		onclick: () => removeCustomer(ctx, c)
-	}, icon("trash", 14)), h$1("button.btn.btn--sm.btn--quiet", {
+		onclick: () => removeCustomer$1(ctx, c)
+	}, icon("trash", 14)), h("button.btn.btn--sm.btn--quiet", {
 		type: "button",
 		onclick: () => ctx.navigate("/customers")
 	}, "返回列表"));
-	const contact = h$1("div.stack.stack--tight", h$1("div.kv", ...[
-		["手机号", c.phone ? h$1("span.cluster", h$1("span.mono", c.phone), copyButton(c.phone, "复制", { size: "icon" })) : h$1("span.dim", "没填")],
-		["微信", c.wechat ? h$1("span.cluster", h$1("span.mono", c.wechat), copyButton(c.wechat, "复制", { size: "icon" })) : h$1("span.dim", "没填")],
-		["QQ", c.qq ? h$1("span.mono", c.qq) : h$1("span.dim", "没填")],
+	const contact = h("div.stack.stack--tight", h("div.kv", ...[
+		["手机号", c.phone ? h("span.cluster", h("span.mono", c.phone), copyButton(c.phone, "复制", { size: "icon" })) : h("span.dim", "没填")],
+		["微信", c.wechat ? h("span.cluster", h("span.mono", c.wechat), copyButton(c.wechat, "复制", { size: "icon" })) : h("span.dim", "没填")],
+		["QQ", c.qq ? h("span.mono", c.qq) : h("span.dim", "没填")],
 		["来源", c.source || "—"],
 		["建档", fmtDate$1(c.created_at)]
-	].flatMap(([k, v]) => [h$1("dt", k), h$1("dd", v)])), c.tags?.length ? h$1("div.cluster", c.tags.map((t) => tag(t))) : null, c.note ? h$1("div.note", c.note) : null);
-	const money = h$1("div", { style: {
+	].flatMap(([k, v]) => [h("dt", k), h("dd", v)])), c.tags?.length ? h("div.cluster", c.tags.map((t) => tag(t))) : null, c.note ? h("div.note", c.note) : null);
+	const money = h("div", { style: {
 		display: "grid",
 		gridTemplateColumns: "1fr auto",
 		gap: "6px 12px"
-	} }, h$1("span.dim", "累计订单额"), h$1("span.num", `¥${fmtMoney$1(s.order_total)}`), h$1("span.dim.tone-jade", "已收"), h$1("span.num.tone-jade", `¥${fmtMoney$1(s.paid_total)}`), h$1("span.dim", s.due_total > .001 ? "还欠" : "尾款"), h$1("span.num", s.due_total > .001 ? h$1("span.tone-amber", `¥${fmtMoney$1(s.due_total)}`) : "0"), h$1("span.dim", "在做的单"), h$1("span.num", String(s.active_orders)));
-	const credBlock = p.credentials.length ? h$1("div.itemlist", p.credentials.map((cred) => h$1("div.item", { style: { cursor: "default" } }, h$1("div.item__main", h$1("div.item__title", cred.label || "未命名", h$1("span.tag", LOGIN_TYPE_LABEL[cred.login_type] || cred.login_type)), h$1("div.item__meta", h$1("span", cred.game_name || "未指定"), h$1("span", cred.server || ""), h$1("span.mono", cred.masked_hint))), h$1("button.btn.btn--sm", {
+	} }, h("span.dim", "累计订单额"), h("span.num", `¥${fmtMoney$1(s.order_total)}`), h("span.dim.tone-jade", "已收"), h("span.num.tone-jade", `¥${fmtMoney$1(s.paid_total)}`), h("span.dim", s.due_total > .001 ? "还欠" : "尾款"), h("span.num", s.due_total > .001 ? h("span.tone-amber", `¥${fmtMoney$1(s.due_total)}`) : "0"), h("span.dim", "在做的单"), h("span.num", String(s.active_orders)));
+	const credBlock = p.credentials.length ? h("div.itemlist", p.credentials.map((cred) => h("div.item", { style: { cursor: "default" } }, h("div.item__main", h("div.item__title", cred.label || "未命名", h("span.tag", LOGIN_TYPE_LABEL[cred.login_type] || cred.login_type)), h("div.item__meta", h("span", cred.game_name || "未指定"), h("span", cred.server || ""), h("span.mono", cred.masked_hint))), h("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => ctx.navigate(`/vault?customer=${c.id}&c=${cred.id}`)
-	}, "去保险箱")))) : h$1("p.dim.sm", "这个客户还没有登记游戏登录凭证。");
-	return h$1("div.stack", h$1("div.pagehead", h$1("div.cluster", { style: {
+	}, "去保险箱")))) : h("p.dim.sm", "这个客户还没有登记游戏登录凭证。");
+	return h("div.stack", h("div.pagehead", h("div.cluster", { style: {
 		gap: "var(--sp-3)",
 		alignItems: "center"
-	} }, c.avatar ? h$1("img.avatar.avatar--lg", {
+	} }, c.avatar ? h("img.avatar.avatar--lg", {
 		src: c.avatar,
 		alt: "",
 		style: { flex: "none" }
-	}) : h$1("div.avatar.avatar--lg", { style: { flex: "none" } }, (c.name || "?").slice(0, 1)), h$1("div.pagehead__txt", h$1("h1", c.name), h$1("p.pagehead__sub", `${s.order_count} 张单 · 累计 ¥${fmtMoney$1(s.order_total)}${s.due_total > .001 ? ` · 还欠 ¥${fmtMoney$1(s.due_total)}` : " · 已结清"}`)))), h$1("div.split", h$1("div.stack", h$1("section.panel", h$1("div.panel__body", sectionHead("订单", `${p.orders.length} 张`, p.orders.length ? h$1("button.btn.btn--sm", {
+	}) : h("div.avatar.avatar--lg", { style: { flex: "none" } }, (c.name || "?").slice(0, 1)), h("div.pagehead__txt", h("h1", c.name), h("p.pagehead__sub", `${s.order_count} 张单 · 累计 ¥${fmtMoney$1(s.order_total)}${s.due_total > .001 ? ` · 还欠 ¥${fmtMoney$1(s.due_total)}` : " · 已结清"}`)))), h("div.split", h("div.stack", h("section.panel", h("div.panel__body", sectionHead("订单", `${p.orders.length} 张`, p.orders.length ? h("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => ctx.navigate(`/orders?customer_id=${c.id}&status=`)
-	}, "看全部") : null)), p.orders.length ? customerOrders(ctx, c, p.orders) : h$1("div.panel__body", emptyState({
+	}, "看全部") : null)), p.orders.length ? customerOrders(ctx, c, p.orders) : h("div.panel__body", emptyState({
 		iconName: "orders",
 		title: "还没有单",
 		body: "给这个客户开第一张单。",
 		actionLabel: "开单",
 		onAction: () => openComposer(ctx, { presetCustomer: c.id })
-	}))), h$1("section.panel", h$1("div.panel__body", sectionHead("收款流水", `${p.payments.length} 笔`)), p.payments.length ? h$1("div.itemlist", p.payments.map((pay) => h$1("div.item", { style: { cursor: "default" } }, h$1("div.item__main", h$1("div.item__title", PAY_KIND_LABEL[pay.kind] || pay.kind, tag(PAY_METHOD_LABEL[pay.method] || pay.method)), h$1("div.item__meta", h$1("span", fmtDay$1(pay.paid_at)), h$1("span", pay.order_no || ""), pay.note ? h$1("span", pay.note) : null)), h$1("div.item__right", h$1(`div.item__fig${pay.kind === "refund" ? ".tone-oxblood" : ".tone-jade"}`, `${pay.kind === "refund" ? "−" : "+"}¥${fmtMoney$1(pay.amount)}`))))) : h$1("div.panel__body", h$1("p.dim.sm", "还没有收款记录。")))), h$1("div.stack", h$1("section.panel", h$1("div.panel__body", sectionHead("联系方式")), h$1("div.panel__body", { style: { paddingTop: "0" } }, contact)), h$1("section.panel", h$1("div.panel__body", sectionHead("账目")), h$1("div.panel__body", { style: { paddingTop: "0" } }, money)), h$1("section.panel", h$1("div.panel__body", sectionHead("登录凭证", `${p.credentials.length} 条`, h$1("button.btn.btn--sm", {
+	}))), h("section.panel", h("div.panel__body", sectionHead("收款流水", `${p.payments.length} 笔`)), p.payments.length ? h("div.itemlist", p.payments.map((pay) => h("div.item", { style: { cursor: "default" } }, h("div.item__main", h("div.item__title", PAY_KIND_LABEL[pay.kind] || pay.kind, tag(PAY_METHOD_LABEL[pay.method] || pay.method)), h("div.item__meta", h("span", fmtDay$1(pay.paid_at)), h("span", pay.order_no || ""), pay.note ? h("span", pay.note) : null)), h("div.item__right", h(`div.item__fig${pay.kind === "refund" ? ".tone-oxblood" : ".tone-jade"}`, `${pay.kind === "refund" ? "−" : "+"}¥${fmtMoney$1(pay.amount)}`))))) : h("div.panel__body", h("p.dim.sm", "还没有收款记录。")))), h("div.stack", h("section.panel", h("div.panel__body", sectionHead("联系方式")), h("div.panel__body", { style: { paddingTop: "0" } }, contact)), h("section.panel", h("div.panel__body", sectionHead("账目")), h("div.panel__body", { style: { paddingTop: "0" } }, money)), h("section.panel", h("div.panel__body", sectionHead("登录凭证", `${p.credentials.length} 条`, h("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => ctx.navigate(`/vault?customer=${c.id}`)
-	}, "去保险箱"))), h$1("div.panel__body", { style: { paddingTop: "0" } }, credBlock)))));
+	}, "去保险箱"))), h("div.panel__body", { style: { paddingTop: "0" } }, credBlock)))));
 }
 var customers_default = {
 	title: "客户",
@@ -16962,17 +17251,17 @@ var customers_default = {
 		const q = ctx.query.get("q") || "";
 		const only = ctx.query.get("only") || "";
 		const { items } = await api.get("/api/customers", { limit: 500 });
-		ctx.setActions(h$1("button.btn.btn--sm.btn--primary", {
+		ctx.setActions(h("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			onclick: async () => {
 				const saved = await customerForm();
 				if (saved) {
-					toast(`客户「${saved.name}」已建档`, "ok");
+					toast$1(`客户「${saved.name}」已建档`, "ok");
 					ctx.app.reload();
 				}
 			}
 		}, icon("plus", 14), "新建客户"));
-		if (!items.length) return h$1("section.panel", h$1("div.panel__body", emptyState({
+		if (!items.length) return h("section.panel", h("div.panel__body", emptyState({
 			iconName: "customers",
 			title: "还没有客户",
 			body: "手机号作为客户标识，以后直接搜手机号就能找到人和他所有的单。",
@@ -16996,7 +17285,7 @@ var customers_default = {
 		else filtered = filtered.filter((c) => c.status !== "archived");
 		if (only === "due") filtered = filtered.filter((c) => c.due_total > .001);
 		if (only === "repeat") filtered = filtered.filter((c) => c.order_count >= 2);
-		const searchInput = h$1("input.inp", {
+		const searchInput = h("input.inp", {
 			type: "search",
 			placeholder: "搜昵称 / 手机号 / 微信 / QQ",
 			value: q,
@@ -17009,7 +17298,7 @@ var customers_default = {
 			if (only) p.set("only", only);
 			ctx.navigate(`/customers${p.toString() ? "?" + p.toString() : ""}`, { replace: true });
 		}, 300));
-		const seg = h$1("div.seg", [
+		const seg = h("div.seg", [
 			{
 				key: "",
 				label: "全部"
@@ -17026,7 +17315,7 @@ var customers_default = {
 				key: "archived",
 				label: `已归档 ${archivedCount}`
 			}] : []
-		].map((f) => h$1("button.seg__btn", {
+		].map((f) => h("button.seg__btn", {
 			type: "button",
 			"aria-pressed": String(f.key === only),
 			onclick: () => {
@@ -17036,100 +17325,13 @@ var customers_default = {
 				ctx.navigate(`/customers${p.toString() ? "?" + p.toString() : ""}`);
 			}
 		}, f.label)));
-		return h$1("div.stack", h$1("div.pagehead", h$1("div.pagehead__txt", h$1("h1", "客户"), h$1("p.pagehead__sub", `${filtered.length} 位${filtered.length !== items.length ? `（共 ${items.length} 位）` : ""}`))), h$1("div.toolbar", seg, h$1("div.toolbar__grow"), searchInput), h$1("section.panel", filtered.length ? h$1("div.itemlist", filtered.map((c) => customerRow(c, ctx))) : h$1("div.panel__body", emptyState({
+		return h("div.stack", h("div.pagehead", h("div.pagehead__txt", h("h1", "客户"), h("p.pagehead__sub", `${filtered.length} 位${filtered.length !== items.length ? `（共 ${items.length} 位）` : ""}`))), h("div.toolbar", seg, h("div.toolbar__grow"), searchInput), h("section.panel", filtered.length ? h("div.itemlist", filtered.map((c) => customerRow(c, ctx))) : h("div.panel__body", emptyState({
 			iconName: "search",
 			title: "没找到",
 			body: "换个关键词试试，或者清空搜索。"
 		}))));
 	}
 };
-//#endregion
-//#region shared/pricing.js
-/**
-* 阶梯价与计价单位 —— 前后端共用一份。
-*
-* 为什么单独放 shared/：这条规则以前有两份实现（服务端 src/pricing.mjs、
-* 旧价格表页面 public/js/views/price.js），而它决定的是**钱**：
-* 前端组合报价显示多少、下单台就算多少。两份实现一旦漂移，客户看到的价
-* 和实际收的价就对不上，而且很难发现。现在服务端、旧页面、新的 React 组合报价
-* 都调这里，改一处就是全改。
-*
-* 纯函数、不碰数据库、不 import 任何 src/ 下的东西。
-*/
-var num = (value, fallback = 0) => {
-	if (value === "" || value === null || value === void 0) return fallback;
-	const n = Number(value);
-	return Number.isFinite(n) ? n : fallback;
-};
-var money = (value) => Math.round((Number(value) || 0) * 100) / 100;
-/**
-* 按数量找命中的那一档单价。
-* 先找完全落在区间里的；找不到就退到「起量最大且不超过这个数量」的那一档；
-* 再找不到就用服务项的基准价。
-*
-* @param {object} service 服务项（至少要有 base_price）
-* @param {Array} tiers 阶梯价列表；服务端从库里读，前端直接传 service.tiers
-* @param {number} qty 数量
-* @returns {{ price: number, tier: object|null }}
-*/
-function unitPriceFor$1(service, tiers, qty) {
-	const list = (tiers || []).filter(Boolean);
-	if (list.length) {
-		for (const tier of list) {
-			const lo = num(tier.min_qty, 0);
-			const hi = tier.max_qty === null || tier.max_qty === void 0 || tier.max_qty === "" ? Infinity : num(tier.max_qty);
-			if (qty >= lo && qty <= hi) return {
-				price: money(tier.unit_price),
-				tier
-			};
-		}
-		const sorted = [...list].sort((a, b) => num(a.min_qty, 0) - num(b.min_qty, 0));
-		let pick = null;
-		for (const tier of sorted) if (qty >= num(tier.min_qty, 0)) pick = tier;
-		if (pick) return {
-			price: money(pick.unit_price),
-			tier: pick
-		};
-	}
-	return {
-		price: money(service && service.base_price),
-		tier: null
-	};
-}
-/** 只关心单价时的便捷写法（前端展示用） */
-function unitPriceOf(service, qty) {
-	return unitPriceFor$1(service, service && service.tiers, qty).price;
-}
-/** 计价单位：服务项自己写了就用它，否则按计价方式取默认（单 / 天 / 次 / 个 / 套） */
-var UNIT_BY_TYPE = Object.freeze({
-	fixed: "单",
-	daily: "天",
-	per_time: "次",
-	per_unit: "个",
-	package: "套"
-});
-function unitOf$2(service) {
-	if (!service) return "单";
-	return service.unit_label || UNIT_BY_TYPE[service.price_type] || "单";
-}
-var qtyText = (value) => Number.isInteger(value) ? String(value) : String(Math.round(value * 100) / 100);
-/**
-* 「这个服务项能让客户拿到多少货币」，例：`星声 200`。
-*
-* 货币名字配在**游戏**上，服务项只填数量，所以归属要这么找：
-* 服务项自己的 game_id → 没有就跟它的大类走。
-* 游戏没配货币名、或者数量不是正数，就返回空字符串（调用方据此不显示）。
-*/
-function currencyGain(service, games = [], categories = []) {
-	const raw = service && service.currency_amount;
-	if (raw === null || raw === void 0 || raw === "") return "";
-	const amount = Number(raw);
-	if (!Number.isFinite(amount) || amount <= 0) return "";
-	let gameId = service && service.game_id || "";
-	if (!gameId && service && service.category_id) gameId = (categories || []).find((category) => String(category.id) === String(service.category_id))?.game_id || "";
-	const name = String((games || []).find((game) => String(game.id) === String(gameId))?.currency || "").trim();
-	return name ? `${name} ${qtyText(amount)}` : "";
-}
 //#endregion
 //#region public/js/views/games.js
 /** 公告可能有好几行、也可能很长，列表里只给一个开头 */
@@ -17221,7 +17423,7 @@ function gameForm(values = {}) {
 		],
 		onSubmit: async (v) => {
 			const r = values.id ? await api.patch(`/api/games/${values.id}`, v) : await api.post("/api/games", v);
-			toast("游戏已保存", "ok");
+			toast$1("游戏已保存", "ok");
 			return r;
 		}
 	});
@@ -17230,11 +17432,11 @@ var games_default = {
 	title: "游戏",
 	async render(ctx) {
 		const { items } = await api.get("/api/games", { limit: 200 });
-		ctx.setActions(h$1("button.btn.btn--sm.btn--primary", {
+		ctx.setActions(h("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			onclick: () => gameForm().then(() => ctx.app.reload())
 		}, icon("plus", 14), "新建游戏"));
-		if (!items.length) return h$1("section.panel", h$1("div.panel__body", emptyState({
+		if (!items.length) return h("section.panel", h("div.panel__body", emptyState({
 			iconName: "games",
 			title: "还没有加游戏",
 			body: "先加一个你在代肝的游戏。区服也可以一起填上，开单的时候就不用每次手打了。",
@@ -17248,7 +17450,7 @@ var games_default = {
 		})));
 		const active = items.filter((g) => g.status === "active");
 		const archived = items.filter((g) => g.status === "archived");
-		const rows = items.map((g) => h$1("div.item", { style: { cursor: "default" } }, g.icon ? h$1("img", {
+		const rows = items.map((g) => h("div.item", { style: { cursor: "default" } }, g.icon ? h("img", {
 			src: g.icon,
 			alt: "",
 			style: {
@@ -17259,14 +17461,14 @@ var games_default = {
 				flex: "none",
 				border: "1px solid var(--line)"
 			}
-		}) : h$1("div.avatar", g.name.slice(0, 1)), h$1("div.item__main", h$1("div.item__title", g.name, g.short_name ? h$1("span.dim.sm", g.short_name) : null, g.status === "archived" ? tag("已归档", "oxblood") : null), h$1("div.item__meta", h$1("span", `${g.service_count} 个在架服务`), h$1("span", `${g.order_count} 张单`), g.servers?.length ? h$1("span", `区服：${g.servers.join(" / ")}`) : h$1("span.dim", "没填区服"), g.created_at ? h$1("span", `建于 ${fmtDate$1(g.created_at)}`) : null), g.note ? h$1("div.tbl__meta", g.note) : null, g.notice ? h$1("div.tbl__meta", { style: {
+		}) : h("div.avatar", g.name.slice(0, 1)), h("div.item__main", h("div.item__title", g.name, g.short_name ? h("span.dim.sm", g.short_name) : null, g.status === "archived" ? tag("已归档", "oxblood") : null), h("div.item__meta", h("span", `${g.service_count} 个在架服务`), h("span", `${g.order_count} 张单`), g.servers?.length ? h("span", `区服：${g.servers.join(" / ")}`) : h("span.dim", "没填区服"), g.created_at ? h("span", `建于 ${fmtDate$1(g.created_at)}`) : null), g.note ? h("div.tbl__meta", g.note) : null, g.notice ? h("div.tbl__meta", { style: {
 			display: "flex",
 			gap: "7px",
 			alignItems: "baseline"
-		} }, h$1("span.notice-tick"), h$1("span", { style: { whiteSpace: "pre-wrap" } }, firstLine$1(g.notice))) : null), h$1("div.tbl__acts", h$1("button.btn.btn--sm", {
+		} }, h("span.notice-tick"), h("span", { style: { whiteSpace: "pre-wrap" } }, firstLine$1(g.notice))) : null), h("div.tbl__acts", h("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => gameForm(g).then(() => ctx.app.reload())
-		}, icon("edit", 14)), h$1("button.btn.btn--sm", {
+		}, icon("edit", 14)), h("button.btn.btn--sm", {
 			type: "button",
 			title: g.status === "active" ? "归档" : "恢复上架",
 			onclick: async () => {
@@ -17279,10 +17481,10 @@ var games_default = {
 					})) return;
 				}
 				await api.patch(`/api/games/${g.id}`, { status: g.status === "active" ? "archived" : "active" });
-				toast(g.status === "active" ? "已归档" : "已恢复上架", "ok");
+				toast$1(g.status === "active" ? "已归档" : "已恢复上架", "ok");
 				ctx.app.reload();
 			}
-		}, g.status === "active" ? icon("down", 14) : icon("refresh", 14)), h$1("button.btn.btn--sm.btn--danger", {
+		}, g.status === "active" ? icon("down", 14) : icon("refresh", 14)), h("button.btn.btn--sm.btn--danger", {
 			type: "button",
 			title: "彻底删除",
 			onclick: async () => {
@@ -17294,14 +17496,14 @@ var games_default = {
 				})) return;
 				try {
 					await api.del(`/api/games/${g.id}`, { hard: 1 });
-					toast("已删除", "ok");
+					toast$1("已删除", "ok");
 					ctx.app.reload();
 				} catch (err) {
 					toastErr(err);
 				}
 			}
 		}, icon("trash", 14)))));
-		return h$1("div.stack", h$1("div.pagehead", h$1("div.pagehead__txt", h$1("h1", "游戏"), h$1("p.pagehead__sub", `${active.length} 个上架${archived.length ? ` · ${archived.length} 个已归档` : ""}`))), h$1("section.panel", h$1("div.itemlist", rows)), archived.length ? h$1("div.note", `「已归档」的游戏不会被删除，老订单和登录凭证仍然指向它们。想彻底清掉就到上面点删除。`) : null);
+		return h("div.stack", h("div.pagehead", h("div.pagehead__txt", h("h1", "游戏"), h("p.pagehead__sub", `${active.length} 个上架${archived.length ? ` · ${archived.length} 个已归档` : ""}`))), h("section.panel", h("div.itemlist", rows)), archived.length ? h("div.note", `「已归档」的游戏不会被删除，老订单和登录凭证仍然指向它们。想彻底清掉就到上面点删除。`) : null);
 	}
 };
 //#endregion
@@ -17330,8 +17532,8 @@ function sumDialog(cat, services) {
 	const list = (services || []).filter((s) => s.status !== "archived");
 	const picked = /* @__PURE__ */ new Set();
 	const rows = [];
-	const totalFig = h$1("span.sumline__v", "¥0");
-	const countNote = h$1("span.dim.sm", "");
+	const totalFig = h("span.sumline__v", "¥0");
+	const countNote = h("span.dim.sm", "");
 	let m = null;
 	function paint() {
 		let total = 0;
@@ -17349,27 +17551,27 @@ function sumDialog(cat, services) {
 				total += amt;
 				n++;
 			}
-			r.hint.textContent = on && (r.s.tiers || []).length ? `按 ${fmtQty$1(q)} ${unitOf$1(r.s)} 算，单价 ¥${fmtMoney$1(u)}` : "";
+			r.hint.textContent = on && (r.s.tiers || []).length ? `按 ${fmtQty$2(q)} ${unitOf$1(r.s)} 算，单价 ¥${fmtMoney$1(u)}` : "";
 		}
 		totalFig.textContent = `¥${fmtMoney$1(total)}`;
 		countNote.textContent = n ? `已选 ${n} 项` : "还没勾";
 		if (m && m.setDisabled) m.setDisabled("copy", n === 0);
 	}
 	const rowFor = (s) => {
-		const cb = h$1("input.chk", {
+		const cb = h("input.chk", {
 			type: "checkbox",
 			"aria-label": `选择 ${s.name}`
 		});
-		const qty = h$1("input.inp.inp--fig", {
+		const qty = h("input.inp.inp--fig", {
 			inputmode: "decimal",
 			style: { width: "64px" },
 			disabled: true,
 			"aria-label": `${s.name} 数量`
 		});
 		qty.value = String(Number(s.min_qty) || 1);
-		const unit = h$1("span.dim.tiny", unitOf$1(s));
-		const fig = h$1("span.pickrow__fig", `¥${fmtMoney$1(Number(s.base_price) || 0)}`);
-		const hint = h$1("div.hint");
+		const unit = h("span.dim.tiny", unitOf$1(s));
+		const fig = h("span.pickrow__fig", `¥${fmtMoney$1(Number(s.base_price) || 0)}`);
+		const hint = h("div.hint");
 		const toggle = () => {
 			if (picked.has(s.id)) picked.delete(s.id);
 			else picked.add(s.id);
@@ -17378,14 +17580,14 @@ function sumDialog(cat, services) {
 		};
 		cb.addEventListener("change", toggle);
 		qty.addEventListener("input", paint);
-		const el = h$1("div.pickrow", h$1("div.pickrow__top", cb, h$1("button.pickrow__main", {
+		const el = h("div.pickrow", h("div.pickrow__top", cb, h("button.pickrow__main", {
 			type: "button",
 			onclick: toggle
-		}, h$1("span.pickrow__line", h$1("span.pickrow__name", s.name), fig), h$1("span.pickrow__meta", [
+		}, h("span.pickrow__line", h("span.pickrow__name", s.name), fig), h("span.pickrow__meta", [
 			PRICE_TYPE_LABEL[s.price_type] || s.price_type,
 			(s.tiers || []).length ? `${s.tiers.length} 档阶梯价` : null,
 			s.description || null
-		].filter(Boolean).join(" · ")))), h$1("div.pickrow__ctrl", h$1("div.cluster", { style: { gap: "6px" } }, qty, unit, hint)));
+		].filter(Boolean).join(" · ")))), h("div.pickrow__ctrl", h("div.cluster", { style: { gap: "6px" } }, qty, unit, hint)));
 		rows.push({
 			s,
 			el,
@@ -17409,13 +17611,13 @@ function sumDialog(cat, services) {
 	m = modal({
 		title: `组合报价 · ${cat.name}`,
 		wide: true,
-		body: h$1("div.stack", h$1("div.cluster", h$1("span.sm.dim", `勾上客户要的服务项${list.some((s) => (s.tiers || []).length) ? "；数量能改，会自动套阶梯价" : ""}。`), h$1("div", { style: { flex: "1" } }), list.length ? h$1("button.btn.btn--sm", {
+		body: h("div.stack", h("div.cluster", h("span.sm.dim", `勾上客户要的服务项${list.some((s) => (s.tiers || []).length) ? "；数量能改，会自动套阶梯价" : ""}。`), h("div", { style: { flex: "1" } }), list.length ? h("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => setAll(true)
-		}, "全选") : null, list.length ? h$1("button.btn.btn--sm", {
+		}, "全选") : null, list.length ? h("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => setAll(false)
-		}, "全不选") : null), list.length ? h$1("div.picker", h$1("div.picker__scroll", ...list.map(rowFor))) : h$1("div.empty", h$1("div.empty__body", "这个大类下还没有服务项。")), h$1("div.sumline", h$1("span.dim", "合计"), countNote, h$1("div", { style: { flex: "1" } }), totalFig)),
+		}, "全不选") : null), list.length ? h("div.picker", h("div.picker__scroll", ...list.map(rowFor))) : h("div.empty", h("div.empty__body", "这个大类下还没有服务项。")), h("div.sumline", h("span.dim", "合计"), countNote, h("div", { style: { flex: "1" } }), totalFig)),
 		actions: [{ label: "关闭" }, {
 			label: "复制报价",
 			key: "copy",
@@ -17428,7 +17630,7 @@ function sumDialog(cat, services) {
 					const u = tierUnitPrice(r.s, q);
 					const amt = u * q;
 					total += amt;
-					lines.push(`${r.s.name}  ${fmtQty$1(q)}${unitOf$1(r.s)} × ¥${fmtMoney$1(u)} = ¥${fmtMoney$1(amt)}`);
+					lines.push(`${r.s.name}  ${fmtQty$2(q)}${unitOf$1(r.s)} × ¥${fmtMoney$1(u)} = ¥${fmtMoney$1(amt)}`);
 				}
 				if (!lines.length) return false;
 				const okCopy = await copyText$1([
@@ -17436,7 +17638,7 @@ function sumDialog(cat, services) {
 					...lines,
 					`合计：¥${fmtMoney$1(total)}`
 				].join("\n"));
-				toast(okCopy ? "报价已复制" : "复制失败，手动选一下吧", okCopy ? "ok" : "err");
+				toast$1(okCopy ? "报价已复制" : "复制失败，手动选一下吧", okCopy ? "ok" : "err");
 				return false;
 			}
 		}]
@@ -17476,7 +17678,7 @@ function categoryForm(values = {}, games = [], presetGameId = null) {
 		submitLabel: "保存",
 		values: initial,
 		wide: true,
-		intro: h$1("div.hint", "价格表的结构是三层：游戏 → 大类 → 服务项。先建大类（日常 / 周常 / 深渊 / 活动 / 材料…），再往大类里加具体的服务项。"),
+		intro: h("div.hint", "价格表的结构是三层：游戏 → 大类 → 服务项。先建大类（日常 / 周常 / 深渊 / 活动 / 材料…），再往大类里加具体的服务项。"),
 		fields: [
 			{
 				name: "name",
@@ -17527,7 +17729,7 @@ function categoryForm(values = {}, games = [], presetGameId = null) {
 				game_id: v.game_id || null
 			};
 			const r = isEdit ? await api.patch(`/api/categories/${values.id}`, payload) : await api.post("/api/categories/append", payload);
-			toast("大类已保存", "ok");
+			toast$1("大类已保存", "ok");
 			return r;
 		}
 	});
@@ -17548,17 +17750,17 @@ function gameCategoryField({ games = [], categories = [], gameId = "", categoryI
 	});
 	function paintGames() {
 		gameSel.replaceChildren();
-		gameSel.appendChild(h$1("option", { value: "" }, "通用（不属于某个游戏）"));
-		for (const g of games) gameSel.appendChild(h$1("option", { value: String(g.id) }, g.name));
+		gameSel.appendChild(h("option", { value: "" }, "通用（不属于某个游戏）"));
+		for (const g of games) gameSel.appendChild(h("option", { value: String(g.id) }, g.name));
 		gameSel.value = state.gameId;
 	}
 	function paintCats() {
 		const list = catOptionsFor();
 		catSel.replaceChildren();
-		catSel.appendChild(h$1("option", { value: "" }, list.length ? "— 选一个大类 —" : "这个游戏下还没有大类"));
+		catSel.appendChild(h("option", { value: "" }, list.length ? "— 选一个大类 —" : "这个游戏下还没有大类"));
 		for (const c of list) {
 			const foreign = c.game_id && String(c.game_id) !== state.gameId;
-			catSel.appendChild(h$1("option", { value: String(c.id) }, `${c.name}${c.game_name ? `（${c.game_name}）` : ""}${foreign ? " ⚠" : ""}`));
+			catSel.appendChild(h("option", { value: String(c.id) }, `${c.name}${c.game_name ? `（${c.game_name}）` : ""}${foreign ? " ⚠" : ""}`));
 		}
 		catSel.value = list.some((c) => String(c.id) === state.categoryId) ? state.categoryId : "";
 		state.categoryId = catSel.value;
@@ -17567,8 +17769,8 @@ function gameCategoryField({ games = [], categories = [], gameId = "", categoryI
 		type: "custom",
 		width: "full",
 		render: () => {
-			gameSel = h$1("select.sel");
-			catSel = h$1("select.sel");
+			gameSel = h("select.sel");
+			catSel = h("select.sel");
 			gameSel.addEventListener("change", () => {
 				state.gameId = gameSel.value;
 				state.categoryId = "";
@@ -17586,7 +17788,7 @@ function gameCategoryField({ games = [], categories = [], gameId = "", categoryI
 			});
 			paintGames();
 			paintCats();
-			return h$1("div.row-2", h$1("div.field.field--full", h$1("label.lbl", "属于哪个游戏"), gameSel, h$1("div.hint", "选「通用」表示这张价格表不绑游戏")), h$1("div.field.field--full", h$1("label.lbl", "放在哪个大类下", h$1("span.req", "*")), catSel, h$1("div.hint", "服务项必须挂在某个大类里。还没有大类就先去「新建分类」。")));
+			return h("div.row-2", h("div.field.field--full", h("label.lbl", "属于哪个游戏"), gameSel, h("div.hint", "选「通用」表示这张价格表不绑游戏")), h("div.field.field--full", h("label.lbl", "放在哪个大类下", h("span.req", "*")), catSel, h("div.hint", "服务项必须挂在某个大类里。还没有大类就先去「新建分类」。")));
 		},
 		collect: (out) => {
 			out.game_id = state.gameId || "";
@@ -17659,7 +17861,7 @@ function serviceForm(values = {}, { games = [], categories = [] } = {}, { quick 
 			...values
 		},
 		wide: true,
-		intro: quick ? h$1("div.hint", "先录入客户最常用的信息；阶梯价、套餐、增项和可获得货币可在保存后从服务行的高级设置补充。") : null,
+		intro: quick ? h("div.hint", "先录入客户最常用的信息；阶梯价、套餐、增项和可获得货币可在保存后从服务行的高级设置补充。") : null,
 		fields: quick ? quickFields : [
 			{
 				name: "name",
@@ -17784,19 +17986,19 @@ function serviceForm(values = {}, { games = [], categories = [] } = {}, { quick 
 				currency_amount: v.currency_amount === "" || v.currency_amount === null || v.currency_amount === void 0 ? null : Number(v.currency_amount)
 			};
 			const r = values.id ? await api.patch(`/api/services/${values.id}`, payload) : await api.post("/api/services/append", payload);
-			toast("服务项已保存", "ok");
+			toast$1("服务项已保存", "ok");
 			return r;
 		}
 	});
 }
 function tierEditor(service, onDone) {
-	h$1("div.stack");
-	const listBox = h$1("div.itemlist");
+	h("div.stack");
+	const listBox = h("div.itemlist");
 	async function load() {
 		const { items } = await api.get(`/api/services/${service.id}/tiers`);
 		listBox.replaceChildren();
-		if (!items.length) listBox.appendChild(h$1("div.panel__body", h$1("p.dim.sm", "还没有阶梯价。不配的话就一律用基准单价。")));
-		for (const t of items) listBox.appendChild(h$1("div.item", { style: { cursor: "default" } }, h$1("div.item__main", h$1("div.item__title", `${fmtQty$1(t.min_qty)} ~ ${t.max_qty === null || t.max_qty === "" ? "不限" : fmtQty$1(t.max_qty)} ${unitOf$1(service)}`), h$1("div.item__meta", h$1("span", `单价 ¥${fmtMoney$1(t.unit_price)}/${unitOf$1(service)}`))), h$1("div.tbl__acts", h$1("button.btn.btn--sm", {
+		if (!items.length) listBox.appendChild(h("div.panel__body", h("p.dim.sm", "还没有阶梯价。不配的话就一律用基准单价。")));
+		for (const t of items) listBox.appendChild(h("div.item", { style: { cursor: "default" } }, h("div.item__main", h("div.item__title", `${fmtQty$2(t.min_qty)} ~ ${t.max_qty === null || t.max_qty === "" ? "不限" : fmtQty$2(t.max_qty)} ${unitOf$1(service)}`), h("div.item__meta", h("span", `单价 ¥${fmtMoney$1(t.unit_price)}/${unitOf$1(service)}`))), h("div.tbl__acts", h("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => formDrawer({
 				title: "改阶梯价",
@@ -17831,19 +18033,19 @@ function tierEditor(service, onDone) {
 						max_qty: v.max_qty === "" ? null : Number(v.max_qty),
 						min_qty: Number(v.min_qty)
 					});
-					toast("已更新", "ok");
+					toast$1("已更新", "ok");
 					load();
 				}
 			})
-		}, icon("edit", 14)), h$1("button.btn.btn--sm", {
+		}, icon("edit", 14)), h("button.btn.btn--sm", {
 			type: "button",
 			onclick: async () => {
 				if (!await confirmDelete$1({
 					title: "删掉这一档？",
-					message: `第 ${fmtQty$1(t.min_qty)} 档`
+					message: `第 ${fmtQty$2(t.min_qty)} 档`
 				})) return;
 				await api.del(`/api/tiers/${t.id}`);
-				toast("已删除", "ok");
+				toast$1("已删除", "ok");
 				load();
 			}
 		}, icon("trash", 14)))));
@@ -17851,7 +18053,7 @@ function tierEditor(service, onDone) {
 	const d = drawer({
 		title: "阶梯价",
 		subtitle: `${service.name} · 按数量越多越便宜`,
-		body: h$1("div.stack", h$1("div.note", "按「数量」计价的服务项会先来这里找匹配的一档；找不到就用基准单价。例：1~5 层 30 元/层，6~12 层 25 元/层。"), listBox, h$1("button.btn.btn--primary", {
+		body: h("div.stack", h("div.note", "按「数量」计价的服务项会先来这里找匹配的一档；找不到就用基准单价。例：1~5 层 30 元/层，6~12 层 25 元/层。"), listBox, h("button.btn.btn--primary", {
 			type: "button",
 			onclick: () => formDrawer({
 				title: "加一档阶梯价",
@@ -17886,7 +18088,7 @@ function tierEditor(service, onDone) {
 						min_qty: Number(v.min_qty),
 						max_qty: v.max_qty === "" ? null : Number(v.max_qty)
 					});
-					toast("已加上", "ok");
+					toast$1("已加上", "ok");
 					load();
 				}
 			})
@@ -17896,7 +18098,7 @@ function tierEditor(service, onDone) {
 	return d;
 }
 function optionEditor(service) {
-	const listBox = h$1("div.itemlist");
+	const listBox = h("div.itemlist");
 	async function load() {
 		const [mine, all] = await Promise.all([api.get("/api/options", {
 			service_id: service.id,
@@ -17905,16 +18107,16 @@ function optionEditor(service) {
 		const globals = (all.items || []).filter((o) => !o.service_id && o.status !== "archived");
 		listBox.replaceChildren();
 		const section = (title, rows, note) => {
-			listBox.appendChild(h$1("div.search__grouplbl", { style: { padding: "10px 0 4px" } }, title));
-			if (note) listBox.appendChild(h$1("div.hint", { style: { paddingBottom: "6px" } }, note));
+			listBox.appendChild(h("div.search__grouplbl", { style: { padding: "10px 0 4px" } }, title));
+			if (note) listBox.appendChild(h("div.hint", { style: { paddingBottom: "6px" } }, note));
 			if (!rows.length) {
-				listBox.appendChild(h$1("div", { style: { padding: "0 0 8px" } }, h$1("span.dim.sm", "（空）")));
+				listBox.appendChild(h("div", { style: { padding: "0 0 8px" } }, h("span.dim.sm", "（空）")));
 				return;
 			}
-			for (const o of rows) listBox.appendChild(h$1("div.item", { style: {
+			for (const o of rows) listBox.appendChild(h("div.item", { style: {
 				cursor: "default",
 				alignItems: "flex-start"
-			} }, h$1("div.item__main", h$1("div.item__title", o.name, tag(o.kind === "package" ? "套餐" : "增项", o.kind === "package" ? "slate" : ""), o.default_selected ? tag("默认选中", "jade") : null, o.status === "archived" ? tag("已下架", "oxblood") : null), h$1("div.item__meta", h$1("span", o.price_mode === "percent" ? `加价 ${o.price}%` : o.price ? `加 ¥${fmtMoney$1(o.price)}` : "不加价"), o.description ? h$1("span", o.description) : null)), o.service_id ? h$1("div.tbl__acts", h$1("button.btn.btn--sm", {
+			} }, h("div.item__main", h("div.item__title", o.name, tag(o.kind === "package" ? "套餐" : "增项", o.kind === "package" ? "slate" : ""), o.default_selected ? tag("默认选中", "jade") : null, o.status === "archived" ? tag("已下架", "oxblood") : null), h("div.item__meta", h("span", o.price_mode === "percent" ? `加价 ${o.price}%` : o.price ? `加 ¥${fmtMoney$1(o.price)}` : "不加价"), o.description ? h("span", o.description) : null)), o.service_id ? h("div.tbl__acts", h("button.btn.btn--sm", {
 				type: "button",
 				onclick: () => formDrawer({
 					title: "改增项",
@@ -17973,11 +18175,11 @@ function optionEditor(service) {
 					],
 					onSubmit: async (v) => {
 						await api.patch(`/api/options/${o.id}`, v);
-						toast("已更新", "ok");
+						toast$1("已更新", "ok");
 						load();
 					}
 				})
-			}, icon("edit", 14)), h$1("button.btn.btn--sm", {
+			}, icon("edit", 14)), h("button.btn.btn--sm", {
 				type: "button",
 				onclick: async () => {
 					if (!await confirmDelete$1({
@@ -17985,10 +18187,10 @@ function optionEditor(service) {
 						message: o.name
 					})) return;
 					await api.del(`/api/options/${o.id}`);
-					toast("已删除", "ok");
+					toast$1("已删除", "ok");
 					load();
 				}
-			}, icon("trash", 14))) : h$1("span.tag.tag--outline", "通用")));
+			}, icon("trash", 14))) : h("span.tag.tag--outline", "通用")));
 		};
 		section("这个服务项专属", mine.items || []);
 		section("全局通用增项", globals, "建在所有服务项上都可用，比如「不动原石」「全程录屏」。在「新建增项」里把绑定服务留空即可。");
@@ -17996,7 +18198,7 @@ function optionEditor(service) {
 	const d = drawer({
 		title: "套餐与增项",
 		subtitle: service.name,
-		body: h$1("div.stack", h$1("div.note", "增项会作为可勾选项出现在下单台里，选了就自动加进金额，并且一起冻进订单快照。"), listBox, h$1("div.cluster", h$1("button.btn.btn--primary", {
+		body: h("div.stack", h("div.note", "增项会作为可勾选项出现在下单台里，选了就自动加进金额，并且一起冻进订单快照。"), listBox, h("div.cluster", h("button.btn.btn--primary", {
 			type: "button",
 			onclick: () => formDrawer({
 				title: "给这个服务项加增项",
@@ -18061,16 +18263,16 @@ function optionEditor(service) {
 						...v,
 						service_id: service.id
 					});
-					toast("已加上", "ok");
+					toast$1("已加上", "ok");
 					load();
 				}
 			})
-		}, icon("plus", 14), "加增项"), h$1("button.btn", {
+		}, icon("plus", 14), "加增项"), h("button.btn", {
 			type: "button",
 			onclick: () => formDrawer({
 				title: "新建全局通用增项",
 				submitLabel: "加上",
-				intro: h$1("div.hint", "不绑定任何服务项，所有服务都能勾。"),
+				intro: h("div.hint", "不绑定任何服务项，所有服务都能勾。"),
 				fields: [
 					{
 						name: "name",
@@ -18111,7 +18313,7 @@ function optionEditor(service) {
 						service_id: null,
 						kind: "addon"
 					});
-					toast("已加上", "ok");
+					toast$1("已加上", "ok");
 					load();
 				}
 			})
@@ -18128,39 +18330,39 @@ function servicePeek(service, ctx, { onChanged } = {}) {
 	const tiers = [...service.tiers || []].sort((a, b) => (Number(a.min_qty) || 0) - (Number(b.min_qty) || 0));
 	const options = (service.options || []).filter((option) => option.status !== "archived");
 	const tierLines = tiers.map((tier) => {
-		return `${tier.max_qty === null || tier.max_qty === void 0 || tier.max_qty === "" ? `${fmtQty$1(tier.min_qty || 1)}${unitOf$1(service)}+` : `${fmtQty$1(tier.min_qty || 1)}-${fmtQty$1(tier.max_qty)}${unitOf$1(service)}`}：¥${fmtMoney$1(tier.unit_price)}/${unitOf$1(service)}`;
+		return `${tier.max_qty === null || tier.max_qty === void 0 || tier.max_qty === "" ? `${fmtQty$2(tier.min_qty || 1)}${unitOf$1(service)}+` : `${fmtQty$2(tier.min_qty || 1)}-${fmtQty$2(tier.max_qty)}${unitOf$1(service)}`}：¥${fmtMoney$1(tier.unit_price)}/${unitOf$1(service)}`;
 	});
 	const optionLines = options.map((option) => {
-		const price = option.price_mode === "percent" ? ` +${fmtQty$1(option.price)}%` : Number(option.price) ? ` +¥${fmtMoney$1(option.price)}` : "";
+		const price = option.price_mode === "percent" ? ` +${fmtQty$2(option.price)}%` : Number(option.price) ? ` +¥${fmtMoney$1(option.price)}` : "";
 		const description = String(option.description || "").trim();
 		return `${option.name || "未命名"}${price}${description ? ` · 说明：${description}` : ""}`;
 	});
-	const priceLine = service.price_type === "per_unit" && service.tiers?.length ? h$1("div", h$1("div.pitem__fig", `¥${fmtMoney$1(service.base_price)}`), h$1("div.pitem__unit", `/${unitOf$1(service)} 起`), h$1("div.tbl__meta", `${service.tiers.length} 档阶梯价`)) : h$1("div", h$1("div.pitem__fig", `¥${fmtMoney$1(service.base_price)}`), h$1("div.pitem__unit", `/${unitOf$1(service)}`));
+	const priceLine = service.price_type === "per_unit" && service.tiers?.length ? h("div", h("div.pitem__fig", `¥${fmtMoney$1(service.base_price)}`), h("div.pitem__unit", `/${unitOf$1(service)} 起`), h("div.tbl__meta", `${service.tiers.length} 档阶梯价`)) : h("div", h("div.pitem__fig", `¥${fmtMoney$1(service.base_price)}`), h("div.pitem__unit", `/${unitOf$1(service)}`));
 	const gain = currencyGain(service, ctx.meta?.games || [], ctx.meta?.categories || []);
 	const d = drawer({
 		title: service.name,
 		subtitle: `${PRICE_TYPE_LABEL[service.price_type] || service.price_type} · ${service.category_name || "未分类"}${service.game_name ? ` · ${service.game_name}` : ""}`,
-		body: h$1("div.stack", h$1("div.cluster", { style: {
+		body: h("div.stack", h("div.cluster", { style: {
 			justifyContent: "space-between",
 			alignItems: "flex-start"
-		} }, h$1("div", priceLine), h$1("div.cluster", service.status === "active" ? tag("在架", "jade") : tag("已下架", "oxblood"))), gain ? h$1("div", h$1("span.tag.tag--outline", `可获得 ${gain}`)) : null, service.description ? h$1("p", { style: { lineHeight: "1.7" } }, service.description) : null, service.package_items?.length ? h$1("div", h$1("div.tbl__meta", "套餐包含"), h$1("div.subitems", ...service.package_items.map((p) => h$1("div.subitem", h$1("span", "·"), h$1("span", p))))) : null, tiers.length ? h$1("div", h$1("div.tbl__meta", "阶梯价"), h$1("div.subitems", ...tierLines.map((line) => h$1("div.subitem", h$1("span", "·"), h$1("span", line))))) : null, options.length ? h$1("div", h$1("div.tbl__meta", "套餐与增项"), h$1("div.subitems", ...optionLines.map((line) => h$1("div.subitem", h$1("span", "·"), h$1("span", line))))) : null, h$1("hr"), h$1("div.cluster", h$1("button.btn.btn--sm", {
+		} }, h("div", priceLine), h("div.cluster", service.status === "active" ? tag("在架", "jade") : tag("已下架", "oxblood"))), gain ? h("div", h("span.tag.tag--outline", `可获得 ${gain}`)) : null, service.description ? h("p", { style: { lineHeight: "1.7" } }, service.description) : null, service.package_items?.length ? h("div", h("div.tbl__meta", "套餐包含"), h("div.subitems", ...service.package_items.map((p) => h("div.subitem", h("span", "·"), h("span", p))))) : null, tiers.length ? h("div", h("div.tbl__meta", "阶梯价"), h("div.subitems", ...tierLines.map((line) => h("div.subitem", h("span", "·"), h("span", line))))) : null, options.length ? h("div", h("div.tbl__meta", "套餐与增项"), h("div.subitems", ...optionLines.map((line) => h("div.subitem", h("span", "·"), h("span", line))))) : null, h("hr"), h("div.cluster", h("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => serviceForm(service, ctx.meta).then(reload)
-		}, icon("edit", 14), "改价格和说明"), h$1("button.btn.btn--sm", {
+		}, icon("edit", 14), "改价格和说明"), h("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => tierEditor(service)
-		}, "阶梯价"), h$1("button.btn.btn--sm", {
+		}, "阶梯价"), h("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => optionEditor(service)
-		}, "套餐与增项"), copyButton(`${service.name} ¥${fmtMoney$1(service.base_price)}/${unitOf$1(service)}`, "复制价款")), h$1("hr"), h$1("div.cluster", h$1("button.btn.btn--sm", {
+		}, "套餐与增项"), copyButton(`${service.name} ¥${fmtMoney$1(service.base_price)}/${unitOf$1(service)}`, "复制价款")), h("hr"), h("div.cluster", h("button.btn.btn--sm", {
 			type: "button",
 			onclick: async () => {
 				const next = service.status === "active" ? "archived" : "active";
 				await api.patch(`/api/services/${service.id}`, { status: next });
-				toast(next === "archived" ? "已下架，老订单不受影响" : "已重新上架", "ok");
+				toast$1(next === "archived" ? "已下架，老订单不受影响" : "已重新上架", "ok");
 				reload();
 			}
-		}, service.status === "active" ? "下架" : "重新上架"), h$1("div", { style: { flex: "1" } }), h$1("button.btn.btn--sm.btn--danger", {
+		}, service.status === "active" ? "下架" : "重新上架"), h("div", { style: { flex: "1" } }), h("button.btn.btn--sm.btn--danger", {
 			type: "button",
 			onclick: async () => {
 				const usage = await api.get(`/api/services/${service.id}/usage`);
@@ -18176,7 +18378,7 @@ function servicePeek(service, ctx, { onChanged } = {}) {
 					toastErr(err);
 					return;
 				}
-				toast("已删除", "ok");
+				toast$1("已删除", "ok");
 				d.close();
 				reload();
 			}
@@ -18194,9 +18396,9 @@ async function openExporter$1(ctx, { games = [] } = {}) {
 		footer: null
 	};
 	let allModel = null;
-	const scopeSel = h$1("select.sel", h$1("option", { value: "per-game" }, "每个游戏各出一份（推荐 · 分开的文件）"), h$1("option", { value: "merged" }, "全部游戏合并成一份"), ...games.map((g) => h$1("option", { value: `game:${g.id}` }, `只要「${g.name}」这一份`)));
+	const scopeSel = h("select.sel", h("option", { value: "per-game" }, "每个游戏各出一份（推荐 · 分开的文件）"), h("option", { value: "merged" }, "全部游戏合并成一份"), ...games.map((g) => h("option", { value: `game:${g.id}` }, `只要「${g.name}」这一份`)));
 	scopeSel.value = state.scope;
-	const perSel = h$1("select.sel", ...[
+	const perSel = h("select.sel", ...[
 		{
 			v: "4",
 			l: "4 项"
@@ -18217,9 +18419,9 @@ async function openExporter$1(ctx, { games = [] } = {}) {
 			v: "99",
 			l: "不限"
 		}
-	].map((o) => h$1("option", { value: o.v }, o.l)));
+	].map((o) => h("option", { value: o.v }, o.l)));
 	perSel.value = state.perCategory;
-	const catSel = h$1("select.sel", ...[
+	const catSel = h("select.sel", ...[
 		{
 			v: "6",
 			l: "6 个"
@@ -18236,16 +18438,16 @@ async function openExporter$1(ctx, { games = [] } = {}) {
 			v: "99",
 			l: "不限"
 		}
-	].map((o) => h$1("option", { value: o.v }, o.l)));
+	].map((o) => h("option", { value: o.v }, o.l)));
 	catSel.value = state.maxCategories;
-	const descChk = h$1("input.chk", { type: "checkbox" });
+	const descChk = h("input.chk", { type: "checkbox" });
 	descChk.checked = true;
-	const contactInp = h$1("input.inp", { placeholder: "例：微信 xiaofeng" });
-	const footerInp = h$1("input.inp", { placeholder: "例：价格随版本更新，以最新报价为准" });
-	const previewBox = h$1("div.exporter__preview");
-	const summary = h$1("div.hint", "正在生成预览…");
-	const imgBtn = h$1("button.btn.btn--primary", { type: "button" }, icon("download", 14), "生成图片");
-	const docBtn = h$1("button.btn", { type: "button" }, icon("quotes", 14), "生成 Word 文档");
+	const contactInp = h("input.inp", { placeholder: "例：微信 xiaofeng" });
+	const footerInp = h("input.inp", { placeholder: "例：价格随版本更新，以最新报价为准" });
+	const previewBox = h("div.exporter__preview");
+	const summary = h("div.hint", "正在生成预览…");
+	const imgBtn = h("button.btn.btn--primary", { type: "button" }, icon("download", 14), "生成图片");
+	const docBtn = h("button.btn", { type: "button" }, icon("quotes", 14), "生成 Word 文档");
 	let refreshing = 0;
 	/** 公共查询参数（不含 game_id） */
 	function baseQuery() {
@@ -18309,7 +18511,7 @@ async function openExporter$1(ctx, { games = [] } = {}) {
 			summary.textContent = "预览画不出来：" + (err.message || "");
 			return;
 		}
-		mount(previewBox, h$1("div.stack", h$1("img", {
+		mount(previewBox, h("div.stack", h("img", {
 			src: canvas.toDataURL("image/png"),
 			alt: "价格表速览卡预览"
 		})));
@@ -18351,13 +18553,13 @@ async function openExporter$1(ctx, { games = [] } = {}) {
 		wide: true,
 		title: "导出价格表",
 		subtitle: "生成能直接发微信的图片，或者能打印、能编辑的 Word 文档",
-		body: h$1("div.stack", h$1("div.formgrid", h$1("div.field.field--full", h$1("label.lbl", "导出范围"), scopeSel, h$1("div.hint", "默认每个游戏单独出一份，发给客户时只发他那款游戏，不会把几个游戏混在一张图上。")), h$1("div.field.field--full", h$1("label.lbl", "图片内容"), h$1("div.hint", "按游戏生成一张完整的客户速览长图；Word 会保留完整服务和阶梯价。")), h$1("div.field.field--full", h$1("label.lbl", "带说明文字"), h$1("label.inline", { style: { cursor: "pointer" } }, descChk, h$1("span.sm", "展示服务说明、套餐内容和增项"))), h$1("div.field.field--full", h$1("label.lbl", "联系方式"), contactInp), h$1("div.field.field--full", h$1("label.lbl", "页脚说明"), footerInp)), h$1("div.sechead", { style: { marginBottom: "0" } }, h$1("h3", "预览"), h$1("span.sechead__note", "这就是生成出来的图片")), previewBox, summary, h$1("div.note", "图片按游戏生成一张完整长图；Word 是 A4 完整价目册，使用真实表格并逐档列出阶梯价。")),
+		body: h("div.stack", h("div.formgrid", h("div.field.field--full", h("label.lbl", "导出范围"), scopeSel, h("div.hint", "默认每个游戏单独出一份，发给客户时只发他那款游戏，不会把几个游戏混在一张图上。")), h("div.field.field--full", h("label.lbl", "图片内容"), h("div.hint", "按游戏生成一张完整的客户速览长图；Word 会保留完整服务和阶梯价。")), h("div.field.field--full", h("label.lbl", "带说明文字"), h("label.inline", { style: { cursor: "pointer" } }, descChk, h("span.sm", "展示服务说明、套餐内容和增项"))), h("div.field.field--full", h("label.lbl", "联系方式"), contactInp), h("div.field.field--full", h("label.lbl", "页脚说明"), footerInp)), h("div.sechead", { style: { marginBottom: "0" } }, h("h3", "预览"), h("span.sechead__note", "这就是生成出来的图片")), previewBox, summary, h("div.note", "图片按游戏生成一张完整长图；Word 是 A4 完整价目册，使用真实表格并逐档列出阶梯价。")),
 		footer: [
-			h$1("button.btn", {
+			h("button.btn", {
 				type: "button",
 				onclick: () => d.close()
 			}, "关闭"),
-			h$1("div", { style: { flex: "1" } }),
+			h("div", { style: { flex: "1" } }),
 			docBtn,
 			imgBtn
 		]
@@ -18397,14 +18599,14 @@ async function openExporter$1(ctx, { games = [] } = {}) {
 			for (const { target, model } of jobs) {
 				const blob = await canvasToBlob(renderPriceCard(model, { scale: 2 }));
 				if (!blob) {
-					toast("这个浏览器不支持生成图片，请换 Chrome / Edge / Safari 试试", "err", 4200);
+					toast$1("这个浏览器不支持生成图片，请换 Chrome / Edge / Safari 试试", "err", 4200);
 					return;
 				}
 				downloadBlob(blob, fileName(model, target, "png"));
 				n++;
 				if (n < jobs.length) await new Promise((r) => setTimeout(r, 400));
 			}
-			toast(n > 1 ? `已生成 ${n} 张完整图片` : "图片已生成，去下载文件夹看看", "ok", 3600);
+			toast$1(n > 1 ? `已生成 ${n} 张完整图片` : "图片已生成，去下载文件夹看看", "ok", 3600);
 		} catch (err) {
 			toastErr(err);
 		} finally {
@@ -18428,14 +18630,14 @@ async function openExporter$1(ctx, { games = [] } = {}) {
 						const j = await res.json();
 						if (j?.error) msg = j.error;
 					} catch {}
-					toast(msg, "err", 4200);
+					toast$1(msg, "err", 4200);
 					return;
 				}
 				downloadBlob(await res.blob(), fileName(model, target, "docx"));
 				n++;
 				if (n < jobs.length) await new Promise((r) => setTimeout(r, 400));
 			}
-			toast(n > 1 ? `已生成 ${n} 份 Word 文档，每个游戏一份` : "Word 文档已生成，可以用 Word / WPS 打开和修改", "ok", 3600);
+			toast$1(n > 1 ? `已生成 ${n} 份 Word 文档，每个游戏一份` : "Word 文档已生成，可以用 Word / WPS 打开和修改", "ok", 3600);
 		} catch (err) {
 			toastErr(err);
 		} finally {
@@ -18474,7 +18676,7 @@ var price_default = {
 				n = (await api.get(`/api/categories/${cat.id}/usage`)).services || 0;
 			} catch {}
 			const archived = cat.status === "archived";
-			const choice = await choiceDialog({
+			const choice = await choiceDialog$1({
 				title: `处理大类「${cat.name}」`,
 				message: n ? `这个大类下面有 ${n} 个服务项。` : "这个大类下面还没有服务项。",
 				archiveLabel: archived ? null : "归档大类",
@@ -18486,10 +18688,10 @@ var price_default = {
 			try {
 				if (choice === "archive") {
 					await api.patch(`/api/categories/${cat.id}`, { status: "archived" });
-					toast("已归档，服务项一个没动", "ok");
+					toast$1("已归档，服务项一个没动", "ok");
 				} else {
 					await api.del(`/api/categories/${cat.id}`, { hard: 1 });
-					toast(n ? `已删除，${n} 个服务项变成了「未分类」` : "已删除", "ok");
+					toast$1(n ? `已删除，${n} 个服务项变成了「未分类」` : "已删除", "ok");
 				}
 				ctx.app.reload();
 			} catch (err) {
@@ -18498,7 +18700,7 @@ var price_default = {
 		}
 		const newService = (categoryId) => {
 			if (!categoryId) {
-				toast("先建一个大类，服务项要挂在大类下面", "err", 3200);
+				toast$1("先建一个大类，服务项要挂在大类下面", "err", 3200);
 				return newCategory();
 			}
 			setCatOpen(categoryId, true);
@@ -18511,17 +18713,17 @@ var price_default = {
 				categories
 			}).then(() => ctx.app.reload());
 		};
-		ctx.setActions(h$1("button.btn.btn--sm", {
+		ctx.setActions(h("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => newPriceTable()
-		}, icon("plus", 14), "新建价格表"), h$1("button.btn.btn--sm.btn--primary", {
+		}, icon("plus", 14), "新建价格表"), h("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			onclick: () => newCategory()
-		}, icon("plus", 14), "新建大类"), h$1("button.btn.btn--sm", {
+		}, icon("plus", 14), "新建大类"), h("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => openExporter$1(ctx, { games: allGames })
 		}, icon("download", 14), "导出图片/文档"));
-		if (!allGames.length && !categories.length && !services.length) return h$1("section.panel", h$1("div.panel__body", emptyState({
+		if (!allGames.length && !categories.length && !services.length) return h("section.panel", h("div.panel__body", emptyState({
 			iconName: "price",
 			title: "还没有价格表",
 			body: "一张价格表 = 一个游戏。先建价格表，再在里面建大类（日常 / 周常 / 深渊 / 活动），最后往大类里加具体的服务项。价格改一次，从今往后的单子都按新价，已经开出去的老单不动。",
@@ -18534,7 +18736,7 @@ var price_default = {
 			],
 			actionLabel: "新建第一张价格表",
 			onAction: () => newPriceTable(),
-			secondary: h$1("button.btn", {
+			secondary: h("button.btn", {
 				type: "button",
 				onclick: () => newCategory()
 			}, "不绑游戏，建个通用大类")
@@ -18581,7 +18783,7 @@ var price_default = {
 		let filterGame = ctx.query.get("game") || "";
 		let filterStatus = ctx.query.get("status") || "active";
 		let filterQ = "";
-		const listBox = h$1("div.pricelist");
+		const listBox = h("div.pricelist");
 		function optsFor(sid) {
 			return options.filter((o) => o.service_id === sid || !o.service_id && o.status === "active");
 		}
@@ -18634,7 +18836,7 @@ var price_default = {
 					game_id: targetCat.game_id || ""
 				});
 				await api.post("/api/reorder/services", { ids });
-				toast(changedCat ? `已挪到「${targetCat.name}」` : "顺序已保存", "ok");
+				toast$1(changedCat ? `已挪到「${targetCat.name}」` : "顺序已保存", "ok");
 				ctx.app.reload();
 			} catch (err) {
 				toastErr(err);
@@ -18724,7 +18926,7 @@ var price_default = {
 			try {
 				if (changedGame) await api.patch(`/api/categories/${movedId}`, { game_id: targetGameId });
 				await api.post("/api/reorder/categories", { ids });
-				toast(changedGame ? `「${cat.name}」已挪到 ${grp.name}` : "大类的顺序已保存", "ok");
+				toast$1(changedGame ? `「${cat.name}」已挪到 ${grp.name}` : "大类的顺序已保存", "ok");
 				ctx.app.reload();
 			} catch (err) {
 				toastErr(err);
@@ -18782,7 +18984,7 @@ var price_default = {
 			const related = optsFor(s.id);
 			const gain = currencyGain(s, allGames, categories);
 			const bare = !s.description && !s.package_items?.length && !related.length && !(s.tier_count > 0) && s.status !== "archived";
-			const acts = h$1("div.pitem__acts", h$1("button.btn.btn--sm.btn--quiet", {
+			const acts = h("div.pitem__acts", h("button.btn.btn--sm.btn--quiet", {
 				type: "button",
 				title: "详情",
 				draggable: "false",
@@ -18790,7 +18992,7 @@ var price_default = {
 					e.stopPropagation();
 					servicePeek(s, ctx, { onChanged: () => ctx.app.reload() });
 				}
-			}, "详情"), h$1("button.btn.btn--sm.btn--quiet", {
+			}, "详情"), h("button.btn.btn--sm.btn--quiet", {
 				type: "button",
 				title: "改这个服务项",
 				draggable: "false",
@@ -18802,7 +19004,7 @@ var price_default = {
 					}).then(() => ctx.app.reload());
 				}
 			}, icon("edit", 14)));
-			const row = bare ? h$1("div.pitem.pitem--slim", { title: "拖动可以调整顺序" }, h$1("span.pitem__grip", icon("drag", 14)), h$1("span.pitem__name", s.name, gain ? tag(gain, "outline") : null), h$1("span.pitem__leader"), h$1("span.pitem__amount", h$1("span.pitem__fig", `¥${fmtMoney$1(s.base_price)}`), h$1("em.pitem__unit", `/${unitOf$1(s)}`)), acts) : h$1("div.pitem", { title: "拖动可以调整顺序" }, h$1("div", h$1("div.pitem__name", h$1("span.pitem__grip", icon("drag", 14)), s.name, gain ? tag(gain, "outline") : null, s.tier_count > 0 ? tag(`${s.tier_count} 档阶梯价`, "cinnabar") : null, s.status === "archived" ? tag("已下架", "oxblood") : null), s.description ? h$1("div.pitem__desc", s.description) : null, s.package_items?.length ? h$1("div.subitems", h$1("div.subitem", h$1("span.subitem__k", "含"), h$1("span", s.package_items.join(" · ")))) : null, related.length ? h$1("div.subitems", h$1("div.subitem", h$1("span.subitem__k", "增项"), h$1("span", related.slice(0, 6).map((o) => `${o.name}${o.price_mode === "percent" ? ` +${o.price}%` : o.price ? ` +${fmtMoney$1(o.price)}元` : ""}`).join(" · ")))) : null), h$1("div.pitem__price", h$1("span.pitem__amount", h$1("span.pitem__fig", `¥${fmtMoney$1(s.base_price)}`), h$1("em.pitem__unit", `/${unitOf$1(s)}`)), acts));
+			const row = bare ? h("div.pitem.pitem--slim", { title: "拖动可以调整顺序" }, h("span.pitem__grip", icon("drag", 14)), h("span.pitem__name", s.name, gain ? tag(gain, "outline") : null), h("span.pitem__leader"), h("span.pitem__amount", h("span.pitem__fig", `¥${fmtMoney$1(s.base_price)}`), h("em.pitem__unit", `/${unitOf$1(s)}`)), acts) : h("div.pitem", { title: "拖动可以调整顺序" }, h("div", h("div.pitem__name", h("span.pitem__grip", icon("drag", 14)), s.name, gain ? tag(gain, "outline") : null, s.tier_count > 0 ? tag(`${s.tier_count} 档阶梯价`, "cinnabar") : null, s.status === "archived" ? tag("已下架", "oxblood") : null), s.description ? h("div.pitem__desc", s.description) : null, s.package_items?.length ? h("div.subitems", h("div.subitem", h("span.subitem__k", "含"), h("span", s.package_items.join(" · ")))) : null, related.length ? h("div.subitems", h("div.subitem", h("span.subitem__k", "增项"), h("span", related.slice(0, 6).map((o) => `${o.name}${o.price_mode === "percent" ? ` +${o.price}%` : o.price ? ` +${fmtMoney$1(o.price)}元` : ""}`).join(" · ")))) : null), h("div.pitem__price", h("span.pitem__amount", h("span.pitem__fig", `¥${fmtMoney$1(s.base_price)}`), h("em.pitem__unit", `/${unitOf$1(s)}`)), acts));
 			wireRow(row, s);
 			return row;
 		}
@@ -18833,36 +19035,36 @@ var price_default = {
 				}
 				const svcCount = blocks.reduce((n, b) => n + b.list.length, 0) + loose.length;
 				shownGroups++;
-				const groupBody = h$1("div.pgroup__body");
+				const groupBody = h("div.pgroup__body");
 				for (const b of blocks) {
-					const catBody = h$1("div.pcat__body");
+					const catBody = h("div.pcat__body");
 					const catNotice = String(b.cat.notice || "").trim();
-					if (catNotice) catBody.appendChild(h$1("div.pcat__notice", h$1("span", catNotice)));
-					if (!b.list.length) catBody.appendChild(h$1("div", { style: { padding: "2px 16px 14px" } }, h$1("span.dim.sm", b.all.length ? "这个筛选下没有服务项。" : "这个大类下还没有服务项 —— 点右边「加服务项」开始录。")));
+					if (catNotice) catBody.appendChild(h("div.pcat__notice", h("span", catNotice)));
+					if (!b.list.length) catBody.appendChild(h("div", { style: { padding: "2px 16px 14px" } }, h("span.dim.sm", b.all.length ? "这个筛选下没有服务项。" : "这个大类下还没有服务项 —— 点右边「加服务项」开始录。")));
 					else for (const s of b.list) catBody.appendChild(serviceRow(s));
 					wireCatBody(catBody, b.cat);
-					const catHead = h$1("div.pcat__head", { title: "按住可以调整大类顺序，拖到别的游戏/通用组里就是换归属" }, h$1("span.pcat__name", b.cat.name), b.cat.is_daily ? tag("每天做", "outline") : null, b.cat.status === "archived" ? tag("大类已归档", "oxblood") : null, b.cat.note ? h$1("span.pcat__note", b.cat.note) : null, h$1("span.pcat__rule"), priceRange$1(b.list) ? h$1("span.pcat__range", priceRange$1(b.list)) : null, h$1("span.pcat__n", q && b.list.length !== b.all.length ? `${b.all.length} 项（命中 ${b.list.length}）` : `${b.all.length} 项`), h$1("span.pcat__acts", h$1("button.btn.btn--sm", {
+					const catHead = h("div.pcat__head", { title: "按住可以调整大类顺序，拖到别的游戏/通用组里就是换归属" }, h("span.pcat__name", b.cat.name), b.cat.is_daily ? tag("每天做", "outline") : null, b.cat.status === "archived" ? tag("大类已归档", "oxblood") : null, b.cat.note ? h("span.pcat__note", b.cat.note) : null, h("span.pcat__rule"), priceRange$1(b.list) ? h("span.pcat__range", priceRange$1(b.list)) : null, h("span.pcat__n", q && b.list.length !== b.all.length ? `${b.all.length} 项（命中 ${b.list.length}）` : `${b.all.length} 项`), h("span.pcat__acts", h("button.btn.btn--sm", {
 						type: "button",
 						title: "勾几个服务项，算这一组一共多少钱",
 						onclick: (e) => {
 							e.stopPropagation();
 							sumDialog(b.cat, b.all);
 						}
-					}, icon("price", 14), "组合报价"), h$1("button.btn.btn--sm.btn--primary", {
+					}, icon("price", 14), "组合报价"), h("button.btn.btn--sm.btn--primary", {
 						type: "button",
 						title: "在这个大类下加服务项",
 						onclick: (e) => {
 							e.stopPropagation();
 							newService(b.cat.id);
 						}
-					}, icon("plus", 14), "加服务项"), h$1("button.btn.btn--sm.btn--quiet", {
+					}, icon("plus", 14), "加服务项"), h("button.btn.btn--sm.btn--quiet", {
 						type: "button",
 						title: "改大类",
 						onclick: (e) => {
 							e.stopPropagation();
 							editCategory(b.cat);
 						}
-					}, icon("edit", 14)), h$1("button.btn.btn--sm.btn--quiet", {
+					}, icon("edit", 14)), h("button.btn.btn--sm.btn--quiet", {
 						type: "button",
 						title: "归档或彻底删除这个大类",
 						onclick: (e) => {
@@ -18880,18 +19082,18 @@ var price_default = {
 						setCatOpen(b.cat.id, next);
 						syncExpandNow();
 					});
-					const pcatEl = h$1("div.pcat", catHead, catBody);
+					const pcatEl = h("div.pcat", catHead, catBody);
 					wireCatHead(catHead, pcatEl, b.cat);
 					groupBody.appendChild(pcatEl);
 				}
 				wireGroupBody(groupBody, grp);
 				if (loose.length) {
-					const looseBody = h$1("div.pcat__body");
+					const looseBody = h("div.pcat__body");
 					for (const s of loose) looseBody.appendChild(serviceRow(s));
-					groupBody.appendChild(h$1("div.pcat", h$1("div.pcat__head", h$1("span.pcat__name", "未分类"), tag("这些服务项还没归到大类", "amber"), h$1("span.pcat__rule"), priceRange$1(loose) ? h$1("span.pcat__range", priceRange$1(loose)) : null, h$1("span.pcat__n", `${loose.length} 项`)), looseBody));
+					groupBody.appendChild(h("div.pcat", h("div.pcat__head", h("span.pcat__name", "未分类"), tag("这些服务项还没归到大类", "amber"), h("span.pcat__rule"), priceRange$1(loose) ? h("span.pcat__range", priceRange$1(loose)) : null, h("span.pcat__n", `${loose.length} 项`)), looseBody));
 				}
-				if (!blocks.length && !loose.length) groupBody.appendChild(h$1("div", { style: { padding: "2px 16px 14px" } }, h$1("span.dim.sm", "这张价格表还没有大类 —— 先点右边「新建大类」，再往里加服务项。")));
-				const groupHead = h$1("div.pgroup__head", h$1("span.pgroup__name", grp.name), grp.game?.status === "archived" ? tag("游戏已归档", "oxblood") : null, grp.game?.servers?.length ? h$1("span.dim.tiny", grp.game.servers.join(" / ")) : null, h$1("span.pgroup__grow"), h$1("span.pgroup__n", `${blocks.length} 个大类 · ${svcCount} 个服务项`), h$1("button.btn.btn--sm", {
+				if (!blocks.length && !loose.length) groupBody.appendChild(h("div", { style: { padding: "2px 16px 14px" } }, h("span.dim.sm", "这张价格表还没有大类 —— 先点右边「新建大类」，再往里加服务项。")));
+				const groupHead = h("div.pgroup__head", h("span.pgroup__name", grp.name), grp.game?.status === "archived" ? tag("游戏已归档", "oxblood") : null, grp.game?.servers?.length ? h("span.dim.tiny", grp.game.servers.join(" / ")) : null, h("span.pgroup__grow"), h("span.pgroup__n", `${blocks.length} 个大类 · ${svcCount} 个服务项`), h("button.btn.btn--sm", {
 					type: "button",
 					title: "在这张价格表下新建大类",
 					onclick: (e) => {
@@ -18900,9 +19102,9 @@ var price_default = {
 					}
 				}, icon("plus", 14), "新建大类"));
 				const gameNotice = String(grp.game?.notice || "").trim();
-				listBox.appendChild(h$1("div.pgroup", groupHead, gameNotice ? h$1("div.pgroup__notice", h$1("span", gameNotice)) : null, groupBody));
+				listBox.appendChild(h("div.pgroup", groupHead, gameNotice ? h("div.pgroup__notice", h("span", gameNotice)) : null, groupBody));
 			}
-			if (!shownGroups) listBox.appendChild(h$1("div", emptyState({
+			if (!shownGroups) listBox.appendChild(h("div", emptyState({
 				iconName: "search",
 				title: q ? "没有匹配的服务项" : "这个筛选下没有内容",
 				body: q ? "换个关键词，或者清空搜索。" : "换个筛选条件，或者新建一个大类。",
@@ -18911,7 +19113,7 @@ var price_default = {
 			})));
 			syncExpandNow();
 		}
-		const searchInput = h$1("input.inp", {
+		const searchInput = h("input.inp", {
 			type: "search",
 			placeholder: "搜服务名 / 说明",
 			style: { maxWidth: "240px" }
@@ -18920,18 +19122,18 @@ var price_default = {
 			filterQ = searchInput.value;
 			paint();
 		}, 160));
-		const gameSel = h$1("select.sel", { style: {
+		const gameSel = h("select.sel", { style: {
 			width: "auto",
 			minWidth: "140px"
 		} });
-		gameSel.appendChild(h$1("option", { value: "" }, "全部价格表"));
-		for (const g of allGames) gameSel.appendChild(h$1("option", { value: String(g.id) }, g.status === "archived" ? `${g.name}（已归档）` : g.name));
+		gameSel.appendChild(h("option", { value: "" }, "全部价格表"));
+		for (const g of allGames) gameSel.appendChild(h("option", { value: String(g.id) }, g.status === "archived" ? `${g.name}（已归档）` : g.name));
 		if (filterGame) gameSel.value = filterGame;
 		gameSel.addEventListener("change", () => {
 			filterGame = gameSel.value;
 			paint();
 		});
-		const statusSeg = h$1("div.seg", [
+		const statusSeg = h("div.seg", [
 			{
 				key: "active",
 				label: "在架"
@@ -18944,7 +19146,7 @@ var price_default = {
 				key: "all",
 				label: "全部"
 			}
-		].map((f) => h$1("button.seg__btn", {
+		].map((f) => h("button.seg__btn", {
 			type: "button",
 			"aria-pressed": String(f.key === filterStatus),
 			onclick: (e) => {
@@ -18956,14 +19158,14 @@ var price_default = {
 		}, f.label)));
 		paint();
 		const expandIco = icon("down", 14);
-		const expandTxt = h$1("span", "全部展开");
+		const expandTxt = h("span", "全部展开");
 		const allExpanded = () => categories.length > 0 && categories.every((c) => isCatOpen(c.id));
 		const syncExpand = () => {
 			const on = allExpanded();
 			expandIco.style.transform = on ? "rotate(180deg)" : "";
 			expandTxt.textContent = on ? "全部收起" : "全部展开";
 		};
-		const expandBtn = h$1("button.btn.btn--sm", {
+		const expandBtn = h("button.btn.btn--sm", {
 			type: "button",
 			title: "把所有大类一次展开或收起",
 			onclick: () => {
@@ -18980,16 +19182,17 @@ var price_default = {
 			const s = services.find((x) => String(x.id) === String(focused));
 			if (s) setTimeout(() => servicePeek(s, ctx, { onChanged: () => ctx.app.reload() }), 120);
 		}
-		return h$1("div.stack", h$1("div.pagehead", h$1("div.pagehead__txt", h$1("h1", "价格表"), h$1("p.pagehead__sub", `${allGames.length} 张价格表 · ${categories.length} 个大类 · ${services.filter((s) => s.status === "active").length} 个在架服务项 · 改价只影响之后开的单`))), h$1("div.toolbar", statusSeg, gameSel, expandBtn, h$1("div.toolbar__grow"), searchInput), h$1("section.sheet", listBox), h$1("div.note", "结构是「游戏（一张价格表）→ 大类 → 服务项」。服务项必须挂在大类里。按住服务项可以拖动排序，拖到别的大类里就顺手换归属；大类的标题也能拖，用来调整大类顺序，拖到别的游戏组里就是换游戏。改价格表只影响之后开的单，已经开出去的老单，价格冻在下单那一刻。"));
+		return h("div.stack", h("div.pagehead", h("div.pagehead__txt", h("h1", "价格表"), h("p.pagehead__sub", `${allGames.length} 张价格表 · ${categories.length} 个大类 · ${services.filter((s) => s.status === "active").length} 个在架服务项 · 改价只影响之后开的单`))), h("div.toolbar", statusSeg, gameSel, expandBtn, h("div.toolbar__grow"), searchInput), h("section.sheet", listBox), h("div.note", "结构是「游戏（一张价格表）→ 大类 → 服务项」。服务项必须挂在大类里。按住服务项可以拖动排序，拖到别的大类里就顺手换归属；大类的标题也能拖，用来调整大类顺序，拖到别的游戏组里就是换游戏。改价格表只影响之后开的单，已经开出去的老单，价格冻在下单那一刻。"));
 	}
 };
 //#endregion
 //#region public/js/vaultgate.js
 var vaultgate_exports = /* @__PURE__ */ __exportAll({
-	ensureVaultReady: () => ensureVaultReady,
+	ensureVaultReady: () => ensureVaultReady$1,
 	lockVault: () => lockVault,
-	promptUnlock: () => promptUnlock,
+	promptUnlock: () => promptUnlock$1,
 	refreshVault: () => refreshVault,
+	removeVaultListener: () => removeVaultListener,
 	resetVaultListeners: () => resetVaultListeners,
 	setVaultListener: () => setVaultListener,
 	syncVault: () => syncVault,
@@ -19008,14 +19211,22 @@ function syncVault(next) {
 	notifyVault();
 	return vaultState;
 }
+var onVaultChange = null;
 var vaultListeners = [];
 function setVaultListener(fn) {
 	if (typeof fn !== "function") return;
 	if (!vaultListeners.includes(fn)) vaultListeners.push(fn);
+	onVaultChange = fn;
+}
+/** 退订。React 页面卸载时要用，否则每进一次保险箱就多一个监听器 */
+function removeVaultListener(fn) {
+	vaultListeners = vaultListeners.filter((item) => item !== fn);
+	if (onVaultChange === fn) onVaultChange = vaultListeners[vaultListeners.length - 1] || null;
 }
 /** 重建外壳时清掉旧监听，否则登出再登录会一直堆，还会往拆掉的按钮上写 */
 function resetVaultListeners() {
 	vaultListeners = [];
+	onVaultChange = null;
 }
 function notifyVault() {
 	for (const fn of vaultListeners) try {
@@ -19033,18 +19244,18 @@ async function refreshVault() {
 * 解锁保险箱。已解锁直接返回 true。
 * 没设过密码就引导去设置。
 */
-function promptUnlock({ reason = "要取用游戏登录凭证，先解开保险箱", allowCancel = true } = {}) {
+function promptUnlock$1({ reason = "要取用游戏登录凭证，先解开保险箱", allowCancel = true } = {}) {
 	if (vaultState.unlocked) return Promise.resolve(true);
 	return new Promise((resolve) => {
-		const input = h$1("input.inp", {
+		const input = h("input.inp", {
 			type: "password",
 			autocomplete: "current-password",
 			placeholder: "保险箱密码",
 			"aria-label": "保险箱密码"
 		});
-		const errBox = h$1("div.note.note--alert", { hidden: true });
-		const seal = h$1("div.seal-mark", "封");
-		const sealWrap = h$1("div", { style: {
+		const errBox = h("div.note.note--alert", { hidden: true });
+		const seal = h("div.seal-mark", "封");
+		const sealWrap = h("div", { style: {
 			display: "flex",
 			justifyContent: "center",
 			padding: "2px 0 6px"
@@ -19057,7 +19268,7 @@ function promptUnlock({ reason = "要取用游戏登录凭证，先解开保险�
 		};
 		const m = modal({
 			title: "解开保险箱",
-			body: h$1("div.stack.stack--tight", sealWrap, h$1("p.muted.sm", reason), h$1("div.field.field--full", h$1("label.lbl", { for: "vp" }, "保险箱密码"), input), errBox, h$1("div.hint", "这是和登录密码分开的独立密码。钥匙只放在内存里，闲置 20 分钟自动落锁。")),
+			body: h("div.stack.stack--tight", sealWrap, h("p.muted.sm", reason), h("div.field.field--full", h("label.lbl", { for: "vp" }, "保险箱密码"), input), errBox, h("div.hint", "这是和登录密码分开的独立密码。钥匙只放在内存里，闲置 20 分钟自动落锁。")),
 			actions: [...allowCancel ? [{
 				label: "先不解",
 				onClick: () => finish(false)
@@ -19104,7 +19315,7 @@ function promptUnlock({ reason = "要取用游戏登录凭证，先解开保险�
 	});
 }
 /** 取用凭证前的统一入口：没设密码先让设 */
-async function ensureVaultReady() {
+async function ensureVaultReady$1() {
 	await refreshVault();
 	if (!vaultState.configured) {
 		if (!await new Promise((resolve) => {
@@ -19114,20 +19325,20 @@ async function ensureVaultReady() {
 				done = true;
 				resolve(v);
 			};
-			const p1 = h$1("input.inp", {
+			const p1 = h("input.inp", {
 				type: "password",
 				autocomplete: "new-password",
 				placeholder: "至少 8 位，不要纯数字"
 			});
-			const p2 = h$1("input.inp", {
+			const p2 = h("input.inp", {
 				type: "password",
 				autocomplete: "new-password",
 				placeholder: "再输一次"
 			});
-			const errBox = h$1("div.note.note--alert", { hidden: true });
+			const errBox = h("div.note.note--alert", { hidden: true });
 			const m = modal({
 				title: "先给保险箱设个密码",
-				body: h$1("div.stack.stack--tight", h$1("p.muted.sm", "游戏登录凭证会用 AES-256-GCM 加密后存进数据库。这把钥匙由这个密码推导，不写进任何文件——忘了就真的解不开了。"), h$1("div.field.field--full", h$1("label.lbl", "保险箱密码 *"), p1), h$1("div.field.field--full", h$1("label.lbl", "确认密码 *"), p2), errBox, h$1("div.note", "建议和登录密码不一样，并且记在你自己的密码管理器里。")),
+				body: h("div.stack.stack--tight", h("p.muted.sm", "游戏登录凭证会用 AES-256-GCM 加密后存进数据库。这把钥匙由这个密码推导，不写进任何文件——忘了就真的解不开了。"), h("div.field.field--full", h("label.lbl", "保险箱密码 *"), p1), h("div.field.field--full", h("label.lbl", "确认密码 *"), p2), errBox, h("div.note", "建议和登录密码不一样，并且记在你自己的密码管理器里。")),
 				actions: [{
 					label: "以后再说",
 					onClick: () => finish(false)
@@ -19158,7 +19369,7 @@ async function ensureVaultReady() {
 		})) return false;
 		return true;
 	}
-	return promptUnlock();
+	return promptUnlock$1();
 }
 async function lockVault() {
 	try {
@@ -19168,7 +19379,7 @@ async function lockVault() {
 	}
 }
 function vaultLockButton() {
-	const btn = h$1("button.btn.btn--icon.btn--quiet", { type: "button" });
+	const btn = h("button.btn.btn--icon.btn--quiet", { type: "button" });
 	const paint = () => {
 		const open = vaultState.unlocked;
 		const configured = vaultState.configured;
@@ -19181,11 +19392,11 @@ function vaultLockButton() {
 	paint();
 	btn.addEventListener("click", async () => {
 		if (!vaultState.configured) {
-			if (await ensureVaultReady()) paint();
+			if (await ensureVaultReady$1()) paint();
 			return;
 		}
 		if (vaultState.unlocked) await lockVault();
-		else await promptUnlock({ reason: "解开保险箱才能看客户账号密码。" });
+		else await promptUnlock$1({ reason: "解开保险箱才能看客户账号密码。" });
 		paint();
 	});
 	setVaultListener(paint);
@@ -19210,7 +19421,7 @@ function credentialForm(values = {}, { customers = [], games = [], existingSecre
 		subtitle: "内容加密后落库，明文不落盘",
 		submitLabel: values.id ? "保存并重新加密" : "加密保存",
 		wide: true,
-		intro: h$1("div.note", h$1("span", { style: { flex: "none" } }, icon("shield", 16)), h$1("span", "优先扫码登录，不要密码就不用存密码。真需要代登时再填密码——它会用 AES-256-GCM 加密后写进数据库，任何时候查看或复制都会记一笔审计。")),
+		intro: h("div.note", h("span", { style: { flex: "none" } }, icon("shield", 16)), h("span", "优先扫码登录，不要密码就不用存密码。真需要代登时再填密码——它会用 AES-256-GCM 加密后写进数据库，任何时候查看或复制都会记一笔审计。")),
 		fields: [
 			{
 				type: "section",
@@ -19358,13 +19569,13 @@ function credentialForm(values = {}, { customers = [], games = [], existingSecre
 			};
 			if (!Object.values(secret).some((x) => String(x || "").trim())) throw new Error("加密内容不能全空，至少填一个字段");
 			const r = values.id ? await api.patch(`/api/credentials/${values.id}`, payload) : await api.post("/api/credentials", payload);
-			toast(values.id ? "已重新加密保存" : "凭证已加密存好", "ok");
+			toast$1(values.id ? "已重新加密保存" : "凭证已加密存好", "ok");
 			return r;
 		}
 	});
 }
-async function revealSecret(cred, { action = "view" } = {}) {
-	if (!await promptUnlock({ reason: `查看「${cred.customer_name || ""} · ${cred.label || cred.masked_hint}」的登录信息，需要先解开保险箱。` })) return;
+async function revealSecret$1(cred, { action = "view" } = {}) {
+	if (!await promptUnlock$1({ reason: `查看「${cred.customer_name || ""} · ${cred.label || cred.masked_hint}」的登录信息，需要先解开保险箱。` })) return;
 	let data;
 	try {
 		data = await api.post(`/api/credentials/${cred.id}/reveal`, { action });
@@ -19382,15 +19593,15 @@ async function revealSecret(cred, { action = "view" } = {}) {
 		["密保答案", s.security_answer],
 		["备注", s.note]
 	].filter(([, v]) => String(v || "").trim());
-	const grid = h$1("div.secretgrid");
+	const grid = h("div.secretgrid");
 	for (const [k, v] of rows) {
-		grid.appendChild(h$1("div.secretgrid__k", k));
-		grid.appendChild(h$1("div.secretgrid__v", h$1("code", String(v)), h$1("button.btn.btn--sm.btn--icon.btn--quiet", {
+		grid.appendChild(h("div.secretgrid__k", k));
+		grid.appendChild(h("div.secretgrid__v", h("code", String(v)), h("button.btn.btn--sm.btn--icon.btn--quiet", {
 			type: "button",
 			title: "复制",
 			onclick: async () => {
 				const ok = await copyText$1(v);
-				toast(ok ? "已复制（已记入审计）" : "复制失败", ok ? "ok" : "err");
+				toast$1(ok ? "已复制（已记入审计）" : "复制失败", ok ? "ok" : "err");
 				if (ok) api.post(`/api/credentials/${cred.id}/reveal`, {
 					action: "copy",
 					field: k
@@ -19402,17 +19613,17 @@ async function revealSecret(cred, { action = "view" } = {}) {
 	modal({
 		title: `${cred.customer_name || ""} · ${cred.label || "登录凭证"}`,
 		wide: true,
-		body: h$1("div.stack", h$1("div.cluster.sm.dim", h$1("span", data.game_name || "未指定游戏"), data.server ? h$1("span", `· ${data.server}`) : null, data.role_name ? h$1("span", `· ${data.role_name}`) : null, h$1("span", "·"), h$1("span", LOGIN_TYPE_LABEL[data.login_type] || data.login_type)), h$1("div", { class: "veil-clear" }, grid), h$1("div.note.note--warn", `本次取用于 ${fmtDateTime(data.revealed_at)} 记入审计日志。关闭后请勿口头转述或转发截图。`), h$1("div.cluster", h$1("button.btn.btn--sm", {
+		body: h("div.stack", h("div.cluster.sm.dim", h("span", data.game_name || "未指定游戏"), data.server ? h("span", `· ${data.server}`) : null, data.role_name ? h("span", `· ${data.role_name}`) : null, h("span", "·"), h("span", LOGIN_TYPE_LABEL[data.login_type] || data.login_type)), h("div", { class: "veil-clear" }, grid), h("div.note.note--warn", `本次取用于 ${fmtDateTime$1(data.revealed_at)} 记入审计日志。关闭后请勿口头转述或转发截图。`), h("div.cluster", h("button.btn.btn--sm", {
 			type: "button",
 			onclick: async () => {
 				const ok = await copyText$1(allText);
-				toast(ok ? "整条已复制（已记入审计）" : "复制失败", ok ? "ok" : "err");
+				toast$1(ok ? "整条已复制（已记入审计）" : "复制失败", ok ? "ok" : "err");
 				if (ok) api.post(`/api/credentials/${cred.id}/reveal`, {
 					action: "copy",
 					field: "整条"
 				}).catch(() => {});
 			}
-		}, icon("copy", 14), "复制整条"), h$1("span.dim.tiny", "仅在客户明确要求代登时使用"))),
+		}, icon("copy", 14), "复制整条"), h("span.dim.tiny", "仅在客户明确要求代登时使用"))),
 		actions: [{
 			label: "看完了，关掉",
 			tone: "primary"
@@ -19420,31 +19631,31 @@ async function revealSecret(cred, { action = "view" } = {}) {
 	});
 }
 function vaultBar(onChanged) {
-	const wrap = h$1("div");
+	const wrap = h("div");
 	const paint = () => {
 		const configured = vaultState.configured;
 		const open = vaultState.unlocked;
-		wrap.replaceChildren(h$1(`div.vaultbar${open ? ".vaultbar--open" : ""}`, h$1("div.seal-mark", open ? "开" : "封"), h$1("div.vaultbar__txt", h$1("div.strong", !configured ? "保险箱还没设密码" : open ? "保险箱已解开" : "保险箱已锁定"), h$1("div.sm.dim", !configured ? "设一个独立密码，游戏账号密码才能开始加密入库。" : open ? `钥匙只在内存里，闲置 20 分钟或退出登录会自动落锁。${vaultState.expires_in_ms ? `还有约 ${Math.max(1, Math.round(vaultState.expires_in_ms / 6e4))} 分钟。` : ""}` : "要看账号密码，先解开保险箱。每次查看和复制都会留痕。")), !configured ? h$1("button.btn.btn--primary", {
+		wrap.replaceChildren(h(`div.vaultbar${open ? ".vaultbar--open" : ""}`, h("div.seal-mark", open ? "开" : "封"), h("div.vaultbar__txt", h("div.strong", !configured ? "保险箱还没设密码" : open ? "保险箱已解开" : "保险箱已锁定"), h("div.sm.dim", !configured ? "设一个独立密码，游戏账号密码才能开始加密入库。" : open ? `钥匙只在内存里，闲置 20 分钟或退出登录会自动落锁。${vaultState.expires_in_ms ? `还有约 ${Math.max(1, Math.round(vaultState.expires_in_ms / 6e4))} 分钟。` : ""}` : "要看账号密码，先解开保险箱。每次查看和复制都会留痕。")), !configured ? h("button.btn.btn--primary", {
 			type: "button",
 			onclick: async () => {
-				if (await ensureVaultReady()) {
-					toast("保险箱已就绪", "ok");
+				if (await ensureVaultReady$1()) {
+					toast$1("保险箱已就绪", "ok");
 					onChanged();
 				}
 				paint();
 			}
-		}, "设置密码") : open ? h$1("button.btn", {
+		}, "设置密码") : open ? h("button.btn", {
 			type: "button",
 			onclick: async () => {
 				await lockVault();
-				toast("已落锁", "ok");
+				toast$1("已落锁", "ok");
 				onChanged();
 				paint();
 			}
-		}, icon("vault", 15), "落锁") : h$1("button.btn.btn--primary", {
+		}, icon("vault", 15), "落锁") : h("button.btn.btn--primary", {
 			type: "button",
 			onclick: async () => {
-				await promptUnlock({ reason: "解开后可以查看客户游戏账号密码。" });
+				await promptUnlock$1({ reason: "解开后可以查看客户游戏账号密码。" });
 				onChanged();
 				paint();
 			}
@@ -19462,10 +19673,10 @@ async function auditDrawer() {
 		wide: true,
 		title: "取用记录",
 		subtitle: "谁、什么时候、看了哪条",
-		body: h$1("div.stack", h$1("div.note", "这个列表只记不删。如果发现不是你本人的操作，请立刻改保险箱密码并检查这台电脑。"), items.length ? h$1("div.itemlist", items.map((a) => h$1("div.item", { style: {
+		body: h("div.stack", h("div.note", "这个列表只记不删。如果发现不是你本人的操作，请立刻改保险箱密码并检查这台电脑。"), items.length ? h("div.itemlist", items.map((a) => h("div.item", { style: {
 			cursor: "default",
 			alignItems: "flex-start"
-		} }, h$1("div.item__main", h$1("div.item__title", AUDIT_ACTION_LABEL[a.action] || a.action, a.action.includes("failed") ? tag("失败", "oxblood") : null), h$1("div.item__meta", h$1("span", a.customer_name || ""), h$1("span", a.target || ""), h$1("span.mono", a.ip || "")), h$1("div.tbl__meta", `${fmtDateTime(a.created_at)} · ${relTime(a.created_at)} · 操作人 ${a.actor || "—"}`))))) : h$1("p.dim.sm", "还没有任何取用记录。"))
+		} }, h("div.item__main", h("div.item__title", AUDIT_ACTION_LABEL[a.action] || a.action, a.action.includes("failed") ? tag("失败", "oxblood") : null), h("div.item__meta", h("span", a.customer_name || ""), h("span", a.target || ""), h("span.mono", a.ip || "")), h("div.tbl__meta", `${fmtDateTime$1(a.created_at)} · ${relTime$1(a.created_at)} · 操作人 ${a.actor || "—"}`))))) : h("p.dim.sm", "还没有任何取用记录。"))
 	});
 }
 var vault_default = {
@@ -19486,34 +19697,34 @@ var vault_default = {
 		const focusCustomer = ctx.query.get("customer");
 		if (focusCustomer) creds = creds.filter((c) => String(c.customer_id) === String(focusCustomer));
 		const bar = vaultBar(() => ctx.app.reload());
-		ctx.setActions(h$1("button.btn.btn--sm", {
+		ctx.setActions(h("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => auditDrawer()
-		}, icon("clock", 14), "取用记录"), h$1("button.btn.btn--sm.btn--primary", {
+		}, icon("clock", 14), "取用记录"), h("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			onclick: async () => {
-				if (!await ensureVaultReady()) return;
+				if (!await ensureVaultReady$1()) return;
 				if (await credentialForm({ customer_id: focusCustomer || "" }, {
 					customers,
 					games
 				})) {
-					toast("已加密保存", "ok");
+					toast$1("已加密保存", "ok");
 					ctx.app.reload();
 				}
 			}
 		}, icon("plus", 14), "登记凭证"));
-		const body = creds.length ? h$1("div.itemlist", creds.map((c) => {
+		const body = creds.length ? h("div.itemlist", creds.map((c) => {
 			const locked = !vaultState.unlocked;
-			return h$1("div.item", { style: {
+			return h("div.item", { style: {
 				cursor: "default",
 				alignItems: "flex-start"
-			} }, h$1("div.item__main", h$1("div.item__title", c.label || "未命名凭证", tag(LOGIN_TYPE_LABEL[c.login_type] || c.login_type, c.login_type === "qrcode" ? "jade" : ""), c.status === "archived" ? tag("已归档", "oxblood") : null), h$1("div.item__meta", h$1("span", c.customer_name || "—"), h$1("span", c.game_name || "未指定游戏"), c.server ? h$1("span", c.server) : null, c.role_name ? h$1("span", c.role_name) : null, h$1("span", `建于 ${fmtDate$1(c.created_at)}`)), h$1("div", { style: { marginTop: "6px" } }, locked ? h$1("span.sealed", h$1("span.seal-mark", "封"), "内容已加密封存 · 解开保险箱后可查看") : h$1("span.mono.sm", c.masked_hint || "（没记账号）"))), h$1("div.tbl__acts", h$1("button.btn.btn--sm", {
+			} }, h("div.item__main", h("div.item__title", c.label || "未命名凭证", tag(LOGIN_TYPE_LABEL[c.login_type] || c.login_type, c.login_type === "qrcode" ? "jade" : ""), c.status === "archived" ? tag("已归档", "oxblood") : null), h("div.item__meta", h("span", c.customer_name || "—"), h("span", c.game_name || "未指定游戏"), c.server ? h("span", c.server) : null, c.role_name ? h("span", c.role_name) : null, h("span", `建于 ${fmtDate$1(c.created_at)}`)), h("div", { style: { marginTop: "6px" } }, locked ? h("span.sealed", h("span.seal-mark", "封"), "内容已加密封存 · 解开保险箱后可查看") : h("span.mono.sm", c.masked_hint || "（没记账号）"))), h("div.tbl__acts", h("button.btn.btn--sm", {
 				type: "button",
-				onclick: () => revealSecret(c)
-			}, icon(locked ? "vault" : "eye", 14), locked ? "解开查看" : "查看"), h$1("button.btn.btn--sm", {
+				onclick: () => revealSecret$1(c)
+			}, icon(locked ? "vault" : "eye", 14), locked ? "解开查看" : "查看"), h("button.btn.btn--sm", {
 				type: "button",
 				onclick: async () => {
-					if (!await promptUnlock({ reason: "改凭证内容也要先解开保险箱。" })) return;
+					if (!await promptUnlock$1({ reason: "改凭证内容也要先解开保险箱。" })) return;
 					let secret = null;
 					try {
 						secret = (await api.post(`/api/credentials/${c.id}/reveal`, { action: "view" })).secret;
@@ -19527,7 +19738,7 @@ var vault_default = {
 						existingSecret: secret
 					})) ctx.app.reload();
 				}
-			}, icon("edit", 14)), h$1("button.btn.btn--sm.btn--danger", {
+			}, icon("edit", 14)), h("button.btn.btn--sm.btn--danger", {
 				type: "button",
 				onclick: async () => {
 					if (!await confirmDelete$1({
@@ -19536,7 +19747,7 @@ var vault_default = {
 					})) return;
 					try {
 						await api.del(`/api/credentials/${c.id}`);
-						toast("已删除", "ok");
+						toast$1("已删除", "ok");
 						ctx.app.reload();
 					} catch (err) {
 						toastErr(err);
@@ -19555,7 +19766,7 @@ var vault_default = {
 			] : null,
 			actionLabel: vaultState.configured ? "登记第一条凭证" : "给保险箱设密码",
 			onAction: async () => {
-				if (!await ensureVaultReady()) return;
+				if (!await ensureVaultReady$1()) return;
 				if (!vaultState.configured) return ctx.app.reload();
 				if (await credentialForm({ customer_id: focusCustomer || "" }, {
 					customers,
@@ -19566,9 +19777,9 @@ var vault_default = {
 		const focusedId = ctx.query.get("c");
 		if (focusedId) {
 			const c = creds.find((x) => String(x.id) === String(focusedId)) || (credRes.items || []).find((x) => String(x.id) === String(focusedId));
-			if (c && vaultState.unlocked) setTimeout(() => revealSecret(c), 150);
+			if (c && vaultState.unlocked) setTimeout(() => revealSecret$1(c), 150);
 		}
-		return h$1("div.stack", h$1("div.pagehead", h$1("div.pagehead__txt", h$1("h1", "登录凭证保险箱"), h$1("p.pagehead__sub", `${creds.length} 条凭证 · 用 AES-256-GCM 加密存储，明文不落盘`))), bar.node, creds.length && !vaultState.unlocked ? h$1("div.note.note--warn", "保险箱已锁定：下面的内容全被封着。这是故意的——万一这台电脑被别人打开，第一眼看不到任何账号。") : null, h$1("section.panel", h$1("div.panel__body.panel__body--flush", body)));
+		return h("div.stack", h("div.pagehead", h("div.pagehead__txt", h("h1", "登录凭证保险箱"), h("p.pagehead__sub", `${creds.length} 条凭证 · 用 AES-256-GCM 加密存储，明文不落盘`))), bar.node, creds.length && !vaultState.unlocked ? h("div.note.note--warn", "保险箱已锁定：下面的内容全被封着。这是故意的——万一这台电脑被别人打开，第一眼看不到任何账号。") : null, h("section.panel", h("div.panel__body.panel__body--flush", body)));
 	}
 };
 //#endregion
@@ -19614,10 +19825,10 @@ function presetRange(key) {
 function bars(daily) {
 	const list = daily.slice(-31);
 	const max = Math.max(1, ...list.map((d) => Math.max(d.ordered || 0, d.received || 0)));
-	return h$1("div", h$1("div.bars", list.map((d) => h$1("div.bar", { style: {
+	return h("div", h("div.bars", list.map((d) => h("div.bar", { style: {
 		height: `${Math.max(2, (d.ordered || 0) / max * 100)}%`,
 		background: d.ordered ? "var(--cinnabar)" : "var(--line-strong)"
-	} }, h$1("div.bar__tip", `${fmtDay$1(d.date)}：开单 ¥${fmtMoney$1(d.ordered)} · 收款 ¥${fmtMoney$1(d.received)}`)))), h$1("div.legend", h$1("span.legend__k", h$1("span.legend__sw", { style: { background: "var(--cinnabar)" } }), "当日开单额"), h$1("span.legend__k", h$1("span", `峰值 ¥${fmtMoney$1(max)}`)), h$1("span.legend__k", h$1("span", `${list[0] ? fmtDay$1(list[0].date) : ""} → ${list.length ? fmtDay$1(list[list.length - 1].date) : ""}`))));
+	} }, h("div.bar__tip", `${fmtDay$1(d.date)}：开单 ¥${fmtMoney$1(d.ordered)} · 收款 ¥${fmtMoney$1(d.received)}`)))), h("div.legend", h("span.legend__k", h("span.legend__sw", { style: { background: "var(--cinnabar)" } }), "当日开单额"), h("span.legend__k", h("span", `峰值 ¥${fmtMoney$1(max)}`)), h("span.legend__k", h("span", `${list[0] ? fmtDay$1(list[0].date) : ""} → ${list.length ? fmtDay$1(list[list.length - 1].date) : ""}`))));
 }
 var finance_default = {
 	title: "财务",
@@ -19637,38 +19848,38 @@ var finance_default = {
 			limit: 400
 		})]);
 		const t = fin.totals;
-		const fromInp = h$1("input.inp", {
+		const fromInp = h("input.inp", {
 			type: "date",
 			value: range.from,
 			style: { width: "auto" }
 		});
-		const toInp = h$1("input.inp", {
+		const toInp = h("input.inp", {
 			type: "date",
 			value: range.to,
 			style: { width: "auto" }
 		});
 		const goCustom = () => ctx.navigate(`/finance?range=custom&from=${fromInp.value}&to=${toInp.value}`);
-		const seg = h$1("div.seg", [
+		const seg = h("div.seg", [
 			"thisMonth",
 			"lastMonth",
 			"last30",
 			"thisYear",
 			"custom"
-		].map((k) => h$1("button.seg__btn", {
+		].map((k) => h("button.seg__btn", {
 			type: "button",
 			"aria-pressed": String(k === preset),
 			onclick: () => ctx.navigate(`/finance?range=${k}`)
 		}, k === "custom" ? "自定义" : presetRange(k).label)));
-		return h$1("div.stack", h$1("div.pagehead", h$1("div.pagehead__txt", h$1("h1", "财务"), h$1("p.pagehead__sub", `${range.from} → ${range.to} · 共 ${t.order_count} 张单`)), h$1("div.pagehead__acts", preset === "custom" ? h$1("div.cluster", fromInp, h$1("span.dim", "→"), toInp, h$1("button.btn.btn--sm.btn--primary", {
+		return h("div.stack", h("div.pagehead", h("div.pagehead__txt", h("h1", "财务"), h("p.pagehead__sub", `${range.from} → ${range.to} · 共 ${t.order_count} 张单`)), h("div.pagehead__acts", preset === "custom" ? h("div.cluster", fromInp, h("span.dim", "→"), toInp, h("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			onclick: goCustom
-		}, "看这段")) : null)), h$1("div.toolbar", seg, h$1("div.toolbar__grow")), h$1("section.ledger", h$1("div.ledger__head", h$1("span.ledger__title", "区间账单"), h$1("div", { style: { flex: "1" } }), h$1("span.ledger__date", `${range.label}`)), h$1("div.ledger__body", h$1("div.ledger__group", h$1("div.cell", h$1("span.cell__lbl", "订单额"), h$1("span.cell__fig", `¥${fmtMoney$1(t.order_total)}`)), h$1("div.cell", h$1("span.cell__lbl", "总收款"), h$1("span.cell__fig", `¥${fmtMoney$1(t.received)}`)), h$1("div.cell", h$1("span.cell__lbl", "退款"), h$1("span.cell__fig", `¥${fmtMoney$1(t.refunded)}`)), h$1("div.cell", h$1("span.cell__lbl", "净收"), h$1("span.cell__fig.tone-jade", { style: { color: "var(--jade-ink)" } }, `¥${fmtMoney$1(t.net_received)}`))), h$1("div.ledger__group.ledger__group--sum", h$1("div.cell", h$1("span.cell__lbl", "应收余额"), h$1("span.cell__fig", { style: { color: t.due_total > 0 ? "var(--cinnabar)" : "" } }, `¥${fmtMoney$1(t.due_total)}`)), h$1("div.cell", h$1("span.cell__lbl", "手续费"), h$1("span.cell__fig.cell__fig--sm", `¥${fmtMoney$1(t.platform_fee)}`)), h$1("div.cell", h$1("span.cell__lbl", "成本"), h$1("span.cell__fig.cell__fig--sm", `¥${fmtMoney$1(t.cost)}`)), h$1("div.cell", h$1("span.cell__lbl", "利润"), h$1("span.cell__fig", `¥${fmtMoney$1(t.profit)}`))))), h$1("div.split", h$1("div.stack", h$1("section.panel", h$1("div.panel__body", sectionHead("每天开了多少", "按开单日统计")), h$1("div.panel__body", { style: { paddingTop: "0" } }, bars(fin.daily))), h$1("section.panel", h$1("div.panel__body", sectionHead("还没结清的单", `${fin.receivables.length} 张 · 合计 ¥${fmtMoney$1(fin.receivables.reduce((s, r) => s + r.due_total, 0))}`)), fin.receivables.length ? table({
+		}, "看这段")) : null)), h("div.toolbar", seg, h("div.toolbar__grow")), h("section.ledger", h("div.ledger__head", h("span.ledger__title", "区间账单"), h("div", { style: { flex: "1" } }), h("span.ledger__date", `${range.label}`)), h("div.ledger__body", h("div.ledger__group", h("div.cell", h("span.cell__lbl", "订单额"), h("span.cell__fig", `¥${fmtMoney$1(t.order_total)}`)), h("div.cell", h("span.cell__lbl", "总收款"), h("span.cell__fig", `¥${fmtMoney$1(t.received)}`)), h("div.cell", h("span.cell__lbl", "退款"), h("span.cell__fig", `¥${fmtMoney$1(t.refunded)}`)), h("div.cell", h("span.cell__lbl", "净收"), h("span.cell__fig.tone-jade", { style: { color: "var(--jade-ink)" } }, `¥${fmtMoney$1(t.net_received)}`))), h("div.ledger__group.ledger__group--sum", h("div.cell", h("span.cell__lbl", "应收余额"), h("span.cell__fig", { style: { color: t.due_total > 0 ? "var(--cinnabar)" : "" } }, `¥${fmtMoney$1(t.due_total)}`)), h("div.cell", h("span.cell__lbl", "手续费"), h("span.cell__fig.cell__fig--sm", `¥${fmtMoney$1(t.platform_fee)}`)), h("div.cell", h("span.cell__lbl", "成本"), h("span.cell__fig.cell__fig--sm", `¥${fmtMoney$1(t.cost)}`)), h("div.cell", h("span.cell__lbl", "利润"), h("span.cell__fig", `¥${fmtMoney$1(t.profit)}`))))), h("div.split", h("div.stack", h("section.panel", h("div.panel__body", sectionHead("每天开了多少", "按开单日统计")), h("div.panel__body", { style: { paddingTop: "0" } }, bars(fin.daily))), h("section.panel", h("div.panel__body", sectionHead("还没结清的单", `${fin.receivables.length} 张 · 合计 ¥${fmtMoney$1(fin.receivables.reduce((s, r) => s + r.due_total, 0))}`)), fin.receivables.length ? table({
 			columns: [
 				{
 					key: "order_no",
 					label: "订单",
 					main: true,
-					render: (o) => h$1("div", h$1("div.tbl__primary", o.order_no), h$1("div.tbl__meta", o.title || ""))
+					render: (o) => h("div", h("div.tbl__primary", o.order_no), h("div.tbl__meta", o.title || ""))
 				},
 				{
 					key: "customer_name",
@@ -19682,7 +19893,7 @@ var finance_default = {
 				{
 					key: "ordered_at",
 					label: "下单",
-					render: (o) => h$1("span.sm.dim", fmtDay$1(o.ordered_at))
+					render: (o) => h("span.sm.dim", fmtDay$1(o.ordered_at))
 				},
 				{
 					key: "total",
@@ -19694,18 +19905,18 @@ var finance_default = {
 					key: "due_total",
 					label: "还差",
 					num: true,
-					render: (o) => h$1("span.tone-amber", fmtMoney$1(o.due_total))
+					render: (o) => h("span.tone-amber", fmtMoney$1(o.due_total))
 				}
 			],
 			rows: fin.receivables,
 			onRowClick: (o) => ctx.navigate(`/orders/${o.id}`)
-		}) : h$1("div.panel__body", h$1("p.dim.sm", "都收齐了。"))), h$1("section.panel", h$1("div.panel__body", sectionHead("收款流水", `${payRes.items.length} 笔`)), payRes.items.length ? table({
+		}) : h("div.panel__body", h("p.dim.sm", "都收齐了。"))), h("section.panel", h("div.panel__body", sectionHead("收款流水", `${payRes.items.length} 笔`)), payRes.items.length ? table({
 			columns: [
 				{
 					key: "paid_at",
 					label: "日期",
 					main: true,
-					render: (p) => h$1("div", h$1("div.tbl__primary", fmtDay$1(p.paid_at)), h$1("div.tbl__meta", p.order_no || "未挂订单"))
+					render: (p) => h("div", h("div.tbl__primary", fmtDay$1(p.paid_at)), h("div.tbl__meta", p.order_no || "未挂订单"))
 				},
 				{
 					key: "customer_name",
@@ -19719,17 +19930,17 @@ var finance_default = {
 				{
 					key: "note",
 					label: "备注",
-					render: (p) => h$1("span.sm.dim", p.note || "")
+					render: (p) => h("span.sm.dim", p.note || "")
 				},
 				{
 					key: "amount",
 					label: "金额",
 					num: true,
-					render: (p) => h$1(`span${p.kind === "refund" ? ".tone-oxblood" : ".tone-jade"}`, `${p.kind === "refund" ? "−" : "+"}${fmtMoney$1(p.amount)}`)
+					render: (p) => h(`span${p.kind === "refund" ? ".tone-oxblood" : ".tone-jade"}`, `${p.kind === "refund" ? "−" : "+"}${fmtMoney$1(p.amount)}`)
 				}
 			],
 			rows: payRes.items
-		}) : h$1("div.panel__body", h$1("p.dim.sm", "这段时间没有收款记录。")))), h$1("div.stack", h$1("section.panel", h$1("div.panel__body", sectionHead("按收款方式")), fin.by_method.length ? h$1("div.itemlist", fin.by_method.map((m) => h$1("div.item", { style: { cursor: "default" } }, h$1("div.item__main", h$1("div.item__title", PAY_METHOD_LABEL[m.method] || m.method), h$1("div.item__meta", h$1("span", `${m.count} 笔`))), h$1("div.item__right", h$1("div.item__fig", `¥${fmtMoney$1(m.amount)}`))))) : h$1("div.panel__body", h$1("p.dim.sm", "暂无。"))), h$1("section.panel", h$1("div.panel__body", sectionHead("按游戏")), fin.by_game.length ? h$1("div.itemlist", fin.by_game.map((g) => h$1("div.item", { style: { cursor: "default" } }, h$1("div.item__main", h$1("div.item__title", g.game_name), h$1("div.item__meta", h$1("span", `${g.order_count} 单`), h$1("span", `利润 ¥${fmtMoney$1(g.profit)}`))), h$1("div.item__right", h$1("div.item__fig", `¥${fmtMoney$1(g.order_total)}`))))) : h$1("div.panel__body", h$1("p.dim.sm", "暂无。"))), h$1("section.panel", h$1("div.panel__body", sectionHead("口径说明")), h$1("div.panel__body", { style: { paddingTop: "0" } }, h$1("ul.empty__steps", h$1("li", h$1("span.n", "·"), h$1("span", "订单额按「下单日」归集；收款按「到账日」归集，两者不必同月。")), h$1("li", h$1("span.n", "·"), h$1("span", "净收 = 总收款 − 退款。")), h$1("li", h$1("span.n", "·"), h$1("span", "利润 = 订单额 − 平台手续费 − 成本，不含你自己的人工。")), h$1("li", h$1("span.n", "·"), h$1("span", "已取消的单不计入订单额。"))))))));
+		}) : h("div.panel__body", h("p.dim.sm", "这段时间没有收款记录。")))), h("div.stack", h("section.panel", h("div.panel__body", sectionHead("按收款方式")), fin.by_method.length ? h("div.itemlist", fin.by_method.map((m) => h("div.item", { style: { cursor: "default" } }, h("div.item__main", h("div.item__title", PAY_METHOD_LABEL[m.method] || m.method), h("div.item__meta", h("span", `${m.count} 笔`))), h("div.item__right", h("div.item__fig", `¥${fmtMoney$1(m.amount)}`))))) : h("div.panel__body", h("p.dim.sm", "暂无。"))), h("section.panel", h("div.panel__body", sectionHead("按游戏")), fin.by_game.length ? h("div.itemlist", fin.by_game.map((g) => h("div.item", { style: { cursor: "default" } }, h("div.item__main", h("div.item__title", g.game_name), h("div.item__meta", h("span", `${g.order_count} 单`), h("span", `利润 ¥${fmtMoney$1(g.profit)}`))), h("div.item__right", h("div.item__fig", `¥${fmtMoney$1(g.order_total)}`))))) : h("div.panel__body", h("p.dim.sm", "暂无。"))), h("section.panel", h("div.panel__body", sectionHead("口径说明")), h("div.panel__body", { style: { paddingTop: "0" } }, h("ul.empty__steps", h("li", h("span.n", "·"), h("span", "订单额按「下单日」归集；收款按「到账日」归集，两者不必同月。")), h("li", h("span.n", "·"), h("span", "净收 = 总收款 − 退款。")), h("li", h("span.n", "·"), h("span", "利润 = 订单额 − 平台手续费 − 成本，不含你自己的人工。")), h("li", h("span.n", "·"), h("span", "已取消的单不计入订单额。"))))))));
 	}
 };
 //#endregion
@@ -19752,7 +19963,7 @@ function unitPriceFor(service, tiers, qty) {
 	for (const t of [...list].sort((a, b) => Number(a.min_qty) - Number(b.min_qty))) if (qty >= (Number(t.min_qty) || 0)) pick = t;
 	return pick ? Number(pick.unit_price) || 0 : Number(service.base_price) || 0;
 }
-async function openQuoteComposer(ctx, { existing = null } = {}) {
+async function openQuoteComposer$1(ctx, { existing = null } = {}) {
 	const [book, custRes, gameRes] = await Promise.all([
 		api.get("/api/pricebook"),
 		api.get("/api/customers", {
@@ -19780,39 +19991,39 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 	let title = existing?.title || "代肝报价单";
 	let note = existing?.note || "";
 	let validUntil = existing?.valid_until || new Date(Date.now() + 6048e5).toISOString().slice(0, 10);
-	const custSel = h$1("select.sel");
-	custSel.appendChild(h$1("option", { value: "" }, "— 不指定客户（先给路人报价）—"));
+	const custSel = h("select.sel");
+	custSel.appendChild(h("option", { value: "" }, "— 不指定客户（先给路人报价）—"));
 	for (const c of customers) {
-		const o = h$1("option", { value: String(c.id) }, `${c.name}${c.phone ? ` · ${c.phone}` : ""}`);
+		const o = h("option", { value: String(c.id) }, `${c.name}${c.phone ? ` · ${c.phone}` : ""}`);
 		if (existing?.customer_id === c.id) o.selected = true;
 		custSel.appendChild(o);
 	}
-	const gameSel = h$1("select.sel");
-	gameSel.appendChild(h$1("option", { value: "" }, "— 不指定游戏 —"));
+	const gameSel = h("select.sel");
+	gameSel.appendChild(h("option", { value: "" }, "— 不指定游戏 —"));
 	for (const g of games) {
-		const o = h$1("option", { value: String(g.id) }, g.name);
+		const o = h("option", { value: String(g.id) }, g.name);
 		if (existing?.game_id === g.id) o.selected = true;
 		gameSel.appendChild(o);
 	}
-	const titleInp = h$1("input.inp", { value: title });
-	const noteInp = h$1("textarea.ta", {
+	const titleInp = h("input.inp", { value: title });
+	const noteInp = h("textarea.ta", {
 		rows: 2,
 		placeholder: "例：包月更划算；三个号同时做可再谈"
 	});
 	noteInp.value = note;
-	const validInp = h$1("input.inp", {
+	const validInp = h("input.inp", {
 		type: "date",
 		value: validUntil
 	});
-	const searchInput = h$1("input.inp", {
+	const searchInput = h("input.inp", {
 		type: "search",
 		placeholder: "搜服务名…"
 	});
-	const svcList = h$1("div.picker__scroll");
-	const pickerFoot = h$1("div.picker__foot");
-	const sheetBox = h$1("div.stack.stack--tight");
-	const textBox = h$1("pre.plaintext", { style: { display: "none" } });
-	const toggleTextBtn = h$1("button.btn.btn--sm", { type: "button" }, icon("quotes", 14), "看文字版");
+	const svcList = h("div.picker__scroll");
+	const pickerFoot = h("div.picker__foot");
+	const sheetBox = h("div.stack.stack--tight");
+	const textBox = h("pre.plaintext", { style: { display: "none" } });
+	const toggleTextBtn = h("button.btn.btn--sm", { type: "button" }, icon("quotes", 14), "看文字版");
 	let showText = false;
 	function paintSheet() {
 		const lines = [];
@@ -19839,7 +20050,7 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 				addons
 			});
 		}
-		sheetBox.replaceChildren(lines.length ? h$1("div.quote-sheet", h$1("div.quote-sheet__head", h$1("strong", titleInp.value || "代肝报价单"), h$1("div", { style: { flex: "1" } }), h$1("span.dim.sm", `有效期至 ${validInp.value || "—"}`)), h$1("div.quote-sheet__lines", lines.map((l) => h$1("div.qline", h$1("div", h$1("div", l.s.name), h$1("div.tbl__meta", `${fmtMoney$1(l.unit)} 元/${defaultUnit(l.s)} × ${fmtQty$1(l.qty)} = ${fmtMoney$1(l.amount)} 元`), l.addons.length ? h$1("div.tbl__meta", `含 ${l.addons.join(" · ")}`) : null), h$1("div.qline__amt", `¥${fmtMoney$1(l.amount)}`)))), h$1("div.quote-sheet__total", h$1("span", "合计"), h$1("span.quote-sheet__totalfig", `¥${fmtMoney$1(total)}`))) : h$1("div.empty", h$1("div.empty__mark", icon("price", 20)), h$1("div.empty__title", "右边勾几个服务项"), h$1("p.empty__body", "报价单会实时长出来，右边这段文字可以直接复制发微信。")));
+		sheetBox.replaceChildren(lines.length ? h("div.quote-sheet", h("div.quote-sheet__head", h("strong", titleInp.value || "代肝报价单"), h("div", { style: { flex: "1" } }), h("span.dim.sm", `有效期至 ${validInp.value || "—"}`)), h("div.quote-sheet__lines", lines.map((l) => h("div.qline", h("div", h("div", l.s.name), h("div.tbl__meta", `${fmtMoney$1(l.unit)} 元/${defaultUnit(l.s)} × ${fmtQty$2(l.qty)} = ${fmtMoney$1(l.amount)} 元`), l.addons.length ? h("div.tbl__meta", `含 ${l.addons.join(" · ")}`) : null), h("div.qline__amt", `¥${fmtMoney$1(l.amount)}`)))), h("div.quote-sheet__total", h("span", "合计"), h("span.quote-sheet__totalfig", `¥${fmtMoney$1(total)}`))) : h("div.empty", h("div.empty__mark", icon("price", 20)), h("div.empty__title", "右边勾几个服务项"), h("p.empty__body", "报价单会实时长出来，右边这段文字可以直接复制发微信。")));
 		if (showText) {
 			textBox.textContent = buildText(lines, total);
 			textBox.style.display = "";
@@ -19856,7 +20067,7 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 		out.push("————————————");
 		lines.forEach((l, i) => {
 			out.push(`${i + 1}. ${l.s.name}`);
-			out.push(`   ${fmtMoney$1(l.unit)} 元/${defaultUnit(l.s)} × ${fmtQty$1(l.qty)} = ${fmtMoney$1(l.amount)} 元`);
+			out.push(`   ${fmtMoney$1(l.unit)} 元/${defaultUnit(l.s)} × ${fmtQty$2(l.qty)} = ${fmtMoney$1(l.amount)} 元`);
 			if (l.addons.length) out.push(`   含：${l.addons.join("、")}`);
 			if (l.s.description) out.push(`   说明：${l.s.description}`);
 		});
@@ -19867,7 +20078,7 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 		return out.join("\n");
 	}
 	let catFilter = "";
-	const catFilterSel = h$1("select.sel", {
+	const catFilterSel = h("select.sel", {
 		style: {
 			width: "auto",
 			minWidth: "130px"
@@ -19883,7 +20094,7 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 			list = own.length ? own : withSvc.filter((c) => !c.game_id);
 		}
 		if (catFilter && !list.some((c) => String(c.id) === catFilter)) catFilter = "";
-		catFilterSel.replaceChildren(h$1("option", { value: "" }, "全部大类"), ...list.map((c) => h$1("option", { value: String(c.id) }, c.name)));
+		catFilterSel.replaceChildren(h("option", { value: "" }, "全部大类"), ...list.map((c) => h("option", { value: String(c.id) }, c.name)));
 		catFilterSel.value = catFilter;
 	}
 	catFilterSel.addEventListener("change", () => {
@@ -19893,7 +20104,7 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 	/** 「已选 N 项 + 清空」，固定在挑服务框底部 */
 	function paintFoot() {
 		const n = picked.size;
-		mount(pickerFoot, n ? h$1("span.cluster", { style: { gap: "6px" } }, h$1("span.pickcount", String(n)), h$1("span", "已选")) : h$1("span.dim", "还没勾服务项"), h$1("div", { style: { flex: "1" } }), n ? h$1("button.btn.btn--sm.btn--quiet", {
+		mount(pickerFoot, n ? h("span.cluster", { style: { gap: "6px" } }, h("span.pickcount", String(n)), h("span", "已选")) : h("span.dim", "还没勾服务项"), h("div", { style: { flex: "1" } }), n ? h("button.btn.btn--sm.btn--quiet", {
 			type: "button",
 			onclick: () => {
 				picked.clear();
@@ -19915,7 +20126,7 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 		}
 		svcList.replaceChildren();
 		if (!allServices.length) {
-			svcList.appendChild(h$1("div.empty", h$1("div.empty__body", "价格表还是空的。"), h$1("button.btn.btn--sm", {
+			svcList.appendChild(h("div.empty", h("div.empty__body", "价格表还是空的。"), h("button.btn.btn--sm", {
 				type: "button",
 				onclick: () => ctx.navigate("/price")
 			}, "先去建价格表")));
@@ -19923,7 +20134,7 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 			return;
 		}
 		if (!cats.size) {
-			svcList.appendChild(h$1("div.empty", h$1("div.empty__body", "没有匹配的服务项。"), h$1("button.btn.btn--sm", {
+			svcList.appendChild(h("div.empty", h("div.empty__body", "没有匹配的服务项。"), h("button.btn.btn--sm", {
 				type: "button",
 				onclick: () => ctx.navigate("/price")
 			}, "去价格表看看")));
@@ -19931,30 +20142,30 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 			return;
 		}
 		for (const [catName, list] of cats) {
-			const group = h$1("div.pickgroup", h$1("div.pickgroup__head", h$1("span.pickgroup__name", catName), h$1("span.pickgroup__n", `${list.length} 项`)));
+			const group = h("div.pickgroup", h("div.pickgroup__head", h("span.pickgroup__name", catName), h("span.pickgroup__n", `${list.length} 项`)));
 			for (const s of list) {
 				const sel = picked.get(s.id);
-				const cb = h$1("input.chk", {
+				const cb = h("input.chk", {
 					type: "checkbox",
 					"aria-label": `选择 ${s.name}`
 				});
 				cb.checked = Boolean(sel);
-				const qty = h$1("input.inp.inp--fig", {
+				const qty = h("input.inp.inp--fig", {
 					inputmode: "decimal",
 					style: { width: "70px" },
 					"aria-label": `${s.name} 数量`
 				});
-				const price = h$1("input.inp.inp--fig", {
+				const price = h("input.inp.inp--fig", {
 					inputmode: "decimal",
 					style: { width: "82px" },
 					placeholder: "改价",
 					"aria-label": `${s.name} 单价`
 				});
-				const ctrl = h$1("div.pickrow__ctrl");
-				ctrl.append(h$1("div.cluster", { style: { gap: "6px" } }, qty, h$1("span.dim.tiny", defaultUnit(s)), price, h$1("span.dim.tiny", "元")));
-				const optWrap = h$1("div.cluster", { style: { gap: "10px" } });
-				const detail = h$1("div.pickrow__detail", optWrap);
-				const row = h$1("div.pickrow");
+				const ctrl = h("div.pickrow__ctrl");
+				ctrl.append(h("div.cluster", { style: { gap: "6px" } }, qty, h("span.dim.tiny", defaultUnit(s)), price, h("span.dim.tiny", "元")));
+				const optWrap = h("div.cluster", { style: { gap: "10px" } });
+				const detail = h("div.pickrow__detail", optWrap);
+				const row = h("div.pickrow");
 				const paint = () => {
 					const cur = picked.get(s.id);
 					row.classList.toggle("pickrow--on", Boolean(cur));
@@ -19993,23 +20204,23 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 					const cur = picked.get(s.id);
 					if (!cur) return;
 					for (const o of s.options || []) {
-						const oc = h$1("input.chk", { type: "checkbox" });
+						const oc = h("input.chk", { type: "checkbox" });
 						oc.checked = cur.optionIds.has(o.id);
 						oc.addEventListener("change", () => {
 							if (oc.checked) cur.optionIds.add(o.id);
 							else cur.optionIds.delete(o.id);
 							paintSheet();
 						});
-						optWrap.appendChild(h$1("label.inline", { style: {
+						optWrap.appendChild(h("label.inline", { style: {
 							cursor: "pointer",
 							gap: "5px"
-						} }, oc, h$1("span.sm", o.name)));
+						} }, oc, h("span.sm", o.name)));
 					}
 				}
-				row.append(h$1("div.pickrow__top", cb, h$1("button.pickrow__main", {
+				row.append(h("div.pickrow__top", cb, h("button.pickrow__main", {
 					type: "button",
 					onclick: toggle
-				}, h$1("span.pickrow__line", h$1("span.pickrow__name", s.name), h$1("span.pickrow__fig", `¥${fmtMoney$1(s.base_price)}`, h$1("em", `/${defaultUnit(s)}`))), h$1("span.pickrow__meta", [PRICE_TYPE_LABEL[s.price_type] || s.price_type, s.description || null].filter(Boolean).join(" · ")))), ctrl, detail);
+				}, h("span.pickrow__line", h("span.pickrow__name", s.name), h("span.pickrow__fig", `¥${fmtMoney$1(s.base_price)}`, h("em", `/${defaultUnit(s)}`))), h("span.pickrow__meta", [PRICE_TYPE_LABEL[s.price_type] || s.price_type, s.description || null].filter(Boolean).join(" · ")))), ctrl, detail);
 				rowPainters.push(paint);
 				buildOpts();
 				paint();
@@ -20037,16 +20248,16 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 	paintCatFilter();
 	renderServices();
 	paintSheet();
-	const saveBtn = h$1("button.btn.btn--primary", { type: "button" }, existing ? "保存改动" : "存成报价单");
-	const copyBtn = h$1("button.btn", { type: "button" }, icon("copy", 14), "复制文字");
+	const saveBtn = h("button.btn.btn--primary", { type: "button" }, existing ? "保存改动" : "存成报价单");
+	const copyBtn = h("button.btn", { type: "button" }, icon("copy", 14), "复制文字");
 	const d = drawer({
 		wide: true,
 		title: existing ? `改报价单 · ${existing.quote_no}` : "做一张报价单",
 		subtitle: "勾服务 → 算钱 → 复制文字发微信",
-		body: h$1("div.stack", h$1("div.formgrid", h$1("div.field.field--full", h$1("label.lbl", "抬头"), titleInp), h$1("div.field.field--full", h$1("label.lbl", "客户"), custSel), h$1("div.field.field--full", h$1("label.lbl", "游戏"), gameSel), h$1("div.field.field--full", h$1("label.lbl", "有效期至"), validInp)), h$1("div.split", h$1("div.stack.stack--tight", h$1("div.sechead", h$1("h3", "挑服务"), h$1("span.sechead__note", "勾上就进单")), h$1("div.cluster", { style: { gap: "6px" } }, searchInput, catFilterSel), h$1("div.picker", svcList, pickerFoot)), h$1("div.stack.stack--tight", h$1("div.sechead", h$1("h3", "报价单"), h$1("div", { style: { flex: "1" } }), toggleTextBtn), sheetBox, textBox, h$1("div.field.field--full", h$1("label.lbl", "备注"), noteInp)))),
+		body: h("div.stack", h("div.formgrid", h("div.field.field--full", h("label.lbl", "抬头"), titleInp), h("div.field.field--full", h("label.lbl", "客户"), custSel), h("div.field.field--full", h("label.lbl", "游戏"), gameSel), h("div.field.field--full", h("label.lbl", "有效期至"), validInp)), h("div.split", h("div.stack.stack--tight", h("div.sechead", h("h3", "挑服务"), h("span.sechead__note", "勾上就进单")), h("div.cluster", { style: { gap: "6px" } }, searchInput, catFilterSel), h("div.picker", svcList, pickerFoot)), h("div.stack.stack--tight", h("div.sechead", h("h3", "报价单"), h("div", { style: { flex: "1" } }), toggleTextBtn), sheetBox, textBox, h("div.field.field--full", h("label.lbl", "备注"), noteInp)))),
 		footer: [
-			h$1("div", { style: { flex: "1" } }),
-			h$1("button.btn", {
+			h("div", { style: { flex: "1" } }),
+			h("button.btn", {
 				type: "button",
 				onclick: () => d.close()
 			}, "关闭"),
@@ -20080,15 +20291,15 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 			});
 		}
 		if (!lines.length) {
-			toast("还没勾服务项", "err");
+			toast$1("还没勾服务项", "err");
 			return;
 		}
 		const ok = await copyText$1(buildText(lines, total));
-		toast(ok ? "报价单文字已复制，去微信粘吧" : "复制失败，可以手动框选文字版", ok ? "ok" : "err", 2600);
+		toast$1(ok ? "报价单文字已复制，去微信粘吧" : "复制失败，可以手动框选文字版", ok ? "ok" : "err", 2600);
 	});
 	saveBtn.addEventListener("click", async () => {
 		if (!picked.size) {
-			toast("至少勾一个服务项", "err");
+			toast$1("至少勾一个服务项", "err");
 			return;
 		}
 		const items = [...picked.entries()].map(([id, sel]) => ({
@@ -20109,7 +20320,7 @@ async function openQuoteComposer(ctx, { existing = null } = {}) {
 		saveBtn.disabled = true;
 		try {
 			await (existing ? api.patch(`/api/quotes/${existing.id}`, payload) : api.post("/api/quotes", payload));
-			toast("报价单已保存", "ok");
+			toast$1("报价单已保存", "ok");
 			d.close();
 			ctx.app.reload();
 		} catch (err) {
@@ -20125,11 +20336,11 @@ var quotes_default = {
 	title: "报价单",
 	async render(ctx) {
 		const { items } = await api.get("/api/quotes", { limit: 200 });
-		ctx.setActions(h$1("button.btn.btn--sm.btn--primary", {
+		ctx.setActions(h("button.btn.btn--sm.btn--primary", {
 			type: "button",
-			onclick: () => openQuoteComposer(ctx)
+			onclick: () => openQuoteComposer$1(ctx)
 		}, icon("plus", 14), "做报价单"));
-		if (!items.length) return h$1("section.panel", h$1("div.panel__body", emptyState({
+		if (!items.length) return h("section.panel", h("div.panel__body", emptyState({
 			iconName: "quotes",
 			title: "还没做过报价单",
 			body: "客户问\"多少钱\"，不用再翻价格表手打——勾几个服务项，报价单自动出来，还能一键复制成文字发微信。",
@@ -20141,34 +20352,34 @@ var quotes_default = {
 				"客户点头了，可以直接把报价单转成订单。"
 			],
 			actionLabel: "做第一张报价单",
-			onAction: () => openQuoteComposer(ctx)
+			onAction: () => openQuoteComposer$1(ctx)
 		})));
 		const showText = async (q) => {
 			const { text } = await api.get(`/api/quotes/${q.id}/text`);
-			const pre = h$1("pre.plaintext", text);
+			const pre = h("pre.plaintext", text);
 			modal({
 				title: `报价单文字 · ${q.quote_no}`,
 				wide: true,
-				body: h$1("div.stack.stack--tight", pre, h$1("div.hint", "这段字可以直接粘到微信里。")),
+				body: h("div.stack.stack--tight", pre, h("div.hint", "这段字可以直接粘到微信里。")),
 				actions: [{
 					label: "复制",
 					tone: "primary",
 					keepOpen: true,
 					onClick: async () => {
 						const ok = await copyText$1(text);
-						toast(ok ? "已复制" : "复制失败，请手动选中", ok ? "ok" : "err");
+						toast$1(ok ? "已复制" : "复制失败，请手动选中", ok ? "ok" : "err");
 						return false;
 					}
 				}, { label: "关闭" }]
 			});
 		};
-		return h$1("div.stack", h$1("div.pagehead", h$1("div.pagehead__txt", h$1("h1", "报价单"), h$1("p.pagehead__sub", `${items.length} 张 · 客户点头后可以一键转成订单`))), h$1("section.panel", table({
+		return h("div.stack", h("div.pagehead", h("div.pagehead__txt", h("h1", "报价单"), h("p.pagehead__sub", `${items.length} 张 · 客户点头后可以一键转成订单`))), h("section.panel", table({
 			columns: [
 				{
 					key: "quote_no",
 					label: "报价单",
 					main: true,
-					render: (q) => h$1("div", h$1("div.tbl__primary", q.quote_no), h$1("div.tbl__meta", `${q.title || ""}${q.customer_name ? ` · ${q.customer_name}` : ""}`))
+					render: (q) => h("div", h("div.tbl__primary", q.quote_no), h("div.tbl__meta", `${q.title || ""}${q.customer_name ? ` · ${q.customer_name}` : ""}`))
 				},
 				{
 					key: "item_count",
@@ -20179,43 +20390,43 @@ var quotes_default = {
 				{
 					key: "game_name",
 					label: "游戏",
-					render: (q) => h$1("span.sm", q.game_name || "通用")
+					render: (q) => h("span.sm", q.game_name || "通用")
 				},
 				{
 					key: "valid_until",
 					label: "有效期至",
-					render: (q) => h$1("span.sm.dim", q.valid_until || "—")
+					render: (q) => h("span.sm.dim", q.valid_until || "—")
 				},
 				{
 					key: "total",
 					label: "合计",
 					num: true,
-					render: (q) => h$1("span.strong", `¥${fmtMoney$1(q.total)}`)
+					render: (q) => h("span.strong", `¥${fmtMoney$1(q.total)}`)
 				},
 				{
 					key: "acts",
 					label: "操作",
 					cls: "td-acts",
-					render: (q) => h$1("div.tbl__acts", h$1("button.btn.btn--sm", {
+					render: (q) => h("div.tbl__acts", h("button.btn.btn--sm", {
 						type: "button",
 						onclick: (e) => {
 							e.stopPropagation();
 							showText(q);
 						}
-					}, "文字"), h$1("button.btn.btn--sm", {
+					}, "文字"), h("button.btn.btn--sm", {
 						type: "button",
 						title: "转成订单",
 						onclick: async (e) => {
 							e.stopPropagation();
 							try {
 								const r = await api.post(`/api/quotes/${q.id}/convert`);
-								toast(`已生成订单 ${r.order_no}`, "ok");
+								toast$1(`已生成订单 ${r.order_no}`, "ok");
 								ctx.navigate(`/orders/${r.order_id}`);
 							} catch (err) {
 								toastErr(err);
 							}
 						}
-					}, "转订单"), h$1("button.btn.btn--sm", {
+					}, "转订单"), h("button.btn.btn--sm", {
 						type: "button",
 						title: "删除",
 						onclick: async (e) => {
@@ -20225,7 +20436,7 @@ var quotes_default = {
 								message: `${q.quote_no} · ¥${fmtMoney$1(q.total)}`
 							})) return;
 							await api.del(`/api/quotes/${q.id}`);
-							toast("已删除", "ok");
+							toast$1("已删除", "ok");
 							ctx.app.reload();
 						}
 					}, icon("trash", 14)))
@@ -20233,7 +20444,7 @@ var quotes_default = {
 			],
 			rows: items,
 			onRowClick: (q) => showText(q)
-		})), h$1("div.note", "报价单里的价格是下单那一刻从价格表读出来的。以后你改价格表的价，这些老报价单上的数字不变。"));
+		})), h("div.note", "报价单里的价格是下单那一刻从价格表读出来的。以后你改价格表的价，这些老报价单上的数字不变。"));
 	}
 };
 //#endregion
@@ -20288,7 +20499,7 @@ function shopForm(settings) {
 		],
 		onSubmit: async (v) => {
 			await api.patch("/api/settings", v);
-			toast("已保存", "ok");
+			toast$1("已保存", "ok");
 		}
 	});
 }
@@ -20296,7 +20507,7 @@ function passwordForm() {
 	return formDrawer({
 		title: "改登录密码",
 		submitLabel: "改密码",
-		intro: h$1("div.note", "改完之后，其他设备上的登录会全部退出。"),
+		intro: h("div.note", "改完之后，其他设备上的登录会全部退出。"),
 		fields: [
 			{
 				name: "current",
@@ -20323,7 +20534,7 @@ function passwordForm() {
 		],
 		onSubmit: async (v) => {
 			await api.post("/api/auth/password", v);
-			toast("登录密码已改", "ok");
+			toast$1("登录密码已改", "ok");
 		}
 	});
 }
@@ -20331,7 +20542,7 @@ function vaultPasswordForm() {
 	return formDrawer({
 		title: "改保险箱密码",
 		submitLabel: "改密码",
-		intro: h$1("div.note.note--warn", "改密码会把数据库里所有凭证重新加密一遍。过程中不要关掉启动窗口。如果中途断电，旧密文可能解不开——改之前建议先导出一份备份。"),
+		intro: h("div.note.note--warn", "改密码会把数据库里所有凭证重新加密一遍。过程中不要关掉启动窗口。如果中途断电，旧密文可能解不开——改之前建议先导出一份备份。"),
 		fields: [{
 			name: "current",
 			label: "当前保险箱密码",
@@ -20347,12 +20558,12 @@ function vaultPasswordForm() {
 			hint: "至少 8 位，不能纯数字"
 		}],
 		onSubmit: async (v) => {
-			toast(`已重新加密 ${(await api.post("/api/vault/password", v)).reencrypted} 条凭证`, "ok");
+			toast$1(`已重新加密 ${(await api.post("/api/vault/password", v)).reencrypted} 条凭证`, "ok");
 			await refreshVault();
 		}
 	});
 }
-var OCR_ENGINE_ORDER = [
+var OCR_ENGINE_ORDER$1 = [
 	"umi",
 	"paddleocr",
 	"rapidocr",
@@ -20361,30 +20572,30 @@ var OCR_ENGINE_ORDER = [
 ];
 function engineRow(eng, preferred) {
 	const live = eng.id === preferred;
-	return h$1("div.item", { style: {
+	return h("div.item", { style: {
 		cursor: "default",
 		alignItems: "flex-start"
-	} }, h$1("div.item__main", h$1("div.item__title", eng.name, live ? tag("正在用", "jade") : eng.available ? tag("可用", "jade") : tag("未安装", "muted"), eng.license ? h$1("span.dim.tiny", { style: { marginLeft: "6px" } }, eng.license) : null), h$1("div.tbl__meta", { style: { marginTop: "2px" } }, eng.available ? eng.note || "已就绪" : eng.note || ""), !eng.available && eng.install ? h$1("div.tbl__meta", { style: {
+	} }, h("div.item__main", h("div.item__title", eng.name, live ? tag("正在用", "jade") : eng.available ? tag("可用", "jade") : tag("未安装", "muted"), eng.license ? h("span.dim.tiny", { style: { marginLeft: "6px" } }, eng.license) : null), h("div.tbl__meta", { style: { marginTop: "2px" } }, eng.available ? eng.note || "已就绪" : eng.note || ""), !eng.available && eng.install ? h("div.tbl__meta", { style: {
 		marginTop: "2px",
 		opacity: ".75"
 	} }, `怎么装：${eng.install}`) : null));
 }
 function ocrPanel(st, onRefresh, onRefreshDone) {
-	const engines = [...st.engines || []].sort((a, b) => OCR_ENGINE_ORDER.indexOf(a.id) - OCR_ENGINE_ORDER.indexOf(b.id));
+	const engines = [...st.engines || []].sort((a, b) => OCR_ENGINE_ORDER$1.indexOf(a.id) - OCR_ENGINE_ORDER$1.indexOf(b.id));
 	const tpl = st.templates || {
 		items: [],
 		missing: []
 	};
-	const rows = h$1("div.itemlist");
+	const rows = h("div.itemlist");
 	for (const e of engines) rows.appendChild(engineRow(e, st.engine));
-	return h$1("section.panel", h$1("div.panel__body", sectionHead("屏幕识别", st.available ? `当前引擎：${st.engine_name || st.engine}` : "这台机器上还没有可用的 OCR", h$1("button.btn.btn--sm", {
+	return h("section.panel", h("div.panel__body", sectionHead("屏幕识别", st.available ? `当前引擎：${st.engine_name || st.engine}` : "这台机器上还没有可用的 OCR", h("button.btn.btn--sm", {
 		type: "button",
 		onclick: async (ev) => {
 			const btn = ev.currentTarget;
 			btn.setAttribute("data-loading", "1");
 			try {
 				const fresh = await api.get("/api/ocr/status", { probe: 1 });
-				toast(fresh.available ? `检测完成，现在用 ${fresh.engine_name || fresh.engine}` : "还是没检测到可用的引擎", fresh.available ? "ok" : "err", 4200);
+				toast$1(fresh.available ? `检测完成，现在用 ${fresh.engine_name || fresh.engine}` : "还是没检测到可用的引擎", fresh.available ? "ok" : "err", 4200);
 				onRefresh(fresh);
 			} catch (err) {
 				toastErr(err);
@@ -20392,25 +20603,25 @@ function ocrPanel(st, onRefresh, onRefreshDone) {
 				btn.removeAttribute("data-loading");
 			}
 		}
-	}, icon("refresh", 14), "重新检测"))), rows, h$1("div.panel__body", { style: { paddingTop: "0" } }, h$1("div.note", "识别用到的东西全部在这台电脑上跑，截图不出本机。按顺序试：Umi-OCR（装了并打开 HTTP 服务最好用）→ PaddleOCR-json / RapidOCR-json（解压到 tools\\ocr\\ 或设环境变量）→ Tesseract → Windows 自带。装了哪个用哪个，没装就往下退，不会因为缺一个就用不了。"), h$1("div", { style: { marginTop: "var(--sp-3)" } }, h$1("div.tbl__meta", `图标模板（认出「哪个图标是星声/体力/贝币」靠它们）：共 ${tpl.items.length} 个`), h$1("div.cluster", { style: {
+	}, icon("refresh", 14), "重新检测"))), rows, h("div.panel__body", { style: { paddingTop: "0" } }, h("div.note", "识别用到的东西全部在这台电脑上跑，截图不出本机。按顺序试：Umi-OCR（装了并打开 HTTP 服务最好用）→ PaddleOCR-json / RapidOCR-json（解压到 tools\\ocr\\ 或设环境变量）→ Tesseract → Windows 自带。装了哪个用哪个，没装就往下退，不会因为缺一个就用不了。"), h("div", { style: { marginTop: "var(--sp-3)" } }, h("div.tbl__meta", `图标模板（认出「哪个图标是星声/体力/贝币」靠它们）：共 ${tpl.items.length} 个`), h("div.cluster", { style: {
 		marginTop: "4px",
 		flexWrap: "wrap"
-	} }, ...tpl.items.map((it) => tag(`${it.key}${it.from === "custom" ? " · 自备" : ""}`, it.from === "custom" ? "jade" : "muted")), tpl.missing && tpl.missing.length ? tag(`缺 ${tpl.missing.join("、")}`, "amber") : null), h$1("div.cluster", { style: { marginTop: "var(--sp-3)" } }, h$1("button.btn.btn--sm", {
+	} }, ...tpl.items.map((it) => tag(`${it.key}${it.from === "custom" ? " · 自备" : ""}`, it.from === "custom" ? "jade" : "muted")), tpl.missing && tpl.missing.length ? tag(`缺 ${tpl.missing.join("、")}`, "amber") : null), h("div.cluster", { style: { marginTop: "var(--sp-3)" } }, h("button.btn.btn--sm", {
 		type: "button",
 		onclick: () => iconTemplateForm(st, onRefreshDone)
-	}, icon("upload", 14), "自备一个图标模板"), h$1("span.dim.tiny", "换了游戏版本、图标变了样子时用：给一张顶栏截图 + 图标所在的方框，程序当场抠出来存下。")), installSection(onRefreshDone))));
+	}, icon("upload", 14), "自备一个图标模板"), h("span.dim.tiny", "换了游戏版本、图标变了样子时用：给一张顶栏截图 + 图标所在的方框，程序当场抠出来存下。")), installSection(onRefreshDone))));
 }
-function fileSizeText(n) {
+function fileSizeText$1(n) {
 	if (!n) return "";
 	if (n < 1048576) return `${Math.round(n / 1024)}KB`;
 	return `${(n / 1024 / 1024).toFixed(1)}MB`;
 }
 /** 一个安装选项一张卡 */
 function installOptionCard(o, { onChanged }) {
-	const status = h$1("div.tiny.dim");
-	const bar = h$1("div.install__bar", h$1("div.install__fill"));
-	const logBox = h$1("div.install__log", { hidden: true });
-	const actions = h$1("div.cluster", { style: {
+	const status = h("div.tiny.dim");
+	const bar = h("div.install__bar", h("div.install__fill"));
+	const logBox = h("div.install__log", { hidden: true });
+	const actions = h("div.cluster", { style: {
 		gap: "6px",
 		flexWrap: "wrap"
 	} });
@@ -20441,7 +20652,7 @@ function installOptionCard(o, { onChanged }) {
 				bar.firstElementChild.style.width = `${Math.max(4, pct)}%`;
 			}
 			const elapsed = Math.round(j.elapsed_ms / 1e3);
-			status.textContent = `${j.step}${j.state === "downloading" && j.total ? ` · ${fileSizeText(j.received)} / ${fileSizeText(j.total)}（${j.percent}%）` : ""} · 已用 ${elapsed}s` + (j.state === "downloading" && j.percent > 2 && elapsed > 6 ? ` · 预计还要 ${Math.max(1, Math.round(elapsed * (100 - j.percent) / j.percent / 60))} 分钟` : "");
+			status.textContent = `${j.step}${j.state === "downloading" && j.total ? ` · ${fileSizeText$1(j.received)} / ${fileSizeText$1(j.total)}（${j.percent}%）` : ""} · 已用 ${elapsed}s` + (j.state === "downloading" && j.percent > 2 && elapsed > 6 ? ` · 预计还要 ${Math.max(1, Math.round(elapsed * (100 - j.percent) / j.percent / 60))} 分钟` : "");
 			if (j.log && j.log.length) {
 				logBox.hidden = false;
 				logBox.textContent = j.log.join("\n");
@@ -20456,7 +20667,7 @@ function installOptionCard(o, { onChanged }) {
 		}
 		return last;
 	};
-	if (o.installed) actions.appendChild(h$1("button.btn.btn--sm", {
+	if (o.installed) actions.appendChild(h("button.btn.btn--sm", {
 		type: "button",
 		onclick: async (ev) => {
 			const btn = ev.currentTarget;
@@ -20472,7 +20683,7 @@ function installOptionCard(o, { onChanged }) {
 			}
 		}
 	}, icon("check", 14), "自检一下"));
-	else if (o.can_auto) actions.appendChild(h$1("button.btn.btn--sm.btn--primary", {
+	else if (o.can_auto) actions.appendChild(h("button.btn.btn--sm.btn--primary", {
 		type: "button",
 		onclick: async (ev) => {
 			const btn = ev.currentTarget;
@@ -20481,14 +20692,14 @@ function installOptionCard(o, { onChanged }) {
 			try {
 				const r = await api.post("/api/ocr/install", { engine: o.id });
 				bar.hidden = false;
-				toast(`开始安装 ${o.name}，下载可能要几分钟`, "ok", 4200);
+				toast$1(`开始安装 ${o.name}，下载可能要几分钟`, "ok", 4200);
 				const last = await watch(r.job.id);
 				if (last && last.state === "done" && last.result && last.result.available) {
-					toast(`${o.name} 装好了，识别会自动用它`, "ok", 5200);
+					toast$1(`${o.name} 装好了，识别会自动用它`, "ok", 5200);
 					onChanged();
-				} else if (last && last.state === "error") toast(`安装失败：${last.error}`, "err", 8e3);
+				} else if (last && last.state === "error") toast$1(`安装失败：${last.error}`, "err", 8e3);
 				else {
-					toast("装完了，但探测没认出来 —— 看下面日志", "err", 8e3);
+					toast$1("装完了，但探测没认出来 —— 看下面日志", "err", 8e3);
 					onChanged();
 				}
 			} catch (err) {
@@ -20498,56 +20709,56 @@ function installOptionCard(o, { onChanged }) {
 				btn.removeAttribute("data-loading");
 			}
 		}
-	}, icon("download", 14), `自动安装（${shortSize(o.size)}）`));
-	else actions.appendChild(h$1("a.btn.btn--sm", {
+	}, icon("download", 14), `自动安装（${shortSize$1(o.size)}）`));
+	else actions.appendChild(h("a.btn.btn--sm", {
 		href: o.release_page,
 		target: "_blank",
 		rel: "noreferrer noopener"
 	}, icon("download", 14), "去下载页"));
-	if (!o.can_auto && !o.installed) actions.appendChild(h$1("span.tiny.dim", o.blocked_reason || "需要手动装"));
-	if (o.env_key) actions.appendChild(h$1("span.tiny.dim", `装到别处也可以在环境变量里设 ${o.env_key}`));
-	return h$1("div.install", h$1("div.install__head", h$1("span.install__name", o.name), o.installed ? tag("已装好", "jade") : tag("未安装", "muted"), h$1("span.tiny.dim", o.license), h$1("div", { style: { flex: "1" } }), o.installed ? null : h$1("span.tiny.dim", o.size)), h$1("div.tiny.dim", { style: { marginTop: "2px" } }, o.note), actions, bar, status, logBox);
+	if (!o.can_auto && !o.installed) actions.appendChild(h("span.tiny.dim", o.blocked_reason || "需要手动装"));
+	if (o.env_key) actions.appendChild(h("span.tiny.dim", `装到别处也可以在环境变量里设 ${o.env_key}`));
+	return h("div.install", h("div.install__head", h("span.install__name", o.name), o.installed ? tag("已装好", "jade") : tag("未安装", "muted"), h("span.tiny.dim", o.license), h("div", { style: { flex: "1" } }), o.installed ? null : h("span.tiny.dim", o.size)), h("div.tiny.dim", { style: { marginTop: "2px" } }, o.note), actions, bar, status, logBox);
 }
-function shortSize(s) {
+function shortSize$1(s) {
 	return String(s || "").replace(/^约\s*/, "").split(" ")[0] || "自动";
 }
 function installSection(onChanged) {
-	const box = h$1("div.stack.stack--tight");
-	const exBox = h$1("div.tiny.dim");
+	const box = h("div.stack.stack--tight");
+	const exBox = h("div.tiny.dim");
 	let loaded = false;
 	async function load() {
-		box.replaceChildren(h$1("div.tiny.dim", "正在查安装选项…"));
+		box.replaceChildren(h("div.tiny.dim", "正在查安装选项…"));
 		try {
 			const r = await api.get("/api/ocr/install");
 			const opts = r.options || [];
 			const ex = r.extractor || {};
-			exBox.replaceChildren(ex.can_auto ? h$1("span.tone-jade", `解压器：${ex.bin || ex.kind}（能解 .7z，可以直接自动安装）`) : h$1("span.tone-amber", ex.hint || ex.note || "这台机器上没有能解 .7z 的解压器"));
+			exBox.replaceChildren(ex.can_auto ? h("span.tone-jade", `解压器：${ex.bin || ex.kind}（能解 .7z，可以直接自动安装）`) : h("span.tone-amber", ex.hint || ex.note || "这台机器上没有能解 .7z 的解压器"));
 			const rest = opts.filter((o) => !o.installed);
-			box.replaceChildren(exBox, rest.length ? h$1("div.tiny.dim", "还没装的：") : h$1("div.tiny.dim", "这几个都已经装好了 —— 上面「图标模板」那块可以自备模板，引擎不用再装。"), ...rest.map((o) => installOptionCard(o, { onChanged: () => {
+			box.replaceChildren(exBox, rest.length ? h("div.tiny.dim", "还没装的：") : h("div.tiny.dim", "这几个都已经装好了 —— 上面「图标模板」那块可以自备模板，引擎不用再装。"), ...rest.map((o) => installOptionCard(o, { onChanged: () => {
 				load();
 				onChanged();
-			} })), opts.some((o) => o.installed) ? h$1("div", { style: { marginTop: "var(--sp-3)" } }, h$1("div.tiny.dim", "已经装好的："), ...opts.filter((o) => o.installed).map((o) => installOptionCard(o, { onChanged: () => {
+			} })), opts.some((o) => o.installed) ? h("div", { style: { marginTop: "var(--sp-3)" } }, h("div.tiny.dim", "已经装好的："), ...opts.filter((o) => o.installed).map((o) => installOptionCard(o, { onChanged: () => {
 				load();
 				onChanged();
 			} }))) : null);
 			loaded = true;
 		} catch (err) {
-			box.replaceChildren(h$1("div.note.note--alert", `拿不到安装选项：${err.message || err}`));
+			box.replaceChildren(h("div.note.note--alert", `拿不到安装选项：${err.message || err}`));
 		}
 	}
 	load();
-	return h$1("div", { style: { marginTop: "var(--sp-4)" } }, h$1("div.cluster", { style: { marginBottom: "6px" } }, h$1("strong.sm", "安装选项"), h$1("span.tiny.dim", "装完自动就能用，图标模板不用重做"), h$1("div", { style: { flex: "1" } }), h$1("button.btn.btn--sm.btn--quiet", {
+	return h("div", { style: { marginTop: "var(--sp-4)" } }, h("div.cluster", { style: { marginBottom: "6px" } }, h("strong.sm", "安装选项"), h("span.tiny.dim", "装完自动就能用，图标模板不用重做"), h("div", { style: { flex: "1" } }), h("button.btn.btn--sm.btn--quiet", {
 		type: "button",
 		onclick: () => load()
 	}, icon("refresh", 13), loaded ? "重新查" : "查一下")), box);
 }
 function iconTemplateForm(st, onDone) {
-	const file = h$1("input", {
+	const file = h("input", {
 		type: "file",
 		accept: "image/png,image/jpeg,image/webp",
 		style: { display: "none" }
 	});
-	const preview = h$1("img", {
+	const preview = h("img", {
 		alt: "截图预览",
 		style: {
 			maxWidth: "100%",
@@ -20555,14 +20766,14 @@ function iconTemplateForm(st, onDone) {
 			marginTop: "6px"
 		}
 	});
-	const keySel = h$1("select.sel", ...(st.resources || []).map((k) => h$1("option", { value: k }, k)));
+	const keySel = h("select.sel", ...(st.resources || []).map((k) => h("option", { value: k }, k)));
 	const box = {
 		x: 0,
 		y: 0,
 		w: 200,
 		h: 80
 	};
-	const num = (k, d) => h$1("input.inp.inp--fig", {
+	const num = (k, d) => h("input.inp.inp--fig", {
 		inputmode: "numeric",
 		value: String(d),
 		style: { width: "76px" },
@@ -20612,19 +20823,19 @@ function iconTemplateForm(st, onDone) {
 				name: "__img",
 				label: "游戏截图（顶栏那张）",
 				type: "custom",
-				render: () => h$1("div.stack.stack--tight", h$1("button.btn.btn--sm", {
+				render: () => h("div.stack.stack--tight", h("button.btn.btn--sm", {
 					type: "button",
 					onclick: () => file.click()
-				}, icon("upload", 14), "选一张图"), file, preview, h$1("div.tbl__meta", "选完图之后程序会给一个默认的方框；把下面四个数改成图标本体所在的位置。"))
+				}, icon("upload", 14), "选一张图"), file, preview, h("div.tbl__meta", "选完图之后程序会给一个默认的方框；把下面四个数改成图标本体所在的位置。"))
 			},
 			{
 				name: "__box",
 				label: "图标所在的方框（像素）",
 				type: "custom",
-				render: () => h$1("div.cluster", { style: {
+				render: () => h("div.cluster", { style: {
 					gap: "8px",
 					flexWrap: "wrap"
-				} }, h$1("label.inline", h$1("span.dim.tiny", "x"), inputs.x), h$1("label.inline", h$1("span.dim.tiny", "y"), inputs.y), h$1("label.inline", h$1("span.dim.tiny", "宽"), inputs.w), h$1("label.inline", h$1("span.dim.tiny", "高"), inputs.h))
+				} }, h("label.inline", h("span.dim.tiny", "x"), inputs.x), h("label.inline", h("span.dim.tiny", "y"), inputs.y), h("label.inline", h("span.dim.tiny", "宽"), inputs.w), h("label.inline", h("span.dim.tiny", "高"), inputs.h))
 			}
 		],
 		onSubmit: async () => {
@@ -20634,18 +20845,18 @@ function iconTemplateForm(st, onDone) {
 				data_url: dataUrl,
 				box
 			});
-			toast(`${r.key} 的模板已存下（${r.size[0]}×${r.size[1]}）`, "ok", 4200);
+			toast$1(`${r.key} 的模板已存下（${r.size[0]}×${r.size[1]}）`, "ok", 4200);
 			onDone();
 		}
 	});
 }
-async function exportBackup() {
+async function exportBackup$1() {
 	const data = await api.get("/api/backup/export");
 	const text = JSON.stringify(data, null, 2);
 	const name = `代肝运营台-备份-${(/* @__PURE__ */ new Date()).toISOString().slice(0, 19).replace(/[:T]/g, "-")}.json`;
 	const blob = new Blob([text], { type: "application/json" });
 	const url = URL.createObjectURL(blob);
-	const a = h$1("a", {
+	const a = h("a", {
 		href: url,
 		download: name,
 		style: { display: "none" }
@@ -20657,10 +20868,10 @@ async function exportBackup() {
 		a.remove();
 	}, 1e3);
 	const counts = data.counts || {};
-	toast(`备份已导出：${counts.orders || 0} 单 / ${counts.customers || 0} 客户 / ${counts.credentials || 0} 凭证`, "ok", 4200);
+	toast$1(`备份已导出：${counts.orders || 0} 单 / ${counts.customers || 0} 客户 / ${counts.credentials || 0} 凭证`, "ok", 4200);
 }
 function importBackup(onDone) {
-	const file = h$1("input", {
+	const file = h("input", {
 		type: "file",
 		accept: "application/json,.json",
 		style: { display: "none" }
@@ -20677,12 +20888,12 @@ function importBackup(onDone) {
 		}
 		if (!await confirmModal({
 			title: "导入备份会覆盖现在的全部数据",
-			message: `备份导出于 ${payload.exported_at ? fmtDateTime(payload.exported_at) : "未知时间"}。导入后现有的订单、客户、凭证、价格表全部被替换，而且所有设备都要重新登录。`,
+			message: `备份导出于 ${payload.exported_at ? fmtDateTime$1(payload.exported_at) : "未知时间"}。导入后现有的订单、客户、凭证、价格表全部被替换，而且所有设备都要重新登录。`,
 			confirmLabel: "确认覆盖",
 			tone: "danger"
 		})) return;
 		try {
-			toast(`导入完成：${(await api.post("/api/backup/import", {
+			toast$1(`导入完成：${(await api.post("/api/backup/import", {
 				payload,
 				confirm: "REPLACE"
 			})).imported.orders || 0} 单`, "ok", 4e3);
@@ -20708,11 +20919,11 @@ var settings_default = {
 		const LAN = location.hostname !== "127.0.0.1" && location.hostname !== "localhost";
 		let ocrState = ocr;
 		const importInput = importBackup(() => ctx.app.reload());
-		const row = (title, desc, action, extra) => h$1("div.item", { style: {
+		const row = (title, desc, action, extra) => h("div.item", { style: {
 			cursor: "default",
 			alignItems: "flex-start"
-		} }, h$1("div.item__main", h$1("div.item__title", title, extra), desc ? h$1("div.tbl__meta", { style: { marginTop: "2px" } }, desc) : null), action || null);
-		const ocrBox = h$1("div.stack.stack--tight");
+		} }, h("div.item__main", h("div.item__title", title, extra), desc ? h("div.tbl__meta", { style: { marginTop: "2px" } }, desc) : null), action || null);
+		const ocrBox = h("div.stack.stack--tight");
 		const paintOcr = () => {
 			mount(ocrBox, ocrState ? ocrPanel(ocrState, (fresh) => {
 				ocrState = fresh;
@@ -20720,33 +20931,33 @@ var settings_default = {
 			}, async () => {
 				ocrState = await api.get("/api/ocr/status").catch(() => ocrState);
 				paintOcr();
-			}) : h$1("section.panel", h$1("div.panel__body", sectionHead("屏幕识别"), h$1("div.note", "拿不到识别状态（后端可能还没重启到新版）。"))));
+			}) : h("section.panel", h("div.panel__body", sectionHead("屏幕识别"), h("div.note", "拿不到识别状态（后端可能还没重启到新版）。"))));
 		};
 		paintOcr();
-		return h$1("div.stack", h$1("div.pagehead", h$1("div.pagehead__txt", h$1("h1", "设置"), h$1("p.pagehead__sub", "店铺信息、密码、备份与安全"))), h$1("section.panel", h$1("div.panel__body", sectionHead("店铺信息")), h$1("div.itemlist", row("招牌名 / 称呼", `${settings.business_name || "未设置"} · 操作人 ${settings.admin_name || "未设置"}`, h$1("button.btn.btn--sm", {
+		return h("div.stack", h("div.pagehead", h("div.pagehead__txt", h("h1", "设置"), h("p.pagehead__sub", "店铺信息、密码、备份与安全"))), h("section.panel", h("div.panel__body", sectionHead("店铺信息")), h("div.itemlist", row("招牌名 / 称呼", `${settings.business_name || "未设置"} · 操作人 ${settings.admin_name || "未设置"}`, h("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => shopForm(settings).then(() => ctx.app.reload())
-		}, icon("edit", 14), "修改")), row("联系方式", settings.contact || "未填写"), row("报价单默认有效期", `${settings.quote_valid_days || 7} 天`))), h$1("section.panel", h$1("div.panel__body", sectionHead("安全")), h$1("div.itemlist", row("登录密码", "手机和电脑共用这一个。改完其他设备会退出。", h$1("button.btn.btn--sm", {
+		}, icon("edit", 14), "修改")), row("联系方式", settings.contact || "未填写"), row("报价单默认有效期", `${settings.quote_valid_days || 7} 天`))), h("section.panel", h("div.panel__body", sectionHead("安全")), h("div.itemlist", row("登录密码", "手机和电脑共用这一个。改完其他设备会退出。", h("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => passwordForm()
-		}, "改密码")), row("保险箱密码", vaultState.configured ? vaultState.unlocked ? "当前已解开。改密码会重新加密所有凭证。" : "当前已锁定。" : "还没设置。设了之后游戏账号密码才能加密入库。", h$1("div.tbl__acts", vaultState.configured ? h$1("button.btn.btn--sm", {
+		}, "改密码")), row("保险箱密码", vaultState.configured ? vaultState.unlocked ? "当前已解开。改密码会重新加密所有凭证。" : "当前已锁定。" : "还没设置。设了之后游戏账号密码才能加密入库。", h("div.tbl__acts", vaultState.configured ? h("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => vaultPasswordForm()
-		}, "改密码") : h$1("button.btn.btn--sm.btn--primary", {
+		}, "改密码") : h("button.btn.btn--sm.btn--primary", {
 			type: "button",
 			onclick: async () => {
-				if (await ensureVaultReady()) {
-					toast("保险箱已就绪", "ok");
+				if (await ensureVaultReady$1()) {
+					toast$1("保险箱已就绪", "ok");
 					ctx.app.reload();
 				}
 			}
-		}, "去设置")), vaultState.configured ? tag(vaultState.unlocked ? "已解开" : "已锁定", vaultState.unlocked ? "jade" : "amber") : tag("未设置", "oxblood")), row("保险箱加密", "AES-256-GCM，密钥由你的保险箱密码用 scrypt 推导，只存在于内存，不写进任何文件。"))), ocrBox, h$1("section.panel", h$1("div.panel__body", sectionHead("数据")), h$1("div.itemlist", row("当前数据量", `${counts.orders || 0} 张订单 · ${counts.customers || 0} 位客户 · ${counts.credentials || 0} 条凭证 · ${counts.services || 0} 个服务项 · ${counts.games || 0} 个游戏`), row("导出一份备份", "下载一个 JSON 文件，含全部业务数据。凭证在文件里仍然是密文，换台电脑要用同一个保险箱密码才能解开。", h$1("button.btn.btn--sm", {
+		}, "去设置")), vaultState.configured ? tag(vaultState.unlocked ? "已解开" : "已锁定", vaultState.unlocked ? "jade" : "amber") : tag("未设置", "oxblood")), row("保险箱加密", "AES-256-GCM，密钥由你的保险箱密码用 scrypt 推导，只存在于内存，不写进任何文件。"))), ocrBox, h("section.panel", h("div.panel__body", sectionHead("数据")), h("div.itemlist", row("当前数据量", `${counts.orders || 0} 张订单 · ${counts.customers || 0} 位客户 · ${counts.credentials || 0} 条凭证 · ${counts.services || 0} 个服务项 · ${counts.games || 0} 个游戏`), row("导出一份备份", "下载一个 JSON 文件，含全部业务数据。凭证在文件里仍然是密文，换台电脑要用同一个保险箱密码才能解开。", h("button.btn.btn--sm", {
 			type: "button",
-			onclick: () => exportBackup().catch(toastErr)
-		}, icon("download", 14), "导出")), row("从备份恢复", "会用备份内容覆盖现在的全部数据。", h$1("div.tbl__acts", h$1("button.btn.btn--sm", {
+			onclick: () => exportBackup$1().catch(toastErr)
+		}, icon("download", 14), "导出")), row("从备份恢复", "会用备份内容覆盖现在的全部数据。", h("div.tbl__acts", h("button.btn.btn--sm", {
 			type: "button",
 			onclick: () => importInput.click()
-		}, icon("upload", 14), "导入"), importInput)), row("清空业务数据", "清掉订单、客户、凭证、价格表和游戏，保留登录密码和保险箱设置。不可撤销。", h$1("button.btn.btn--sm.btn--danger", {
+		}, icon("upload", 14), "导入"), importInput)), row("清空业务数据", "清掉订单、客户、凭证、价格表和游戏，保留登录密码和保险箱设置。不可撤销。", h("button.btn.btn--sm.btn--danger", {
 			type: "button",
 			onclick: async () => {
 				if (!await confirmModal({
@@ -20756,10 +20967,10 @@ var settings_default = {
 					tone: "danger"
 				})) return;
 				await api.post("/api/system/reset", { confirm: "CLEAR" });
-				toast("已清空", "ok");
+				toast$1("已清空", "ok");
 				ctx.app.reload();
 			}
-		}, "清空")))), h$1("section.panel", h$1("div.panel__body", sectionHead("安全须知", "值得花一分钟读完")), h$1("div.panel__body", { style: { paddingTop: "0" } }, h$1("ul.empty__steps", { style: { maxWidth: "70ch" } }, h$1("li", h$1("span.n", "1"), h$1("span", "数据全部存在这台电脑的 data/ 目录里，不会上传到任何地方。把整个文件夹拷走就是完整备份。")), h$1("li", h$1("span.n", "2"), h$1("span", "用手机通过局域网访问时走的是普通 HTTP，同一 WiFi 下的其他人理论上能抓包看到你输入的密码。建议只在自家/可信 WiFi 下用手机访问，或者启动时加 --local 只允许本机。")), h$1("li", h$1("span.n", "3"), h$1("span", "游戏登录凭证是加密的，但保险箱密码一旦忘记就真的解不开——没有后门。请记在密码管理器里。")), h$1("li", h$1("span.n", "4"), h$1("span", "优先让客户扫码登录。能不存密码，就不存密码。")), h$1("li", h$1("span.n", "5"), h$1("span", "定期导出备份。硬盘坏了、系统重装了，SQLite 文件不会自己回来。"))), LAN ? h$1("div.note.note--warn", { style: { marginTop: "var(--sp-4)" } }, "你现在是透过局域网访问的（" + location.host + "）。请确认这个 WiFi 是你信得过的。") : null)), h$1("section.panel", h$1("div.panel__body", sectionHead("关于")), h$1("div.panel__body", { style: { paddingTop: "0" } }, h$1("div.kv", h$1("dt", "程序"), h$1("dd", "代肝价格查询 · 私用运营台"), h$1("dt", "版本"), h$1("dd", "v1.0.0"), h$1("dt", "运行方式"), h$1("dd", "Node.js 内置 http + SQLite，零第三方依赖"), h$1("dt", "存储"), h$1("dd", h$1("span.mono.sm", "data/console.db")), h$1("dt", "本次登录"), h$1("dd", me?.actor || "—")))));
+		}, "清空")))), h("section.panel", h("div.panel__body", sectionHead("安全须知", "值得花一分钟读完")), h("div.panel__body", { style: { paddingTop: "0" } }, h("ul.empty__steps", { style: { maxWidth: "70ch" } }, h("li", h("span.n", "1"), h("span", "数据全部存在这台电脑的 data/ 目录里，不会上传到任何地方。把整个文件夹拷走就是完整备份。")), h("li", h("span.n", "2"), h("span", "用手机通过局域网访问时走的是普通 HTTP，同一 WiFi 下的其他人理论上能抓包看到你输入的密码。建议只在自家/可信 WiFi 下用手机访问，或者启动时加 --local 只允许本机。")), h("li", h("span.n", "3"), h("span", "游戏登录凭证是加密的，但保险箱密码一旦忘记就真的解不开——没有后门。请记在密码管理器里。")), h("li", h("span.n", "4"), h("span", "优先让客户扫码登录。能不存密码，就不存密码。")), h("li", h("span.n", "5"), h("span", "定期导出备份。硬盘坏了、系统重装了，SQLite 文件不会自己回来。"))), LAN ? h("div.note.note--warn", { style: { marginTop: "var(--sp-4)" } }, "你现在是透过局域网访问的（" + location.host + "）。请确认这个 WiFi 是你信得过的。") : null)), h("section.panel", h("div.panel__body", sectionHead("关于")), h("div.panel__body", { style: { paddingTop: "0" } }, h("div.kv", h("dt", "程序"), h("dd", "代肝价格查询 · 私用运营台"), h("dt", "版本"), h("dd", "v1.0.0"), h("dt", "运行方式"), h("dd", "Node.js 内置 http + SQLite，零第三方依赖"), h("dt", "存储"), h("dd", h("span.mono.sm", "data/console.db")), h("dt", "本次登录"), h("dd", me?.actor || "—")))));
 	}
 };
 //#endregion
@@ -20779,6 +20990,26 @@ function fmtDate(value) {
 	const date = new Date(value);
 	if (Number.isNaN(date.getTime())) return String(value);
 	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+function fmtDateTime(value) {
+	if (!value) return "";
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return String(value);
+	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+/** 「3 分钟前」这种。跟 public/js/dom.js 的 relTime 一个口径 */
+function relTime(value) {
+	if (!value) return "";
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return "";
+	const minutes = Math.floor((Date.now() - date.getTime()) / 6e4);
+	if (minutes < 1) return "刚刚";
+	if (minutes < 60) return `${minutes} 分钟前`;
+	const hours = Math.floor(minutes / 60);
+	if (hours < 24) return `${hours} 小时前`;
+	const days = Math.floor(hours / 24);
+	if (days < 30) return `${days} 天前`;
+	return fmtDate(value);
 }
 function ymd(value) {
 	const match = /^(\d{4})-(\d{2})-(\d{2})(?:[T ]|$)/.exec(String(value || ""));
@@ -20882,1215 +21113,10 @@ var require_react_jsx_runtime_production = /* @__PURE__ */ __commonJSMin(((expor
 	exports.jsxs = jsxProd;
 }));
 //#endregion
-//#region client/app/modal.jsx
+//#region client/app/drawer.jsx
 var import_jsx_runtime = (/* @__PURE__ */ __commonJSMin(((exports, module) => {
 	module.exports = require_react_jsx_runtime_production();
 })))();
-function Modal({ title, wide = false, footer = null, onClose, children }) {
-	const ref = (0, import_react.useRef)(null);
-	const closeRef = (0, import_react.useRef)(onClose);
-	closeRef.current = onClose;
-	(0, import_react.useEffect)(() => {
-		const node = ref.current;
-		if (!node) return void 0;
-		const onCancel = (event) => {
-			event.preventDefault();
-			if (closeRef.current) closeRef.current();
-		};
-		const onClick = (event) => {
-			if (event.target === node && closeRef.current) closeRef.current();
-		};
-		const onClosed = () => {
-			if (closeRef.current) closeRef.current();
-		};
-		node.addEventListener("cancel", onCancel);
-		node.addEventListener("click", onClick);
-		node.addEventListener("close", onClosed);
-		if (!node.open) node.showModal();
-		return () => {
-			node.removeEventListener("cancel", onCancel);
-			node.removeEventListener("click", onClick);
-			node.removeEventListener("close", onClosed);
-			if (node.open) node.close();
-		};
-	}, []);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("dialog", {
-		className: `modal${wide ? " modal--wide" : ""}`,
-		ref,
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			className: "modal__body",
-			children: [title ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
-				className: "modal__title",
-				children: title
-			}) : null, children]
-		}), footer ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-			className: "modal__foot",
-			children: footer
-		}) : null]
-	});
-}
-//#endregion
-//#region client/app/overlay-host.jsx
-var stack = [];
-var seq = 0;
-var listeners = /* @__PURE__ */ new Set();
-function publish() {
-	const snapshot = [...stack];
-	for (const listener of listeners) listener(snapshot);
-}
-/**
-* 打开一个浮层，返回 Promise。
-* render 收到一个 close(值) 函数：调它就卸载这一层并 resolve(值)。
-* key 用来防连点：最上面那层如果是同一个 key，先关掉它。
-*/
-function openOverlay(render, key = "") {
-	const top = stack[stack.length - 1];
-	if (top && key && top.key === key) top.settle(null);
-	return new Promise((resolve) => {
-		const entry = {
-			id: ++seq,
-			key,
-			render,
-			settle(value) {
-				const index = stack.indexOf(entry);
-				if (index >= 0) {
-					stack.splice(index, 1);
-					publish();
-				}
-				resolve(value);
-			}
-		};
-		stack.push(entry);
-		publish();
-	});
-}
-function OverlayHost() {
-	const [entries, setEntries] = (0, import_react.useState)(() => [...stack]);
-	(0, import_react.useEffect)(() => {
-		listeners.add(setEntries);
-		setEntries([...stack]);
-		return () => {
-			listeners.delete(setEntries);
-		};
-	}, []);
-	(0, import_react.useEffect)(() => {
-		if (entries.length) document.body.classList.add("is-locked");
-		else document.body.classList.remove("is-locked");
-	}, [entries.length]);
-	(0, import_react.useEffect)(() => () => document.body.classList.remove("is-locked"), []);
-	if (!entries.length) return null;
-	return entries.map((entry) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_react.Fragment, { children: entry.render(entry.settle) }, entry.id));
-}
-//#endregion
-//#region client/app/confirm.jsx
-function confirmDialog({ title, message, confirmLabel = "确定", cancelLabel = "取消", tone = "primary", extra = null }) {
-	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Modal, {
-		title,
-		onClose: () => close(false),
-		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-			className: "btn",
-			type: "button",
-			onClick: () => close(false),
-			children: cancelLabel
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-			className: `btn${tone === "primary" ? " btn--primary" : tone === "danger" ? " btn--danger" : ""}`,
-			type: "button",
-			onClick: () => close(true),
-			children: confirmLabel
-		})] }),
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			className: "stack stack--tight",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-				className: "muted",
-				children: message
-			}), extra]
-		})
-	}));
-}
-/** 删除前问一句。危险动作，按钮用朱砂色。 */
-function confirmDelete({ title, message, confirmLabel = "删除" }) {
-	return confirmDialog({
-		title,
-		message,
-		confirmLabel,
-		tone: "danger"
-	});
-}
-//#endregion
-//#region client/dashboard.jsx
-var STATUS_LABEL$1 = ORDER_STATUS_LABEL;
-var iconProps$12 = (size = 16) => ({
-	size,
-	strokeWidth: 1.8,
-	absoluteStrokeWidth: true,
-	"aria-hidden": true
-});
-function LedgerCell({ label, value, tone = "", hint, onClick }) {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-		className: `react-ledger__cell${tone ? ` is-${tone}` : ""}`,
-		type: "button",
-		title: hint,
-		disabled: !onClick,
-		onClick,
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: label }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: value })]
-	});
-}
-function DashboardLedger({ data, navigate }) {
-	const c = data.counts || {};
-	const today = data.today || todayStr();
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
-		className: "react-ledger",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
-			className: "react-ledger__head",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "今日台面" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: fmtDayFull(today) })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-				className: "react-ledger__summary",
-				children: [
-					"本月已收 ¥",
-					fmtMoney(data.month_money?.received),
-					" · 利润 ¥",
-					fmtMoney(data.month_money?.profit)
-				]
-			})]
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			className: "react-ledger__body",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "react-ledger__group",
-				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
-						label: "待确认",
-						value: c.pending_confirm || 0,
-						tone: c.pending_confirm ? "alert" : "",
-						hint: "客户下单了，等你确认",
-						onClick: () => navigate("/orders?status=pending_confirm")
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
-						label: "待付款",
-						value: c.pending_pay || 0,
-						tone: c.pending_pay ? "alert" : "",
-						hint: "还没收到钱",
-						onClick: () => navigate("/orders?status=pending_pay")
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
-						label: "进行中",
-						value: c.in_progress || 0,
-						hint: "正在做的单",
-						onClick: () => navigate("/orders?status=in_progress")
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
-						label: "待验收",
-						value: c.pending_accept || 0,
-						tone: c.pending_accept ? "alert" : "",
-						hint: "做完了等客户点头",
-						onClick: () => navigate("/orders?status=pending_accept")
-					})
-				]
-			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "react-ledger__group react-ledger__group--money",
-				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
-						label: "今日新单",
-						value: `¥${fmtMoney(data.today_money?.ordered_amount)}`,
-						hint: `${data.today_money?.ordered_count || 0} 单`
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
-						label: "今日已收",
-						value: `¥${fmtMoney(data.today_money?.received)}`,
-						onClick: () => navigate("/finance")
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
-						label: "未收余额",
-						value: `¥${fmtMoney(data.receivables)}`,
-						tone: data.receivables > 0 ? "due" : "",
-						hint: "所有未结清订单的尾款合计",
-						onClick: () => navigate("/orders?due=1")
-					})
-				]
-			})]
-		})]
-	});
-}
-function EmptyOnboarding({ navigate }) {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
-		className: "react-dashboard-empty",
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "react-dashboard-empty__icon",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$12(21) })
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "帐桌支好了，先录第一批价格" }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "这个后台不预置任何数据。按下面顺序录入，十分钟就能接手第一单。" }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("ol", { children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "在「游戏」里添加正在代肝的游戏和区服。" }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "在「价格表」里建立日常、周常、活动等分类。" }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "在分类下添加服务项，选择计价方式并填单价。" }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "需要阶梯价或加急之类的增项，就在服务项里继续添加。" }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "录入客户后，从「订单」开出第一单。" })
-			] }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "react-dashboard-empty__actions",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-					className: "refactor-button refactor-button--primary",
-					type: "button",
-					onClick: () => navigate("/games"),
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$12(15) }), "先加一个游戏"]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-					className: "refactor-button",
-					type: "button",
-					onClick: () => navigate("/price"),
-					children: "直接去价格表"
-				})]
-			})
-		]
-	});
-}
-function StatusBadge$1({ status, label }) {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-		className: `react-status react-status--${STATUS_TONE[status] || "muted"}`,
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", {}), label || STATUS_LABEL$1[status] || status || "未指定"]
-	});
-}
-function OrderRow$1({ order, navigate, onReload }) {
-	const due = Number(order.due_total) || 0;
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", {
-		className: "react-order-row",
-		role: "button",
-		tabIndex: "0",
-		onClick: () => navigate(`/orders/${order.id}`),
-		onKeyDown: (event) => {
-			if (event.key === "Enter" || event.key === " ") navigate(`/orders/${order.id}`);
-		},
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "react-order-row__main",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "react-order-row__title",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.order_no }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StatusBadge$1, {
-						status: order.status,
-						label: order.status_label
-					})]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "react-order-row__meta",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: order.customer_name || "散客" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: order.title || "未填写标题" })]
-				})]
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "react-order-row__game",
-				children: order.game_name || "未指定游戏"
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "react-order-row__progress",
-				children: order.progress_count ? `${order.progress_count} 条进度` : "还没记进度"
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "react-order-row__money",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("b", { children: ["¥", fmtMoney(order.total)] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-					className: due > .001 ? "is-due" : "",
-					children: due > .001 ? `尾款 ¥${fmtMoney(due)}` : "已结清"
-				})]
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "react-order-row__actions",
-				onClick: (event) => event.stopPropagation(),
-				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-						className: "react-mini-button",
-						type: "button",
-						title: "记进度",
-						onClick: () => progressDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$12(14) })
-					}),
-					due > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-						className: "react-mini-button",
-						type: "button",
-						title: "记收款",
-						onClick: () => paymentDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$12(14) })
-					}) : null,
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-						className: "react-mini-button",
-						type: "button",
-						title: "看详情",
-						onClick: () => navigate(`/orders/${order.id}`),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$12(14) })
-					})
-				]
-			})
-		]
-	});
-}
-function OpenOrders({ orders, count, navigate, onReload }) {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
-		className: "react-dashboard-panel",
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
-				className: "react-dashboard-panel__head",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "进行中调度" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "按交付时间排在前面的订单" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-					className: "react-dashboard-panel__count",
-					children: [count || 0, " 单未结束"]
-				})]
-			}),
-			orders.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "react-orders-list",
-				children: orders.map((order) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrderRow$1, {
-					order,
-					navigate,
-					onReload
-				}, order.id))
-			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "react-panel-empty",
-				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$12(19) }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "现在手上没有在做的单" }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "开一单试试，价格会在下单时冻结。" }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-						className: "refactor-button",
-						type: "button",
-						onClick: () => navigate("/orders/new"),
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$12(14) }), "开一张新单"]
-					})
-				]
-			}),
-			orders.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("footer", {
-				className: "react-dashboard-panel__foot",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-					className: "refactor-button",
-					type: "button",
-					onClick: () => navigate("/orders?status=open"),
-					children: ["看全部在做的单 ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$12(14) })]
-				})
-			}) : null
-		]
-	});
-}
-function SideList({ title, note, rows, renderRow }) {
-	if (!rows.length) return null;
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
-		className: "react-dashboard-panel react-dashboard-panel--side",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("header", {
-			className: "react-dashboard-panel__head",
-			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: title }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: note })] })
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-			className: "react-side-list",
-			children: rows.map(renderRow)
-		})]
-	});
-}
-function DashboardSide({ data, navigate, onReload }) {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "react-dashboard-side",
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SideList, {
-				title: "停滞提醒",
-				note: "两天没记进度了",
-				rows: data.stale_orders || [],
-				renderRow: (order) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-					className: "react-side-row",
-					type: "button",
-					onClick: () => navigate(`/orders/${order.id}`),
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.order_no }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
-						order.customer_name || "散客",
-						" · 上次 ",
-						fmtDay(order.last_progress_on)
-					] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("em", { children: [order.idle_days, " 天"] })]
-				}, order.id)
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SideList, {
-				title: "还没收齐",
-				note: "点一下就能记收款",
-				rows: data.unpaid_orders || [],
-				renderRow: (order) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "react-side-row",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.order_no }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
-						order.customer_name || "散客",
-						" · ",
-						order.title || "未填写标题"
-					] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", { children: ["¥", fmtMoney(order.due_total)] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-						className: "react-mini-button",
-						type: "button",
-						title: "记收款",
-						onClick: () => paymentDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CreditCard, { ...iconProps$12(14) })
-					})] })]
-				}, order.id)
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SideList, {
-				title: "最近收款",
-				note: "最新确认的资金记录",
-				rows: data.recent_payments || [],
-				renderRow: (payment) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "react-side-row",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: payment.customer_name || "散客" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
-						payment.order_no || "未挂订单",
-						" · ",
-						fmtDay(payment.paid_at)
-					] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", {
-						className: payment.kind === "refund" ? "is-refund" : "is-paid",
-						children: [
-							payment.kind === "refund" ? "−" : "+",
-							"¥",
-							fmtMoney(payment.amount)
-						]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-						className: "react-mini-button",
-						type: "button",
-						title: "删除这笔收款",
-						onClick: async () => {
-							if (!await confirmDelete({
-								title: "删掉这笔收款？",
-								message: `${payment.customer_name || "散客"} · ${PAY_KIND_LABEL[payment.kind] || payment.kind} ¥${fmtMoney(payment.amount)}`
-							})) return;
-							try {
-								await api.del(`/api/payments/${payment.id}`);
-								toast("已删除这笔收款", "ok");
-								onReload();
-							} catch (err) {
-								toastErr(err);
-							}
-						},
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$12(14) })
-					})] })]
-				}, payment.id)
-			})
-		]
-	});
-}
-function DashboardPage({ data, navigate, onReload }) {
-	if (!data) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "refactor-loading",
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
-		]
-	});
-	const counts = data.counts || {};
-	const empty = !counts.games && !counts.customers && !counts.open && !counts.done;
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "react-dashboard",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DashboardLedger, {
-			data,
-			navigate
-		}), empty ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmptyOnboarding, { navigate }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			className: "react-dashboard-grid",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(OpenOrders, {
-				orders: data.open_orders || [],
-				count: counts.open,
-				navigate,
-				onReload
-			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DashboardSide, {
-				data,
-				navigate,
-				onReload
-			})]
-		})]
-	});
-}
-//#endregion
-//#region client/orders.jsx
-var FILTERS$1 = [
-	{
-		key: "open",
-		label: "在做的"
-	},
-	{
-		key: "daily_done",
-		label: "今日已完成"
-	},
-	{
-		key: "pending_confirm",
-		label: "待确认"
-	},
-	{
-		key: "pending_pay",
-		label: "待付款"
-	},
-	{
-		key: "in_progress",
-		label: "进行中"
-	},
-	{
-		key: "pending_accept",
-		label: "待验收"
-	},
-	{
-		key: "due",
-		label: "没收齐"
-	},
-	{
-		key: "done",
-		label: "已完成"
-	},
-	{
-		key: "",
-		label: "全部"
-	}
-];
-var SORTS = [
-	{
-		value: "",
-		label: "最新在前"
-	},
-	{
-		value: "oldest",
-		label: "最早在前"
-	},
-	{
-		value: "customer",
-		label: "按客户排"
-	},
-	{
-		value: "amount",
-		label: "按金额排"
-	}
-];
-var STATUS_LABEL = ORDER_STATUS_LABEL;
-var iconProps$11 = (size = 15) => ({
-	size,
-	strokeWidth: 1.8,
-	absoluteStrokeWidth: true,
-	"aria-hidden": true
-});
-function StatusBadge({ order }) {
-	const tone = STATUS_TONE[order.status] || "muted";
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-		className: `react-status react-status--${tone}`,
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", {}), order.status_label || STATUS_LABEL[order.status] || order.status || "未指定"]
-	});
-}
-function DueLabel({ order }) {
-	if (!order.due_at) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-		className: "orders-cell__muted",
-		children: "未设交付"
-	});
-	const info = ["done", "cancelled"].includes(order.status) ? {
-		kind: "ok",
-		text: ""
-	} : remainInfo(order.ordered_at, order.due_at);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-		className: "orders-due",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: fmtDay(order.due_at) }), info.kind === "invalid" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("em", {
-			className: "orders-due__bad",
-			children: "填错了"
-		}) : info.text ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("em", {
-			className: `orders-due__${info.kind}`,
-			children: info.text
-		}) : null]
-	});
-}
-function CustomerCell({ order, navigate }) {
-	if (!order.customer_id) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-		className: "orders-cell__muted",
-		children: "散客"
-	});
-	const count = Number(order.customer_order_count) || 0;
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-		className: "orders-customer",
-		type: "button",
-		title: `看 ${order.customer_name || "这个客户"} 的档案`,
-		onClick: (event) => {
-			event.stopPropagation();
-			navigate(`/customers/${order.customer_id}`);
-		},
-		children: [order.customer_avatar ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-			src: order.customer_avatar,
-			alt: "",
-			loading: "lazy"
-		}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-			className: "orders-customer__avatar",
-			children: (order.customer_name || "?").slice(0, 1)
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.customer_name || "没填名字" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: order.customer_phone || (count > 1 ? `第 ${count} 单` : "客户档案") })] })]
-	});
-}
-function OrderRow({ order, navigate, onReload }) {
-	const due = Number(order.due_total) || 0;
-	const title = order.title || "（没写标题）";
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", {
-		className: "orders-row",
-		role: "button",
-		tabIndex: 0,
-		onClick: () => navigate(`/orders/${order.id}`),
-		onKeyDown: (event) => {
-			if (event.key === "Enter" || event.key === " ") {
-				event.preventDefault();
-				navigate(`/orders/${order.id}`);
-			}
-		},
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "orders-row__order",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "orders-row__number",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.order_no }),
-						order.stale ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-							className: "orders-tag orders-tag--amber",
-							children: [order.idle_days, " 天没动"]
-						}) : null,
-						order.daily_done_today ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: "orders-tag orders-tag--jade",
-							children: "今日已完成"
-						}) : null
-					]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: title })]
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "orders-row__customer",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CustomerCell, {
-					order,
-					navigate
-				})
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "orders-row__game",
-				children: order.game_name || "未指定游戏"
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "orders-row__progress",
-				children: order.progress_count ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("b", { children: [order.progress_count, " 条"] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: ["到 ", fmtDay(order.last_progress_on)] })] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-					className: "orders-cell__muted",
-					children: "还没记"
-				})
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "orders-row__status",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StatusBadge, { order })
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "orders-row__due",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DueLabel, { order })
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "orders-row__money",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("b", { children: ["¥", fmtMoney(order.total)] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-					className: due > .001 ? "is-due" : "",
-					children: due > .001 ? `还差 ¥${fmtMoney(due)}` : "已结清"
-				})]
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "orders-row__actions",
-				onClick: (event) => event.stopPropagation(),
-				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-						className: "react-mini-button",
-						type: "button",
-						title: "记进度",
-						onClick: () => progressDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$11(14) })
-					}),
-					due > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-						className: "react-mini-button",
-						type: "button",
-						title: "记收款",
-						onClick: () => paymentDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$11(14) })
-					}) : null,
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-						className: "react-mini-button",
-						type: "button",
-						title: "看详情",
-						onClick: () => navigate(`/orders/${order.id}`),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$11(14) })
-					})
-				]
-			})
-		]
-	});
-}
-function EmptyOrders({ search, status, onNew }) {
-	const title = search ? "没搜到符合条件的单" : status === "open" ? "手上没有在做的单" : "这个状态下没有单";
-	const body = search ? "换个单号、标题或者客户名试试。" : "开一张新单：选客户、挑服务，价格会自动算出来。";
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "orders-empty",
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListFilter, { ...iconProps$11(21) }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: title }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: body }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-				className: "refactor-button refactor-button--primary",
-				type: "button",
-				onClick: onNew,
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$11(15) }), "开新单"]
-			})
-		]
-	});
-}
-function toHref$1(filters) {
-	const params = new URLSearchParams();
-	params.set("status", filters.status || "");
-	if (filters.q) params.set("q", filters.q);
-	if (filters.customerId) params.set("customer_id", filters.customerId);
-	if (filters.sort) params.set("sort", filters.sort);
-	if (filters.due) params.set("due", "1");
-	return `/orders?${params.toString()}`;
-}
-function OrdersPage({ route, navigate, onNew, onReload, reloadKey }) {
-	const queryFilters = (0, import_react.useMemo)(() => {
-		const due = route.query.get("due") === "1";
-		return {
-			status: due ? "due" : route.query.has("status") ? route.query.get("status") || "" : "open",
-			q: route.query.get("q") || "",
-			customerId: route.query.get("customer_id") || "",
-			sort: route.query.get("sort") || "",
-			due
-		};
-	}, [route.query.toString()]);
-	const [search, setSearch] = (0, import_react.useState)(queryFilters.q);
-	const [items, setItems] = (0, import_react.useState)(null);
-	const [customer, setCustomer] = (0, import_react.useState)(null);
-	const [error, setError] = (0, import_react.useState)("");
-	const searchTimer = (0, import_react.useRef)(null);
-	(0, import_react.useEffect)(() => setSearch(queryFilters.q), [queryFilters.q]);
-	(0, import_react.useEffect)(() => () => window.clearTimeout(searchTimer.current), []);
-	(0, import_react.useEffect)(() => {
-		let active = true;
-		setItems(null);
-		setError("");
-		const params = { limit: 300 };
-		if (queryFilters.due) params.due = "1";
-		else if (queryFilters.status) params.status = queryFilters.status;
-		if (queryFilters.q) params.q = queryFilters.q;
-		if (queryFilters.customerId) params.customer_id = queryFilters.customerId;
-		if (queryFilters.sort) params.sort = queryFilters.sort;
-		Promise.all([api.get("/api/orders", params), queryFilters.customerId ? api.get(`/api/customers/${queryFilters.customerId}`).catch(() => null) : Promise.resolve(null)]).then(([data, customerData]) => {
-			if (!active) return;
-			setItems(data.items || []);
-			setCustomer(customerData);
-		}).catch((err) => {
-			if (!active) return;
-			setError(err.message || "订单列表加载失败");
-			setItems([]);
-		});
-		return () => {
-			active = false;
-		};
-	}, [
-		queryFilters.status,
-		queryFilters.q,
-		queryFilters.customerId,
-		queryFilters.sort,
-		queryFilters.due,
-		reloadKey
-	]);
-	const update = (overrides) => navigate(toHref$1({
-		...queryFilters,
-		...overrides
-	}));
-	const rows = items || [];
-	const total = rows.reduce((sum, row) => sum + (Number(row.total) || 0), 0);
-	const due = rows.reduce((sum, row) => sum + (Number(row.due_total) || 0), 0);
-	const customers = new Set(rows.filter((row) => row.customer_id).map((row) => row.customer_id)).size;
-	const walkIn = rows.filter((row) => !row.customer_id).length;
-	const title = queryFilters.customerId ? `${customer?.name || rows[0]?.customer_name || "这个客户"}的单` : queryFilters.due ? "没收齐的单" : queryFilters.status === "open" ? "在做的单" : queryFilters.status === "daily_done" ? "今日已完成" : "订单";
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "orders-page",
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
-				className: "orders-page__head",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						className: "refactor-eyebrow",
-						children: "业务清单"
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: title }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: rows.length ? `${rows.length} 张单 · ${customers} 位客户${walkIn ? ` + ${walkIn} 张散客` : ""} · 合计 ¥${fmtMoney(total)} · 未收 ¥${fmtMoney(due)}` : "按状态、客户和交付情况快速定位订单" })
-				] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-					className: "refactor-button refactor-button--primary",
-					type: "button",
-					onClick: onNew,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$11(15) }), "开新单"]
-				})]
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
-				className: "orders-toolbar",
-				"aria-label": "订单筛选",
-				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						className: "orders-filters",
-						role: "tablist",
-						"aria-label": "订单状态",
-						children: FILTERS$1.map((filter) => {
-							const active = filter.key === "due" ? queryFilters.due : !queryFilters.due && queryFilters.status === filter.key;
-							return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-								className: `orders-filter${active ? " is-active" : ""}`,
-								type: "button",
-								role: "tab",
-								"aria-selected": active,
-								onClick: () => update(filter.key === "due" ? {
-									status: "open",
-									due: true
-								} : {
-									status: filter.key,
-									due: false
-								}),
-								children: filter.label
-							}, filter.key || "all");
-						})
-					}),
-					queryFilters.customerId ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-						className: "orders-chip",
-						type: "button",
-						title: "取消客户筛选",
-						onClick: () => update({ customerId: "" }),
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Users, { ...iconProps$11(13) }),
-							"只看「",
-							customer?.name || "这个客户",
-							"」",
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								"aria-hidden": "true",
-								children: "×"
-							})
-						]
-					}) : null,
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "orders-toolbar__spacer" }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("select", {
-						className: "orders-select",
-						"aria-label": "排序方式",
-						value: queryFilters.sort,
-						onChange: (event) => update({ sort: event.target.value }),
-						children: SORTS.map((sort) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
-							value: sort.value,
-							children: sort.label
-						}, sort.value))
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
-						className: "orders-search",
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$11(15) }),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
-								type: "search",
-								value: search,
-								placeholder: "搜单号 / 标题 / 客户名",
-								onChange: (event) => {
-									const value = event.target.value;
-									setSearch(value);
-									window.clearTimeout(searchTimer.current);
-									searchTimer.current = window.setTimeout(() => update({ q: value.trim() }), 260);
-								}
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("kbd", { children: "/" })
-						]
-					})
-				]
-			}),
-			queryFilters.status === "daily_done" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "orders-note",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$11(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "这些是今天标了「今日已完成」的单，过了凌晨 4 点会自动回到「在做的」。点进订单可以撤销。" })]
-			}) : null,
-			error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "refactor-alert",
-				role: "alert",
-				children: error
-			}) : null,
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
-				className: "orders-panel",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "orders-table-head",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "订单" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "客户" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "游戏" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "进度" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "状态" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "交付" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "金额" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "操作" })
-					]
-				}), items === null ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "refactor-loading",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
-					]
-				}) : rows.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					className: "orders-list",
-					children: rows.map((order) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrderRow, {
-						order,
-						navigate,
-						onReload
-					}, order.id))
-				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmptyOrders, {
-					search: Boolean(queryFilters.q),
-					status: queryFilters.status,
-					onNew
-				})]
-			})
-		]
-	});
-}
-//#endregion
-//#region client/customers.jsx
-var FILTERS = [
-	{
-		key: "",
-		label: "全部"
-	},
-	{
-		key: "due",
-		label: "有欠款"
-	},
-	{
-		key: "repeat",
-		label: "回头客"
-	}
-];
-var iconProps$10 = (size = 16) => ({
-	size,
-	strokeWidth: 1.8,
-	absoluteStrokeWidth: true,
-	"aria-hidden": true
-});
-function CustomerAvatar({ customer }) {
-	if (customer.avatar) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-		className: "customers-avatar",
-		src: customer.avatar,
-		alt: "",
-		loading: "lazy"
-	});
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-		className: "customers-avatar customers-avatar--fallback",
-		children: (customer.name || "?").slice(0, 1)
-	});
-}
-function CustomerRow({ customer, navigate }) {
-	const due = Number(customer.due_total) || 0;
-	const tags = Array.isArray(customer.tags) ? customer.tags.slice(0, 3) : [];
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", {
-		className: "customers-row",
-		role: "button",
-		tabIndex: 0,
-		onClick: () => navigate(`/customers/${customer.id}`),
-		onKeyDown: (event) => {
-			if (event.key === "Enter" || event.key === " ") {
-				event.preventDefault();
-				navigate(`/customers/${customer.id}`);
-			}
-		},
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "customers-row__identity",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CustomerAvatar, { customer }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "customers-row__name",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: customer.name || "未命名客户" }),
-						customer.status === "archived" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: "customers-tag customers-tag--archived",
-							children: "已归档"
-						}) : null,
-						tags.map((tag) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: "customers-tag",
-							children: tag
-						}, tag))
-					]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "customers-row__contact",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: customer.phone || "没填手机号" }),
-						customer.wechat ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["微信 ", customer.wechat] }) : null,
-						customer.qq ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["QQ ", customer.qq] }) : null
-					]
-				})] })]
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "customers-row__source",
-				children: customer.source || "未注明来源"
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "customers-row__orders",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: customer.order_count || 0 }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "张订单" })]
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "customers-row__money",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", {
-					className: due > .001 ? "is-due" : "",
-					children: due > .001 ? `¥${fmtMoney(due)}` : `¥${fmtMoney(customer.order_total)}`
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: due > .001 ? "未收余额" : "累计订单额" })]
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "customers-row__credentials",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$10(14) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: customer.credential_count || 0 })]
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-				className: "react-mini-button customers-row__open",
-				type: "button",
-				title: "看客户档案",
-				onClick: (event) => {
-					event.stopPropagation();
-					navigate(`/customers/${customer.id}`);
-				},
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$10(15) })
-			})
-		]
-	});
-}
-function EmptyCustomers({ filtered, onNew }) {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "customers-empty",
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ContactRound, { ...iconProps$10(22) }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: filtered ? "没有符合条件的客户" : "还没有客户" }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: filtered ? "换个关键词试试，或者清空筛选。" : "建立客户档案后，可以直接查看订单、收款和登录凭证。" }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-				className: "refactor-button refactor-button--primary",
-				type: "button",
-				onClick: onNew,
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$10(15) }), "建第一个客户"]
-			})
-		]
-	});
-}
-function toHref(filters) {
-	const params = new URLSearchParams();
-	if (filters.q) params.set("q", filters.q);
-	if (filters.only) params.set("only", filters.only);
-	return `/customers${params.toString() ? `?${params.toString()}` : ""}`;
-}
-function CustomersPage({ route, navigate, onNew, reloadKey }) {
-	const filters = (0, import_react.useMemo)(() => ({
-		q: route.query.get("q") || "",
-		only: route.query.get("only") || ""
-	}), [route.query.toString()]);
-	const [search, setSearch] = (0, import_react.useState)(filters.q);
-	const [items, setItems] = (0, import_react.useState)(null);
-	const [error, setError] = (0, import_react.useState)("");
-	const searchTimer = (0, import_react.useRef)(null);
-	(0, import_react.useEffect)(() => setSearch(filters.q), [filters.q]);
-	(0, import_react.useEffect)(() => () => window.clearTimeout(searchTimer.current), []);
-	(0, import_react.useEffect)(() => {
-		let active = true;
-		setItems(null);
-		setError("");
-		api.get("/api/customers", {
-			limit: 500,
-			q: filters.q
-		}).then((data) => {
-			if (active) setItems(data.items || []);
-		}).catch((err) => {
-			if (!active) return;
-			setItems([]);
-			setError(err.message || "客户列表加载失败");
-		});
-		return () => {
-			active = false;
-		};
-	}, [filters.q, reloadKey]);
-	const all = items || [];
-	const archivedCount = all.filter((customer) => customer.status === "archived").length;
-	let rows = all;
-	if (filters.only === "archived") rows = rows.filter((customer) => customer.status === "archived");
-	else rows = rows.filter((customer) => customer.status !== "archived");
-	if (filters.only === "due") rows = rows.filter((customer) => Number(customer.due_total) > .001);
-	if (filters.only === "repeat") rows = rows.filter((customer) => Number(customer.order_count) >= 2);
-	const update = (overrides) => navigate(toHref({
-		...filters,
-		...overrides
-	}));
-	const title = filters.only === "archived" ? "已归档客户" : filters.only === "due" ? "有欠款的客户" : filters.only === "repeat" ? "回头客" : "客户";
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "customers-page",
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
-				className: "customers-page__head",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						className: "refactor-eyebrow",
-						children: "客户档案"
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: title }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: rows.length ? `${rows.length} 位${rows.length !== all.length ? ` · 共 ${all.length} 位` : ""}` : "集中查看客户联系信息、订单和收款情况" })
-				] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-					className: "refactor-button refactor-button--primary",
-					type: "button",
-					onClick: onNew,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$10(15) }), "新建客户"]
-				})]
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
-				className: "customers-toolbar",
-				"aria-label": "客户筛选",
-				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "customers-filters",
-						role: "tablist",
-						"aria-label": "客户类型",
-						children: [FILTERS.map((filter) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-							className: `customers-filter${filters.only === filter.key ? " is-active" : ""}`,
-							type: "button",
-							role: "tab",
-							"aria-selected": filters.only === filter.key,
-							onClick: () => update({ only: filter.key }),
-							children: filter.label
-						}, filter.key || "all")), archivedCount ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-							className: `customers-filter${filters.only === "archived" ? " is-active" : ""}`,
-							type: "button",
-							role: "tab",
-							"aria-selected": filters.only === "archived",
-							onClick: () => update({ only: "archived" }),
-							children: ["已归档 ", archivedCount]
-						}) : null]
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "customers-toolbar__spacer" }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
-						className: "customers-search",
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$10(15) }),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
-								type: "search",
-								value: search,
-								placeholder: "搜昵称 / 手机号 / 微信 / QQ",
-								onChange: (event) => {
-									const value = event.target.value;
-									setSearch(value);
-									window.clearTimeout(searchTimer.current);
-									searchTimer.current = window.setTimeout(() => update({ q: value.trim() }), 260);
-								}
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("kbd", { children: "/" })
-						]
-					})
-				]
-			}),
-			error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "refactor-alert",
-				role: "alert",
-				children: error
-			}) : null,
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
-				className: "customers-panel",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "customers-table-head",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "客户" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "来源" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "订单" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "金额" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "凭证" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: " " })
-					]
-				}), items === null ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "refactor-loading",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
-					]
-				}) : rows.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					className: "customers-list",
-					children: rows.map((customer) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CustomerRow, {
-						customer,
-						navigate
-					}, customer.id))
-				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmptyCustomers, {
-					filtered: Boolean(filters.q || filters.only),
-					onNew
-				})]
-			})
-		]
-	});
-}
-//#endregion
-//#region client/app/drawer.jsx
 function Drawer({ title, subtitle, wide = false, footer = null, onClose, children }) {
 	const ref = (0, import_react.useRef)(null);
 	const closeRef = (0, import_react.useRef)(onClose);
@@ -22158,6 +21184,796 @@ function Drawer({ title, subtitle, wide = false, footer = null, onClose, childre
 				children: footer
 			}) : null
 		]
+	});
+}
+//#endregion
+//#region client/app/overlay-host.jsx
+var stack = [];
+var seq = 0;
+var listeners = /* @__PURE__ */ new Set();
+function publish() {
+	const snapshot = [...stack];
+	for (const listener of listeners) listener(snapshot);
+}
+/**
+* 打开一个浮层，返回 Promise。
+* render 收到一个 close(值) 函数：调它就卸载这一层并 resolve(值)。
+* key 用来防连点：最上面那层如果是同一个 key，先关掉它。
+*/
+function openOverlay(render, key = "") {
+	const top = stack[stack.length - 1];
+	if (top && key && top.key === key) top.settle(null);
+	return new Promise((resolve) => {
+		const entry = {
+			id: ++seq,
+			key,
+			render,
+			settle(value) {
+				const index = stack.indexOf(entry);
+				if (index >= 0) {
+					stack.splice(index, 1);
+					publish();
+				}
+				resolve(value);
+			}
+		};
+		stack.push(entry);
+		publish();
+	});
+}
+function OverlayHost() {
+	const [entries, setEntries] = (0, import_react.useState)(() => [...stack]);
+	(0, import_react.useEffect)(() => {
+		listeners.add(setEntries);
+		setEntries([...stack]);
+		return () => {
+			listeners.delete(setEntries);
+		};
+	}, []);
+	(0, import_react.useEffect)(() => {
+		if (entries.length) document.body.classList.add("is-locked");
+		else document.body.classList.remove("is-locked");
+	}, [entries.length]);
+	(0, import_react.useEffect)(() => () => document.body.classList.remove("is-locked"), []);
+	if (!entries.length) return null;
+	return entries.map((entry) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_react.Fragment, { children: entry.render(entry.settle) }, entry.id));
+}
+//#endregion
+//#region client/lib/dom.js
+async function copyText(text) {
+	const value = String(text ?? "");
+	try {
+		if (navigator.clipboard && window.isSecureContext) {
+			await navigator.clipboard.writeText(value);
+			return true;
+		}
+	} catch {}
+	try {
+		const textarea = document.createElement("textarea");
+		textarea.value = value;
+		textarea.setAttribute("readonly", "");
+		textarea.style.position = "fixed";
+		textarea.style.top = "-1000px";
+		textarea.style.opacity = "0";
+		document.body.appendChild(textarea);
+		textarea.select();
+		textarea.setSelectionRange(0, value.length);
+		const ok = document.execCommand("copy");
+		textarea.remove();
+		return ok;
+	} catch {
+		return false;
+	}
+}
+//#endregion
+//#region client/quote-composer.jsx
+var iconProps$17 = (size) => ({
+	size,
+	strokeWidth: 1.8,
+	absoluteStrokeWidth: true,
+	"aria-hidden": true
+});
+var FORM_ID$7 = "quote-composer";
+async function openQuoteComposer(ctx, { existing = null } = {}) {
+	const [book, custRes, gameRes] = await Promise.all([
+		api.get("/api/pricebook"),
+		api.get("/api/customers", {
+			status: "active",
+			limit: 500
+		}),
+		api.get("/api/games", { status: "active" })
+	]);
+	const allServices = [];
+	for (const category of book.categories || []) for (const service of category.services || []) allServices.push({
+		...service,
+		_cat: category.name,
+		_catId: category.id
+	});
+	for (const service of book.loose || []) allServices.push({
+		...service,
+		_cat: "未分类",
+		_catId: 0
+	});
+	const initialPicked = {};
+	for (const item of existing?.items || []) {
+		const service = allServices.find((candidate) => candidate.id === item.ref_id);
+		if (service) initialPicked[service.id] = {
+			quantity: item.quantity,
+			unitPrice: item.snapshot?.price_overridden ? item.unit_price : "",
+			optionIds: (item.snapshot?.addons || []).map((addon) => addon.id)
+		};
+	}
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(QuoteComposer, {
+		ctx,
+		close,
+		existing,
+		customers: custRes.items || [],
+		games: gameRes.items || [],
+		categories: book.categories || [],
+		allServices,
+		initialPicked
+	}), existing ? `quote-composer-${existing.id}` : "quote-composer");
+}
+function QuoteComposer({ ctx, close, existing, customers, games, categories, allServices, initialPicked }) {
+	const [picked, setPicked] = (0, import_react.useState)(initialPicked);
+	const [title, setTitle] = (0, import_react.useState)(existing?.title || "代肝报价单");
+	const [note, setNote] = (0, import_react.useState)(existing?.note || "");
+	const [validUntil, setValidUntil] = (0, import_react.useState)(existing?.valid_until || new Date(Date.now() + 6048e5).toISOString().slice(0, 10));
+	const [customerId, setCustomerId] = (0, import_react.useState)(existing?.customer_id ? String(existing.customer_id) : "");
+	const [gameId, setGameId] = (0, import_react.useState)(existing?.game_id ? String(existing.game_id) : "");
+	const [query, setQuery] = (0, import_react.useState)("");
+	const [catFilter, setCatFilter] = (0, import_react.useState)("");
+	const [showText, setShowText] = (0, import_react.useState)(false);
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const pickableCats = (0, import_react.useMemo)(() => {
+		const withService = categories.filter((category) => category.services && category.services.length);
+		if (!gameId) return withService;
+		const own = withService.filter((category) => String(category.game_id || "") === gameId);
+		return own.length ? own : withService.filter((category) => !category.game_id);
+	}, [categories, gameId]);
+	const effectiveCat = pickableCats.some((category) => String(category.id) === catFilter) ? catFilter : "";
+	const groups = (0, import_react.useMemo)(() => {
+		const keyword = query.trim().toLowerCase();
+		const byCategory = /* @__PURE__ */ new Map();
+		for (const service of allServices) {
+			if (effectiveCat && String(service._catId || "") !== effectiveCat) continue;
+			if (keyword && !`${service.name} ${service.description} ${service._cat}`.toLowerCase().includes(keyword)) continue;
+			if (!byCategory.has(service._cat)) byCategory.set(service._cat, []);
+			byCategory.get(service._cat).push(service);
+		}
+		return [...byCategory.entries()];
+	}, [
+		allServices,
+		query,
+		effectiveCat
+	]);
+	/** 勾好的服务项算一遍：每行的单价、增项、小计，以及合计 */
+	const sheet = (0, import_react.useMemo)(() => {
+		const lines = [];
+		let total = 0;
+		for (const [id, selection] of Object.entries(picked)) {
+			const service = allServices.find((candidate) => String(candidate.id) === String(id));
+			if (!service) continue;
+			const qty = Number(selection.quantity) || 1;
+			const unit = selection.unitPrice === "" ? unitPriceFor$1(service, service.tiers, qty) : Number(selection.unitPrice);
+			let amount = unit * qty;
+			const addons = [];
+			for (const option of service.options || []) {
+				if (!(selection.optionIds || []).includes(option.id)) continue;
+				amount += option.price_mode === "percent" ? amount * Number(option.price) / 100 : Number(option.price);
+				addons.push(`${option.name}${option.price_mode === "percent" ? ` +${option.price}%` : option.price ? ` +${fmtMoney(option.price)}元` : ""}`);
+			}
+			total += amount;
+			lines.push({
+				service,
+				qty,
+				unit,
+				amount,
+				addons
+			});
+		}
+		return {
+			lines,
+			total
+		};
+	}, [picked, allServices]);
+	const pickedCount = Object.keys(picked).length;
+	function toggle(service) {
+		setPicked((current) => {
+			if (current[service.id]) {
+				const next = { ...current };
+				delete next[service.id];
+				return next;
+			}
+			return {
+				...current,
+				[service.id]: {
+					quantity: Number(service.min_qty) || 1,
+					unitPrice: "",
+					optionIds: (service.options || []).filter((option) => option.default_selected).map((option) => option.id)
+				}
+			};
+		});
+	}
+	const patch = (id, values) => setPicked((current) => current[id] ? {
+		...current,
+		[id]: {
+			...current[id],
+			...values
+		}
+	} : current);
+	function toggleOption(id, optionId, on) {
+		setPicked((current) => {
+			const selection = current[id];
+			if (!selection) return current;
+			const ids = new Set(selection.optionIds);
+			if (on) ids.add(optionId);
+			else ids.delete(optionId);
+			return {
+				...current,
+				[id]: {
+					...selection,
+					optionIds: [...ids]
+				}
+			};
+		});
+	}
+	function buildText() {
+		const out = [`【${title || "代肝报价单"}】`];
+		const customer = customers.find((item) => String(item.id) === customerId);
+		const game = games.find((item) => String(item.id) === gameId);
+		if (customer) out.push(`客户：${customer.name}`);
+		if (game) out.push(`游戏：${game.name}`);
+		out.push("————————————");
+		sheet.lines.forEach((line, index) => {
+			out.push(`${index + 1}. ${line.service.name}`);
+			out.push(`   ${fmtMoney(line.unit)} 元/${defaultUnit$1(line.service)} × ${fmtQty(line.qty)} = ${fmtMoney(line.amount)} 元`);
+			if (line.addons.length) out.push(`   含：${line.addons.join("、")}`);
+			if (line.service.description) out.push(`   说明：${line.service.description}`);
+		});
+		out.push("————————————");
+		out.push(`合计：${fmtMoney(sheet.total)} 元`);
+		if (note) out.push(`备注：${note}`);
+		if (validUntil) out.push(`有效期至：${validUntil}`);
+		return out.join("\n");
+	}
+	async function copyAll() {
+		if (!sheet.lines.length) {
+			toast$1("还没勾服务项", "err");
+			return;
+		}
+		const ok = await copyText(buildText());
+		toast$1(ok ? "报价单文字已复制，去微信粘吧" : "复制失败，可以手动框选文字版", ok ? "ok" : "err", 2600);
+	}
+	async function save() {
+		if (!pickedCount) {
+			toast$1("至少勾一个服务项", "err");
+			return;
+		}
+		const items = Object.entries(picked).map(([id, selection]) => ({
+			service_id: Number(id),
+			quantity: Number(selection.quantity) || 1,
+			option_ids: [...selection.optionIds || []],
+			unit_price: selection.unitPrice === "" ? void 0 : Number(selection.unitPrice)
+		}));
+		const payload = {
+			customer_id: customerId ? Number(customerId) : null,
+			game_id: gameId ? Number(gameId) : null,
+			title,
+			items,
+			note,
+			valid_until: validUntil || null
+		};
+		setBusy(true);
+		try {
+			const saved = existing ? await api.patch(`/api/quotes/${existing.id}`, payload) : await api.post("/api/quotes", payload);
+			toast$1("报价单已保存", "ok");
+			close(saved);
+			if (ctx && ctx.onReload) ctx.onReload();
+		} catch (err) {
+			toastErr(err);
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		wide: true,
+		title: existing ? `改报价单 · ${existing.quote_no}` : "做一张报价单",
+		subtitle: "勾服务 → 算钱 → 复制文字发微信",
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "关闭"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+				className: "btn",
+				type: "button",
+				onClick: copyAll,
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Copy, { ...iconProps$17(14) }), "复制文字"]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "submit",
+				form: FORM_ID$7,
+				disabled: busy,
+				"data-loading": busy ? "1" : void 0,
+				children: existing ? "保存改动" : "存成报价单"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: FORM_ID$7,
+			noValidate: true,
+			onSubmit: (event) => {
+				event.preventDefault();
+				save();
+			},
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "formgrid",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "field field--full",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+								className: "lbl",
+								htmlFor: "quote-title",
+								children: "抬头"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+								id: "quote-title",
+								className: "inp",
+								value: title,
+								onChange: (event) => setTitle(event.target.value)
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "field field--full",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+								className: "lbl",
+								htmlFor: "quote-customer",
+								children: "客户"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
+								id: "quote-customer",
+								className: "sel",
+								value: customerId,
+								onChange: (event) => setCustomerId(event.target.value),
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+									value: "",
+									children: "— 不指定客户（先给路人报价）—"
+								}), customers.map((customer) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+									value: String(customer.id),
+									children: `${customer.name}${customer.phone ? ` · ${customer.phone}` : ""}`
+								}, customer.id))]
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "field field--full",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+								className: "lbl",
+								htmlFor: "quote-game",
+								children: "游戏"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
+								id: "quote-game",
+								className: "sel",
+								value: gameId,
+								onChange: (event) => setGameId(event.target.value),
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+									value: "",
+									children: "— 不指定游戏 —"
+								}), games.map((game) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+									value: String(game.id),
+									children: game.name
+								}, game.id))]
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "field field--full",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+								className: "lbl",
+								htmlFor: "quote-valid",
+								children: "有效期至"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+								id: "quote-valid",
+								className: "inp",
+								type: "date",
+								value: validUntil,
+								onChange: (event) => setValidUntil(event.target.value)
+							})]
+						})
+					]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "split",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "stack stack--tight",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "sechead",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "挑服务" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "sechead__note",
+									children: "勾上就进单"
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "cluster",
+								style: { gap: "6px" },
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									className: "inp",
+									type: "search",
+									placeholder: "搜服务名…",
+									value: query,
+									onChange: (event) => setQuery(event.target.value)
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
+									className: "sel",
+									style: {
+										width: "auto",
+										minWidth: "130px"
+									},
+									"aria-label": "按大类筛选",
+									value: effectiveCat,
+									onChange: (event) => setCatFilter(event.target.value),
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+										value: "",
+										children: "全部大类"
+									}), pickableCats.map((category) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+										value: String(category.id),
+										children: category.name
+									}, category.id))]
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "picker",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "picker__scroll",
+									children: !allServices.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "empty",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											className: "empty__body",
+											children: "价格表还是空的。"
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+											className: "btn btn--sm",
+											type: "button",
+											onClick: () => ctx && ctx.navigate && ctx.navigate("/price"),
+											children: "先去建价格表"
+										})]
+									}) : !groups.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "empty",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											className: "empty__body",
+											children: "没有匹配的服务项。"
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+											className: "btn btn--sm",
+											type: "button",
+											onClick: () => ctx && ctx.navigate && ctx.navigate("/price"),
+											children: "去价格表看看"
+										})]
+									}) : groups.map(([catName, list]) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "pickgroup",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											className: "pickgroup__head",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "pickgroup__name",
+												children: catName
+											}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "pickgroup__n",
+												children: `${list.length} 项`
+											})]
+										}), list.map((service) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(QuoteServiceRow, {
+											service,
+											selection: picked[service.id],
+											onToggle: () => toggle(service),
+											onQty: (raw) => patch(service.id, { quantity: Number(raw) || 0 }),
+											onPrice: (raw) => patch(service.id, { unitPrice: raw === "" ? "" : Number(raw) }),
+											onOption: (optionId, on) => toggleOption(service.id, optionId, on)
+										}, service.id))]
+									}, catName))
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "picker__foot",
+									children: [
+										pickedCount ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+											className: "cluster",
+											style: { gap: "6px" },
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "pickcount",
+												children: String(pickedCount)
+											}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "已选" })]
+										}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "dim",
+											children: "还没勾服务项"
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }),
+										pickedCount ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+											className: "btn btn--sm btn--quiet",
+											type: "button",
+											onClick: () => setPicked({}),
+											children: "清空"
+										}) : null
+									]
+								})]
+							})
+						]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "stack stack--tight",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "sechead",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "报价单" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+										className: "btn btn--sm",
+										type: "button",
+										onClick: () => setShowText((value) => !value),
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Quote, { ...iconProps$17(14) }), showText ? "收起文字版" : "看文字版"]
+									})
+								]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "stack stack--tight",
+								children: sheet.lines.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "quote-sheet",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											className: "quote-sheet__head",
+											children: [
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: title || "代肝报价单" }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+													className: "dim sm",
+													children: `有效期至 ${validUntil || "—"}`
+												})
+											]
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											className: "quote-sheet__lines",
+											children: sheet.lines.map((line) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+												className: "qline",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+													/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: line.service.name }),
+													/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+														className: "tbl__meta",
+														children: `${fmtMoney(line.unit)} 元/${defaultUnit$1(line.service)} × ${fmtQty(line.qty)} = ${fmtMoney(line.amount)} 元`
+													}),
+													line.addons.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+														className: "tbl__meta",
+														children: `含 ${line.addons.join(" · ")}`
+													}) : null
+												] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+													className: "qline__amt",
+													children: `¥${fmtMoney(line.amount)}`
+												})]
+											}, line.service.id))
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											className: "quote-sheet__total",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "合计" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "quote-sheet__totalfig",
+												children: `¥${fmtMoney(sheet.total)}`
+											})]
+										})
+									]
+								}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "empty",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											className: "empty__mark",
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Quote, { ...iconProps$17(20) })
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											className: "empty__title",
+											children: "右边勾几个服务项"
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+											className: "empty__body",
+											children: "报价单会实时长出来，右边这段文字可以直接复制发微信。"
+										})
+									]
+								})
+							}),
+							showText ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("pre", {
+								className: "plaintext",
+								children: buildText()
+							}) : null,
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "field field--full",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+									className: "lbl",
+									htmlFor: "quote-note",
+									children: "备注"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("textarea", {
+									id: "quote-note",
+									className: "ta",
+									rows: 2,
+									placeholder: "例：包月更划算；三个号同时做可再谈",
+									value: note,
+									onChange: (event) => setNote(event.target.value)
+								})]
+							})
+						]
+					})]
+				})]
+			})
+		})
+	});
+}
+/** 报价单里的一行服务项：跟开单台比少了「可得」和阶梯提示，数量和改价更窄 */
+function QuoteServiceRow({ service, selection, onToggle, onQty, onPrice, onOption }) {
+	const on = Boolean(selection);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: `pickrow${on ? " pickrow--on" : ""}`,
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "pickrow__top",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+					className: "chk",
+					type: "checkbox",
+					"aria-label": `选择 ${service.name}`,
+					checked: on,
+					onChange: onToggle
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "pickrow__main",
+					type: "button",
+					onClick: onToggle,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: "pickrow__line",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "pickrow__name",
+							children: service.name
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							className: "pickrow__fig",
+							children: [`¥${fmtMoney(service.base_price)}`, /* @__PURE__ */ (0, import_jsx_runtime.jsx)("em", { children: `/${defaultUnit$1(service)}` })]
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "pickrow__meta",
+						children: [PRICE_TYPE_LABEL[service.price_type] || service.price_type, service.description || null].filter(Boolean).join(" · ")
+					})]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "pickrow__ctrl",
+				style: { display: on ? "" : "none" },
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "cluster",
+					style: { gap: "6px" },
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							className: "inp inp--fig",
+							inputMode: "decimal",
+							style: { width: "70px" },
+							"aria-label": `${service.name} 数量`,
+							value: selection ? String(selection.quantity) : "",
+							onChange: (event) => onQty(event.target.value)
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "dim tiny",
+							children: defaultUnit$1(service)
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							className: "inp inp--fig",
+							inputMode: "decimal",
+							style: { width: "82px" },
+							placeholder: "改价",
+							"aria-label": `${service.name} 单价`,
+							value: selection && selection.unitPrice !== "" ? String(selection.unitPrice) : "",
+							onChange: (event) => onPrice(event.target.value)
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "dim tiny",
+							children: "元"
+						})
+					]
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "pickrow__detail",
+				style: { display: on ? "" : "none" },
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "cluster",
+					style: { gap: "10px" },
+					children: (service.options || []).length ? (service.options || []).map((option) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "inline",
+						style: {
+							cursor: "pointer",
+							gap: "5px"
+						},
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							className: "chk",
+							type: "checkbox",
+							checked: (selection?.optionIds || []).includes(option.id),
+							onChange: (event) => onOption(option.id, event.target.checked)
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "sm",
+							children: option.name
+						})]
+					}, option.id)) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "dim tiny",
+						children: "这个服务项没有增项"
+					})
+				})
+			})
+		]
+	});
+}
+//#endregion
+//#region client/app/modal.jsx
+function Modal({ title, wide = false, footer = null, onClose, children }) {
+	const ref = (0, import_react.useRef)(null);
+	const closeRef = (0, import_react.useRef)(onClose);
+	closeRef.current = onClose;
+	(0, import_react.useEffect)(() => {
+		const node = ref.current;
+		if (!node) return void 0;
+		const onCancel = (event) => {
+			event.preventDefault();
+			if (closeRef.current) closeRef.current();
+		};
+		const onClick = (event) => {
+			if (event.target === node && closeRef.current) closeRef.current();
+		};
+		const onClosed = () => {
+			if (closeRef.current) closeRef.current();
+		};
+		node.addEventListener("cancel", onCancel);
+		node.addEventListener("click", onClick);
+		node.addEventListener("close", onClosed);
+		if (!node.open) node.showModal();
+		return () => {
+			node.removeEventListener("cancel", onCancel);
+			node.removeEventListener("click", onClick);
+			node.removeEventListener("close", onClosed);
+			if (node.open) node.close();
+		};
+	}, []);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("dialog", {
+		className: `modal${wide ? " modal--wide" : ""}`,
+		ref,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "modal__body",
+			children: [title ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+				className: "modal__title",
+				children: title
+			}) : null, children]
+		}), footer ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "modal__foot",
+			children: footer
+		}) : null]
+	});
+}
+//#endregion
+//#region client/app/confirm.jsx
+function confirmDialog({ title, message, confirmLabel = "确定", cancelLabel = "取消", tone = "primary", extra = null }) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Modal, {
+		title,
+		onClose: () => close(false),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			className: "btn",
+			type: "button",
+			onClick: () => close(false),
+			children: cancelLabel
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			className: `btn${tone === "primary" ? " btn--primary" : tone === "danger" ? " btn--danger" : ""}`,
+			type: "button",
+			onClick: () => close(true),
+			children: confirmLabel
+		})] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "stack stack--tight",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "muted",
+				children: message
+			}), extra]
+		})
+	}));
+}
+/** 删除前问一句。危险动作，按钮用朱砂色。 */
+function confirmDelete({ title, message, confirmLabel = "删除" }) {
+	return confirmDialog({
+		title,
+		message,
+		confirmLabel,
+		tone: "danger"
 	});
 }
 //#endregion
@@ -22294,7 +22110,7 @@ function ImageField({ label = "图片", value, onChange, prefix = "img", hint = 
 		const file = event.target.files && event.target.files[0];
 		if (!file) return;
 		if (file.size > 1572864) {
-			toast("图片请压到 1.5MB 以内", "err", 3600);
+			toast$1("图片请压到 1.5MB 以内", "err", 3600);
 			return;
 		}
 		setBusy(true);
@@ -22309,9 +22125,9 @@ function ImageField({ label = "图片", value, onChange, prefix = "img", hint = 
 				data_url: dataUrl,
 				prefix
 			})).url);
-			toast("图片已上传", "ok");
+			toast$1("图片已上传", "ok");
 		} catch (err) {
-			toast(err && err.message ? err.message : "上传失败", "err", 4200);
+			toast$1(err && err.message ? err.message : "上传失败", "err", 4200);
 		} finally {
 			setBusy(false);
 			event.target.value = "";
@@ -22387,6 +22203,3638 @@ function ImageField({ label = "图片", value, onChange, prefix = "img", hint = 
 	});
 }
 //#endregion
+//#region client/payment-form.jsx
+var FORM_ID$6 = "payment-form";
+function openPaymentForm(order, onDone, { presetKind } = {}) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PaymentForm, {
+		order,
+		onDone,
+		presetKind,
+		close
+	}), `payment-form-${order.id}`);
+}
+function PaymentForm({ order, onDone, presetKind, close }) {
+	const due = Number(order.due_total) || 0;
+	const paid = Number(order.paid_total) || 0;
+	const [form, setForm] = (0, import_react.useState)(() => ({
+		amount: String(due > 0 ? due : Number(order.total) || 0),
+		kind: presetKind || (paid > .001 ? "balance" : "full"),
+		method: "wechat",
+		paid_at: todayStr(),
+		note: ""
+	}));
+	const [errors, setErrors] = (0, import_react.useState)({});
+	const [serverError, setServerError] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const set = (key) => (value) => setForm((current) => ({
+		...current,
+		[key]: value
+	}));
+	async function submit(event) {
+		event.preventDefault();
+		const next = {};
+		const raw = String(form.amount).trim();
+		if (raw === "") next.amount = "请填写金额";
+		else if (!Number.isFinite(Number(raw))) next.amount = "请填数字";
+		setErrors(next);
+		if (Object.keys(next).length) {
+			document.getElementById(`payment-${Object.keys(next)[0]}`)?.focus();
+			return;
+		}
+		setBusy(true);
+		setServerError("");
+		try {
+			const saved = await api.post("/api/payments", {
+				...form,
+				amount: Number(form.amount),
+				order_id: order.id
+			});
+			if (saved.advanced_to) toast$1("款已收齐，订单自动推进到「进行中」", "ok", 3200);
+			else toast$1("收款记下了", "ok");
+			close(saved);
+			if (onDone) onDone(saved);
+		} catch (err) {
+			setServerError(err && err.message ? err.message : "记不下这笔收款");
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: "记一笔收款",
+		subtitle: `${order.order_no} · 应收 ${fmtMoney(order.total)} 元，还差 ${fmtMoney(due)} 元`,
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "取消"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: 1 } }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "submit",
+				form: FORM_ID$6,
+				disabled: busy,
+				children: busy ? "记账中…" : "记下"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: FORM_ID$6,
+			noValidate: true,
+			onSubmit: submit,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "formgrid",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "金额",
+							required: true,
+							half: true,
+							suffix: "元",
+							htmlFor: "payment-amount",
+							error: errors.amount,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "payment-amount",
+								name: "amount",
+								money: true,
+								value: form.amount,
+								onChange: set("amount"),
+								"aria-invalid": errors.amount ? "true" : void 0
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "类型",
+							half: true,
+							htmlFor: "payment-kind",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+								id: "payment-kind",
+								name: "kind",
+								value: form.kind,
+								onChange: set("kind"),
+								options: [
+									{
+										value: "deposit",
+										label: "定金"
+									},
+									{
+										value: "full",
+										label: "全款"
+									},
+									{
+										value: "balance",
+										label: "尾款"
+									},
+									{
+										value: "refund",
+										label: "退款"
+									}
+								]
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "收款方式",
+							half: true,
+							htmlFor: "payment-method",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+								id: "payment-method",
+								name: "method",
+								value: form.method,
+								onChange: set("method"),
+								options: Object.entries(PAY_METHOD_LABEL).map(([value, label]) => ({
+									value,
+									label
+								}))
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "日期",
+							half: true,
+							htmlFor: "payment-paid-at",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+								id: "payment-paid-at",
+								name: "paid_at",
+								className: "inp",
+								type: "date",
+								value: form.paid_at,
+								onChange: (event) => set("paid_at")(event.target.value)
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "备注",
+							htmlFor: "payment-note",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "payment-note",
+								name: "note",
+								value: form.note,
+								onChange: set("note"),
+								placeholder: "例：微信转账，客户说月底结清"
+							})
+						})
+					]
+				}), serverError ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note note--alert",
+					children: serverError
+				}) : null]
+			})
+		})
+	});
+}
+//#endregion
+//#region client/resource-field.jsx
+var tinyStyle = {
+	marginTop: "2px",
+	opacity: ".85"
+};
+var tinyTopStyle = {
+	marginTop: "4px",
+	opacity: ".85"
+};
+var amberStyle = { marginTop: "2px" };
+function ResourceField({ before = "", after = "", beforeFrom = "", onChange }) {
+	const [sides, setSides] = (0, import_react.useState)(() => ({
+		before: parseResources(before),
+		after: parseResources(after)
+	}));
+	const [notes, setNotes] = (0, import_react.useState)({
+		before: null,
+		after: null
+	});
+	const [busy, setBusy] = (0, import_react.useState)({
+		before: "",
+		after: ""
+	});
+	const [ocrOk, setOcrOk] = (0, import_react.useState)(null);
+	const fileBefore = (0, import_react.useRef)(null);
+	const fileAfter = (0, import_react.useRef)(null);
+	const sessionSeq = (0, import_react.useRef)(0);
+	const watchers = (0, import_react.useRef)({
+		before: null,
+		after: null
+	});
+	const onChangeRef = (0, import_react.useRef)(onChange);
+	onChangeRef.current = onChange;
+	const values = {
+		resources_before: buildResources(sides.before, sides.before.other),
+		resources_after: buildResources(sides.after, sides.after.other)
+	};
+	(0, import_react.useEffect)(() => {
+		if (onChangeRef.current) onChangeRef.current(values);
+	}, [values.resources_before, values.resources_after]);
+	(0, import_react.useEffect)(() => {
+		let alive = true;
+		api.get("/api/ocr/status").then((status) => {
+			if (alive) setOcrOk(Boolean(status && status.available));
+		}).catch(() => {
+			if (alive) setOcrOk(false);
+		});
+		return () => {
+			alive = false;
+			for (const side of ["before", "after"]) if (watchers.current[side]) watchers.current[side].stop = true;
+		};
+	}, []);
+	const fileRefOf = (side) => side === "before" ? fileBefore : fileAfter;
+	const patch = (side, key, value) => {
+		setSides((prev) => ({
+			...prev,
+			[side]: {
+				...prev[side],
+				[key]: value
+			}
+		}));
+	};
+	const fill = (side, got) => {
+		setSides((prev) => {
+			const next = { ...prev[side] };
+			for (const key of RES_KEYS) {
+				if (got[key] === void 0 || got[key] === null) continue;
+				next[key] = String(got[key]);
+			}
+			return {
+				...prev,
+				[side]: next
+			};
+		});
+	};
+	async function recognizeShot(side, file) {
+		if (!file) return;
+		if (file.size > 1572864) {
+			toast$1("截图请压到 1.5MB 以内", "err", 3600);
+			return;
+		}
+		setBusy((prev) => ({
+			...prev,
+			[side]: "shot"
+		}));
+		try {
+			const dataUrl = await new Promise((resolve, reject) => {
+				const reader = new FileReader();
+				reader.onload = () => resolve(reader.result);
+				reader.onerror = () => reject(/* @__PURE__ */ new Error("读不了这个文件"));
+				reader.readAsDataURL(file);
+			});
+			const result = await api.post("/api/ocr", { data_url: dataUrl });
+			const got = result.resources || {};
+			const found = RES_KEYS.filter((key) => got[key] !== void 0 && got[key] !== null);
+			fill(side, got);
+			const lines = (result.lines || []).filter((line) => line.trim()).slice(0, 8);
+			const gotKeys = new Set((result.hits || []).map((hit) => hit.key));
+			const weak = (result.seen || []).filter((seen) => (seen.value === void 0 || seen.value === null) && !gotKeys.has(seen.key)).map((seen) => `${seen.key}${seen.score ? `(分${seen.score})` : ""}`);
+			const fallback = (result.hits || []).filter((hit) => hit.source === "ocr-layout").map((hit) => hit.key);
+			setNotes((prev) => ({
+				...prev,
+				[side]: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: found.length ? `认出 ${found.length} 项，请核对一下再保存` : "这三个资源一个都没认出来，可以手动填" }),
+					result.warning ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "tiny",
+						style: tinyStyle,
+						children: result.warning
+					}) : null,
+					result.engine ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "tiny",
+						style: tinyStyle,
+						children: `引擎：${result.engine}${result.anchor ? ` · 定标图标：${result.anchor.key}(分${result.anchor.score})` : ""}`
+					}) : null,
+					fallback.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "tiny tone-amber",
+						style: amberStyle,
+						children: `${fallback.join("、")} 是按数字格式补出的，请对照截图核对。`
+					}) : null,
+					weak.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "tiny",
+						style: tinyStyle,
+						children: `没配上数字的：${weak.join("、")}`
+					}) : null,
+					lines.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "tiny",
+						style: tinyTopStyle,
+						children: `识别到的原文：${lines.join(" ｜ ")}`
+					}) : null
+				] })
+			}));
+			toast$1(found.length ? `认出 ${found.length} 项，核对后再保存` : "这张图里没认出资源数字", found.length ? "ok" : "err", 3600);
+		} catch (err) {
+			toastErr(err);
+		} finally {
+			setBusy((prev) => ({
+				...prev,
+				[side]: ""
+			}));
+			const node = fileRefOf(side).current;
+			if (node) node.value = "";
+		}
+	}
+	/**
+	* 识别画面：切到游戏，程序每不到一秒截一次屏。
+	* 每个数字要**认到两次以上**才采纳（服务端按 session 累计票数），
+	* 所以填进框里的不是「认了一次」的结果，是复核过的。
+	*/
+	async function watchScreen(side) {
+		if (watchers.current[side]) return;
+		if (ocrOk === false) {
+			toast$1("这台机器上用不了屏幕识别：装一个本地 OCR（设置页有指引），或者用 Windows 自带的那个", "err", 4200);
+			return;
+		}
+		const token = { stop: false };
+		watchers.current[side] = token;
+		setBusy((prev) => ({
+			...prev,
+			[side]: "watch"
+		}));
+		const session = `w${Date.now()}-${++sessionSeq.current}`;
+		const got = {};
+		const pending = {};
+		const seenIcons = [];
+		const smallText = {};
+		const layoutFallback = {};
+		let engine = "";
+		const deadline = Date.now() + 9e4;
+		const paintProgress = (extra) => {
+			const have = RES_KEYS.filter((key) => got[key] !== void 0);
+			setNotes((prev) => ({
+				...prev,
+				[side]: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: `正在看屏幕… 已认到 ${have.length}/${RES_KEYS.length}${have.length ? `（${have.join("、")}）` : ""}` }),
+					engine ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "tiny",
+						style: tinyTopStyle,
+						children: `引擎：${engine}${seenIcons.length ? ` · 图标：${seenIcons.join("、")}` : ""}`
+					}) : null,
+					Object.keys(pending).length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "tiny",
+						style: tinyStyle,
+						children: "正在复核：" + Object.entries(pending).map(([key, p]) => `${key} ${p.votes}/${p.need}`).join(" · ")
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "tiny",
+						style: tinyTopStyle,
+						children: extra || "切到游戏，停在能看到这几个资源的界面；每个数字要认到两次才采纳。"
+					})
+				] })
+			}));
+		};
+		paintProgress();
+		try {
+			while (!token.stop && Date.now() < deadline && RES_KEYS.some((key) => got[key] === void 0)) {
+				let result = null;
+				try {
+					result = await api.post("/api/ocr/screen", {
+						session,
+						min_votes: 2
+					});
+				} catch {
+					await new Promise((resolve) => setTimeout(resolve, 1e3));
+					continue;
+				}
+				if (token.stop) break;
+				if (result.engine) engine = result.engine;
+				if (Array.isArray(result.hits)) {
+					for (const hit of result.hits) {
+						const label = `${hit.key}(分${hit.score}${hit.source === "ocr-layout" ? "·格式兜底" : hit.warn ? "·字太小" : ""})`;
+						if (!seenIcons.includes(label)) seenIcons.push(label);
+					}
+					for (const hit of result.hits) if (hit.source === "ocr-layout") layoutFallback[hit.key] = hit.warn || "按数字格式识别";
+					else if (hit.warn) smallText[hit.key] = true;
+				}
+				for (const [key, value] of Object.entries(result.agreed || {})) {
+					got[key] = value.value;
+					delete pending[key];
+				}
+				for (const [key, value] of Object.entries(result.pending || {})) pending[key] = value;
+				fill(side, got);
+				paintProgress();
+				if (RES_KEYS.every((key) => got[key] !== void 0)) break;
+				await new Promise((resolve) => setTimeout(resolve, 850));
+			}
+			if (token.stop) return;
+			const count = RES_KEYS.filter((key) => got[key] !== void 0).length;
+			const missing = RES_KEYS.filter((key) => got[key] === void 0);
+			const small = Object.keys(smallText);
+			setNotes((prev) => ({
+				...prev,
+				[side]: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: count === RES_KEYS.length ? "三个都认到了，核对一下再保存" : `认到 ${count} 个${missing.length ? `，${missing.join("、")} 没认到` : ""}` }),
+					small.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "tiny tone-amber",
+						style: amberStyle,
+						children: `${small.join("、")} 这几个字太小（顶栏文字不到 21px），自带 OCR 有时会读错位数 —— 这 ${small.length} 个请对着游戏核一遍。想要更准就装一个本地 OCR 引擎（设置页有指引）。`
+					}) : null,
+					Object.keys(layoutFallback).length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "tiny tone-amber",
+						style: amberStyle,
+						children: `${Object.keys(layoutFallback).join("、")} 是按数字格式补出的，请对照截图核对。`
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "tiny",
+						style: tinyTopStyle,
+						children: count === RES_KEYS.length ? "每个数字都认到两次以上才填进来的。" : "认不出来就先留空自己填 —— 认不准的时候它不会硬凑一个数字。"
+					})
+				] })
+			}));
+			toast$1(count === RES_KEYS.length ? small.length ? "认到了，但有几个字太小，请核对" : "三个都认到了" : `认到 ${count} 个`, count ? "ok" : "err", small.length ? 5200 : 3600);
+		} finally {
+			watchers.current[side] = null;
+			setBusy((prev) => ({
+				...prev,
+				[side]: ""
+			}));
+			try {
+				await api.post("/api/ocr/screen/reset", { session });
+			} catch {}
+		}
+	}
+	function buildSide(side, label, isFirst) {
+		const parsed = sides[side];
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "field field--full",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "cluster",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+							className: "lbl",
+							children: label
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							className: "btn btn--sm btn--primary",
+							type: "button",
+							title: "切到游戏，程序会一直看着屏幕，三个都认到就自动停",
+							"data-loading": busy[side] === "watch" ? "1" : void 0,
+							onClick: () => watchScreen(side),
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, {
+								size: 14,
+								strokeWidth: 1.8,
+								absoluteStrokeWidth: true,
+								"aria-hidden": true
+							}), "识别画面"]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							className: "btn btn--sm",
+							type: "button",
+							title: "选一张游戏截图，自动认星声 / 体力 / 贝币",
+							"data-loading": busy[side] === "shot" ? "1" : void 0,
+							onClick: () => fileRefOf(side).current?.click(),
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eye, {
+								size: 14,
+								strokeWidth: 1.8,
+								absoluteStrokeWidth: true,
+								"aria-hidden": true
+							}), "识别截图"]
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "cluster",
+					style: {
+						gap: "6px",
+						flexWrap: "wrap"
+					},
+					children: RES_KEYS.map((key) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "inline",
+						style: { gap: "4px" },
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "dim tiny",
+							children: key
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							className: "inp inp--fig",
+							inputMode: "numeric",
+							style: { width: "92px" },
+							"aria-label": `${label} ${key}`,
+							value: parsed[key],
+							onChange: (event) => patch(side, key, event.target.value)
+						})]
+					}, key))
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+					className: "inp",
+					placeholder: "其他（可选）",
+					"aria-label": `${label} 其他资源`,
+					value: parsed.other,
+					onChange: (event) => patch(side, "other", event.target.value)
+				}),
+				isFirst && beforeFrom ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "hint",
+					children: `「做之前」带的是${beforeFrom}，不对就直接改。`
+				}) : null,
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "hint",
+					children: side === "after" ? deltaText(values.resources_before, values.resources_after, fmtQty) : ""
+				}),
+				notes[side] ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note note--ok",
+					children: notes[side]
+				}) : null,
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+					type: "file",
+					accept: "image/png,image/jpeg,image/webp",
+					style: { display: "none" },
+					ref: fileRefOf(side),
+					onChange: (event) => recognizeShot(side, event.target.files && event.target.files[0])
+				})
+			]
+		});
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "stack stack--tight field--full",
+		children: [buildSide("before", "资源对比 · 做之前", true), buildSide("after", "资源对比 · 做之后", false)]
+	});
+}
+//#endregion
+//#region client/progress-form.jsx
+var NEW_FORM_ID = "progress-form";
+var EDIT_FORM_ID = "progress-edit-form";
+async function openProgressForm(order, onDone) {
+	let full = order;
+	try {
+		full = await api.get(`/api/orders/${order.id}`);
+	} catch {
+		full = order;
+	}
+	const carried = lastResourcesAfter(full);
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ProgressForm, {
+		order: full,
+		carried,
+		onDone,
+		close
+	}), `progress-form-${order.id}`);
+}
+function openEditProgressForm(progress, onDone) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EditProgressForm, {
+		progress,
+		onDone,
+		close
+	}), `progress-edit-${progress.id}`);
+}
+function ProgressForm({ order, carried, onDone, close }) {
+	const [form, setForm] = (0, import_react.useState)({
+		happened_on: todayStr(),
+		content: "",
+		media: [],
+		note: ""
+	});
+	const [resources, setResources] = (0, import_react.useState)({
+		resources_before: carried || "",
+		resources_after: ""
+	});
+	const [errors, setErrors] = (0, import_react.useState)({});
+	const [serverError, setServerError] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const set = (key) => (value) => setForm((current) => ({
+		...current,
+		[key]: value
+	}));
+	async function submit(event) {
+		event.preventDefault();
+		const next = {};
+		if (!form.happened_on) next.happened_on = "请填写日期";
+		if (!String(form.content).trim()) next.content = "请填写这次做了什么";
+		setErrors(next);
+		if (Object.keys(next).length) {
+			document.getElementById(`progress-${Object.keys(next)[0]}`)?.focus();
+			return;
+		}
+		setBusy(true);
+		setServerError("");
+		try {
+			const saved = await api.post(`/api/orders/${order.id}/progress`, {
+				...form,
+				...resources
+			});
+			toast$1("进度记下了", "ok");
+			close(saved);
+			if (onDone) onDone(saved);
+		} catch (err) {
+			setServerError(err && err.message ? err.message : "记不下这条进度");
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: "记一条进度",
+		subtitle: `${order.order_no} · ${order.title || ""}`,
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "取消"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: 1 } }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "submit",
+				form: NEW_FORM_ID,
+				disabled: busy,
+				children: busy ? "记录中…" : "记下"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: NEW_FORM_ID,
+			noValidate: true,
+			onSubmit: submit,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "hint",
+						children: "以后客户问“做到哪了”，直接把这条发给他就行。"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "formgrid",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "日期",
+								required: true,
+								half: true,
+								htmlFor: "progress-happened-on",
+								error: errors.happened_on,
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									id: "progress-happened-on",
+									name: "happened_on",
+									className: "inp",
+									type: "date",
+									value: form.happened_on,
+									onChange: (event) => set("happened_on")(event.target.value),
+									"aria-invalid": errors.happened_on ? "true" : void 0
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ResourceField, {
+								before: carried || "",
+								beforeFrom: carried ? "上一条的「做之后」" : "",
+								onChange: setResources
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "这次做了什么",
+								required: true,
+								htmlFor: "progress-content",
+								error: errors.content,
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
+									id: "progress-content",
+									name: "content",
+									rows: 4,
+									value: form.content,
+									onChange: set("content"),
+									"aria-invalid": errors.content ? "true" : void 0,
+									placeholder: "例：清完今日委托 + 派遣，深渊打到第 7 层"
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "截图 / 录屏链接",
+								htmlFor: "progress-media",
+								hint: "把图床或相册链接粘进来，多个用逗号分隔。也可以先在别处截好图再贴链接。",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TagsInput, {
+									id: "progress-media",
+									name: "media",
+									value: form.media,
+									onChange: set("media")
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "备注",
+								htmlFor: "progress-note",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
+									id: "progress-note",
+									name: "note",
+									rows: 2,
+									value: form.note,
+									onChange: set("note"),
+									placeholder: "例：第 7 层差一颗星，明天补"
+								})
+							})
+						]
+					}),
+					serverError ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "note note--alert",
+						children: serverError
+					}) : null
+				]
+			})
+		})
+	});
+}
+function EditProgressForm({ progress, onDone, close }) {
+	const [form, setForm] = (0, import_react.useState)({
+		happened_on: progress.happened_on || "",
+		content: progress.content || "",
+		media: Array.isArray(progress.media) ? progress.media : [],
+		note: progress.note || ""
+	});
+	const [resources, setResources] = (0, import_react.useState)({
+		resources_before: progress.resources_before || "",
+		resources_after: progress.resources_after || ""
+	});
+	const [errors, setErrors] = (0, import_react.useState)({});
+	const [serverError, setServerError] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const set = (key) => (value) => setForm((current) => ({
+		...current,
+		[key]: value
+	}));
+	async function submit(event) {
+		event.preventDefault();
+		const next = {};
+		if (!form.happened_on) next.happened_on = "请填写日期";
+		if (!String(form.content).trim()) next.content = "请填写这次做了什么";
+		setErrors(next);
+		if (Object.keys(next).length) {
+			document.getElementById(`progress-edit-${Object.keys(next)[0]}`)?.focus();
+			return;
+		}
+		setBusy(true);
+		setServerError("");
+		try {
+			const saved = await api.patch(`/api/progress/${progress.id}`, {
+				...form,
+				...resources
+			});
+			toast$1("已更新", "ok");
+			close(saved);
+			if (onDone) onDone(saved);
+		} catch (err) {
+			setServerError(err && err.message ? err.message : "改不动这条进度");
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: "改这条进度",
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "取消"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: 1 } }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "submit",
+				form: EDIT_FORM_ID,
+				disabled: busy,
+				children: busy ? "保存中…" : "保存"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: EDIT_FORM_ID,
+			noValidate: true,
+			onSubmit: submit,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "formgrid",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "日期",
+							required: true,
+							half: true,
+							htmlFor: "progress-edit-happened-on",
+							error: errors.happened_on,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+								id: "progress-edit-happened-on",
+								name: "happened_on",
+								className: "inp",
+								type: "date",
+								value: form.happened_on,
+								onChange: (event) => set("happened_on")(event.target.value),
+								"aria-invalid": errors.happened_on ? "true" : void 0
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ResourceField, {
+							before: progress.resources_before || "",
+							after: progress.resources_after || "",
+							onChange: setResources
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "这次做了什么",
+							required: true,
+							htmlFor: "progress-edit-content",
+							error: errors.content,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
+								id: "progress-edit-content",
+								name: "content",
+								rows: 4,
+								value: form.content,
+								onChange: set("content"),
+								"aria-invalid": errors.content ? "true" : void 0
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "截图链接",
+							htmlFor: "progress-edit-media",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TagsInput, {
+								id: "progress-edit-media",
+								name: "media",
+								value: form.media,
+								onChange: set("media")
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "备注",
+							htmlFor: "progress-edit-note",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
+								id: "progress-edit-note",
+								name: "note",
+								rows: 2,
+								value: form.note,
+								onChange: set("note")
+							})
+						})
+					]
+				}), serverError ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note note--alert",
+					children: serverError
+				}) : null]
+			})
+		})
+	});
+}
+//#endregion
+//#region client/dashboard.jsx
+var STATUS_LABEL$1 = ORDER_STATUS_LABEL;
+var iconProps$16 = (size = 16) => ({
+	size,
+	strokeWidth: 1.8,
+	absoluteStrokeWidth: true,
+	"aria-hidden": true
+});
+function LedgerCell({ label, value, tone = "", hint, onClick }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+		className: `react-ledger__cell${tone ? ` is-${tone}` : ""}`,
+		type: "button",
+		title: hint,
+		disabled: !onClick,
+		onClick,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: label }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: value })]
+	});
+}
+function DashboardLedger({ data, navigate }) {
+	const c = data.counts || {};
+	const today = data.today || todayStr();
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+		className: "react-ledger",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
+			className: "react-ledger__head",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "今日台面" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: fmtDayFull(today) })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+				className: "react-ledger__summary",
+				children: [
+					"本月已收 ¥",
+					fmtMoney(data.month_money?.received),
+					" · 利润 ¥",
+					fmtMoney(data.month_money?.profit)
+				]
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "react-ledger__body",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "react-ledger__group",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
+						label: "待确认",
+						value: c.pending_confirm || 0,
+						tone: c.pending_confirm ? "alert" : "",
+						hint: "客户下单了，等你确认",
+						onClick: () => navigate("/orders?status=pending_confirm")
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
+						label: "待付款",
+						value: c.pending_pay || 0,
+						tone: c.pending_pay ? "alert" : "",
+						hint: "还没收到钱",
+						onClick: () => navigate("/orders?status=pending_pay")
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
+						label: "进行中",
+						value: c.in_progress || 0,
+						hint: "正在做的单",
+						onClick: () => navigate("/orders?status=in_progress")
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
+						label: "待验收",
+						value: c.pending_accept || 0,
+						tone: c.pending_accept ? "alert" : "",
+						hint: "做完了等客户点头",
+						onClick: () => navigate("/orders?status=pending_accept")
+					})
+				]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "react-ledger__group react-ledger__group--money",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
+						label: "今日新单",
+						value: `¥${fmtMoney(data.today_money?.ordered_amount)}`,
+						hint: `${data.today_money?.ordered_count || 0} 单`
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
+						label: "今日已收",
+						value: `¥${fmtMoney(data.today_money?.received)}`,
+						onClick: () => navigate("/finance")
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LedgerCell, {
+						label: "未收余额",
+						value: `¥${fmtMoney(data.receivables)}`,
+						tone: data.receivables > 0 ? "due" : "",
+						hint: "所有未结清订单的尾款合计",
+						onClick: () => navigate("/orders?due=1")
+					})
+				]
+			})]
+		})]
+	});
+}
+function EmptyOnboarding({ navigate }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+		className: "react-dashboard-empty",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "react-dashboard-empty__icon",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$16(21) })
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "帐桌支好了，先录第一批价格" }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "这个后台不预置任何数据。按下面顺序录入，十分钟就能接手第一单。" }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("ol", { children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "在「游戏」里添加正在代肝的游戏和区服。" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "在「价格表」里建立日常、周常、活动等分类。" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "在分类下添加服务项，选择计价方式并填单价。" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "需要阶梯价或加急之类的增项，就在服务项里继续添加。" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "录入客户后，从「订单」开出第一单。" })
+			] }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "react-dashboard-empty__actions",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "refactor-button refactor-button--primary",
+					type: "button",
+					onClick: () => navigate("/games"),
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$16(15) }), "先加一个游戏"]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+					className: "refactor-button",
+					type: "button",
+					onClick: () => navigate("/price"),
+					children: "直接去价格表"
+				})]
+			})
+		]
+	});
+}
+function StatusBadge$1({ status, label }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+		className: `react-status react-status--${STATUS_TONE[status] || "muted"}`,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", {}), label || STATUS_LABEL$1[status] || status || "未指定"]
+	});
+}
+function OrderRow$1({ order, navigate, onReload }) {
+	const due = Number(order.due_total) || 0;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", {
+		className: "react-order-row",
+		role: "button",
+		tabIndex: "0",
+		onClick: () => navigate(`/orders/${order.id}`),
+		onKeyDown: (event) => {
+			if (event.key === "Enter" || event.key === " ") navigate(`/orders/${order.id}`);
+		},
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "react-order-row__main",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "react-order-row__title",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.order_no }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StatusBadge$1, {
+						status: order.status,
+						label: order.status_label
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "react-order-row__meta",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: order.customer_name || "散客" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: order.title || "未填写标题" })]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "react-order-row__game",
+				children: order.game_name || "未指定游戏"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "react-order-row__progress",
+				children: order.progress_count ? `${order.progress_count} 条进度` : "还没记进度"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "react-order-row__money",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("b", { children: ["¥", fmtMoney(order.total)] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: due > .001 ? "is-due" : "",
+					children: due > .001 ? `尾款 ¥${fmtMoney(due)}` : "已结清"
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "react-order-row__actions",
+				onClick: (event) => event.stopPropagation(),
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "记进度",
+						onClick: () => openProgressForm(order, onReload),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$16(14) })
+					}),
+					due > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "记收款",
+						onClick: () => openPaymentForm(order, onReload),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$16(14) })
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "看详情",
+						onClick: () => navigate(`/orders/${order.id}`),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$16(14) })
+					})
+				]
+			})
+		]
+	});
+}
+function OpenOrders({ orders, count, navigate, onReload }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+		className: "react-dashboard-panel",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
+				className: "react-dashboard-panel__head",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "进行中调度" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "按交付时间排在前面的订单" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+					className: "react-dashboard-panel__count",
+					children: [count || 0, " 单未结束"]
+				})]
+			}),
+			orders.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "react-orders-list",
+				children: orders.map((order) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrderRow$1, {
+					order,
+					navigate,
+					onReload
+				}, order.id))
+			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "react-panel-empty",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$16(19) }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "现在手上没有在做的单" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "开一单试试，价格会在下单时冻结。" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "refactor-button",
+						type: "button",
+						onClick: () => navigate("/orders/new"),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$16(14) }), "开一张新单"]
+					})
+				]
+			}),
+			orders.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("footer", {
+				className: "react-dashboard-panel__foot",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "refactor-button",
+					type: "button",
+					onClick: () => navigate("/orders?status=open"),
+					children: ["看全部在做的单 ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$16(14) })]
+				})
+			}) : null
+		]
+	});
+}
+function SideList({ title, note, rows, renderRow }) {
+	if (!rows.length) return null;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+		className: "react-dashboard-panel react-dashboard-panel--side",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("header", {
+			className: "react-dashboard-panel__head",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: title }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: note })] })
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "react-side-list",
+			children: rows.map(renderRow)
+		})]
+	});
+}
+function DashboardSide({ data, navigate, onReload }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "react-dashboard-side",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SideList, {
+				title: "停滞提醒",
+				note: "两天没记进度了",
+				rows: data.stale_orders || [],
+				renderRow: (order) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "react-side-row",
+					type: "button",
+					onClick: () => navigate(`/orders/${order.id}`),
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.order_no }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+						order.customer_name || "散客",
+						" · 上次 ",
+						fmtDay(order.last_progress_on)
+					] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("em", { children: [order.idle_days, " 天"] })]
+				}, order.id)
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SideList, {
+				title: "还没收齐",
+				note: "点一下就能记收款",
+				rows: data.unpaid_orders || [],
+				renderRow: (order) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "react-side-row",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.order_no }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+						order.customer_name || "散客",
+						" · ",
+						order.title || "未填写标题"
+					] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", { children: ["¥", fmtMoney(order.due_total)] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "记收款",
+						onClick: () => openPaymentForm(order, onReload),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CreditCard, { ...iconProps$16(14) })
+					})] })]
+				}, order.id)
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SideList, {
+				title: "最近收款",
+				note: "最新确认的资金记录",
+				rows: data.recent_payments || [],
+				renderRow: (payment) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "react-side-row",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: payment.customer_name || "散客" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+						payment.order_no || "未挂订单",
+						" · ",
+						fmtDay(payment.paid_at)
+					] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", {
+						className: payment.kind === "refund" ? "is-refund" : "is-paid",
+						children: [
+							payment.kind === "refund" ? "−" : "+",
+							"¥",
+							fmtMoney(payment.amount)
+						]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "删除这笔收款",
+						onClick: async () => {
+							if (!await confirmDelete({
+								title: "删掉这笔收款？",
+								message: `${payment.customer_name || "散客"} · ${PAY_KIND_LABEL[payment.kind] || payment.kind} ¥${fmtMoney(payment.amount)}`
+							})) return;
+							try {
+								await api.del(`/api/payments/${payment.id}`);
+								toast$1("已删除这笔收款", "ok");
+								onReload();
+							} catch (err) {
+								toastErr(err);
+							}
+						},
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$16(14) })
+					})] })]
+				}, payment.id)
+			})
+		]
+	});
+}
+function DashboardPage({ data, navigate, onReload }) {
+	if (!data) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "refactor-loading",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+		]
+	});
+	const counts = data.counts || {};
+	const empty = !counts.games && !counts.customers && !counts.open && !counts.done;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "react-dashboard",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DashboardLedger, {
+			data,
+			navigate
+		}), empty ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmptyOnboarding, { navigate }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "react-dashboard-grid",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(OpenOrders, {
+				orders: data.open_orders || [],
+				count: counts.open,
+				navigate,
+				onReload
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DashboardSide, {
+				data,
+				navigate,
+				onReload
+			})]
+		})]
+	});
+}
+//#endregion
+//#region client/orders.jsx
+var FILTERS$1 = [
+	{
+		key: "open",
+		label: "在做的"
+	},
+	{
+		key: "daily_done",
+		label: "今日已完成"
+	},
+	{
+		key: "pending_confirm",
+		label: "待确认"
+	},
+	{
+		key: "pending_pay",
+		label: "待付款"
+	},
+	{
+		key: "in_progress",
+		label: "进行中"
+	},
+	{
+		key: "pending_accept",
+		label: "待验收"
+	},
+	{
+		key: "due",
+		label: "没收齐"
+	},
+	{
+		key: "done",
+		label: "已完成"
+	},
+	{
+		key: "",
+		label: "全部"
+	}
+];
+var SORTS = [
+	{
+		value: "",
+		label: "最新在前"
+	},
+	{
+		value: "oldest",
+		label: "最早在前"
+	},
+	{
+		value: "customer",
+		label: "按客户排"
+	},
+	{
+		value: "amount",
+		label: "按金额排"
+	}
+];
+var STATUS_LABEL = ORDER_STATUS_LABEL;
+var iconProps$15 = (size = 15) => ({
+	size,
+	strokeWidth: 1.8,
+	absoluteStrokeWidth: true,
+	"aria-hidden": true
+});
+function StatusBadge({ order }) {
+	const tone = STATUS_TONE[order.status] || "muted";
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+		className: `react-status react-status--${tone}`,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("i", {}), order.status_label || STATUS_LABEL[order.status] || order.status || "未指定"]
+	});
+}
+function DueLabel({ order }) {
+	if (!order.due_at) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+		className: "orders-cell__muted",
+		children: "未设交付"
+	});
+	const info = ["done", "cancelled"].includes(order.status) ? {
+		kind: "ok",
+		text: ""
+	} : remainInfo(order.ordered_at, order.due_at);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+		className: "orders-due",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: fmtDay(order.due_at) }), info.kind === "invalid" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("em", {
+			className: "orders-due__bad",
+			children: "填错了"
+		}) : info.text ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("em", {
+			className: `orders-due__${info.kind}`,
+			children: info.text
+		}) : null]
+	});
+}
+function CustomerCell({ order, navigate }) {
+	if (!order.customer_id) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+		className: "orders-cell__muted",
+		children: "散客"
+	});
+	const count = Number(order.customer_order_count) || 0;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+		className: "orders-customer",
+		type: "button",
+		title: `看 ${order.customer_name || "这个客户"} 的档案`,
+		onClick: (event) => {
+			event.stopPropagation();
+			navigate(`/customers/${order.customer_id}`);
+		},
+		children: [order.customer_avatar ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+			src: order.customer_avatar,
+			alt: "",
+			loading: "lazy"
+		}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+			className: "orders-customer__avatar",
+			children: (order.customer_name || "?").slice(0, 1)
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.customer_name || "没填名字" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: order.customer_phone || (count > 1 ? `第 ${count} 单` : "客户档案") })] })]
+	});
+}
+function OrderRow({ order, navigate, onReload }) {
+	const due = Number(order.due_total) || 0;
+	const title = order.title || "（没写标题）";
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", {
+		className: "orders-row",
+		role: "button",
+		tabIndex: 0,
+		onClick: () => navigate(`/orders/${order.id}`),
+		onKeyDown: (event) => {
+			if (event.key === "Enter" || event.key === " ") {
+				event.preventDefault();
+				navigate(`/orders/${order.id}`);
+			}
+		},
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "orders-row__order",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "orders-row__number",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: order.order_no }),
+						order.stale ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							className: "orders-tag orders-tag--amber",
+							children: [order.idle_days, " 天没动"]
+						}) : null,
+						order.daily_done_today ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "orders-tag orders-tag--jade",
+							children: "今日已完成"
+						}) : null
+					]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: title })]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "orders-row__customer",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CustomerCell, {
+					order,
+					navigate
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "orders-row__game",
+				children: order.game_name || "未指定游戏"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "orders-row__progress",
+				children: order.progress_count ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("b", { children: [order.progress_count, " 条"] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: ["到 ", fmtDay(order.last_progress_on)] })] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "orders-cell__muted",
+					children: "还没记"
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "orders-row__status",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StatusBadge, { order })
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "orders-row__due",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DueLabel, { order })
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "orders-row__money",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("b", { children: ["¥", fmtMoney(order.total)] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: due > .001 ? "is-due" : "",
+					children: due > .001 ? `还差 ¥${fmtMoney(due)}` : "已结清"
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "orders-row__actions",
+				onClick: (event) => event.stopPropagation(),
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "记进度",
+						onClick: () => openProgressForm(order, onReload),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$15(14) })
+					}),
+					due > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "记收款",
+						onClick: () => openPaymentForm(order, onReload),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$15(14) })
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "看详情",
+						onClick: () => navigate(`/orders/${order.id}`),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$15(14) })
+					})
+				]
+			})
+		]
+	});
+}
+function EmptyOrders({ search, status, onNew }) {
+	const title = search ? "没搜到符合条件的单" : status === "open" ? "手上没有在做的单" : "这个状态下没有单";
+	const body = search ? "换个单号、标题或者客户名试试。" : "开一张新单：选客户、挑服务，价格会自动算出来。";
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "orders-empty",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListFilter, { ...iconProps$15(21) }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: title }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: body }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+				className: "refactor-button refactor-button--primary",
+				type: "button",
+				onClick: onNew,
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$15(15) }), "开新单"]
+			})
+		]
+	});
+}
+function toHref$1(filters) {
+	const params = new URLSearchParams();
+	params.set("status", filters.status || "");
+	if (filters.q) params.set("q", filters.q);
+	if (filters.customerId) params.set("customer_id", filters.customerId);
+	if (filters.sort) params.set("sort", filters.sort);
+	if (filters.due) params.set("due", "1");
+	return `/orders?${params.toString()}`;
+}
+function OrdersPage({ route, navigate, onNew, onReload, reloadKey }) {
+	const queryFilters = (0, import_react.useMemo)(() => {
+		const due = route.query.get("due") === "1";
+		return {
+			status: due ? "due" : route.query.has("status") ? route.query.get("status") || "" : "open",
+			q: route.query.get("q") || "",
+			customerId: route.query.get("customer_id") || "",
+			sort: route.query.get("sort") || "",
+			due
+		};
+	}, [route.query.toString()]);
+	const [search, setSearch] = (0, import_react.useState)(queryFilters.q);
+	const [items, setItems] = (0, import_react.useState)(null);
+	const [customer, setCustomer] = (0, import_react.useState)(null);
+	const [error, setError] = (0, import_react.useState)("");
+	const searchTimer = (0, import_react.useRef)(null);
+	(0, import_react.useEffect)(() => setSearch(queryFilters.q), [queryFilters.q]);
+	(0, import_react.useEffect)(() => () => window.clearTimeout(searchTimer.current), []);
+	(0, import_react.useEffect)(() => {
+		let active = true;
+		setItems(null);
+		setError("");
+		const params = { limit: 300 };
+		if (queryFilters.due) params.due = "1";
+		else if (queryFilters.status) params.status = queryFilters.status;
+		if (queryFilters.q) params.q = queryFilters.q;
+		if (queryFilters.customerId) params.customer_id = queryFilters.customerId;
+		if (queryFilters.sort) params.sort = queryFilters.sort;
+		Promise.all([api.get("/api/orders", params), queryFilters.customerId ? api.get(`/api/customers/${queryFilters.customerId}`).catch(() => null) : Promise.resolve(null)]).then(([data, customerData]) => {
+			if (!active) return;
+			setItems(data.items || []);
+			setCustomer(customerData);
+		}).catch((err) => {
+			if (!active) return;
+			setError(err.message || "订单列表加载失败");
+			setItems([]);
+		});
+		return () => {
+			active = false;
+		};
+	}, [
+		queryFilters.status,
+		queryFilters.q,
+		queryFilters.customerId,
+		queryFilters.sort,
+		queryFilters.due,
+		reloadKey
+	]);
+	const update = (overrides) => navigate(toHref$1({
+		...queryFilters,
+		...overrides
+	}));
+	const rows = items || [];
+	const total = rows.reduce((sum, row) => sum + (Number(row.total) || 0), 0);
+	const due = rows.reduce((sum, row) => sum + (Number(row.due_total) || 0), 0);
+	const customers = new Set(rows.filter((row) => row.customer_id).map((row) => row.customer_id)).size;
+	const walkIn = rows.filter((row) => !row.customer_id).length;
+	const title = queryFilters.customerId ? `${customer?.name || rows[0]?.customer_name || "这个客户"}的单` : queryFilters.due ? "没收齐的单" : queryFilters.status === "open" ? "在做的单" : queryFilters.status === "daily_done" ? "今日已完成" : "订单";
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "orders-page",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
+				className: "orders-page__head",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "refactor-eyebrow",
+						children: "业务清单"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: title }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: rows.length ? `${rows.length} 张单 · ${customers} 位客户${walkIn ? ` + ${walkIn} 张散客` : ""} · 合计 ¥${fmtMoney(total)} · 未收 ¥${fmtMoney(due)}` : "按状态、客户和交付情况快速定位订单" })
+				] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "refactor-button refactor-button--primary",
+					type: "button",
+					onClick: onNew,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$15(15) }), "开新单"]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+				className: "orders-toolbar",
+				"aria-label": "订单筛选",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "orders-filters",
+						role: "tablist",
+						"aria-label": "订单状态",
+						children: FILTERS$1.map((filter) => {
+							const active = filter.key === "due" ? queryFilters.due : !queryFilters.due && queryFilters.status === filter.key;
+							return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								className: `orders-filter${active ? " is-active" : ""}`,
+								type: "button",
+								role: "tab",
+								"aria-selected": active,
+								onClick: () => update(filter.key === "due" ? {
+									status: "open",
+									due: true
+								} : {
+									status: filter.key,
+									due: false
+								}),
+								children: filter.label
+							}, filter.key || "all");
+						})
+					}),
+					queryFilters.customerId ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "orders-chip",
+						type: "button",
+						title: "取消客户筛选",
+						onClick: () => update({ customerId: "" }),
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Users, { ...iconProps$15(13) }),
+							"只看「",
+							customer?.name || "这个客户",
+							"」",
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								"aria-hidden": "true",
+								children: "×"
+							})
+						]
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "orders-toolbar__spacer" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("select", {
+						className: "orders-select",
+						"aria-label": "排序方式",
+						value: queryFilters.sort,
+						onChange: (event) => update({ sort: event.target.value }),
+						children: SORTS.map((sort) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+							value: sort.value,
+							children: sort.label
+						}, sort.value))
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "orders-search",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$15(15) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+								type: "search",
+								value: search,
+								placeholder: "搜单号 / 标题 / 客户名",
+								onChange: (event) => {
+									const value = event.target.value;
+									setSearch(value);
+									window.clearTimeout(searchTimer.current);
+									searchTimer.current = window.setTimeout(() => update({ q: value.trim() }), 260);
+								}
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("kbd", { children: "/" })
+						]
+					})
+				]
+			}),
+			queryFilters.status === "daily_done" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "orders-note",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$15(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "这些是今天标了「今日已完成」的单，过了凌晨 4 点会自动回到「在做的」。点进订单可以撤销。" })]
+			}) : null,
+			error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "refactor-alert",
+				role: "alert",
+				children: error
+			}) : null,
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+				className: "orders-panel",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "orders-table-head",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "订单" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "客户" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "游戏" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "进度" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "状态" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "交付" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "金额" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "操作" })
+					]
+				}), items === null ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "refactor-loading",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+					]
+				}) : rows.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "orders-list",
+					children: rows.map((order) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrderRow, {
+						order,
+						navigate,
+						onReload
+					}, order.id))
+				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmptyOrders, {
+					search: Boolean(queryFilters.q),
+					status: queryFilters.status,
+					onNew
+				})]
+			})
+		]
+	});
+}
+//#endregion
+//#region client/customers.jsx
+var FILTERS = [
+	{
+		key: "",
+		label: "全部"
+	},
+	{
+		key: "due",
+		label: "有欠款"
+	},
+	{
+		key: "repeat",
+		label: "回头客"
+	}
+];
+var iconProps$14 = (size = 16) => ({
+	size,
+	strokeWidth: 1.8,
+	absoluteStrokeWidth: true,
+	"aria-hidden": true
+});
+function CustomerAvatar({ customer }) {
+	if (customer.avatar) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+		className: "customers-avatar",
+		src: customer.avatar,
+		alt: "",
+		loading: "lazy"
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+		className: "customers-avatar customers-avatar--fallback",
+		children: (customer.name || "?").slice(0, 1)
+	});
+}
+function CustomerRow({ customer, navigate }) {
+	const due = Number(customer.due_total) || 0;
+	const tags = Array.isArray(customer.tags) ? customer.tags.slice(0, 3) : [];
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", {
+		className: "customers-row",
+		role: "button",
+		tabIndex: 0,
+		onClick: () => navigate(`/customers/${customer.id}`),
+		onKeyDown: (event) => {
+			if (event.key === "Enter" || event.key === " ") {
+				event.preventDefault();
+				navigate(`/customers/${customer.id}`);
+			}
+		},
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "customers-row__identity",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CustomerAvatar, { customer }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "customers-row__name",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: customer.name || "未命名客户" }),
+						customer.status === "archived" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "customers-tag customers-tag--archived",
+							children: "已归档"
+						}) : null,
+						tags.map((tag) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "customers-tag",
+							children: tag
+						}, tag))
+					]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "customers-row__contact",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: customer.phone || "没填手机号" }),
+						customer.wechat ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["微信 ", customer.wechat] }) : null,
+						customer.qq ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["QQ ", customer.qq] }) : null
+					]
+				})] })]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "customers-row__source",
+				children: customer.source || "未注明来源"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "customers-row__orders",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: customer.order_count || 0 }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "张订单" })]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "customers-row__money",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", {
+					className: due > .001 ? "is-due" : "",
+					children: due > .001 ? `¥${fmtMoney(due)}` : `¥${fmtMoney(customer.order_total)}`
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: due > .001 ? "未收余额" : "累计订单额" })]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "customers-row__credentials",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$14(14) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: customer.credential_count || 0 })]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "react-mini-button customers-row__open",
+				type: "button",
+				title: "看客户档案",
+				onClick: (event) => {
+					event.stopPropagation();
+					navigate(`/customers/${customer.id}`);
+				},
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$14(15) })
+			})
+		]
+	});
+}
+function EmptyCustomers({ filtered, onNew }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "customers-empty",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ContactRound, { ...iconProps$14(22) }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: filtered ? "没有符合条件的客户" : "还没有客户" }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: filtered ? "换个关键词试试，或者清空筛选。" : "建立客户档案后，可以直接查看订单、收款和登录凭证。" }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+				className: "refactor-button refactor-button--primary",
+				type: "button",
+				onClick: onNew,
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$14(15) }), "建第一个客户"]
+			})
+		]
+	});
+}
+function toHref(filters) {
+	const params = new URLSearchParams();
+	if (filters.q) params.set("q", filters.q);
+	if (filters.only) params.set("only", filters.only);
+	return `/customers${params.toString() ? `?${params.toString()}` : ""}`;
+}
+function CustomersPage({ route, navigate, onNew, reloadKey }) {
+	const filters = (0, import_react.useMemo)(() => ({
+		q: route.query.get("q") || "",
+		only: route.query.get("only") || ""
+	}), [route.query.toString()]);
+	const [search, setSearch] = (0, import_react.useState)(filters.q);
+	const [items, setItems] = (0, import_react.useState)(null);
+	const [error, setError] = (0, import_react.useState)("");
+	const searchTimer = (0, import_react.useRef)(null);
+	(0, import_react.useEffect)(() => setSearch(filters.q), [filters.q]);
+	(0, import_react.useEffect)(() => () => window.clearTimeout(searchTimer.current), []);
+	(0, import_react.useEffect)(() => {
+		let active = true;
+		setItems(null);
+		setError("");
+		api.get("/api/customers", {
+			limit: 500,
+			q: filters.q
+		}).then((data) => {
+			if (active) setItems(data.items || []);
+		}).catch((err) => {
+			if (!active) return;
+			setItems([]);
+			setError(err.message || "客户列表加载失败");
+		});
+		return () => {
+			active = false;
+		};
+	}, [filters.q, reloadKey]);
+	const all = items || [];
+	const archivedCount = all.filter((customer) => customer.status === "archived").length;
+	let rows = all;
+	if (filters.only === "archived") rows = rows.filter((customer) => customer.status === "archived");
+	else rows = rows.filter((customer) => customer.status !== "archived");
+	if (filters.only === "due") rows = rows.filter((customer) => Number(customer.due_total) > .001);
+	if (filters.only === "repeat") rows = rows.filter((customer) => Number(customer.order_count) >= 2);
+	const update = (overrides) => navigate(toHref({
+		...filters,
+		...overrides
+	}));
+	const title = filters.only === "archived" ? "已归档客户" : filters.only === "due" ? "有欠款的客户" : filters.only === "repeat" ? "回头客" : "客户";
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "customers-page",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
+				className: "customers-page__head",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "refactor-eyebrow",
+						children: "客户档案"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: title }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: rows.length ? `${rows.length} 位${rows.length !== all.length ? ` · 共 ${all.length} 位` : ""}` : "集中查看客户联系信息、订单和收款情况" })
+				] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "refactor-button refactor-button--primary",
+					type: "button",
+					onClick: onNew,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$14(15) }), "新建客户"]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+				className: "customers-toolbar",
+				"aria-label": "客户筛选",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "customers-filters",
+						role: "tablist",
+						"aria-label": "客户类型",
+						children: [FILTERS.map((filter) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							className: `customers-filter${filters.only === filter.key ? " is-active" : ""}`,
+							type: "button",
+							role: "tab",
+							"aria-selected": filters.only === filter.key,
+							onClick: () => update({ only: filter.key }),
+							children: filter.label
+						}, filter.key || "all")), archivedCount ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							className: `customers-filter${filters.only === "archived" ? " is-active" : ""}`,
+							type: "button",
+							role: "tab",
+							"aria-selected": filters.only === "archived",
+							onClick: () => update({ only: "archived" }),
+							children: ["已归档 ", archivedCount]
+						}) : null]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "customers-toolbar__spacer" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "customers-search",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$14(15) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+								type: "search",
+								value: search,
+								placeholder: "搜昵称 / 手机号 / 微信 / QQ",
+								onChange: (event) => {
+									const value = event.target.value;
+									setSearch(value);
+									window.clearTimeout(searchTimer.current);
+									searchTimer.current = window.setTimeout(() => update({ q: value.trim() }), 260);
+								}
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("kbd", { children: "/" })
+						]
+					})
+				]
+			}),
+			error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "refactor-alert",
+				role: "alert",
+				children: error
+			}) : null,
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+				className: "customers-panel",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "customers-table-head",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "客户" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "来源" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "订单" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "金额" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "凭证" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: " " })
+					]
+				}), items === null ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "refactor-loading",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+					]
+				}) : rows.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "customers-list",
+					children: rows.map((customer) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CustomerRow, {
+						customer,
+						navigate
+					}, customer.id))
+				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmptyCustomers, {
+					filtered: Boolean(filters.q || filters.only),
+					onNew
+				})]
+			})
+		]
+	});
+}
+//#endregion
+//#region client/app/copy-button.jsx
+function CopyButton({ text, label = "复制", onCopied = null }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+		className: "btn btn--sm",
+		type: "button",
+		title: label,
+		onClick: async (event) => {
+			event.stopPropagation();
+			const ok = await copyText(text);
+			toast$1(ok ? "已复制" : "复制失败，请手动选中", ok ? "ok" : "err", 1600);
+			if (ok && onCopied) onCopied();
+		},
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Copy, {
+			size: 15,
+			strokeWidth: 1.8,
+			absoluteStrokeWidth: true,
+			"aria-hidden": "true"
+		}), label]
+	});
+}
+//#endregion
+//#region client/customer-form.jsx
+var SOURCES = [
+	"微信",
+	"QQ群",
+	"朋友介绍",
+	"闲鱼",
+	"贴吧",
+	"回头客",
+	"其他"
+];
+var FORM_ID$5 = "customer-form";
+function openCustomerForm(values = {}, { title } = {}) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CustomerForm, {
+		values,
+		title: title || (values.id ? "改客户资料" : "新客户"),
+		close
+	}), "customer-form");
+}
+function CustomerForm({ values, title, close }) {
+	const [form, setForm] = (0, import_react.useState)(() => ({
+		avatar: values.avatar || "",
+		name: values.name || "",
+		phone: values.phone || "",
+		wechat: values.wechat || "",
+		qq: values.qq || "",
+		source: values.source || "微信",
+		tags: Array.isArray(values.tags) ? values.tags : [],
+		note: values.note || ""
+	}));
+	const [errors, setErrors] = (0, import_react.useState)({});
+	const [serverError, setServerError] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const set = (key) => (value) => setForm((current) => ({
+		...current,
+		[key]: value
+	}));
+	async function submit(event) {
+		event.preventDefault();
+		const next = {};
+		if (!String(form.name).trim()) next.name = "请填写昵称";
+		setErrors(next);
+		if (Object.keys(next).length) {
+			document.getElementById("customer-name")?.focus();
+			return;
+		}
+		setBusy(true);
+		setServerError("");
+		try {
+			const payload = {
+				...form,
+				name: String(form.name).trim()
+			};
+			close(values.id ? await api.patch(`/api/customers/${values.id}`, payload) : await api.post("/api/customers", payload));
+		} catch (err) {
+			setServerError(err && err.message ? err.message : "保存失败");
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title,
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "取消"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: 1 } }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "submit",
+				form: FORM_ID$5,
+				disabled: busy,
+				children: busy ? "保存中…" : "保存"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: FORM_ID$5,
+			noValidate: true,
+			onSubmit: submit,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "formgrid",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ImageField, {
+							label: "头像",
+							value: form.avatar,
+							onChange: set("avatar"),
+							prefix: "customer",
+							shape: "circle",
+							size: 60,
+							hint: "选填。会显示在客户列表和订单列表上，客户多了好认。"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "昵称",
+							required: true,
+							htmlFor: "customer-name",
+							error: errors.name,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "customer-name",
+								name: "name",
+								value: form.name,
+								onChange: set("name"),
+								"aria-invalid": errors.name ? "true" : void 0,
+								placeholder: "客户怎么称呼"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "手机号",
+							half: true,
+							htmlFor: "customer-phone",
+							hint: "用作客户标识，方便搜索",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "customer-phone",
+								name: "phone",
+								value: form.phone,
+								onChange: set("phone")
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "微信",
+							half: true,
+							htmlFor: "customer-wechat",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "customer-wechat",
+								name: "wechat",
+								value: form.wechat,
+								onChange: set("wechat")
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "QQ",
+							half: true,
+							htmlFor: "customer-qq",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "customer-qq",
+								name: "qq",
+								value: form.qq,
+								onChange: set("qq")
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "来源",
+							half: true,
+							htmlFor: "customer-source",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+								id: "customer-source",
+								name: "source",
+								value: form.source,
+								onChange: set("source"),
+								options: SOURCES.map((value) => ({
+									value,
+									label: value
+								}))
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "标签",
+							htmlFor: "customer-tags",
+							hint: "例如：爽快、老客户、要发票",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TagsInput, {
+								id: "customer-tags",
+								name: "tags",
+								value: form.tags,
+								onChange: set("tags")
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "备注",
+							htmlFor: "customer-note",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
+								id: "customer-note",
+								name: "note",
+								rows: 3,
+								value: form.note,
+								onChange: set("note"),
+								placeholder: "作息、沟通习惯、忌讳…"
+							})
+						})
+					]
+				}), serverError ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note note--alert",
+					children: serverError
+				}) : null]
+			})
+		})
+	});
+}
+//#endregion
+//#region client/order-composer.jsx
+var FORM_ID$4 = "order-composer";
+async function openOrderComposer(ctx, { existing = null, presetCustomer = null } = {}) {
+	const [book, custRes, gameRes] = await Promise.all([
+		api.get("/api/pricebook"),
+		api.get("/api/customers", {
+			status: "active",
+			limit: 500
+		}),
+		api.get("/api/games", { status: "active" })
+	]);
+	const customers = custRes.items || [];
+	const games = gameRes.items || [];
+	const allServices = [];
+	for (const cat of book.categories || []) for (const service of cat.services || []) allServices.push({
+		...service,
+		_catName: cat.name,
+		_catId: cat.id,
+		_catDaily: cat.is_daily,
+		_catGameId: cat.game_id
+	});
+	for (const service of book.loose || []) allServices.push({
+		...service,
+		_catName: "未分类",
+		_catId: 0,
+		_catDaily: false,
+		_catGameId: service.game_id
+	});
+	const servicesById = new Map(allServices.map((service) => [service.id, service]));
+	const gameById = new Map((book.games || []).map((game) => [String(game.id), game]));
+	const initialPicked = {};
+	const unmappable = [];
+	if (existing) for (const item of existing.items || []) {
+		const service = servicesById.get(item.ref_id);
+		if (service) initialPicked[service.id] = {
+			quantity: item.quantity,
+			unitPrice: item.snapshot?.price_overridden ? item.unit_price : "",
+			optionIds: (item.snapshot?.addons || []).map((addon) => addon.id)
+		};
+		else unmappable.push(item);
+	}
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrderComposer, {
+		ctx,
+		close,
+		existing,
+		presetCustomer,
+		customers,
+		games,
+		categories: book.categories || [],
+		allServices,
+		servicesById,
+		gameById,
+		initialPicked,
+		unmappable
+	}), existing ? `order-composer-${existing.id}` : "order-composer");
+}
+/**
+* 路由 /orders/new 用：进来就开一张新单，关掉就回订单列表。
+* 和旧版一样 —— 底下垫着订单列表，抽屉浮在上面。
+*/
+function OrderComposerRoute({ navigate, onReload }) {
+	(0, import_react.useEffect)(() => {
+		let alive = true;
+		openOrderComposer({
+			navigate,
+			onReload
+		}).then((saved) => {
+			if (alive && !saved) navigate("/orders");
+		}).catch((err) => toastErr(err));
+		return () => {
+			alive = false;
+		};
+	}, []);
+	return null;
+}
+function OrderComposer({ ctx, close, existing, presetCustomer, customers: initialCustomers, games, categories, allServices, servicesById, gameById, initialPicked, unmappable }) {
+	const [customers, setCustomers] = (0, import_react.useState)(initialCustomers);
+	const [picked, setPicked] = (0, import_react.useState)(initialPicked);
+	const [form, setForm] = (0, import_react.useState)(() => ({
+		customer_id: existing ? String(existing.customer_id) : presetCustomer ? String(presetCustomer) : "",
+		game_id: existing && existing.game_id ? String(existing.game_id) : "",
+		ordered_at: existing ? fmtDate(existing.ordered_at) : todayStr(),
+		due_at: existing && existing.due_at ? fmtDate(existing.due_at) : "",
+		title: existing?.title || "",
+		note: existing?.note || "",
+		internal_note: existing?.internal_note || "",
+		discount: String(existing?.discount ?? 0),
+		platform_fee: String(existing?.platform_fee ?? 0),
+		cost: String(existing?.cost ?? 0)
+	}));
+	const [query, setQuery] = (0, import_react.useState)("");
+	const [gameFilter, setGameFilter] = (0, import_react.useState)("");
+	const [catFilter, setCatFilter] = (0, import_react.useState)("");
+	const [dueTouched, setDueTouched] = (0, import_react.useState)(Boolean(existing?.due_at));
+	const [dueAuto, setDueAuto] = (0, import_react.useState)({
+		days: 0,
+		name: ""
+	});
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const set = (key) => (value) => setForm((current) => ({
+		...current,
+		[key]: value
+	}));
+	const pickableCats = (0, import_react.useMemo)(() => {
+		const withService = categories.filter((category) => category.services && category.services.length);
+		if (!gameFilter) return withService;
+		const own = withService.filter((category) => String(category.game_id || "") === gameFilter);
+		return own.length ? own : withService.filter((category) => !category.game_id);
+	}, [categories, gameFilter]);
+	(0, import_react.useEffect)(() => {
+		if (catFilter && !pickableCats.some((category) => String(category.id) === catFilter)) setCatFilter("");
+	}, [pickableCats, catFilter]);
+	const groups = (0, import_react.useMemo)(() => {
+		const keyword = query.trim().toLowerCase();
+		const byCategory = /* @__PURE__ */ new Map();
+		for (const service of allServices) {
+			if (!service.name) continue;
+			if (gameFilter && String(service.game_id || "") !== gameFilter && service.game_id) continue;
+			if (catFilter && String(service._catId || "") !== catFilter) continue;
+			if (keyword && !`${service.name} ${service.description} ${service._catName}`.toLowerCase().includes(keyword)) continue;
+			const key = service._catName || "未分类";
+			if (!byCategory.has(key)) byCategory.set(key, []);
+			byCategory.get(key).push(service);
+		}
+		return [...byCategory.entries()];
+	}, [
+		allServices,
+		query,
+		gameFilter,
+		catFilter
+	]);
+	/** 「星声 240」这种：从服务项上取 [货币名, 每个多少]；游戏没配货币名就是 null */
+	const gainPair = (service) => {
+		const raw = service?.currency_amount;
+		if (raw === null || raw === void 0 || raw === "") return null;
+		const per = Number(raw);
+		if (!Number.isFinite(per) || per <= 0) return null;
+		const gid = service.game_id || service._catGameId || "";
+		const name = String(gameById.get(String(gid))?.currency || "").trim();
+		return name ? [name, per] : null;
+	};
+	const gainText = (service) => {
+		const pair = gainPair(service);
+		return pair ? `${pair[0]} ${fmtQty(pair[1])}` : "";
+	};
+	const { lines, subtotal, addons } = (0, import_react.useMemo)(() => calcPicked(picked, servicesById), [picked, servicesById]);
+	const discount = Math.max(0, Number(form.discount) || 0);
+	const fee = Math.max(0, Number(form.platform_fee) || 0);
+	const cost = Math.max(0, Number(form.cost) || 0);
+	const total = Math.max(0, subtotal + addons - discount);
+	const totalGain = gainSum(Object.entries(picked).map(([id, sel]) => {
+		const pair = gainPair(servicesById.get(Number(id)));
+		return pair ? [pair[0], pair[1] * (Number(sel.quantity) || 1)] : null;
+	}).filter(Boolean));
+	const plan = (0, import_react.useMemo)(() => dailyPlan(picked, servicesById), [picked, servicesById]);
+	(0, import_react.useEffect)(() => {
+		if (dueTouched) return;
+		const next = plan.days > 0 ? addDays(form.ordered_at, plan.days) : "";
+		setDueAuto(plan.days > 0 ? plan : {
+			days: 0,
+			name: ""
+		});
+		setForm((current) => current.due_at === next ? current : {
+			...current,
+			due_at: next
+		});
+	}, [
+		dueTouched,
+		plan,
+		form.ordered_at
+	]);
+	const remain = remainInfo(form.ordered_at, form.due_at);
+	const pickedCount = Object.keys(picked).length;
+	function toggle(service) {
+		setPicked((current) => {
+			if (current[service.id]) {
+				const next = { ...current };
+				delete next[service.id];
+				return next;
+			}
+			return {
+				...current,
+				[service.id]: {
+					quantity: Number(service.min_qty) || 1,
+					unitPrice: "",
+					optionIds: (service.options || []).filter((option) => option.default_selected).map((option) => option.id)
+				}
+			};
+		});
+	}
+	function patchSelection(id, patch) {
+		setPicked((current) => current[id] ? {
+			...current,
+			[id]: {
+				...current[id],
+				...patch
+			}
+		} : current);
+	}
+	function toggleOption(id, optionId, on) {
+		setPicked((current) => {
+			const sel = current[id];
+			if (!sel) return current;
+			const ids = new Set(sel.optionIds);
+			if (on) ids.add(optionId);
+			else ids.delete(optionId);
+			return {
+				...current,
+				[id]: {
+					...sel,
+					optionIds: [...ids]
+				}
+			};
+		});
+	}
+	async function addCustomer() {
+		const created = await openCustomerForm();
+		if (!created) return;
+		setCustomers((current) => [...current, created]);
+		set("customer_id")(String(created.id));
+	}
+	async function submit() {
+		if (!form.customer_id && !form.game_id && !pickedCount) {
+			toast$1("至少选一个客户和一个服务项", "err");
+			return;
+		}
+		if (!pickedCount) {
+			toast$1("还没挑服务项", "err");
+			return;
+		}
+		if (!form.customer_id) {
+			toast$1("先选客户，或者点「新客户」建一个", "err");
+			document.getElementById("composer-customer")?.focus();
+			return;
+		}
+		const editableById = new Map(Object.entries(picked).map(([id, sel]) => [Number(id), {
+			service_id: Number(id),
+			quantity: Number(sel.quantity) || 1,
+			option_ids: [...sel.optionIds],
+			unit_price: sel.unitPrice === "" ? void 0 : Number(sel.unitPrice)
+		}]));
+		const items = [];
+		const usedIds = /* @__PURE__ */ new Set();
+		if (existing) {
+			const unmappableIds = new Set(unmappable.map((item) => item.id));
+			for (const item of existing.items || []) {
+				if (unmappableIds.has(item.id)) {
+					items.push({ keep_id: item.id });
+					continue;
+				}
+				const editable = editableById.get(item.ref_id);
+				if (editable) {
+					items.push(editable);
+					usedIds.add(item.ref_id);
+				}
+			}
+		}
+		for (const [id, payloadItem] of editableById) if (!usedIds.has(id)) items.push(payloadItem);
+		const payload = {
+			customer_id: Number(form.customer_id),
+			game_id: form.game_id ? Number(form.game_id) : null,
+			title: form.title,
+			discount,
+			platform_fee: fee,
+			cost,
+			ordered_at: form.ordered_at,
+			due_at: form.due_at || null,
+			note: form.note,
+			internal_note: form.internal_note,
+			items
+		};
+		setBusy(true);
+		try {
+			const saved = existing ? await api.patch(`/api/orders/${existing.id}`, payload) : await api.post("/api/orders", payload);
+			if (existing && unmappable.length) toast$1("单据已更新（那几条改不了的明细原样保留）", "ok", 3400);
+			else toast$1(existing ? "单据已更新" : `开单成功 · ${saved.order_no}`, "ok");
+			close(saved);
+			if (!existing && ctx && ctx.navigate) ctx.navigate(`/orders/${saved.id}`);
+			else if (ctx && ctx.onReload) ctx.onReload();
+		} catch (err) {
+			toastErr(err);
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: existing ? `改单 · ${existing.order_no}` : "开一张新单",
+		subtitle: existing ? "改完会重算金额并替换明细快照" : "选客户、挑服务，价格自动算",
+		wide: true,
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				style: {
+					display: "flex",
+					alignItems: "baseline",
+					gap: "8px",
+					flex: "1"
+				},
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "sm dim",
+					children: "合计"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "quote-sheet__totalfig",
+					children: `¥${fmtMoney(total)}`
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "取消"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "submit",
+				form: FORM_ID$4,
+				disabled: busy,
+				"data-loading": busy ? "1" : void 0,
+				children: existing ? "保存改动" : "开单"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: FORM_ID$4,
+			noValidate: true,
+			onSubmit: (event) => {
+				event.preventDefault();
+				submit();
+			},
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "formgrid",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "field",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+									className: "lbl",
+									htmlFor: "composer-customer",
+									children: ["客户", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "req",
+										children: "*"
+									})]
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "cluster",
+									style: {
+										gap: "6px",
+										flexWrap: "nowrap"
+									},
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+										style: {
+											flex: "1 1 auto",
+											minWidth: "0"
+										},
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
+											id: "composer-customer",
+											className: "sel",
+											value: form.customer_id,
+											onChange: (event) => set("customer_id")(event.target.value),
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+												value: "",
+												children: "— 选客户 —"
+											}), customers.map((customer) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+												value: String(customer.id),
+												children: `${customer.name}${customer.phone ? ` · ${customer.phone}` : ""}`
+											}, customer.id))]
+										})
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+										className: "btn btn--sm",
+										type: "button",
+										onClick: addCustomer,
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, {
+											size: 14,
+											strokeWidth: 1.8,
+											absoluteStrokeWidth: true,
+											"aria-hidden": true
+										}), "新客户"]
+									})]
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "field",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+									className: "lbl",
+									htmlFor: "composer-game",
+									children: "游戏"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
+									id: "composer-game",
+									className: "sel",
+									value: form.game_id,
+									onChange: (event) => set("game_id")(event.target.value),
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+										value: "",
+										children: "— 选游戏 —"
+									}), games.map((game) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+										value: String(game.id),
+										children: game.name
+									}, game.id))]
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "field",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+									className: "lbl",
+									htmlFor: "composer-ordered-at",
+									children: "下单日期"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									id: "composer-ordered-at",
+									className: "inp",
+									type: "date",
+									value: form.ordered_at,
+									onChange: (event) => set("ordered_at")(event.target.value)
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "field",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+									className: "lbl",
+									htmlFor: "composer-due-at",
+									children: "交付日期"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									id: "composer-due-at",
+									className: "inp",
+									type: "date",
+									value: form.due_at,
+									onChange: (event) => {
+										setDueTouched(event.target.value !== "");
+										setDueAuto({
+											days: 0,
+											name: ""
+										});
+										set("due_at")(event.target.value);
+									}
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "field field--full",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: `remain${remain.kind === "none" ? " remain--none" : remain.kind === "invalid" ? " remain--bad" : ` remain--${remain.kind}`}`,
+									children: remain.kind === "none" ? form.due_at ? null : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "dim sm",
+										children: "填了交付日期，这里会算还剩几天"
+									}) : remain.kind === "invalid" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "remain__big",
+										children: "交付日期比下单日期还早"
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "dim sm",
+										children: `下单到交付 ${remain.span} 天，检查一下`
+									})] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "remain__big",
+											children: remain.text
+										}),
+										remain.span !== null ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "dim sm",
+											children: `下单到交付 ${remain.span} 天`
+										}) : null,
+										dueAuto.days > 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "dim sm",
+											children: `${dueAuto.name ? `按「${dueAuto.name}」` : ""}${dueAuto.days} 天自动填的，可以直接改`
+										}) : null
+									] })
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "field field--full",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+									className: "lbl",
+									htmlFor: "composer-title",
+									children: "订单标题"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									id: "composer-title",
+									className: "inp",
+									placeholder: "不填就用服务名拼一个",
+									value: form.title,
+									onChange: (event) => set("title")(event.target.value)
+								})]
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "sechead",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "挑服务" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "sechead__note",
+							children: "勾上就进单子，数量可以改"
+						})]
+					}) }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "cluster",
+						style: { marginBottom: "6px" },
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+								className: "inp",
+								type: "search",
+								placeholder: "搜服务名…",
+								value: query,
+								onChange: (event) => setQuery(event.target.value)
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
+								className: "sel",
+								style: {
+									width: "auto",
+									minWidth: "130px"
+								},
+								"aria-label": "按游戏筛选",
+								value: gameFilter,
+								onChange: (event) => setGameFilter(event.target.value),
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+									value: "",
+									children: "全部游戏"
+								}), games.map((game) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+									value: String(game.id),
+									children: game.name
+								}, game.id))]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
+								className: "sel",
+								style: {
+									width: "auto",
+									minWidth: "130px"
+								},
+								"aria-label": "按大类筛选",
+								value: catFilter,
+								onChange: (event) => setCatFilter(event.target.value),
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+									value: "",
+									children: "全部大类"
+								}), pickableCats.map((category) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+									value: String(category.id),
+									children: category.name
+								}, category.id))]
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "picker",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "picker__scroll",
+							children: groups.length ? groups.map(([catName, list]) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "pickgroup",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "pickgroup__head",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "pickgroup__name",
+										children: catName
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "pickgroup__n",
+										children: `${list.length} 项`
+									})]
+								}), list.map((service) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ServiceRow$1, {
+									service,
+									selection: picked[service.id],
+									gain: gainText(service),
+									onToggle: () => toggle(service),
+									onQty: (raw) => {
+										const value = Number(raw);
+										const bad = raw.trim() !== "" && !Number.isFinite(value);
+										patchSelection(service.id, {
+											quantity: raw.trim() === "" || bad ? 0 : value,
+											qtyBad: bad
+										});
+									},
+									onPrice: (raw) => {
+										const value = Number(raw);
+										const bad = raw.trim() !== "" && !Number.isFinite(value);
+										patchSelection(service.id, {
+											unitPrice: raw.trim() === "" || bad ? "" : value,
+											priceBad: bad
+										});
+									},
+									onOption: (optionId, on) => toggleOption(service.id, optionId, on)
+								}, service.id))]
+							}, catName)) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "empty",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "empty__body",
+									children: "没有匹配的服务项。"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									className: "btn btn--sm",
+									type: "button",
+									onClick: () => ctx && ctx.navigate && ctx.navigate("/price"),
+									children: "去价格表加一个"
+								})]
+							})
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "picker__foot",
+							children: [
+								pickedCount ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+									className: "cluster",
+									style: { gap: "6px" },
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "pickcount",
+										children: String(pickedCount)
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "已选" })]
+								}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "dim",
+									children: "还没勾服务项"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }),
+								pickedCount ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									className: "btn btn--sm btn--quiet",
+									type: "button",
+									onClick: () => setPicked({}),
+									children: "清空"
+								}) : null
+							]
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "sechead",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "金额" })
+					}) }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "formgrid",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "field",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+									className: "lbl",
+									htmlFor: "composer-discount",
+									children: "折扣（元）"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									id: "composer-discount",
+									className: "inp inp--fig",
+									inputMode: "decimal",
+									value: form.discount,
+									onChange: (event) => set("discount")(event.target.value)
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "field",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+									className: "lbl",
+									htmlFor: "composer-fee",
+									children: "平台手续费（元）"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									id: "composer-fee",
+									className: "inp inp--fig",
+									inputMode: "decimal",
+									value: form.platform_fee,
+									onChange: (event) => set("platform_fee")(event.target.value)
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "field",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+									className: "lbl",
+									htmlFor: "composer-cost",
+									children: "成本（元）"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									id: "composer-cost",
+									className: "inp inp--fig",
+									inputMode: "decimal",
+									value: form.cost,
+									onChange: (event) => set("cost")(event.target.value)
+								})]
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "stack stack--tight",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							style: {
+								display: "grid",
+								gridTemplateColumns: "1fr auto",
+								gap: "4px 12px",
+								fontSize: "var(--fs-sm)"
+							},
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "dim",
+									children: `服务小计（${lines.length} 项）`
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "num",
+									children: `¥${fmtMoney(subtotal)}`
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "dim",
+									children: "增项合计"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "num",
+									children: `¥${fmtMoney(addons)}`
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "dim",
+									children: "折扣"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "num tone-oxblood",
+									children: `−¥${fmtMoney(discount)}`
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "dim",
+									children: "利润预估"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "num",
+									children: `¥${fmtMoney(total - fee - cost)}`
+								}),
+								totalGain ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "dim",
+									children: "可得"
+								}) : null,
+								totalGain ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "num",
+									children: totalGain
+								}) : null
+							]
+						})
+					}),
+					unmappable.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "note note--warn",
+						children: `这张单有 ${unmappable.length} 条明细（${unmappable.map((item) => item.name).join("、")}）在价格表里已经找不到对应的服务项，多半是从报价单转过来的。这几条在这里改不了，保存时会原样保留（不会被删掉，也不会被重算）。其它明细的改动照常保存。`
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "sechead",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "备注" })
+					}) }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "field field--full",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+							className: "lbl",
+							htmlFor: "composer-note",
+							children: "给客户看的备注"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("textarea", {
+							id: "composer-note",
+							className: "ta",
+							rows: 2,
+							placeholder: "给客户看的备注",
+							value: form.note,
+							onChange: (event) => set("note")(event.target.value)
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "field field--full",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+							className: "lbl",
+							htmlFor: "composer-inner-note",
+							children: "只有自己看得到的备注"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("textarea", {
+							id: "composer-inner-note",
+							className: "ta",
+							rows: 2,
+							placeholder: "只有自己看得到的备注",
+							value: form.internal_note,
+							onChange: (event) => set("internal_note")(event.target.value)
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "note",
+						children: "提交后，服务名、单价、数量、套餐内容、增项会一起冻进这张单的快照里。之后你在价格表里怎么改价，这张单都不受影响。"
+					})
+				]
+			})
+		})
+	});
+}
+/** 一行服务项：勾选框 + 名字/价格 + 数量/改价 + 增项 */
+function ServiceRow$1({ service, selection, gain, onToggle, onQty, onPrice, onOption }) {
+	const on = Boolean(selection);
+	const quantity = selection ? selection.quantity : "";
+	const unitPrice = selection && selection.unitPrice !== "" ? selection.unitPrice : "";
+	const auto = unitPriceFor$1(service, service.tiers, Number(quantity) || 1);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: `pickrow${on ? " pickrow--on" : ""}`,
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "pickrow__top",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+					className: "chk",
+					type: "checkbox",
+					"aria-label": `选择 ${service.name}`,
+					checked: on,
+					onChange: onToggle
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "pickrow__main",
+					type: "button",
+					onClick: onToggle,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: "pickrow__line",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "pickrow__name",
+								children: service.name
+							}),
+							gain ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "pickrow__gain",
+								children: gain
+							}) : null,
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+								className: "pickrow__fig",
+								children: [`¥${fmtMoney(service.base_price)}`, /* @__PURE__ */ (0, import_jsx_runtime.jsx)("em", { children: `/${defaultUnit$1(service)}` })]
+							})
+						]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "pickrow__meta",
+						children: [
+							PRICE_TYPE_LABEL[service.price_type] || service.price_type,
+							service.tiers?.length ? `${service.tiers.length} 档阶梯价` : null,
+							service.description || null
+						].filter(Boolean).join(" · ")
+					})]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "pickrow__ctrl",
+				style: { display: on ? "" : "none" },
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "cluster",
+					style: { gap: "6px" },
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							className: `inp inp--fig${selection?.qtyBad ? " is-bad" : ""}`,
+							inputMode: "decimal",
+							style: { width: "76px" },
+							"aria-label": `${service.name} 数量`,
+							value: quantity === "" ? "" : String(quantity),
+							onChange: (event) => onQty(event.target.value)
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "dim tiny",
+							children: defaultUnit$1(service)
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							className: `inp inp--fig${selection?.priceBad ? " is-bad" : ""}`,
+							inputMode: "decimal",
+							style: { width: "86px" },
+							placeholder: "改价",
+							"aria-label": `${service.name} 单价`,
+							value: unitPrice === "" ? "" : String(unitPrice),
+							onChange: (event) => onPrice(event.target.value)
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "dim tiny",
+							children: "元"
+						})
+					]
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "pickrow__detail",
+				style: { display: on ? "" : "none" },
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "cluster",
+					style: { gap: "10px" },
+					children: (service.options || []).length ? (service.options || []).map((option) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "inline",
+						style: {
+							cursor: "pointer",
+							gap: "5px"
+						},
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+								className: "chk",
+								type: "checkbox",
+								checked: (selection?.optionIds || []).includes(option.id),
+								onChange: (event) => onOption(option.id, event.target.checked)
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "sm",
+								children: option.name
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "dim tiny",
+								children: option.price_mode === "percent" ? `+${option.price}%` : option.price ? `+${fmtMoney(option.price)}元` : "不加价"
+							})
+						]
+					}, option.id)) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "dim tiny",
+						children: "这个服务项没有增项"
+					})
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "dim tiny",
+					children: on && Number(quantity) >= 1 ? `按 ${fmtQty(quantity)} ${defaultUnit$1(service)} 算，基准单价 ¥${fmtMoney(auto)}` : ""
+				})]
+			})
+		]
+	});
+}
+//#endregion
+//#region client/customer-detail.jsx
+var iconProps$13 = (size) => ({
+	size,
+	strokeWidth: 1.8,
+	absoluteStrokeWidth: true,
+	"aria-hidden": true
+});
+function CustomerDetailPage({ route, navigate, onReload, reloadKey }) {
+	const id = route.sub;
+	const [profile, setProfile] = (0, import_react.useState)(null);
+	const [error, setError] = (0, import_react.useState)("");
+	const load = (0, import_react.useCallback)(async () => {
+		try {
+			const data = await api.get(`/api/customers/${id}/profile`);
+			setProfile(data);
+			setError("");
+		} catch (err) {
+			setError(err?.message || String(err));
+			setProfile(null);
+		}
+	}, [id]);
+	(0, import_react.useEffect)(() => {
+		load();
+	}, [load, reloadKey]);
+	const reload = (0, import_react.useCallback)(async () => {
+		await load();
+		if (onReload) await onReload();
+	}, [load, onReload]);
+	if (error) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "refactor-alert",
+		role: "alert",
+		children: error
+	});
+	if (!profile) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "refactor-loading",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+		]
+	});
+	const customer = profile.customer;
+	const summary = profile.summary;
+	const orders = profile.orders || [];
+	const payments = profile.payments || [];
+	const credentials = profile.credentials || [];
+	async function editProfile() {
+		if (await openCustomerForm(customer, { title: "改客户资料" })) reload();
+	}
+	async function restore() {
+		try {
+			await api.patch(`/api/customers/${customer.id}`, { status: "active" });
+			toast$1(`客户「${customer.name}」已恢复`, "ok");
+			reload();
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "customer-detail",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
+			className: "customer-detail__head",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "cluster",
+				style: {
+					gap: "var(--sp-3)",
+					alignItems: "center"
+				},
+				children: [customer.avatar ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+					className: "avatar avatar--lg",
+					src: customer.avatar,
+					alt: "",
+					style: { flex: "none" }
+				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "avatar avatar--lg",
+					style: { flex: "none" },
+					children: (customer.name || "?").slice(0, 1)
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "pagehead__txt",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { children: customer.name }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "pagehead__sub",
+						children: `${summary.order_count} 张单 · 累计 ¥${fmtMoney(summary.order_total)}${summary.due_total > .001 ? ` · 还欠 ¥${fmtMoney(summary.due_total)}` : " · 已结清"}`
+					})]
+				})]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "customer-detail__actions",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "refactor-button refactor-button--primary",
+						type: "button",
+						onClick: () => openOrderComposer({
+							navigate,
+							onReload: reload
+						}, { presetCustomer: customer.id }),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$13(14) }), "给 TA 开单"]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "refactor-button",
+						type: "button",
+						onClick: editProfile,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(PenLine, { ...iconProps$13(14) }), "改资料"]
+					}),
+					customer.status === "archived" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "refactor-button",
+						type: "button",
+						onClick: restore,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps$13(14) }), "恢复"]
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "react-mini-button",
+						type: "button",
+						title: "归档或彻底删除这位客户",
+						onClick: () => removeCustomer(customer, {
+							navigate,
+							reload
+						}),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$13(14) })
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "refactor-button",
+						type: "button",
+						onClick: () => navigate("/customers"),
+						children: "返回列表"
+					})
+				]
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "split",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "panel",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "panel__body",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SectionHead$2, {
+							title: "订单",
+							note: `${orders.length} 张`,
+							action: orders.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								className: "btn btn--sm",
+								type: "button",
+								onClick: () => navigate(`/orders?customer_id=${customer.id}&status=`),
+								children: "看全部"
+							}) : null
+						})
+					}), orders.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CustomerOrders, {
+						customer,
+						orders,
+						navigate
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "panel__body",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "empty",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "empty__title",
+									children: "还没有单"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "empty__body",
+									children: "给这个客户开第一张单。"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									className: "refactor-button refactor-button--primary",
+									type: "button",
+									onClick: () => openOrderComposer({
+										navigate,
+										onReload: reload
+									}, { presetCustomer: customer.id }),
+									children: "开单"
+								})
+							]
+						})
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "panel",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "panel__body",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SectionHead$2, {
+							title: "收款流水",
+							note: `${payments.length} 笔`
+						})
+					}), payments.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "itemlist",
+						children: payments.map((payment) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "item",
+							style: { cursor: "default" },
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "item__main",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "item__title",
+									children: [PAY_KIND_LABEL[payment.kind] || payment.kind, /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "tag",
+										children: PAY_METHOD_LABEL[payment.method] || payment.method
+									})]
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "item__meta",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: fmtDay(payment.paid_at) }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: payment.order_no || "" }),
+										payment.note ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: payment.note }) : null
+									]
+								})]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "item__right",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: `item__fig ${payment.kind === "refund" ? "tone-oxblood" : "tone-jade"}`,
+									children: `${payment.kind === "refund" ? "−" : "+"}¥${fmtMoney(payment.amount)}`
+								})
+							})]
+						}, payment.id))
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "panel__body",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "dim sm",
+							children: "还没有收款记录。"
+						})
+					})]
+				})]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+						className: "panel",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "panel__body",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SectionHead$2, { title: "联系方式" })
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "panel__body",
+							style: { paddingTop: "0" },
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "stack stack--tight",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("dl", {
+										className: "kv",
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dt", { children: "手机号" }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dd", { children: customer.phone ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+												className: "cluster",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+													className: "mono",
+													children: customer.phone
+												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CopyButton, { text: customer.phone })]
+											}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "dim",
+												children: "没填"
+											}) }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dt", { children: "微信" }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dd", { children: customer.wechat ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+												className: "cluster",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+													className: "mono",
+													children: customer.wechat
+												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CopyButton, { text: customer.wechat })]
+											}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "dim",
+												children: "没填"
+											}) }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dt", { children: "QQ" }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dd", { children: customer.qq ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "mono",
+												children: customer.qq
+											}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "dim",
+												children: "没填"
+											}) }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dt", { children: "来源" }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dd", { children: customer.source || "—" }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dt", { children: "建档" }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dd", { children: fmtDate(customer.created_at) })
+										]
+									}),
+									customer.tags?.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+										className: "cluster",
+										children: customer.tags.map((tag) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "tag",
+											children: tag
+										}, tag))
+									}) : null,
+									customer.note ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+										className: "note",
+										children: customer.note
+									}) : null
+								]
+							})
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+						className: "panel",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "panel__body",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SectionHead$2, { title: "账目" })
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "panel__body",
+							style: { paddingTop: "0" },
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								style: {
+									display: "grid",
+									gridTemplateColumns: "1fr auto",
+									gap: "6px 12px"
+								},
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "dim",
+										children: "累计订单额"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "num",
+										children: `¥${fmtMoney(summary.order_total)}`
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "dim tone-jade",
+										children: "已收"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "num tone-jade",
+										children: `¥${fmtMoney(summary.paid_total)}`
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "dim",
+										children: summary.due_total > .001 ? "还欠" : "尾款"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "num",
+										children: summary.due_total > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "tone-amber",
+											children: `¥${fmtMoney(summary.due_total)}`
+										}) : "0"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "dim",
+										children: "在做的单"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "num",
+										children: String(summary.active_orders)
+									})
+								]
+							})
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+						className: "panel",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "panel__body",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SectionHead$2, {
+								title: "登录凭证",
+								note: `${credentials.length} 条`,
+								action: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									className: "btn btn--sm",
+									type: "button",
+									onClick: () => navigate(`/vault?customer=${customer.id}`),
+									children: "去保险箱"
+								})
+							})
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "panel__body",
+							style: { paddingTop: "0" },
+							children: credentials.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "itemlist",
+								children: credentials.map((cred) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "item",
+									style: { cursor: "default" },
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "item__main",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											className: "item__title",
+											children: [cred.label || "未命名", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "tag",
+												children: LOGIN_TYPE_LABEL[cred.login_type] || cred.login_type
+											})]
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											className: "item__meta",
+											children: [
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: cred.game_name || "未指定" }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: cred.server || "" }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+													className: "mono",
+													children: cred.masked_hint
+												})
+											]
+										})]
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+										className: "btn btn--sm",
+										type: "button",
+										onClick: () => navigate(`/vault?customer=${customer.id}&c=${cred.id}`),
+										children: "去保险箱"
+									})]
+								}, cred.id))
+							}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "dim sm",
+								children: "这个客户还没有登记游戏登录凭证。"
+							})
+						})]
+					})
+				]
+			})]
+		})]
+	});
+}
+function SectionHead$2({ title, note, action = null }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "sechead",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: title }),
+			note ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+				className: "sechead__note",
+				children: note
+			}) : null,
+			action ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }), action] }) : null
+		]
+	});
+}
+/** 在做 / 已结束 的一张订单行 */
+function OrderLine({ order, navigate }) {
+	const done = ["done", "cancelled"].includes(order.status);
+	const info = done ? {
+		kind: "ok",
+		text: ""
+	} : remainInfo(order.ordered_at, order.due_at);
+	const due = Number(order.due_total) || 0;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+		className: "item",
+		type: "button",
+		onClick: () => navigate(`/orders/${order.id}`),
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "item__main",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "item__title",
+				children: [
+					order.order_no,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Lamp$1, {
+						label: order.status_label,
+						tone: STATUS_TONE[order.status] || "muted"
+					}),
+					!done && info.text ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: `duepill duepill--${info.kind}`,
+						children: info.text
+					}) : null
+				]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "item__meta",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: order.title || "没写标题" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: fmtDay(order.ordered_at) }),
+					order.due_at ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: `交付 ${fmtDay(order.due_at)}` }) : null
+				]
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "item__right",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "item__fig",
+				children: `¥${fmtMoney(order.total)}`
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "tbl__meta",
+				children: due > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "tone-amber",
+					children: `未收 ¥${fmtMoney(due)}`
+				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "dim",
+					children: "已结清"
+				})
+			})]
+		})]
+	});
+}
+/**
+* 客户名下的订单。
+* 客户会反复下单，单多了不能一股脑铺开 —— 先列在做的，已结束的收在后面，
+* 各自封顶，剩下的给个「还有 N 张」。
+*/
+function CustomerOrders({ customer, orders, navigate }) {
+	const ACTIVE_MAX = 6;
+	const CLOSED_MAX = 3;
+	const active = orders.filter((order) => !["done", "cancelled"].includes(order.status));
+	const closed = orders.filter((order) => ["done", "cancelled"].includes(order.status));
+	const unpaid = active.filter((order) => Number(order.due_total) > .001).length;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "custorder__sum",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: `在做 ${active.length}` }),
+			closed.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+				className: "dim",
+				children: `· 已结束 ${closed.length}`
+			}) : null,
+			unpaid ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+				className: "tone-amber",
+				children: `· ${unpaid} 张没收齐`
+			}) : null
+		]
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "itemlist",
+		children: [
+			active.slice(0, ACTIVE_MAX).map((order) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrderLine, {
+				order,
+				navigate
+			}, order.id)),
+			active.length > ACTIVE_MAX ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+				className: "item item--more",
+				type: "button",
+				onClick: () => navigate(`/orders?customer_id=${customer.id}&status=open`),
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "sm",
+					children: `还有 ${active.length - ACTIVE_MAX} 张在做的单`
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRight, { ...iconProps$13(13) })]
+			}) : null,
+			closed.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "custorder__sep",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "sm dim",
+						children: "已结束"
+					})
+				}),
+				closed.slice(0, CLOSED_MAX).map((order) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrderLine, {
+					order,
+					navigate
+				}, order.id)),
+				closed.length > CLOSED_MAX ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "item item--more",
+					type: "button",
+					onClick: () => navigate(`/orders?customer_id=${customer.id}&status=`),
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "sm",
+						children: `还有 ${closed.length - CLOSED_MAX} 张已结束的单`
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRight, { ...iconProps$13(13) })]
+				}) : null
+			] }) : null
+		]
+	})] });
+}
+function Lamp$1({ label, tone = "muted" }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+		className: `lamp lamp--${tone}`,
+		children: label
+	});
+}
+async function removeCustomer(customer, { navigate, reload }) {
+	let profile = null;
+	try {
+		profile = await api.get(`/api/customers/${customer.id}/profile`);
+	} catch {}
+	const orders = profile?.summary?.order_count ?? 0;
+	const creds = profile?.credentials?.length ?? 0;
+	const quotes = profile?.quotes?.length ?? 0;
+	const busy = orders + creds + quotes > 0;
+	const choice = await choiceDialog({
+		title: `处理客户「${customer.name}」`,
+		message: busy ? `这位客户名下有 ${orders} 张订单、${creds} 条登录凭证、${quotes} 份报价单。` : "这位客户名下还没有订单、凭证和报价单。",
+		archiveLabel: busy ? "归档客户" : null,
+		archiveHint: "先从这个列表里收起来。订单、凭证、报价单全部原地不动，随时可以用上面的「已归档」找回来。",
+		deleteLabel: busy ? "彻底删除（连带凭证）" : "彻底删除",
+		deleteHint: creds ? `这位客户存着 ${creds} 条登录凭证（游戏账号密码），彻底删除会把这 ${creds} 条一起删掉，删了就找不回来。` + (orders ? `另外 ${orders} 张订单会失去客户关联 —— 单号、服务内容、冻结的客户名和收款记录都还在。` : "") : orders ? `${orders} 张订单会失去客户关联，但单号、服务内容、冻结的客户名和收款记录都还在。` : "直接删掉，不影响任何其它数据。"
+	});
+	if (!choice) return;
+	try {
+		if (choice === "archive") {
+			await api.patch(`/api/customers/${customer.id}`, { status: "archived" });
+			toast$1(`客户「${customer.name}」已归档`, "ok");
+			navigate("/customers");
+		} else {
+			await api.del(`/api/customers/${customer.id}`, { hard: "1" });
+			toast$1(`客户「${customer.name}」已彻底删除`, "ok");
+			navigate("/customers");
+		}
+	} catch (err) {
+		toastErr(err);
+	}
+}
+/** 三选一：归档 / 彻底删除 / 取消。旧 ui.js 的 choiceDialog() 的 React 版 */
+function choiceDialog({ title, message, archiveLabel, archiveHint, deleteLabel, deleteHint }) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Modal, {
+		title,
+		wide: true,
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "取消"
+			}),
+			archiveLabel ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close("archive"),
+				children: archiveLabel
+			}) : null,
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--danger",
+				type: "button",
+				onClick: () => close("delete"),
+				children: deleteLabel
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "stack stack--tight",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					style: { lineHeight: "1.75" },
+					children: message
+				}),
+				archiveLabel && archiveHint ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "note note--ok",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: `${archiveLabel}：` }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: archiveHint })]
+				}) : null,
+				deleteHint ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "note note--alert",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: `${deleteLabel}：` }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: deleteHint })]
+				}) : null
+			]
+		})
+	}));
+}
+//#endregion
 //#region client/game-form.jsx
 var FORM_ID$3 = "game-form";
 function openGameForm(values = {}) {
@@ -22432,7 +25880,7 @@ function GameForm({ values, close }) {
 				name: String(form.name).trim()
 			};
 			const saved = values.id ? await api.patch(`/api/games/${values.id}`, payload) : await api.post("/api/games", payload);
-			toast("游戏已保存", "ok");
+			toast$1("游戏已保存", "ok");
 			close(saved);
 		} catch (err) {
 			setServerError(err && err.message ? err.message : "保存失败");
@@ -22596,7 +26044,7 @@ function GameForm({ values, close }) {
 }
 //#endregion
 //#region client/games.jsx
-var iconProps$9 = (size = 16) => ({
+var iconProps$12 = (size = 16) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -22675,21 +26123,21 @@ function GameRow({ game, navigate, onEdit, onToggle, onDelete }) {
 						type: "button",
 						title: "编辑游戏",
 						onClick: () => onEdit(game),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$9(15) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$12(15) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: game.status === "active" ? "归档游戏" : "恢复上架",
 						onClick: () => onToggle(game),
-						children: game.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$9(15) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps$9(15) })
+						children: game.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$12(15) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps$12(15) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button games-delete",
 						type: "button",
 						title: "彻底删除",
 						onClick: () => onDelete(game),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$9(15) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$12(15) })
 					})
 				]
 			})
@@ -22700,14 +26148,14 @@ function EmptyGames({ filtered, onNew }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "games-empty",
 		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gamepad2, { ...iconProps$9(23) }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gamepad2, { ...iconProps$12(23) }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: filtered ? "没有符合条件的游戏" : "还没有加游戏" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: filtered ? "换个关键词试试，或者清空筛选。" : "先添加正在代肝的游戏，区服和货币也可以一起设置。" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 				className: "refactor-button refactor-button--primary",
 				type: "button",
 				onClick: onNew,
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$9(15) }), "新建游戏"]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$12(15) }), "新建游戏"]
 			})
 		]
 	});
@@ -22773,7 +26221,7 @@ function GamesPage({ route, navigate, onNew, onReload, reloadKey }) {
 				})) return;
 			}
 			await api.patch(`/api/games/${game.id}`, { status: game.status === "active" ? "archived" : "active" });
-			toast(game.status === "active" ? "已归档" : "已恢复上架", "ok");
+			toast$1(game.status === "active" ? "已归档" : "已恢复上架", "ok");
 			await onReload();
 		} catch (err) {
 			toastErr(err);
@@ -22788,7 +26236,7 @@ function GamesPage({ route, navigate, onNew, onReload, reloadKey }) {
 				message: used ? `当前关联 ${usage.categories} 个分类、${usage.services} 个服务项、${usage.orders} 张订单、${usage.credentials} 条登录凭证。删除后关联数据会变成未指定游戏。` : "这个游戏没有关联数据，可以安全删除。"
 			})) return;
 			await api.del(`/api/games/${game.id}`, { hard: 1 });
-			toast("已删除", "ok");
+			toast$1("已删除", "ok");
 			await onReload();
 		} catch (err) {
 			toastErr(err);
@@ -22814,7 +26262,7 @@ function GamesPage({ route, navigate, onNew, onReload, reloadKey }) {
 					className: "refactor-button refactor-button--primary",
 					type: "button",
 					onClick: onNew,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$9(15) }), "新建游戏"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$12(15) }), "新建游戏"]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
@@ -22856,7 +26304,7 @@ function GamesPage({ route, navigate, onNew, onReload, reloadKey }) {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 						className: "games-search",
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$9(15) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$12(15) }),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 								type: "search",
 								value: search,
@@ -22964,7 +26412,7 @@ function CategoryForm({ values, games, presetGameId, close }) {
 				game_id: form.game_id || null
 			};
 			const saved = isEdit ? await api.patch(`/api/categories/${values.id}`, payload) : await api.post("/api/categories/append", payload);
-			toast("大类已保存", "ok");
+			toast$1("大类已保存", "ok");
 			close(saved);
 		} catch (err) {
 			setServerError(err && err.message ? err.message : "保存失败");
@@ -23082,73 +26530,6 @@ function CategoryForm({ values, games, presetGameId, close }) {
 	});
 }
 //#endregion
-//#region client/lib/dom.js
-function appendChildren(element, children) {
-	for (const child of children.flat(Infinity)) {
-		if (child === null || child === void 0 || child === false || child === true || child === "") continue;
-		element.appendChild(child instanceof Node ? child : document.createTextNode(String(child)));
-	}
-}
-function h(spec, props, ...children) {
-	const parts = String(spec).split(".");
-	const element = document.createElement(parts[0] || "div");
-	if (parts.length > 1) element.className = parts.slice(1).join(" ");
-	if (props !== null && props !== void 0) {
-		if (!(typeof props === "object" && !(props instanceof Node) && !Array.isArray(props) && !(props instanceof Date))) children.unshift(props);
-		else for (const [key, value] of Object.entries(props)) {
-			if (value === null || value === void 0 || value === false) continue;
-			if (key === "class" || key === "className") element.className = [element.className, value].filter(Boolean).join(" ");
-			else if (key === "text") element.textContent = String(value);
-			else if (key === "html") element.innerHTML = String(value);
-			else if (key === "style" && typeof value === "object") Object.assign(element.style, value);
-			else if (key === "dataset") Object.assign(element.dataset, value);
-			else if (key === "for") element.htmlFor = value;
-			else if (key.startsWith("on") && typeof value === "function") element.addEventListener(key.slice(2).toLowerCase(), value);
-			else if (key === "value") element.value = value;
-			else if ([
-				"checked",
-				"disabled",
-				"hidden",
-				"selected",
-				"multiple"
-			].includes(key)) element[key] = Boolean(value);
-			else if (key in element && typeof value !== "object") try {
-				element[key] = value;
-			} catch {
-				element.setAttribute(key, String(value));
-			}
-			else element.setAttribute(key, value === true ? "" : String(value));
-		}
-	}
-	appendChildren(element, children);
-	return element;
-}
-async function copyText(text) {
-	const value = String(text ?? "");
-	try {
-		if (navigator.clipboard && window.isSecureContext) {
-			await navigator.clipboard.writeText(value);
-			return true;
-		}
-	} catch {}
-	try {
-		const textarea = document.createElement("textarea");
-		textarea.value = value;
-		textarea.setAttribute("readonly", "");
-		textarea.style.position = "fixed";
-		textarea.style.top = "-1000px";
-		textarea.style.opacity = "0";
-		document.body.appendChild(textarea);
-		textarea.select();
-		textarea.setSelectionRange(0, value.length);
-		const ok = document.execCommand("copy");
-		textarea.remove();
-		return ok;
-	} catch {
-		return false;
-	}
-}
-//#endregion
 //#region client/price-sum.jsx
 function openPriceSum(category, services) {
 	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PriceSum, {
@@ -23206,7 +26587,7 @@ function PriceSum({ category, services, close }) {
 			...lines,
 			`合计：¥${fmtMoney(sum)}`
 		].join("\n"));
-		toast(ok ? "报价已复制" : "复制失败，手动选一下吧", ok ? "ok" : "err");
+		toast$1(ok ? "报价已复制" : "复制失败，手动选一下吧", ok ? "ok" : "err");
 		setCopied(ok);
 	}
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Modal, {
@@ -23352,7 +26733,7 @@ function PriceSum({ category, services, close }) {
 }
 //#endregion
 //#region client/price-exporter.jsx
-var iconProps$8 = (size = 14) => ({
+var iconProps$11 = (size = 14) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -23490,14 +26871,14 @@ function PriceExporter({ games, close }) {
 			for (const job of jobs) {
 				const blob = await canvasToBlob(renderPriceCard(job.model, { scale: 2 }));
 				if (!blob) {
-					toast("这个浏览器不支持生成图片，请换 Chrome / Edge / Safari 试试", "err", 4200);
+					toast$1("这个浏览器不支持生成图片，请换 Chrome / Edge / Safari 试试", "err", 4200);
 					return;
 				}
 				downloadBlob(blob, fileName(job.model, job.target, "png"));
 				count++;
 				if (count < jobs.length) await new Promise((resolve) => setTimeout(resolve, 400));
 			}
-			toast(count > 1 ? `已生成 ${count} 张完整图片` : "图片已生成，去下载文件夹看看", "ok", 3600);
+			toast$1(count > 1 ? `已生成 ${count} 张完整图片` : "图片已生成，去下载文件夹看看", "ok", 3600);
 		} catch (err) {
 			toastErr(err);
 		} finally {
@@ -23521,14 +26902,14 @@ function PriceExporter({ games, close }) {
 						const body = await res.json();
 						if (body && body.error) message = body.error;
 					} catch {}
-					toast(message, "err", 4200);
+					toast$1(message, "err", 4200);
 					return;
 				}
 				downloadBlob(await res.blob(), fileName(job.model, job.target, "docx"));
 				count++;
 				if (count < jobs.length) await new Promise((resolve) => setTimeout(resolve, 400));
 			}
-			toast(count > 1 ? `已生成 ${count} 份 Word 文档，每个游戏一份` : "Word 文档已生成，可以用 Word / WPS 打开和修改", "ok", 3600);
+			toast$1(count > 1 ? `已生成 ${count} 份 Word 文档，每个游戏一份` : "Word 文档已生成，可以用 Word / WPS 打开和修改", "ok", 3600);
 		} catch (err) {
 			toastErr(err);
 		} finally {
@@ -23554,7 +26935,7 @@ function PriceExporter({ games, close }) {
 				disabled: !list.length || busy === "doc",
 				"data-loading": busy === "doc" ? "1" : void 0,
 				onClick: exportDocx,
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { ...iconProps$8() }), "生成 Word 文档"]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { ...iconProps$11() }), "生成 Word 文档"]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 				className: "btn btn--primary",
@@ -23562,7 +26943,7 @@ function PriceExporter({ games, close }) {
 				disabled: !list.length || busy === "img",
 				"data-loading": busy === "img" ? "1" : void 0,
 				onClick: exportImages,
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, { ...iconProps$8() }), "生成图片"]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, { ...iconProps$11() }), "生成图片"]
 			})
 		] }),
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -23742,7 +27123,7 @@ function ServiceForm({ values, games, categories, quick, close }) {
 				currency_amount: form.currency_amount === "" || form.currency_amount === null ? null : Number(form.currency_amount)
 			};
 			const saved = isEdit ? await api.patch(`/api/services/${values.id}`, payload) : await api.post("/api/services/append", payload);
-			toast("服务项已保存", "ok");
+			toast$1("服务项已保存", "ok");
 			close(saved);
 		} catch (err) {
 			setAlert(err && err.message ? err.message : "保存失败");
@@ -24133,29 +27514,8 @@ function GameCategoryFields({ games, categories, gameId, categoryId, onGame, onC
 	});
 }
 //#endregion
-//#region client/app/copy-button.jsx
-function CopyButton({ text, label = "复制", onCopied = null }) {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-		className: "btn btn--sm",
-		type: "button",
-		title: label,
-		onClick: async (event) => {
-			event.stopPropagation();
-			const ok = await copyText(text);
-			toast(ok ? "已复制" : "复制失败，请手动选中", ok ? "ok" : "err", 1600);
-			if (ok && onCopied) onCopied();
-		},
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Copy, {
-			size: 15,
-			strokeWidth: 1.8,
-			absoluteStrokeWidth: true,
-			"aria-hidden": "true"
-		}), label]
-	});
-}
-//#endregion
 //#region client/option-editor.jsx
-var iconProps$7 = (size = 14) => ({
+var iconProps$10 = (size = 14) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -24175,7 +27535,7 @@ var MODE_OPTIONS = [{
 	value: "percent",
 	label: "按比例加价（%）"
 }];
-function Tag$1({ text, tone = "" }) {
+function Tag$2({ text, tone = "" }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 		className: `tag${tone ? ` tag--${tone}` : ""}`,
 		children: text
@@ -24216,7 +27576,7 @@ function OptionEditor({ service, close }) {
 		})) return;
 		try {
 			await api.del(`/api/options/${option.id}`);
-			toast("已删除", "ok");
+			toast$1("已删除", "ok");
 			load();
 		} catch (err) {
 			toastErr(err);
@@ -24234,15 +27594,15 @@ function OptionEditor({ service, close }) {
 				className: "item__title",
 				children: [
 					option.name,
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag$1, {
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag$2, {
 						text: option.kind === "package" ? "套餐" : "增项",
 						tone: option.kind === "package" ? "slate" : ""
 					}),
-					option.default_selected ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag$1, {
+					option.default_selected ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag$2, {
 						text: "默认选中",
 						tone: "jade"
 					}) : null,
-					option.status === "archived" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag$1, {
+					option.status === "archived" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag$2, {
 						text: "已下架",
 						tone: "oxblood"
 					}) : null
@@ -24258,13 +27618,13 @@ function OptionEditor({ service, close }) {
 				type: "button",
 				title: "改增项",
 				onClick: () => openOptionForm({ option }).then((saved) => saved && load()),
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$7() })
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$10() })
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 				className: "btn btn--sm",
 				type: "button",
 				title: "删掉这个增项",
 				onClick: () => remove(option),
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$7() })
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$10() })
 			})]
 		}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 			className: "tag tag--outline",
@@ -24317,7 +27677,7 @@ function OptionEditor({ service, close }) {
 						className: "btn btn--primary",
 						type: "button",
 						onClick: () => openOptionForm({ service }).then((saved) => saved && load()),
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$7() }), "加增项"]
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$10() }), "加增项"]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "btn",
 						type: "button",
@@ -24379,20 +27739,20 @@ function OptionForm({ option, service, global, close }) {
 			};
 			if (isEdit) {
 				await api.patch(`/api/options/${option.id}`, payload);
-				toast("已更新", "ok");
+				toast$1("已更新", "ok");
 			} else if (global) {
 				await api.post("/api/options/append", {
 					...payload,
 					service_id: null,
 					kind: "addon"
 				});
-				toast("已加上", "ok");
+				toast$1("已加上", "ok");
 			} else {
 				await api.post("/api/options/append", {
 					...payload,
 					service_id: service.id
 				});
-				toast("已加上", "ok");
+				toast$1("已加上", "ok");
 			}
 			close(true);
 		} catch (err) {
@@ -24509,7 +27869,7 @@ function OptionForm({ option, service, global, close }) {
 }
 //#endregion
 //#region client/tier-editor.jsx
-var iconProps$6 = (size = 14) => ({
+var iconProps$9 = (size = 14) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -24545,7 +27905,7 @@ function TierEditor({ service, close }) {
 		})) return;
 		try {
 			await api.del(`/api/tiers/${tier.id}`);
-			toast("已删除", "ok");
+			toast$1("已删除", "ok");
 			load();
 		} catch (err) {
 			toastErr(err);
@@ -24598,13 +27958,13 @@ function TierEditor({ service, close }) {
 									type: "button",
 									title: "改这一档",
 									onClick: () => openTierForm(service, tier).then((saved) => saved && load()),
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$6() })
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$9() })
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 									className: "btn btn--sm",
 									type: "button",
 									title: "删掉这一档",
 									onClick: () => remove(tier),
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$6() })
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$9() })
 								})]
 							})]
 						}, tier.id))
@@ -24614,7 +27974,7 @@ function TierEditor({ service, close }) {
 					className: "btn btn--primary",
 					type: "button",
 					onClick: () => openTierForm(service).then((saved) => saved && load()),
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$6() }), "加一档"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$9() }), "加一档"]
 				}),
 				error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 					className: "note note--alert",
@@ -24669,7 +28029,7 @@ function TierForm({ service, tier, close }) {
 			};
 			if (isEdit) await api.patch(`/api/tiers/${tier.id}`, payload);
 			else await api.post(`/api/services/${service.id}/tiers`, payload);
-			toast(isEdit ? "已更新" : "已加上", "ok");
+			toast$1(isEdit ? "已更新" : "已加上", "ok");
 			close(true);
 		} catch (err) {
 			setAlert(err && err.message ? err.message : "保存失败");
@@ -24755,13 +28115,13 @@ function TierForm({ service, tier, close }) {
 }
 //#endregion
 //#region client/service-peek.jsx
-var iconProps$5 = (size = 14) => ({
+var iconProps$8 = (size = 14) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
 	"aria-hidden": true
 });
-function Tag({ text, tone = "" }) {
+function Tag$1({ text, tone = "" }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 		className: `tag${tone ? ` tag--${tone}` : ""}`,
 		children: text
@@ -24796,7 +28156,7 @@ function ServicePeek({ service, ctx, onChanged, close }) {
 		const next = service.status === "active" ? "archived" : "active";
 		try {
 			await api.patch(`/api/services/${service.id}`, { status: next });
-			toast(next === "archived" ? "已下架，老订单不受影响" : "已重新上架", "ok");
+			toast$1(next === "archived" ? "已下架，老订单不受影响" : "已重新上架", "ok");
 			reload();
 		} catch (err) {
 			toastErr(err);
@@ -24812,7 +28172,7 @@ function ServicePeek({ service, ctx, onChanged, close }) {
 				tone: "danger"
 			})) return;
 			await api.del(`/api/services/${service.id}`, { hard: 1 });
-			toast("已删除", "ok");
+			toast$1("已删除", "ok");
 			close(null);
 			reload();
 		} catch (err) {
@@ -24854,10 +28214,10 @@ function ServicePeek({ service, ctx, onChanged, close }) {
 						}) : null
 					] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						className: "cluster",
-						children: service.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, {
+						children: service.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag$1, {
 							text: "在架",
 							tone: "jade"
-						}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, {
+						}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag$1, {
 							text: "已下架",
 							tone: "oxblood"
 						})
@@ -24891,7 +28251,7 @@ function ServicePeek({ service, ctx, onChanged, close }) {
 							className: "btn btn--sm",
 							type: "button",
 							onClick: () => openServiceForm(service, ctx?.meta || {}).then((saved) => saved ? reload() : null),
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$5() }), "改价格和说明"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$8() }), "改价格和说明"]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 							className: "btn btn--sm",
@@ -24926,7 +28286,7 @@ function ServicePeek({ service, ctx, onChanged, close }) {
 							className: "btn btn--sm btn--danger",
 							type: "button",
 							onClick: remove,
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$5() }), "删除"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$8() }), "删除"]
 						})
 					]
 				})
@@ -24936,7 +28296,7 @@ function ServicePeek({ service, ctx, onChanged, close }) {
 }
 //#endregion
 //#region client/price.jsx
-var iconProps$4 = (size = 15) => ({
+var iconProps$7 = (size = 15) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -25041,35 +28401,35 @@ function ServiceRow({ service, currency = "", onEdit, onPeek, onAdvanced, onTogg
 						type: "button",
 						title: "查看服务详情",
 						onClick: () => onPeek(service),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eye, { ...iconProps$4(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eye, { ...iconProps$7(14) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "高级设置：阶梯价和增项",
 						onClick: () => onAdvanced(service),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SlidersHorizontal, { ...iconProps$4(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SlidersHorizontal, { ...iconProps$7(14) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "编辑服务",
 						onClick: () => onEdit(service),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PenLine, { ...iconProps$4(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PenLine, { ...iconProps$7(14) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: service.status === "active" ? "归档服务" : "恢复服务",
 						onClick: () => onToggle(service),
-						children: service.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$4(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArchiveRestore, { ...iconProps$4(14) })
+						children: service.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$7(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArchiveRestore, { ...iconProps$7(14) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button price-danger",
 						type: "button",
 						title: "删除服务",
 						onClick: () => onDelete(service),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$4(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$7(14) })
 					})
 				]
 			})
@@ -25089,7 +28449,7 @@ function CategoryBlock({ category, currency = "", open, onOpenChange, onEdit, on
 					type: "button",
 					"aria-expanded": open,
 					onClick: () => onOpenChange(!open),
-					children: [open ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronDown, { ...iconProps$4(16) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronRight, { ...iconProps$4(16) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: category.name }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+					children: [open ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronDown, { ...iconProps$7(16) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronRight, { ...iconProps$7(16) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: category.name }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
 						services.length,
 						" 项 · ",
 						priceRange(services)
@@ -25107,7 +28467,7 @@ function CategoryBlock({ category, currency = "", open, onOpenChange, onEdit, on
 							type: "button",
 							title: "在此分类添加服务",
 							onClick: () => onService(category),
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$4(14) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "添加服务" })]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$7(14) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "添加服务" })]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 							className: "react-mini-button",
@@ -25115,28 +28475,28 @@ function CategoryBlock({ category, currency = "", open, onOpenChange, onEdit, on
 							title: "组合报价",
 							onClick: () => onSum(category),
 							disabled: !services.length,
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Copy, { ...iconProps$4(14) })
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Copy, { ...iconProps$7(14) })
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 							className: "react-mini-button",
 							type: "button",
 							title: "编辑大类",
 							onClick: () => onEdit(category),
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PenLine, { ...iconProps$4(14) })
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PenLine, { ...iconProps$7(14) })
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 							className: "react-mini-button",
 							type: "button",
 							title: category.status === "active" ? "归档大类" : "恢复大类",
 							onClick: () => onToggle(category),
-							children: category.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$4(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArchiveRestore, { ...iconProps$4(14) })
+							children: category.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$7(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArchiveRestore, { ...iconProps$7(14) })
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 							className: "react-mini-button price-danger",
 							type: "button",
 							title: "删除大类",
 							onClick: () => onDelete(category),
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$4(14) })
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$7(14) })
 						})
 					]
 				})
@@ -25208,7 +28568,7 @@ function GroupWorkspace({ group, query, onNewCategory, onService, onEditCategory
 					className: "refactor-button refactor-button--compact",
 					type: "button",
 					onClick: () => onNewCategory(group.key || ""),
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderPlus, { ...iconProps$4(14) }), "新建大类"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderPlus, { ...iconProps$7(14) }), "新建大类"]
 				})]
 			})]
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -25241,7 +28601,7 @@ function GroupWorkspace({ group, query, onNewCategory, onService, onEditCategory
 						className: "price-directory__add",
 						type: "button",
 						onClick: () => onNewCategory(group.key || ""),
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$4(14) }), "新建分类"]
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$7(14) }), "新建分类"]
 					})
 				]
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -25254,12 +28614,12 @@ function GroupWorkspace({ group, query, onNewCategory, onService, onEditCategory
 							type: "button",
 							onClick: setAllOpen,
 							disabled: !categories.length,
-							children: [allOpen ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronDown, { ...iconProps$4(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronRight, { ...iconProps$4(14) }), allOpen ? "全部收起" : "全部展开"]
+							children: [allOpen ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronDown, { ...iconProps$7(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronRight, { ...iconProps$7(14) }), allOpen ? "全部收起" : "全部展开"]
 						}), selected !== "all" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							className: "refactor-button refactor-button--compact",
 							type: "button",
 							onClick: () => onService(categories.find((category) => String(category.id) === selected)),
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$4(14) }), "添加服务"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$7(14) }), "添加服务"]
 						}) : null] })]
 					}),
 					visible.map((category) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CategoryBlock, {
@@ -25405,7 +28765,7 @@ function PricePage({ route, navigate, onNewGame, onReload, reloadKey }) {
 	};
 	const newService = async (category) => {
 		if (!category?.id) {
-			toast("先建一个大类，服务项要挂在大类下面", "err");
+			toast$1("先建一个大类，服务项要挂在大类下面", "err");
 			return createCategory(query.game);
 		}
 		try {
@@ -25447,7 +28807,7 @@ function PricePage({ route, navigate, onNewGame, onReload, reloadKey }) {
 	const toggleCategory = async (category) => {
 		try {
 			await api.patch(`/api/categories/${category.id}`, { status: category.status === "active" ? "archived" : "active" });
-			toast(category.status === "active" ? "大类已归档" : "大类已恢复", "ok");
+			toast$1(category.status === "active" ? "大类已归档" : "大类已恢复", "ok");
 			await onReload();
 		} catch (err) {
 			toastErr(err);
@@ -25461,7 +28821,7 @@ function PricePage({ route, navigate, onNewGame, onReload, reloadKey }) {
 				message: usage.services ? `${usage.services} 个服务项会变成未分类，老订单不受影响。` : "这个大类没有服务项。"
 			})) return;
 			await api.del(`/api/categories/${category.id}`, { hard: 1 });
-			toast("大类已删除", "ok");
+			toast$1("大类已删除", "ok");
 			await onReload();
 		} catch (err) {
 			toastErr(err);
@@ -25470,7 +28830,7 @@ function PricePage({ route, navigate, onNewGame, onReload, reloadKey }) {
 	const toggleService = async (service) => {
 		try {
 			await api.patch(`/api/services/${service.id}`, { status: service.status === "active" ? "archived" : "active" });
-			toast(service.status === "active" ? "服务已归档" : "服务已恢复", "ok");
+			toast$1(service.status === "active" ? "服务已归档" : "服务已恢复", "ok");
 			await onReload();
 		} catch (err) {
 			toastErr(err);
@@ -25484,7 +28844,7 @@ function PricePage({ route, navigate, onNewGame, onReload, reloadKey }) {
 				message: usage.orders ? `${usage.orders} 张订单使用过它，老订单快照不会改变。` : "这个服务还没有关联订单。"
 			})) return;
 			await api.del(`/api/services/${service.id}`, { hard: 1 });
-			toast("服务已删除", "ok");
+			toast$1("服务已删除", "ok");
 			await onReload();
 		} catch (err) {
 			toastErr(err);
@@ -25492,7 +28852,7 @@ function PricePage({ route, navigate, onNewGame, onReload, reloadKey }) {
 	};
 	const quickAddService = () => {
 		if (!query.game) {
-			toast("请先选择一个游戏或通用价格表，再添加服务", "err");
+			toast$1("请先选择一个游戏或通用价格表，再添加服务", "err");
 			return;
 		}
 		const category = groups.find((item) => item.key === (query.game === "generic" ? "" : query.game))?.categories?.[0];
@@ -25525,25 +28885,25 @@ function PricePage({ route, navigate, onNewGame, onReload, reloadKey }) {
 							className: "refactor-button",
 							type: "button",
 							onClick: () => openExporter(null, { games: data.games || [] }),
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Copy, { ...iconProps$4(15) }), "导出"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Copy, { ...iconProps$7(15) }), "导出"]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							className: "refactor-button",
 							type: "button",
 							onClick: onNewGame,
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gamepad2, { ...iconProps$4(15) }), "新建价格表"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gamepad2, { ...iconProps$7(15) }), "新建价格表"]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							className: "refactor-button",
 							type: "button",
 							onClick: () => createCategory(query.game),
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderPlus, { ...iconProps$4(15) }), "新建大类"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderPlus, { ...iconProps$7(15) }), "新建大类"]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							className: "refactor-button refactor-button--primary",
 							type: "button",
 							onClick: quickAddService,
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$4(15) }), "添加服务"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$7(15) }), "添加服务"]
 						})
 					]
 				})]
@@ -25602,7 +28962,7 @@ function PricePage({ route, navigate, onNewGame, onReload, reloadKey }) {
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 						className: "price-search",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$4(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$7(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 							type: "search",
 							value: search,
 							placeholder: "搜大类、服务或说明",
@@ -25647,14 +29007,14 @@ function PricePage({ route, navigate, onNewGame, onReload, reloadKey }) {
 				}, group.key || "generic")) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "price-empty",
 					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Layers, { ...iconProps$4(24) }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Layers, { ...iconProps$7(24) }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: query.q ? "没有找到匹配的价格" : "还没有价格表" }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: query.q ? "换个关键词试试。" : "先新建游戏，再建立大类和服务项。" }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							className: "refactor-button refactor-button--primary",
 							type: "button",
 							onClick: onNewGame,
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$4(15) }), "新建价格表"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$7(15) }), "新建价格表"]
 						})
 					]
 				})
@@ -25664,7 +29024,7 @@ function PricePage({ route, navigate, onNewGame, onReload, reloadKey }) {
 }
 //#endregion
 //#region client/finance.jsx
-var iconProps$3 = (size = 16) => ({
+var iconProps$6 = (size = 16) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -25808,7 +29168,7 @@ function FinancePage({ route, navigate, reloadKey }) {
 				] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "finance-date-picker",
 					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarDays, { ...iconProps$3(15) }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarDays, { ...iconProps$6(15) }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 							type: "date",
 							value: from,
@@ -25914,7 +29274,7 @@ function FinancePage({ route, navigate, reloadKey }) {
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 							className: "finance-panel",
 							children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "每日开单" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "按下单日统计" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TrendingUp, { ...iconProps$3(17) })] }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "每日开单" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "按下单日统计" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TrendingUp, { ...iconProps$6(17) })] }),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 									className: "finance-bars",
 									children: daily.length ? daily.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -25942,7 +29302,7 @@ function FinancePage({ route, navigate, reloadKey }) {
 								summary.receivables?.length || 0,
 								" 张 · 合计 ¥",
 								fmtMoney((summary.receivables || []).reduce((sum, row) => sum + (Number(row.due_total) || 0), 0))
-							] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleDollarSign, { ...iconProps$3(17) })] }), summary.receivables?.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleDollarSign, { ...iconProps$6(17) })] }), summary.receivables?.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 								className: "finance-table",
 								children: summary.receivables.map((order) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 									type: "button",
@@ -25958,7 +29318,7 @@ function FinancePage({ route, navigate, reloadKey }) {
 											label: order.status_label
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", { children: ["¥", fmtMoney(order.due_total)] }),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$3(14) })
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$6(14) })
 									]
 								}, order.id))
 							}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
@@ -25968,7 +29328,7 @@ function FinancePage({ route, navigate, reloadKey }) {
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 							className: "finance-panel",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "收款流水" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [data.payments.length, " 笔"] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CreditCard, { ...iconProps$3(17) })] }), data.payments.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "收款流水" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [data.payments.length, " 笔"] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CreditCard, { ...iconProps$6(17) })] }), data.payments.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 								className: "finance-table",
 								children: data.payments.map((payment) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 									type: "button",
@@ -26037,7 +29397,7 @@ function FinancePage({ route, navigate, reloadKey }) {
 }
 //#endregion
 //#region client/quotes.jsx
-var iconProps$2 = (size = 15) => ({
+var iconProps$5 = (size = 15) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -26078,21 +29438,29 @@ function QuotesPage({ route, navigate, onNew, onReload, reloadKey }) {
 	const showText = async (quote) => {
 		try {
 			const result = await api.get(`/api/quotes/${quote.id}/text`);
-			modal({
+			openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Modal, {
 				title: `报价单文字 · ${quote.quote_no}`,
 				wide: true,
-				body: h("pre.plaintext.quotes-plaintext", result.text),
-				actions: [{
-					label: "复制",
-					tone: "primary",
-					keepOpen: true,
+				onClose: () => close(null),
+				footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+					className: "btn",
+					type: "button",
+					onClick: () => close(null),
+					children: "关闭"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+					className: "btn btn--primary",
+					type: "button",
 					onClick: async () => {
 						const ok = await copyText(result.text);
-						toast(ok ? "已复制" : "复制失败", ok ? "ok" : "err");
-						return false;
-					}
-				}, { label: "关闭" }]
-			});
+						toast$1(ok ? "已复制" : "复制失败", ok ? "ok" : "err");
+					},
+					children: "复制"
+				})] }),
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("pre", {
+					className: "plaintext quotes-plaintext",
+					children: result.text
+				})
+			}), `quote-text-${quote.id}`);
 		} catch (err) {
 			toastErr(err);
 		}
@@ -26100,7 +29468,7 @@ function QuotesPage({ route, navigate, onNew, onReload, reloadKey }) {
 	const convert = async (quote) => {
 		try {
 			const result = await api.post(`/api/quotes/${quote.id}/convert`);
-			toast(`已生成订单 ${result.order_no}`, "ok");
+			toast$1(`已生成订单 ${result.order_no}`, "ok");
 			navigate(`/orders/${result.order_id}`);
 		} catch (err) {
 			toastErr(err);
@@ -26113,7 +29481,7 @@ function QuotesPage({ route, navigate, onNew, onReload, reloadKey }) {
 				message: `${quote.quote_no} · ¥${fmtMoney(quote.total)}`
 			})) return;
 			await api.del(`/api/quotes/${quote.id}`);
-			toast("已删除", "ok");
+			toast$1("已删除", "ok");
 			await onReload();
 		} catch (err) {
 			toastErr(err);
@@ -26135,14 +29503,14 @@ function QuotesPage({ route, navigate, onNew, onReload, reloadKey }) {
 					className: "refactor-button refactor-button--primary",
 					type: "button",
 					onClick: onNew,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$2(15) }), "做报价单"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$5(15) }), "做报价单"]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 				className: "quotes-toolbar",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "quotes-toolbar__spacer" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 					className: "quotes-search",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$2(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$5(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 						type: "search",
 						value: search,
 						placeholder: "搜报价单号、标题或客户",
@@ -26209,21 +29577,21 @@ function QuotesPage({ route, navigate, onNew, onReload, reloadKey }) {
 										type: "button",
 										title: "看文字版",
 										onClick: () => showText(quote),
-										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { ...iconProps$2(14) })
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { ...iconProps$5(14) })
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 										className: "react-mini-button",
 										type: "button",
 										title: "转成订单",
 										onClick: () => convert(quote),
-										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRight, { ...iconProps$2(14) })
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRight, { ...iconProps$5(14) })
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 										className: "react-mini-button quotes-danger",
 										type: "button",
 										title: "删除",
 										onClick: () => remove(quote),
-										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$2(14) })
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$5(14) })
 									})
 								]
 							})
@@ -26232,14 +29600,14 @@ function QuotesPage({ route, navigate, onNew, onReload, reloadKey }) {
 				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "quotes-empty",
 					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { ...iconProps$2(23) }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { ...iconProps$5(23) }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: query ? "没有找到报价单" : "还没做过报价单" }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: query ? "换个关键词试试。" : "从价格表勾选服务项，生成一段可以直接发给客户的报价。" }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							className: "refactor-button refactor-button--primary",
 							type: "button",
 							onClick: onNew,
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$2(15) }), "做第一张报价单"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$5(15) }), "做第一张报价单"]
 						})
 					]
 				})]
@@ -26265,7 +29633,7 @@ var STATUS = {
 	failed: ["失败", "oxblood"],
 	cancelled: ["已取消", "outline"]
 };
-function iconProps$1(size = 16) {
+function iconProps$4(size = 16) {
 	return {
 		size,
 		strokeWidth: 1.8,
@@ -26373,7 +29741,7 @@ function MediaPage({ reloadKey = 0 }) {
 				const body = await response.json().catch(() => ({}));
 				if (!response.ok) throw new Error(body.error || `上传「${file.name}」失败`);
 			}
-			toast(`已上传 ${files.length} 个素材`, "ok");
+			toast$1(`已上传 ${files.length} 个素材`, "ok");
 			await load({ quiet: true });
 		} catch (err) {
 			toastErr(err);
@@ -26383,10 +29751,10 @@ function MediaPage({ reloadKey = 0 }) {
 	}
 	async function createTask(event) {
 		event.preventDefault();
-		if (!draft.title.trim()) return toast("请先填写标题", "warn");
-		if (!draft.platform_keys.length) return toast("至少选择一个发布平台", "warn");
-		if (!draft.account_ids.length) return toast("至少选择一个账号", "warn");
-		if (!draft.material_ids.length) return toast("至少选择一个素材", "warn");
+		if (!draft.title.trim()) return toast$1("请先填写标题", "warn");
+		if (!draft.platform_keys.length) return toast$1("至少选择一个发布平台", "warn");
+		if (!draft.account_ids.length) return toast$1("至少选择一个账号", "warn");
+		if (!draft.material_ids.length) return toast$1("至少选择一个素材", "warn");
 		setSaving(true);
 		try {
 			const saved = await api.post("/api/media/tasks", draft);
@@ -26399,7 +29767,7 @@ function MediaPage({ reloadKey = 0 }) {
 				account_ids: [],
 				material_ids: []
 			});
-			toast(saved.status === "scheduled" ? "发布任务已排期" : "发布任务已加入队列", "ok");
+			toast$1(saved.status === "scheduled" ? "发布任务已排期" : "发布任务已加入队列", "ok");
 			setActiveTab("records");
 			await load({ quiet: true });
 		} catch (err) {
@@ -26410,7 +29778,7 @@ function MediaPage({ reloadKey = 0 }) {
 	}
 	async function addAccount(event) {
 		event.preventDefault();
-		if (!accountForm.platform || !accountForm.account_name.trim()) return toast("请填写平台和账号名称", "warn");
+		if (!accountForm.platform || !accountForm.account_name.trim()) return toast$1("请填写平台和账号名称", "warn");
 		try {
 			await api.post("/api/media/accounts", accountForm);
 			setAccountForm({
@@ -26419,7 +29787,7 @@ function MediaPage({ reloadKey = 0 }) {
 				profile_url: "",
 				note: ""
 			});
-			toast("账号已添加", "ok");
+			toast$1("账号已添加", "ok");
 			await load({ quiet: true });
 		} catch (err) {
 			toastErr(err);
@@ -26446,7 +29814,7 @@ function MediaPage({ reloadKey = 0 }) {
 	async function renameMaterial(id, filename) {
 		try {
 			await api.patch(`/api/media/materials/${id}`, { filename });
-			toast("素材名称已更新", "ok");
+			toast$1("素材名称已更新", "ok");
 			await load({ quiet: true });
 			return true;
 		} catch (err) {
@@ -26467,7 +29835,7 @@ function MediaPage({ reloadKey = 0 }) {
 			});
 			const body = await response.json().catch(() => ({}));
 			if (!response.ok) throw new Error(body.error || "登录态导入失败");
-			toast("登录态已导入，账号标记为已验证", "ok");
+			toast$1("登录态已导入，账号标记为已验证", "ok");
 			await load({ quiet: true });
 		} catch (err) {
 			toastErr(err);
@@ -26492,7 +29860,7 @@ function MediaPage({ reloadKey = 0 }) {
 					[accountId]: status
 				}));
 				if (["success", "failed"].includes(status.status)) {
-					toast(status.status === "success" ? "账号登录态已保存" : status.message || "账号登录失败", status.status === "success" ? "ok" : "warn");
+					toast$1(status.status === "success" ? "账号登录态已保存" : status.message || "账号登录失败", status.status === "success" ? "ok" : "warn");
 					await load({ quiet: true });
 					break;
 				}
@@ -26507,10 +29875,10 @@ function MediaPage({ reloadKey = 0 }) {
 			const started = await api.post("/api/media/dependencies/install", {});
 			if (!started.ok) {
 				setDependencyStatus(started.status || dependencyStatus);
-				toast(started.error || "暂时不能安装依赖", "warn");
+				toast$1(started.error || "暂时不能安装依赖", "warn");
 				return;
 			}
-			toast("开始安装 Python 依赖和 Chromium，请稍候", "ok", 5e3);
+			toast$1("开始安装 Python 依赖和 Chromium，请稍候", "ok", 5e3);
 			let finalJob = null;
 			for (let i = 0; i < 120; i += 1) {
 				await new Promise((resolve) => window.setTimeout(resolve, 1500));
@@ -26527,7 +29895,7 @@ function MediaPage({ reloadKey = 0 }) {
 				...fresh,
 				install_job: finalJob
 			});
-			if (finalJob?.status === "failed") toast(finalJob.error || "依赖安装失败，请查看安装日志", "warn", 8e3);
+			if (finalJob?.status === "failed") toast$1(finalJob.error || "依赖安装失败，请查看安装日志", "warn", 8e3);
 		} catch (err) {
 			toastErr(err);
 		} finally {
@@ -26538,7 +29906,7 @@ function MediaPage({ reloadKey = 0 }) {
 		setDependencyRefreshing(true);
 		try {
 			setDependencyStatus(await api.get("/api/media/dependencies", { force: 1 }));
-			toast("依赖检测已完成", "ok");
+			toast$1("依赖检测已完成", "ok");
 		} catch (err) {
 			toastErr(err);
 		} finally {
@@ -26548,8 +29916,8 @@ function MediaPage({ reloadKey = 0 }) {
 	async function taskAction(path, successMessage) {
 		try {
 			const result = await api.post(path, {});
-			if (result.available === false) toast("任务已保留，配置执行器后可继续发布", "warn");
-			else toast(successMessage, result.status === "failed" ? "warn" : "ok");
+			if (result.available === false) toast$1("任务已保留，配置执行器后可继续发布", "warn");
+			else toast$1(successMessage, result.status === "failed" ? "warn" : "ok");
 			await load({ quiet: true });
 		} catch (err) {
 			toastErr(err);
@@ -26588,7 +29956,7 @@ function MediaPage({ reloadKey = 0 }) {
 						disabled: refreshing,
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, {
 							className: refreshing ? "spin" : "",
-							...iconProps$1(16)
+							...iconProps$4(16)
 						})
 					})]
 				})]
@@ -26596,10 +29964,10 @@ function MediaPage({ reloadKey = 0 }) {
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "media-summary",
 				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Radio, { ...iconProps$1(17) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: data.summary?.queued || 0 }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "待处理任务" })] })] }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderOpen, { ...iconProps$1(17) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: data.summary?.materials || 0 }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "素材文件" })] })] }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserRound, { ...iconProps$1(17) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: data.summary?.accounts || 0 }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "可用账号" })] })] }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TriangleAlert, { ...iconProps$1(17) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: data.summary?.failed || 0 }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "失败任务" })] })] })
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Radio, { ...iconProps$4(17) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: data.summary?.queued || 0 }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "待处理任务" })] })] }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderOpen, { ...iconProps$4(17) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: data.summary?.materials || 0 }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "素材文件" })] })] }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserRound, { ...iconProps$4(17) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: data.summary?.accounts || 0 }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "可用账号" })] })] }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TriangleAlert, { ...iconProps$4(17) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: data.summary?.failed || 0 }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "失败任务" })] })] })
 				]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -26633,7 +30001,7 @@ function MediaPage({ reloadKey = 0 }) {
 					"aria-selected": activeTab === key,
 					className: activeTab === key ? "is-active" : "",
 					onClick: () => setActiveTab(key),
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { ...iconProps$1(16) }), label]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { ...iconProps$4(16) }), label]
 				}, key))
 			}),
 			!data.executor?.configured || activeTab === "accounts" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MediaDependencyCard, {
@@ -26696,7 +30064,7 @@ function PublishComposer({ data, draft, updateDraft, toggleDraftValue, accountOp
 						className: "refactor-button refactor-button--compact",
 						onClick: onUpload,
 						disabled: uploading,
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Upload, { ...iconProps$1(14) }), uploading ? "上传中…" : "上传素材"]
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Upload, { ...iconProps$4(14) }), uploading ? "上传中…" : "上传素材"]
 					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
@@ -26787,7 +30155,7 @@ function PublishComposer({ data, draft, updateDraft, toggleDraftValue, accountOp
 						}, account.id))
 					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "media-inline-empty",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserRound, { ...iconProps$1(16) }), "请先在“账号管理”添加与平台匹配的账号"]
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserRound, { ...iconProps$4(16) }), "请先在“账号管理”添加与平台匹配的账号"]
 					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("fieldset", {
@@ -26802,7 +30170,7 @@ function PublishComposer({ data, draft, updateDraft, toggleDraftValue, accountOp
 									checked: draft.material_ids.includes(material.id),
 									onChange: () => toggleDraftValue("material_ids", material.id)
 								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FilePlay, { ...iconProps$1(16) }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FilePlay, { ...iconProps$4(16) }),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: material.filename }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
 									formatBytes(material.file_size),
 									" · ",
@@ -26812,7 +30180,7 @@ function PublishComposer({ data, draft, updateDraft, toggleDraftValue, accountOp
 						}, material.id))
 					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "media-inline-empty",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderOpen, { ...iconProps$1(16) }), "还没有素材，点击右上角上传文件"]
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderOpen, { ...iconProps$4(16) }), "还没有素材，点击右上角上传文件"]
 					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -26821,7 +30189,7 @@ function PublishComposer({ data, draft, updateDraft, toggleDraftValue, accountOp
 						type: "submit",
 						className: "refactor-button refactor-button--primary",
 						disabled: saving,
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Send, { ...iconProps$1(15) }), saving ? "创建中…" : "创建发布任务"]
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Send, { ...iconProps$4(15) }), saving ? "创建中…" : "创建发布任务"]
 					})]
 				})
 			]
@@ -26843,7 +30211,7 @@ function PublishComposer({ data, draft, updateDraft, toggleDraftValue, accountOp
 				})]
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 				className: "media-hint",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarClock, { ...iconProps$1(17) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "任务状态会持续保留" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "未配置执行器时，任务停留在本机队列；配置 `XFC_MEDIA_EXECUTOR_URL` 后即可交给目标项目的发布服务。" })] })]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarClock, { ...iconProps$4(17) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "任务状态会持续保留" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "未配置执行器时，任务停留在本机队列；配置 `XFC_MEDIA_EXECUTOR_URL` 后即可交给目标项目的发布服务。" })] })]
 			})]
 		})]
 	});
@@ -26858,7 +30226,7 @@ function MaterialsView({ data, onUpload, onDelete, onRename, uploading, fileRef,
 	}
 	async function saveEdit(material) {
 		const name = editingName.trim();
-		if (!name) return toast("素材名称不能为空", "warn");
+		if (!name) return toast$1("素材名称不能为空", "warn");
 		setSavingId(material.id);
 		const saved = await onRename(material.id, name);
 		setSavingId(null);
@@ -26880,7 +30248,7 @@ function MaterialsView({ data, onUpload, onDelete, onRename, uploading, fileRef,
 				className: "refactor-button refactor-button--primary",
 				onClick: onUpload,
 				disabled: uploading,
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Upload, { ...iconProps$1(15) }), uploading ? "上传中…" : "上传素材"]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Upload, { ...iconProps$4(15) }), uploading ? "上传中…" : "上传素材"]
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 				ref: fileRef,
 				type: "file",
@@ -26896,7 +30264,7 @@ function MaterialsView({ data, onUpload, onDelete, onRename, uploading, fileRef,
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						className: "media-material-row__icon",
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FilePlay, { ...iconProps$1(19) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FilePlay, { ...iconProps$4(19) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "media-material-row__main",
@@ -26924,14 +30292,14 @@ function MaterialsView({ data, onUpload, onDelete, onRename, uploading, fileRef,
 						title: "保存名称",
 						onClick: () => saveEdit(material),
 						disabled: savingId === material.id,
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$1(15) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$4(15) })
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						type: "button",
 						className: "refactor-icon-button",
 						title: "取消编辑",
 						onClick: cancelEdit,
 						disabled: savingId === material.id,
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { ...iconProps$1(15) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { ...iconProps$4(15) })
 					})] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
 							className: "refactor-button refactor-button--compact",
@@ -26945,14 +30313,14 @@ function MaterialsView({ data, onUpload, onDelete, onRename, uploading, fileRef,
 							className: "refactor-icon-button",
 							title: "编辑素材名称",
 							onClick: () => beginEdit(material),
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$1(15) })
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$4(15) })
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 							type: "button",
 							className: "refactor-icon-button",
 							title: "删除素材",
 							onClick: () => onDelete(material.id),
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$1(15) })
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$4(15) })
 						})
 					] })
 				]
@@ -26962,7 +30330,7 @@ function MaterialsView({ data, onUpload, onDelete, onRename, uploading, fileRef,
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderOpen, {
 					className: "empty__mark",
-					...iconProps$1(28)
+					...iconProps$4(28)
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", {
 					className: "empty__title",
@@ -27058,7 +30426,7 @@ function AccountsView({ data, form, setForm, onSubmit, onDelete, onUploadCookie,
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 						type: "submit",
 						className: "refactor-button refactor-button--primary",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(15) }), "添加账号"]
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$4(15) }), "添加账号"]
 					})
 				]
 			})]
@@ -27076,7 +30444,7 @@ function AccountsView({ data, form, setForm, onSubmit, onDelete, onUploadCookie,
 						children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 								className: "media-account-row__mark",
-								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserRound, { ...iconProps$1(17) })
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserRound, { ...iconProps$4(17) })
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 								className: "media-account-row__main",
@@ -27091,7 +30459,7 @@ function AccountsView({ data, form, setForm, onSubmit, onDelete, onUploadCookie,
 								className: "refactor-button refactor-button--compact",
 								onClick: () => onLogin(account.id),
 								disabled: login?.status === "running",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserRound, { ...iconProps$1(13) }), login?.status === "running" ? "登录中…" : "打开登录"]
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserRound, { ...iconProps$4(13) }), login?.status === "running" ? "登录中…" : "打开登录"]
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 								className: "media-cookie-button",
@@ -27107,7 +30475,7 @@ function AccountsView({ data, form, setForm, onSubmit, onDelete, onUploadCookie,
 								className: "refactor-icon-button",
 								title: "删除账号",
 								onClick: () => onDelete(account.id),
-								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$1(15) })
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$4(15) })
 							})
 						]
 					}, account.id);
@@ -27117,7 +30485,7 @@ function AccountsView({ data, form, setForm, onSubmit, onDelete, onUploadCookie,
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserRound, {
 						className: "empty__mark",
-						...iconProps$1(28)
+						...iconProps$4(28)
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", {
 						className: "empty__title",
@@ -27149,7 +30517,7 @@ function MediaDependencyCard({ status, installing, refreshing, onInstall, onRefr
 					className: "refactor-button refactor-button--compact",
 					onClick: onRefresh,
 					disabled: installing || refreshing,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps$1(14) }), refreshing ? "检测中…" : "重新检测"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps$4(14) }), refreshing ? "检测中…" : "重新检测"]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -27249,7 +30617,7 @@ function RecordsView({ tasks, onAction }) {
 							type: "button",
 							className: "refactor-button refactor-button--compact",
 							onClick: () => onAction(`/api/media/tasks/${task.id}/dispatch`, "已提交发布执行器"),
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Send, { ...iconProps$1(14) }), "发布"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Send, { ...iconProps$4(14) }), "发布"]
 						}) : null,
 						[
 							"queued",
@@ -27259,14 +30627,14 @@ function RecordsView({ tasks, onAction }) {
 							type: "button",
 							className: "refactor-button refactor-button--compact",
 							onClick: () => onAction(`/api/media/tasks/${task.id}/cancel`, "任务已取消"),
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { ...iconProps$1(14) }), "取消"]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { ...iconProps$4(14) }), "取消"]
 						}) : null,
 						task.status === "failed" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 							type: "button",
 							className: "refactor-icon-button",
 							title: "重试任务",
 							onClick: () => onAction(`/api/media/tasks/${task.id}/retry`, "任务已重新排队"),
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RotateCcw, { ...iconProps$1(15) })
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RotateCcw, { ...iconProps$4(15) })
 						}) : null
 					]
 				})]
@@ -27276,7 +30644,7 @@ function RecordsView({ tasks, onAction }) {
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, {
 					className: "empty__mark",
-					...iconProps$1(28)
+					...iconProps$4(28)
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", {
 					className: "empty__title",
@@ -27289,6 +30657,2516 @@ function RecordsView({ tasks, onAction }) {
 			]
 		})]
 	});
+}
+//#endregion
+//#region client/vault-gate.jsx
+/** 订阅保险箱状态：解锁 / 落锁 / 过期都会让页面重画 */
+function useVaultState() {
+	const [state, setState] = (0, import_react.useState)({ ...vaultState });
+	(0, import_react.useEffect)(() => {
+		const listener = (next) => setState({ ...next });
+		setVaultListener(listener);
+		setState({ ...vaultState });
+		return () => removeVaultListener(listener);
+	}, []);
+	return state;
+}
+function promptUnlock({ reason = "要取用游戏登录凭证，先解开保险箱", allowCancel = true } = {}) {
+	if (vaultState.unlocked) return Promise.resolve(true);
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(UnlockModal, {
+		reason,
+		allowCancel,
+		close
+	}), "vault-unlock");
+}
+/** 取用凭证前的统一入口：没设密码先让设 */
+async function ensureVaultReady() {
+	await refreshVault();
+	if (!vaultState.configured) {
+		if (!await openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SetupModal, { close }), "vault-setup")) return false;
+		return true;
+	}
+	return promptUnlock();
+}
+function UnlockModal({ reason, allowCancel, close }) {
+	const [password, setPassword] = (0, import_react.useState)("");
+	const [error, setError] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const [stamped, setStamped] = (0, import_react.useState)(false);
+	const inputRef = (0, import_react.useRef)(null);
+	(0, import_react.useEffect)(() => {
+		const timer = setTimeout(() => inputRef.current?.focus(), 60);
+		return () => window.clearTimeout(timer);
+	}, []);
+	async function unlock() {
+		if (!password) {
+			setError("请输入保险箱密码");
+			return;
+		}
+		setBusy(true);
+		setError("");
+		try {
+			const state = await api.post("/api/vault/unlock", { password });
+			setStamped(true);
+			syncVault(state);
+			await new Promise((resolve) => setTimeout(resolve, 260));
+			close(true);
+		} catch (err) {
+			setError(err?.message || "解锁失败");
+			inputRef.current?.select();
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Modal, {
+		title: "解开保险箱",
+		onClose: () => close(false),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [allowCancel ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			className: "btn",
+			type: "button",
+			onClick: () => close(false),
+			children: "先不解"
+		}) : null, /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			className: "btn btn--primary",
+			type: "button",
+			disabled: busy,
+			"data-loading": busy ? "1" : void 0,
+			onClick: unlock,
+			children: "解开"
+		})] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "stack stack--tight",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					style: {
+						display: "flex",
+						justifyContent: "center",
+						padding: "2px 0 6px"
+					},
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: `seal-mark${stamped ? " seal-stamp" : ""}`,
+						children: "封"
+					})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "muted sm",
+					children: reason
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "field field--full",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+						className: "lbl",
+						htmlFor: "vault-password",
+						children: "保险箱密码"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+						id: "vault-password",
+						ref: inputRef,
+						className: "inp",
+						type: "password",
+						autoComplete: "current-password",
+						placeholder: "保险箱密码",
+						"aria-invalid": error ? "true" : void 0,
+						value: password,
+						onChange: (event) => setPassword(event.target.value),
+						onKeyDown: (event) => {
+							if (event.key === "Enter") {
+								event.preventDefault();
+								unlock();
+							}
+						}
+					})]
+				}),
+				error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note note--alert",
+					children: error
+				}) : null,
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "hint",
+					children: "这是和登录密码分开的独立密码。钥匙只放在内存里，闲置 20 分钟自动落锁。"
+				})
+			]
+		})
+	});
+}
+function SetupModal({ close }) {
+	const [password, setPassword] = (0, import_react.useState)("");
+	const [confirm, setConfirm] = (0, import_react.useState)("");
+	const [error, setError] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const inputRef = (0, import_react.useRef)(null);
+	(0, import_react.useEffect)(() => {
+		const timer = setTimeout(() => inputRef.current?.focus(), 60);
+		return () => window.clearTimeout(timer);
+	}, []);
+	async function setup() {
+		if (password !== confirm) {
+			setError("两次输入不一致");
+			return;
+		}
+		setBusy(true);
+		setError("");
+		try {
+			syncVault(await api.post("/api/vault/setup", { password }));
+			close(true);
+		} catch (err) {
+			setError(err?.message || "设置失败");
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Modal, {
+		title: "先给保险箱设个密码",
+		onClose: () => close(false),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			className: "btn",
+			type: "button",
+			onClick: () => close(false),
+			children: "以后再说"
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			className: "btn btn--primary",
+			type: "button",
+			disabled: busy,
+			"data-loading": busy ? "1" : void 0,
+			onClick: setup,
+			children: "设置并解锁"
+		})] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "stack stack--tight",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "muted sm",
+					children: "游戏登录凭证会用 AES-256-GCM 加密后存进数据库。这把钥匙由这个密码推导，不写进任何文件——忘了就真的解不开了。"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "field field--full",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "lbl",
+						htmlFor: "vault-new-password",
+						children: ["保险箱密码", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "req",
+							children: "*"
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+						id: "vault-new-password",
+						ref: inputRef,
+						className: "inp",
+						type: "password",
+						autoComplete: "new-password",
+						placeholder: "至少 8 位，不要纯数字",
+						value: password,
+						onChange: (event) => setPassword(event.target.value)
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "field field--full",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "lbl",
+						htmlFor: "vault-confirm-password",
+						children: ["确认密码", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "req",
+							children: "*"
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+						id: "vault-confirm-password",
+						className: "inp",
+						type: "password",
+						autoComplete: "new-password",
+						placeholder: "再输一次",
+						value: confirm,
+						onChange: (event) => setConfirm(event.target.value)
+					})]
+				}),
+				error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note note--alert",
+					children: error
+				}) : null,
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note",
+					children: "建议和登录密码不一样，并且记在你自己的密码管理器里。"
+				})
+			]
+		})
+	});
+}
+//#endregion
+//#region client/vault.jsx
+var iconProps$3 = (size) => ({
+	size,
+	strokeWidth: 1.8,
+	absoluteStrokeWidth: true,
+	"aria-hidden": true
+});
+function VaultPage({ route, navigate, onReload, reloadKey }) {
+	const vault = useVaultState();
+	const [creds, setCreds] = (0, import_react.useState)(null);
+	const [customers, setCustomers] = (0, import_react.useState)([]);
+	const [games, setGames] = (0, import_react.useState)([]);
+	const [error, setError] = (0, import_react.useState)("");
+	const focusCustomer = route.query.get("customer") || "";
+	const focusedId = route.query.get("c") || "";
+	const load = (0, import_react.useCallback)(async () => {
+		try {
+			await refreshVault();
+			const [credRes, custRes, gameRes] = await Promise.all([
+				api.get("/api/credentials", { limit: 500 }),
+				api.get("/api/customers", {
+					status: "active",
+					limit: 500
+				}),
+				api.get("/api/games", { limit: 200 })
+			]);
+			setCreds(credRes.items || []);
+			setCustomers(custRes.items || []);
+			setGames(gameRes.items || []);
+			setError("");
+		} catch (err) {
+			setError(err?.message || String(err));
+			setCreds([]);
+		}
+	}, []);
+	(0, import_react.useEffect)(() => {
+		load();
+	}, [load, reloadKey]);
+	const reload = (0, import_react.useCallback)(() => {
+		load();
+		if (onReload) onReload();
+	}, [load, onReload]);
+	(0, import_react.useEffect)(() => {
+		if (!focusedId || !vault.unlocked || !creds) return;
+		const cred = creds.find((item) => String(item.id) === String(focusedId));
+		if (!cred) return;
+		const timer = setTimeout(() => revealSecret(cred), 150);
+		return () => window.clearTimeout(timer);
+	}, [
+		focusedId,
+		vault.unlocked,
+		creds,
+		reload
+	]);
+	const shown = focusCustomer ? (creds || []).filter((cred) => String(cred.customer_id) === String(focusCustomer)) : creds || [];
+	const locked = !vault.unlocked;
+	async function register() {
+		if (!await ensureVaultReady()) return;
+		if (await openCredentialForm({ customer_id: focusCustomer || "" }, {
+			customers,
+			games
+		})) {
+			toast$1("已加密保存", "ok");
+			reload();
+		}
+	}
+	async function edit(cred) {
+		if (!await promptUnlock({ reason: "改凭证内容也要先解开保险箱。" })) return;
+		let secret = null;
+		try {
+			secret = (await api.post(`/api/credentials/${cred.id}/reveal`, { action: "view" })).secret;
+		} catch (err) {
+			toastErr(err);
+			return;
+		}
+		if (await openCredentialForm(cred, {
+			customers,
+			games,
+			existingSecret: secret
+		})) reload();
+	}
+	async function remove(cred) {
+		if (!await confirmDelete({
+			title: "删掉这条凭证？",
+			message: `${cred.customer_name || ""} · ${cred.label || cred.masked_hint}。删除会记入审计，且无法恢复。`
+		})) return;
+		try {
+			await api.del(`/api/credentials/${cred.id}`);
+			toast$1("已删除", "ok");
+			reload();
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "vault-page",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
+				className: "vault-page__head",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "refactor-eyebrow",
+						children: "加密存放"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "登录凭证保险箱" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: `${shown.length} 条凭证 · 用 AES-256-GCM 加密存储，明文不落盘` })
+				] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "vault-page__actions",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "refactor-button",
+						type: "button",
+						onClick: () => openAudit(),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, { ...iconProps$3(14) }), "取用记录"]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "refactor-button refactor-button--primary",
+						type: "button",
+						onClick: register,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$3(14) }), "登记凭证"]
+					})]
+				})]
+			}),
+			error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "refactor-alert",
+				role: "alert",
+				children: error
+			}) : null,
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(VaultBar, {
+				vault,
+				onChanged: reload
+			}),
+			shown.length && locked ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "note note--warn",
+				children: "保险箱已锁定：下面的内容全被封着。这是故意的——万一这台电脑被别人打开，第一眼看不到任何账号。"
+			}) : null,
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+				className: "panel",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "panel__body panel__body--flush",
+					children: creds === null ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "refactor-loading",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+						]
+					}) : shown.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "itemlist",
+						children: shown.map((cred) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "item",
+							style: {
+								cursor: "default",
+								alignItems: "flex-start"
+							},
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "item__main",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "item__title",
+										children: [
+											cred.label || "未命名凭证",
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: `tag${cred.login_type === "qrcode" ? " tag--jade" : ""}`,
+												children: LOGIN_TYPE_LABEL[cred.login_type] || cred.login_type
+											}),
+											cred.status === "archived" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "tag tag--oxblood",
+												children: "已归档"
+											}) : null
+										]
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "item__meta",
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: cred.customer_name || "—" }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: cred.game_name || "未指定游戏" }),
+											cred.server ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: cred.server }) : null,
+											cred.role_name ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: cred.role_name }) : null,
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: `建于 ${fmtDate(cred.created_at)}` })
+										]
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+										style: { marginTop: "6px" },
+										children: locked ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+											className: "sealed",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "seal-mark",
+												children: "封"
+											}), "内容已加密封存 · 解开保险箱后可查看"]
+										}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "mono sm",
+											children: cred.masked_hint || "（没记账号）"
+										})
+									})
+								]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "tbl__acts",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+										className: "btn btn--sm",
+										type: "button",
+										onClick: () => revealSecret(cred),
+										children: [locked ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LockKeyhole, { ...iconProps$3(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eye, { ...iconProps$3(14) }), locked ? "解开查看" : "查看"]
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+										className: "btn btn--sm",
+										type: "button",
+										title: "改凭证",
+										onClick: () => edit(cred),
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PenLine, { ...iconProps$3(14) })
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+										className: "btn btn--sm btn--danger",
+										type: "button",
+										title: "删除凭证",
+										onClick: () => remove(cred),
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$3(14) })
+									})
+								]
+							})]
+						}, cred.id))
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "panel__body",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "empty",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "empty__mark",
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShieldCheck, { ...iconProps$3(20) })
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "empty__title",
+									children: focusCustomer ? "这位客户还没有凭证" : "保险箱是空的"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "empty__body",
+									children: vault.configured ? "登记客户的游戏登录方式。优先扫码登录——那样一个密码都不用存。" : "先给保险箱设一个独立密码，然后才能开始加密保存凭证。"
+								}),
+								vault.configured ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("ul", {
+									className: "empty__steps",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "n",
+											children: "·"
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "点右上角「登记凭证」，选客户和游戏。" })] }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "n",
+											children: "·"
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "登录方式优先选「扫码登录」，不需要存密码。" })] }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "n",
+											children: "·"
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "真需要代登时再填账号密码，会加密落库。" })] }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "n",
+											children: "·"
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "之后每次查看或复制，都会自动记一笔审计。" })] })
+									]
+								}) : null,
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									className: "refactor-button refactor-button--primary",
+									type: "button",
+									onClick: register,
+									children: vault.configured ? "登记第一条凭证" : "给保险箱设密码"
+								})
+							]
+						})
+					})
+				})
+			})
+		]
+	});
+}
+function VaultBar({ vault, onChanged }) {
+	const open = vault.unlocked;
+	const configured = vault.configured;
+	const minutes = vault.expires_in_ms ? Math.max(1, Math.round(vault.expires_in_ms / 6e4)) : 0;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: `vaultbar${open ? " vaultbar--open" : ""}`,
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "seal-mark",
+				children: open ? "开" : "封"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "vaultbar__txt",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "strong",
+					children: !configured ? "保险箱还没设密码" : open ? "保险箱已解开" : "保险箱已锁定"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "sm dim",
+					children: !configured ? "设一个独立密码，游戏账号密码才能开始加密入库。" : open ? `钥匙只在内存里，闲置 20 分钟或退出登录会自动落锁。${minutes ? `还有约 ${minutes} 分钟。` : ""}` : "要看账号密码，先解开保险箱。每次查看和复制都会留痕。"
+				})]
+			}),
+			!configured ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "button",
+				onClick: async () => {
+					if (await ensureVaultReady()) {
+						toast$1("保险箱已就绪", "ok");
+						onChanged();
+					}
+				},
+				children: "设置密码"
+			}) : open ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+				className: "btn",
+				type: "button",
+				onClick: async () => {
+					await lockVault();
+					toast$1("已落锁", "ok");
+					onChanged();
+				},
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LockKeyhole, { ...iconProps$3(15) }), "落锁"]
+			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+				className: "btn btn--primary",
+				type: "button",
+				onClick: async () => {
+					await promptUnlock({ reason: "解开后可以查看客户游戏账号密码。" });
+					onChanged();
+				},
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LockOpen, { ...iconProps$3(15) }), "解开保险箱"]
+			})
+		]
+	});
+}
+function openCredentialForm(values = {}, { customers = [], games = [], existingSecret = null } = {}) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CredentialForm, {
+		values,
+		customers,
+		games,
+		existingSecret,
+		close
+	}), Boolean(values.id) ? `credential-form-${values.id}` : "credential-form");
+}
+function CredentialForm({ values, customers, games, existingSecret, close }) {
+	const editing = Boolean(values.id);
+	const [form, setForm] = (0, import_react.useState)(() => ({
+		customer_id: values.customer_id ? String(values.customer_id) : "",
+		game_id: values.game_id ? String(values.game_id) : "",
+		label: values.label || "",
+		login_type: values.login_type || "qrcode",
+		server: values.server || "",
+		role_name: values.role_name || "",
+		account: existingSecret?.account || "",
+		phone: existingSecret?.phone || "",
+		password: existingSecret?.password || "",
+		bind_phone: existingSecret?.bind_phone || "",
+		security_question: existingSecret?.security_question || "",
+		security_answer: existingSecret?.security_answer || "",
+		note: existingSecret?.note || ""
+	}));
+	const [error, setError] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const set = (key) => (value) => setForm((current) => ({
+		...current,
+		[key]: value
+	}));
+	async function submit() {
+		if (!form.customer_id) {
+			setError("请选择客户");
+			return;
+		}
+		const secret = {
+			account: form.account,
+			phone: form.phone,
+			password: form.password,
+			bind_phone: form.bind_phone,
+			security_question: form.security_question,
+			security_answer: form.security_answer,
+			note: form.note
+		};
+		if (!Object.values(secret).some((value) => String(value || "").trim())) {
+			setError("加密内容不能全空，至少填一个字段");
+			return;
+		}
+		const payload = {
+			customer_id: Number(form.customer_id),
+			game_id: form.game_id ? Number(form.game_id) : null,
+			label: form.label,
+			login_type: form.login_type,
+			server: form.server,
+			role_name: form.role_name,
+			secret
+		};
+		setBusy(true);
+		setError("");
+		try {
+			const saved = editing ? await api.patch(`/api/credentials/${values.id}`, payload) : await api.post("/api/credentials", payload);
+			toast$1(editing ? "已重新加密保存" : "凭证已加密存好", "ok");
+			close(saved);
+		} catch (err) {
+			setError(err?.message || "保存失败");
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		wide: true,
+		title: editing ? "改登录凭证" : "新登记一条登录凭证",
+		subtitle: "内容加密后落库，明文不落盘",
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			className: "btn",
+			type: "button",
+			onClick: () => close(null),
+			children: "取消"
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			className: "btn btn--primary",
+			type: "submit",
+			form: "credential-form",
+			disabled: busy,
+			"data-loading": busy ? "1" : void 0,
+			children: editing ? "保存并重新加密" : "加密保存"
+		})] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: "credential-form",
+			noValidate: true,
+			onSubmit: (event) => {
+				event.preventDefault();
+				submit();
+			},
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "note",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							style: { flex: "none" },
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShieldCheck, { ...iconProps$3(16) })
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "优先扫码登录，不要密码就不用存密码。真需要代登时再填密码——它会用 AES-256-GCM 加密后写进数据库，任何时候查看或复制都会记一笔审计。" })]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "sechead",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "这条凭证属于谁" })
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "formgrid",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "客户",
+								required: true,
+								half: true,
+								htmlFor: "credential-customer",
+								error: error && !form.customer_id ? error : "",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+									id: "credential-customer",
+									value: form.customer_id,
+									onChange: set("customer_id"),
+									options: [{
+										value: "",
+										label: "— 选客户 —"
+									}, ...customers.map((customer) => ({
+										value: String(customer.id),
+										label: `${customer.name}${customer.phone ? ` · ${customer.phone}` : ""}`
+									}))]
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "游戏",
+								half: true,
+								htmlFor: "credential-game",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+									id: "credential-game",
+									value: form.game_id,
+									onChange: set("game_id"),
+									options: [{
+										value: "",
+										label: "未指定"
+									}, ...games.map((game) => ({
+										value: String(game.id),
+										label: game.name
+									}))]
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "备注名",
+								half: true,
+								htmlFor: "credential-label",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									id: "credential-label",
+									value: form.label,
+									onChange: set("label"),
+									placeholder: "例：主号 / 小号一"
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "登录方式",
+								half: true,
+								htmlFor: "credential-login-type",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+									id: "credential-login-type",
+									value: form.login_type,
+									onChange: set("login_type"),
+									options: [
+										{
+											value: "qrcode",
+											label: "扫码登录（推荐，不用存密码）"
+										},
+										{
+											value: "password",
+											label: "账号密码"
+										},
+										{
+											value: "other",
+											label: "其他方式"
+										}
+									]
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "区服",
+								half: true,
+								htmlFor: "credential-server",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									id: "credential-server",
+									value: form.server,
+									onChange: set("server")
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "角色名",
+								half: true,
+								htmlFor: "credential-role",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									id: "credential-role",
+									value: form.role_name,
+									onChange: set("role_name")
+								})
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "sechead",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "加密内容" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "sechead__note",
+							children: "这些字段会整块加密"
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "formgrid",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "游戏账号",
+								half: true,
+								htmlFor: "credential-account",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									id: "credential-account",
+									value: form.account,
+									onChange: set("account"),
+									placeholder: "手机号 / 邮箱 / 用户名"
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "绑定手机号",
+								half: true,
+								htmlFor: "credential-phone",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									id: "credential-phone",
+									value: form.phone,
+									onChange: set("phone")
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "密码",
+								htmlFor: "credential-password",
+								hint: "不存也能用——留空表示这条只记账号信息",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									id: "credential-password",
+									className: "inp",
+									type: "password",
+									autoComplete: "off",
+									value: form.password,
+									onChange: (event) => set("password")(event.target.value)
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "密保手机",
+								half: true,
+								htmlFor: "credential-bind-phone",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									id: "credential-bind-phone",
+									value: form.bind_phone,
+									onChange: set("bind_phone")
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "密保问题",
+								half: true,
+								htmlFor: "credential-security-question",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									id: "credential-security-question",
+									value: form.security_question,
+									onChange: set("security_question")
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "密保答案",
+								half: true,
+								htmlFor: "credential-security-answer",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									id: "credential-security-answer",
+									value: form.security_answer,
+									onChange: set("security_answer")
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "备注",
+								htmlFor: "credential-note",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
+									id: "credential-note",
+									rows: 2,
+									value: form.note,
+									onChange: set("note"),
+									placeholder: "例：不要动原石，不要抽卡"
+								})
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "note",
+						children: "不要在这里存短信验证码或临时密码——那些一次性用完就该消失。"
+					}),
+					error && form.customer_id ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "note note--alert",
+						children: error
+					}) : null
+				]
+			})
+		})
+	});
+}
+async function revealSecret(cred) {
+	if (!await promptUnlock({ reason: `查看「${cred.customer_name || ""} · ${cred.label || cred.masked_hint}」的登录信息，需要先解开保险箱。` })) return;
+	let data;
+	try {
+		data = await api.post(`/api/credentials/${cred.id}/reveal`, { action: "view" });
+	} catch (err) {
+		toastErr(err);
+		return;
+	}
+	openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RevealModal, {
+		cred,
+		data,
+		close
+	}), `credential-reveal-${cred.id}`);
+}
+function RevealModal({ cred, data, close }) {
+	const secret = data.secret || {};
+	const rows = [
+		["游戏账号", secret.account],
+		["密码", secret.password],
+		["绑定手机号", secret.phone],
+		["密保手机", secret.bind_phone],
+		["密保问题", secret.security_question],
+		["密保答案", secret.security_answer],
+		["备注", secret.note]
+	].filter(([, value]) => String(value || "").trim());
+	const allText = rows.map(([key, value]) => `${key}：${value}`).join("\n");
+	/** 复制也算一次取用，单独留痕 */
+	async function copyOne(label, value) {
+		const ok = await copyText(String(value));
+		toast$1(ok ? "已复制（已记入审计）" : "复制失败", ok ? "ok" : "err");
+		if (ok) api.post(`/api/credentials/${cred.id}/reveal`, {
+			action: "copy",
+			field: label
+		}).catch(() => {});
+	}
+	async function copyAll() {
+		const ok = await copyText(allText);
+		toast$1(ok ? "整条已复制（已记入审计）" : "复制失败", ok ? "ok" : "err");
+		if (ok) api.post(`/api/credentials/${cred.id}/reveal`, {
+			action: "copy",
+			field: "整条"
+		}).catch(() => {});
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Modal, {
+		title: `${cred.customer_name || ""} · ${cred.label || "登录凭证"}`,
+		wide: true,
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			className: "btn btn--primary",
+			type: "button",
+			onClick: () => close(null),
+			children: "看完了，关掉"
+		}),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "stack",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "cluster sm dim",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: data.game_name || "未指定游戏" }),
+						data.server ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: `· ${data.server}` }) : null,
+						data.role_name ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: `· ${data.role_name}` }) : null,
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "·" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: LOGIN_TYPE_LABEL[data.login_type] || data.login_type })
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "veil-clear",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "secretgrid",
+						children: rows.map(([label, value]) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_react.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "secretgrid__k",
+							children: label
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "secretgrid__v",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: String(value) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								className: "btn btn--sm btn--icon btn--quiet",
+								type: "button",
+								title: "复制",
+								onClick: () => copyOne(label, value),
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ClipboardCopy, { ...iconProps$3(14) })
+							})]
+						})] }, label))
+					})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note note--warn",
+					children: `本次取用于 ${fmtDateTime(data.revealed_at)} 记入审计日志。关闭后请勿口头转述或转发截图。`
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "cluster",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "btn btn--sm",
+						type: "button",
+						onClick: copyAll,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ClipboardCopy, { ...iconProps$3(14) }), "复制整条"]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "dim tiny",
+						children: "仅在客户明确要求代登时使用"
+					})]
+				})
+			]
+		})
+	});
+}
+function openAudit() {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AuditDrawer, { close }), "vault-audit");
+}
+function AuditDrawer({ close }) {
+	const [items, setItems] = (0, import_react.useState)(null);
+	const [error, setError] = (0, import_react.useState)("");
+	(0, import_react.useEffect)(() => {
+		let active = true;
+		api.get("/api/vault/audit", { limit: 300 }).then((data) => active && setItems(data.items || [])).catch((err) => {
+			if (!active) return;
+			setError(err?.message || String(err));
+			setItems([]);
+		});
+		return () => {
+			active = false;
+		};
+	}, []);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		wide: true,
+		title: "取用记录",
+		subtitle: "谁、什么时候、看了哪条",
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			className: "btn",
+			type: "button",
+			onClick: () => close(null),
+			children: "关掉"
+		}),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "stack",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note",
+					children: "这个列表只记不删。如果发现不是你本人的操作，请立刻改保险箱密码并检查这台电脑。"
+				}),
+				error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note note--alert",
+					children: error
+				}) : null,
+				items === null ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "refactor-loading",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+					]
+				}) : items.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "itemlist",
+					children: items.map((entry) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "item",
+						style: {
+							cursor: "default",
+							alignItems: "flex-start"
+						},
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "item__main",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "item__title",
+									children: [AUDIT_ACTION_LABEL[entry.action] || entry.action, String(entry.action).includes("failed") ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "tag tag--oxblood",
+										children: "失败"
+									}) : null]
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "item__meta",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: entry.customer_name || "" }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: entry.target || "" }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "mono",
+											children: entry.ip || ""
+										})
+									]
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "tbl__meta",
+									children: `${fmtDateTime(entry.created_at)} · ${relTime(entry.created_at)} · 操作人 ${entry.actor || "—"}`
+								})
+							]
+						})
+					}, entry.id))
+				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "dim sm",
+					children: "还没有任何取用记录。"
+				})
+			]
+		})
+	});
+}
+//#endregion
+//#region client/settings.jsx
+var iconProps$2 = (size = 14) => ({
+	size,
+	strokeWidth: 1.8,
+	absoluteStrokeWidth: true,
+	"aria-hidden": true
+});
+/** 引擎排序：越靠前越优先。和后端 src/ocr.mjs 的探测链同一个顺序 */
+var OCR_ENGINE_ORDER = [
+	"umi",
+	"paddleocr",
+	"rapidocr",
+	"tesseract",
+	"windows"
+];
+var SHOP_FORM_ID = "settings-shop-form";
+var PASSWORD_FORM_ID = "settings-password-form";
+var VAULT_PASSWORD_FORM_ID = "settings-vault-password-form";
+var ICON_FORM_ID = "settings-icon-template-form";
+/** 每个字段一个固定 id：提交时把焦点送回第一个出错的那格（旧引擎就是这么做的） */
+var SHOP_IDS = {
+	business_name: "settings-shop-business-name",
+	admin_name: "settings-shop-admin-name",
+	contact: "settings-shop-contact",
+	quote_footer: "settings-shop-quote-footer",
+	quote_valid_days: "settings-shop-quote-valid-days",
+	default_note: "settings-shop-default-note"
+};
+var PASSWORD_IDS = {
+	current: "settings-password-current",
+	next: "settings-password-next",
+	confirm: "settings-password-confirm"
+};
+var VAULT_PASSWORD_IDS = {
+	current: "settings-vault-password-current",
+	next: "settings-vault-password-next"
+};
+function SettingsPage({ onReload, reloadKey }) {
+	const vault = useVaultState();
+	const [settings, setSettings] = (0, import_react.useState)(null);
+	const [counts, setCounts] = (0, import_react.useState)({});
+	const [ocr, setOcr] = (0, import_react.useState)(null);
+	const [actor, setActor] = (0, import_react.useState)("");
+	const [error, setError] = (0, import_react.useState)("");
+	const importRef = (0, import_react.useRef)(null);
+	const load = (0, import_react.useCallback)(async () => {
+		await refreshVault();
+		try {
+			const [settingsRes, countsRes, ocrRes, meRes] = await Promise.all([
+				api.get("/api/settings"),
+				api.get("/api/backup/counts"),
+				api.get("/api/ocr/status").catch(() => null),
+				api.get("/api/auth/me").catch(() => null)
+			]);
+			setSettings(settingsRes || {});
+			setCounts(countsRes || {});
+			setOcr(ocrRes);
+			setActor(meRes && meRes.actor || "");
+			setError("");
+		} catch (err) {
+			setError(err && err.message || String(err));
+			setSettings((current) => current || {});
+		}
+	}, []);
+	(0, import_react.useEffect)(() => {
+		load();
+	}, [load, reloadKey]);
+	const reload = (0, import_react.useCallback)(() => {
+		load();
+		if (onReload) onReload();
+	}, [load, onReload]);
+	/** 「重新检测」：带 probe=1，真的去敲一次本机 OCR 服务 */
+	const probeOcr = (0, import_react.useCallback)(async () => {
+		try {
+			const fresh = await api.get("/api/ocr/status", { probe: 1 });
+			toast$1(fresh.available ? `检测完成，现在用 ${fresh.engine_name || fresh.engine}` : "还是没检测到可用的引擎", fresh.available ? "ok" : "err", 4200);
+			setOcr(fresh);
+		} catch (err) {
+			toastErr(err);
+		}
+	}, []);
+	/** 装完引擎 / 存完图标模板之后只重取识别状态，不整页刷新（旧版的 onRefreshDone） */
+	const refreshOcr = (0, import_react.useCallback)(async () => {
+		const fresh = await api.get("/api/ocr/status").catch(() => null);
+		setOcr((current) => fresh || current);
+	}, []);
+	const openShop = (0, import_react.useCallback)(async () => {
+		if (await openShopForm(settings || {})) reload();
+	}, [settings, reload]);
+	const resetAll = (0, import_react.useCallback)(async () => {
+		if (!await confirmDialog({
+			title: "清空全部业务数据？",
+			message: "订单、进度、收款、客户、凭证、价格表、游戏都会被删掉。登录密码和保险箱密码保留。这个操作不可撤销，建议先导出一份备份。",
+			confirmLabel: "清空",
+			tone: "danger"
+		})) return;
+		try {
+			await api.post("/api/system/reset", { confirm: "CLEAR" });
+			toast$1("已清空", "ok");
+			reload();
+		} catch (err) {
+			toastErr(err);
+		}
+	}, [reload]);
+	const importBackup = (0, import_react.useCallback)(async (event) => {
+		const input = event.target;
+		const file = input.files && input.files[0];
+		if (!file) return;
+		let payload;
+		try {
+			payload = JSON.parse(await file.text());
+		} catch {
+			toastErr("这个文件不是合法的 JSON");
+			input.value = "";
+			return;
+		}
+		if (!await confirmDialog({
+			title: "导入备份会覆盖现在的全部数据",
+			message: `备份导出于 ${payload.exported_at ? fmtDateTime(payload.exported_at) : "未知时间"}。导入后现有的订单、客户、凭证、价格表全部被替换，而且所有设备都要重新登录。`,
+			confirmLabel: "确认覆盖",
+			tone: "danger"
+		})) {
+			input.value = "";
+			return;
+		}
+		try {
+			const r = await api.post("/api/backup/import", {
+				payload,
+				confirm: "REPLACE"
+			});
+			toast$1(`导入完成：${r.imported && r.imported.orders || 0} 单`, "ok", 4e3);
+			setTimeout(() => location.reload(), 1200);
+		} catch (err) {
+			toastErr(err);
+		} finally {
+			input.value = "";
+		}
+	}, []);
+	const LAN = location.hostname !== "127.0.0.1" && location.hostname !== "localhost";
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "settings-page",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("header", {
+				className: "settings-page__head",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "refactor-eyebrow",
+						children: "本机设置"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "设置" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "店铺信息、密码、备份与安全" })
+				] })
+			}),
+			error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "refactor-alert",
+				role: "alert",
+				children: error
+			}) : null,
+			settings === null ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "refactor-loading",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+				]
+			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "panel",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "panel__body",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SectionHead$1, { title: "店铺信息" })
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "itemlist",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Row, {
+								title: "招牌名 / 称呼",
+								desc: `${settings.business_name || "未设置"} · 操作人 ${settings.admin_name || "未设置"}`,
+								action: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+									className: "btn btn--sm",
+									type: "button",
+									onClick: openShop,
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(PenLine, { ...iconProps$2(14) }), "修改"]
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Row, {
+								title: "联系方式",
+								desc: settings.contact || "未填写"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Row, {
+								title: "报价单默认有效期",
+								desc: `${settings.quote_valid_days || 7} 天`
+							})
+						]
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "panel",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "panel__body",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SectionHead$1, { title: "安全" })
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "itemlist",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Row, {
+								title: "登录密码",
+								desc: "手机和电脑共用这一个。改完其他设备会退出。",
+								action: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									className: "btn btn--sm",
+									type: "button",
+									onClick: () => openPasswordForm(),
+									children: "改密码"
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Row, {
+								title: "保险箱密码",
+								desc: vault.configured ? vault.unlocked ? "当前已解开。改密码会重新加密所有凭证。" : "当前已锁定。" : "还没设置。设了之后游戏账号密码才能加密入库。",
+								action: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "tbl__acts",
+									children: vault.configured ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+										className: "btn btn--sm",
+										type: "button",
+										onClick: () => openVaultPasswordForm(),
+										children: "改密码"
+									}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+										className: "btn btn--sm btn--primary",
+										type: "button",
+										onClick: async () => {
+											if (await ensureVaultReady()) {
+												toast$1("保险箱已就绪", "ok");
+												reload();
+											}
+										},
+										children: "去设置"
+									})
+								}),
+								extra: vault.configured ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: `tag${vault.unlocked ? " tag--jade" : " tag--amber"}`,
+									children: vault.unlocked ? "已解开" : "已锁定"
+								}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "tag tag--oxblood",
+									children: "未设置"
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Row, {
+								title: "保险箱加密",
+								desc: "AES-256-GCM，密钥由你的保险箱密码用 scrypt 推导，只存在于内存，不写进任何文件。"
+							})
+						]
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(OcrPanel, {
+					st: ocr,
+					onProbe: probeOcr,
+					onRefreshDone: refreshOcr
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "panel",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "panel__body",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SectionHead$1, { title: "数据" })
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "itemlist",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Row, {
+								title: "当前数据量",
+								desc: `${counts.orders || 0} 张订单 · ${counts.customers || 0} 位客户 · ${counts.credentials || 0} 条凭证 · ${counts.services || 0} 个服务项 · ${counts.games || 0} 个游戏`
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Row, {
+								title: "导出一份备份",
+								desc: "下载一个 JSON 文件，含全部业务数据。凭证在文件里仍然是密文，换台电脑要用同一个保险箱密码才能解开。",
+								action: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+									className: "btn btn--sm",
+									type: "button",
+									onClick: () => exportBackup().catch(toastErr),
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, { ...iconProps$2(14) }), "导出"]
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Row, {
+								title: "从备份恢复",
+								desc: "会用备份内容覆盖现在的全部数据。",
+								action: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "tbl__acts",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+										className: "btn btn--sm",
+										type: "button",
+										onClick: () => importRef.current && importRef.current.click(),
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Upload, { ...iconProps$2(14) }), "导入"]
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+										ref: importRef,
+										type: "file",
+										accept: "application/json,.json",
+										style: { display: "none" },
+										onChange: importBackup
+									})]
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Row, {
+								title: "清空业务数据",
+								desc: "清掉订单、客户、凭证、价格表和游戏，保留登录密码和保险箱设置。不可撤销。",
+								action: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									className: "btn btn--sm btn--danger",
+									type: "button",
+									onClick: resetAll,
+									children: "清空"
+								})
+							})
+						]
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "panel",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "panel__body",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SectionHead$1, {
+							title: "安全须知",
+							note: "值得花一分钟读完"
+						})
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "panel__body",
+						style: { paddingTop: "0" },
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("ul", {
+							className: "empty__steps",
+							style: { maxWidth: "70ch" },
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "n",
+									children: "1"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "数据全部存在这台电脑的 data/ 目录里，不会上传到任何地方。把整个文件夹拷走就是完整备份。" })] }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "n",
+									children: "2"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "用手机通过局域网访问时走的是普通 HTTP，同一 WiFi 下的其他人理论上能抓包看到你输入的密码。建议只在自家/可信 WiFi 下用手机访问，或者启动时加 --local 只允许本机。" })] }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "n",
+									children: "3"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "游戏登录凭证是加密的，但保险箱密码一旦忘记就真的解不开——没有后门。请记在密码管理器里。" })] }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "n",
+									children: "4"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "优先让客户扫码登录。能不存密码，就不存密码。" })] }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "n",
+									children: "5"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "定期导出备份。硬盘坏了、系统重装了，SQLite 文件不会自己回来。" })] })
+							]
+						}), LAN ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "note note--warn",
+							style: { marginTop: "var(--sp-4)" },
+							children: `你现在是透过局域网访问的（${location.host}）。请确认这个 WiFi 是你信得过的。`
+						}) : null]
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "panel",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "panel__body",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SectionHead$1, { title: "关于" })
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "panel__body",
+						style: { paddingTop: "0" },
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "kv",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dt", { children: "程序" }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dd", { children: "代肝价格查询 · 私用运营台" }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dt", { children: "版本" }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dd", { children: "v1.0.0" }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dt", { children: "运行方式" }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dd", { children: "Node.js 内置 http + SQLite，零第三方依赖" }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dt", { children: "存储" }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dd", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "mono sm",
+									children: "data/console.db"
+								}) }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dt", { children: "本次登录" }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dd", { children: actor || "—" })
+							]
+						})
+					})]
+				})
+			] })
+		]
+	});
+}
+function SectionHead$1({ title, note, children }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "sechead",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: title }),
+			note ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+				className: "sechead__note",
+				children: note
+			}) : null,
+			children
+		]
+	});
+}
+/** 设置页的一行：标题（+ 状态标签）+ 说明 + 右侧动作 */
+function Row({ title, desc, action, extra }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "item",
+		style: {
+			cursor: "default",
+			alignItems: "flex-start"
+		},
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "item__main",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "item__title",
+				children: [title, extra || null]
+			}), desc ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "tbl__meta",
+				style: { marginTop: "2px" },
+				children: desc
+			}) : null]
+		}), action || null]
+	});
+}
+function OcrPanel({ st, onProbe, onRefreshDone }) {
+	const [probing, setProbing] = (0, import_react.useState)(false);
+	if (!st) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+		className: "panel",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "panel__body",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SectionHead$1, { title: "屏幕识别" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "note",
+				children: "拿不到识别状态（后端可能还没重启到新版）。"
+			})]
+		})
+	});
+	const engines = [...st.engines || []].sort((a, b) => OCR_ENGINE_ORDER.indexOf(a.id) - OCR_ENGINE_ORDER.indexOf(b.id));
+	const tpl = st.templates || {
+		items: [],
+		missing: []
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+		className: "panel",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "panel__body",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "sechead",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "屏幕识别" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "sechead__note",
+							children: st.available ? `当前引擎：${st.engine_name || st.engine}` : "这台机器上还没有可用的 OCR"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							className: "btn btn--sm",
+							type: "button",
+							"data-loading": probing ? "1" : void 0,
+							onClick: async () => {
+								setProbing(true);
+								try {
+									await onProbe();
+								} finally {
+									setProbing(false);
+								}
+							},
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps$2(14) }), "重新检测"]
+						})
+					]
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "itemlist",
+				children: engines.map((eng) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EngineRow, {
+					eng,
+					preferred: st.engine
+				}, eng.id))
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "panel__body",
+				style: { paddingTop: "0" },
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note",
+					children: "识别用到的东西全部在这台电脑上跑，截图不出本机。按顺序试：Umi-OCR（装了并打开 HTTP 服务最好用）→ PaddleOCR-json / RapidOCR-json（解压到 tools\\ocr\\ 或设环境变量）→ Tesseract → Windows 自带。装了哪个用哪个，没装就往下退，不会因为缺一个就用不了。"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					style: { marginTop: "var(--sp-3)" },
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "tbl__meta",
+							children: `图标模板（认出「哪个图标是星声/体力/贝币」靠它们）：共 ${tpl.items.length} 个`
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "cluster",
+							style: {
+								marginTop: "4px",
+								flexWrap: "wrap"
+							},
+							children: [tpl.items.map((it) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: `tag${it.from === "custom" ? " tag--jade" : " tag--muted"}`,
+								children: `${it.key}${it.from === "custom" ? " · 自备" : ""}`
+							}, it.key)), tpl.missing && tpl.missing.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "tag tag--amber",
+								children: `缺 ${tpl.missing.join("、")}`
+							}) : null]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "cluster",
+							style: { marginTop: "var(--sp-3)" },
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+								className: "btn btn--sm",
+								type: "button",
+								onClick: () => openIconTemplateForm(st, onRefreshDone),
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Upload, { ...iconProps$2(14) }), "自备一个图标模板"]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "dim tiny",
+								children: "换了游戏版本、图标变了样子时用：给一张顶栏截图 + 图标所在的方框，程序当场抠出来存下。"
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(InstallSection, { onChanged: onRefreshDone })
+					]
+				})]
+			})
+		]
+	});
+}
+function EngineRow({ eng, preferred }) {
+	const live = eng.id === preferred;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "item",
+		style: {
+			cursor: "default",
+			alignItems: "flex-start"
+		},
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "item__main",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "item__title",
+					children: [
+						eng.name,
+						live ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "tag tag--jade",
+							children: "正在用"
+						}) : eng.available ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "tag tag--jade",
+							children: "可用"
+						}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "tag tag--muted",
+							children: "未安装"
+						}),
+						eng.license ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "dim tiny",
+							style: { marginLeft: "6px" },
+							children: eng.license
+						}) : null
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "tbl__meta",
+					style: { marginTop: "2px" },
+					children: eng.available ? eng.note || "已就绪" : eng.note || ""
+				}),
+				!eng.available && eng.install ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "tbl__meta",
+					style: {
+						marginTop: "2px",
+						opacity: ".75"
+					},
+					children: `怎么装：${eng.install}`
+				}) : null
+			]
+		})
+	});
+}
+function fileSizeText(n) {
+	if (!n) return "";
+	if (n < 1048576) return `${Math.round(n / 1024)}KB`;
+	return `${(n / 1024 / 1024).toFixed(1)}MB`;
+}
+function shortSize(s) {
+	return String(s || "").replace(/^约\s*/, "").split(" ")[0] || "自动";
+}
+function idleStatusText(option) {
+	return option.installed ? `已装好：${option.path || "探测到了"}` : option.blocked_reason || "";
+}
+function InstallSection({ onChanged }) {
+	const [data, setData] = (0, import_react.useState)(null);
+	const [error, setError] = (0, import_react.useState)("");
+	const [loaded, setLoaded] = (0, import_react.useState)(false);
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const load = (0, import_react.useCallback)(async () => {
+		setBusy(true);
+		try {
+			const r = await api.get("/api/ocr/install");
+			setData({
+				options: r.options || [],
+				extractor: r.extractor || {}
+			});
+			setError("");
+			setLoaded(true);
+		} catch (err) {
+			setData(null);
+			setError(err && err.message || String(err));
+		} finally {
+			setBusy(false);
+		}
+	}, []);
+	(0, import_react.useEffect)(() => {
+		load();
+	}, [load]);
+	const handleChanged = (0, import_react.useCallback)(() => {
+		load();
+		onChanged();
+	}, [load, onChanged]);
+	const extractor = data ? data.extractor : {};
+	const options = data ? data.options : [];
+	const rest = options.filter((o) => !o.installed);
+	const installed = options.filter((o) => o.installed);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		style: { marginTop: "var(--sp-4)" },
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "cluster",
+			style: { marginBottom: "6px" },
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
+					className: "sm",
+					children: "安装选项"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "tiny dim",
+					children: "装完自动就能用，图标模板不用重做"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "btn btn--sm btn--quiet",
+					type: "button",
+					onClick: load,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps$2(13) }), loaded ? "重新查" : "查一下"]
+				})
+			]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "stack stack--tight",
+			children: error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "note note--alert",
+				children: `拿不到安装选项：${error}`
+			}) : busy || data === null ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "tiny dim",
+				children: "正在查安装选项…"
+			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: extractor.can_auto ? "tone-jade" : "tone-amber",
+					children: extractor.can_auto ? `解压器：${extractor.bin || extractor.kind}（能解 .7z，可以直接自动安装）` : extractor.hint || extractor.note || "这台机器上没有能解 .7z 的解压器"
+				}),
+				rest.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "tiny dim",
+					children: "还没装的："
+				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "tiny dim",
+					children: "这几个都已经装好了 —— 上面「图标模板」那块可以自备模板，引擎不用再装。"
+				}),
+				rest.map((o) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(InstallOptionCard, {
+					option: o,
+					onChanged: handleChanged
+				}, o.id)),
+				installed.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					style: { marginTop: "var(--sp-3)" },
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "tiny dim",
+						children: "已经装好的："
+					}), installed.map((o) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(InstallOptionCard, {
+						option: o,
+						onChanged: handleChanged
+					}, o.id))]
+				}) : null
+			] })
+		})]
+	});
+}
+/** 一个安装选项一张卡 */
+function InstallOptionCard({ option, onChanged }) {
+	const [statusText, setStatusText] = (0, import_react.useState)(() => idleStatusText(option));
+	const [statusTone, setStatusTone] = (0, import_react.useState)("");
+	const [bar, setBar] = (0, import_react.useState)(null);
+	const [log, setLog] = (0, import_react.useState)("");
+	const [installing, setInstalling] = (0, import_react.useState)(false);
+	const [checking, setChecking] = (0, import_react.useState)(false);
+	const alive = (0, import_react.useRef)(true);
+	const sleepers = (0, import_react.useRef)(/* @__PURE__ */ new Map());
+	(0, import_react.useEffect)(() => {
+		alive.current = true;
+		const pending = sleepers.current;
+		return () => {
+			alive.current = false;
+			for (const [id, resolve] of pending) {
+				window.clearTimeout(id);
+				resolve();
+			}
+			pending.clear();
+		};
+	}, []);
+	(0, import_react.useEffect)(() => {
+		setStatusText(idleStatusText(option));
+		setStatusTone("");
+		setBar(null);
+		setLog("");
+	}, [option]);
+	const sleep = (ms) => new Promise((resolve) => {
+		const id = window.setTimeout(() => {
+			sleepers.current.delete(id);
+			resolve();
+		}, ms);
+		sleepers.current.set(id, resolve);
+	});
+	async function watch(jobId) {
+		let dots = 0;
+		let last = null;
+		for (;;) {
+			if (!alive.current) return last;
+			let r;
+			try {
+				r = await api.get("/api/ocr/install/status", { job: jobId });
+			} catch (err) {
+				if (alive.current) setStatusText(`查进度失败：${err && err.message || err}`);
+				break;
+			}
+			if (!alive.current) return last;
+			const j = r.job;
+			last = j;
+			const pct = j.state === "downloading" ? Number(j.percent) || 0 : j.state === "extracting" ? 100 : 0;
+			setBar(Math.max(4, pct));
+			const elapsed = Math.round(j.elapsed_ms / 1e3);
+			setStatusText(`${j.step}${j.state === "downloading" && j.total ? ` · ${fileSizeText(j.received)} / ${fileSizeText(j.total)}（${j.percent}%）` : ""} · 已用 ${elapsed}s` + (j.state === "downloading" && j.percent > 2 && elapsed > 6 ? ` · 预计还要 ${Math.max(1, Math.round(elapsed * (100 - j.percent) / j.percent / 60))} 分钟` : ""));
+			if (j.log && j.log.length) setLog(j.log.join("\n"));
+			if (j.state === "done" || j.state === "error") {
+				if (j.state === "done") setStatusText(j.result && j.result.available ? `装好了 —— 现在用的是 ${j.result.name}` : "文件装好了，但探测没认出来");
+				else setStatusText(`装失败：${j.error}`);
+				break;
+			}
+			dots++;
+			await sleep(dots < 3 ? 700 : 1200);
+		}
+		return last;
+	}
+	async function checkHealth() {
+		setChecking(true);
+		try {
+			const r = await api.post("/api/ocr/install/health", { engine: option.id });
+			if (!alive.current) return;
+			setStatusText(r.ok ? `自检：${r.verdict}` : `自检不了：${r.error}`);
+			setStatusTone(r.ok && !r.crashed ? "jade" : "amber");
+		} catch (err) {
+			toastErr(err);
+		} finally {
+			setChecking(false);
+		}
+	}
+	async function install() {
+		setInstalling(true);
+		try {
+			const r = await api.post("/api/ocr/install", { engine: option.id });
+			if (!alive.current) return;
+			setBar(4);
+			toast$1(`开始安装 ${option.name}，下载可能要几分钟`, "ok", 4200);
+			const last = await watch(r.job.id);
+			if (!alive.current) return;
+			if (last && last.state === "done" && last.result && last.result.available) {
+				toast$1(`${option.name} 装好了，识别会自动用它`, "ok", 5200);
+				onChanged();
+			} else if (last && last.state === "error") toast$1(`安装失败：${last.error}`, "err", 8e3);
+			else {
+				toast$1("装完了，但探测没认出来 —— 看下面日志", "err", 8e3);
+				onChanged();
+			}
+		} catch (err) {
+			toastErr(err);
+		} finally {
+			setInstalling(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "install",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "install__head",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "install__name",
+						children: option.name
+					}),
+					option.installed ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "tag tag--jade",
+						children: "已装好"
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "tag tag--muted",
+						children: "未安装"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "tiny dim",
+						children: option.license
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }),
+					option.installed ? null : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "tiny dim",
+						children: option.size
+					})
+				]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "tiny dim",
+				style: { marginTop: "2px" },
+				children: option.note
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "cluster",
+				style: {
+					gap: "6px",
+					flexWrap: "wrap"
+				},
+				children: [
+					option.installed ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "btn btn--sm",
+						type: "button",
+						"data-loading": checking ? "1" : void 0,
+						onClick: checkHealth,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$2(14) }), "自检一下"]
+					}) : option.can_auto ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "btn btn--sm btn--primary",
+						type: "button",
+						disabled: installing,
+						"data-loading": installing ? "1" : void 0,
+						onClick: install,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, { ...iconProps$2(14) }), `自动安装（${shortSize(option.size)}）`]
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("a", {
+						className: "btn btn--sm",
+						href: option.release_page,
+						target: "_blank",
+						rel: "noreferrer noopener",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, { ...iconProps$2(14) }), "去下载页"]
+					}),
+					!option.can_auto && !option.installed ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "tiny dim",
+						children: option.blocked_reason || "需要手动装"
+					}) : null,
+					option.env_key ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "tiny dim",
+						children: `装到别处也可以在环境变量里设 ${option.env_key}`
+					}) : null
+				]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "install__bar",
+				hidden: bar === null,
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "install__fill",
+					style: { width: bar === null ? void 0 : `${bar}%` }
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: `tiny${statusTone ? ` tone-${statusTone}` : " dim"}`,
+				children: statusText
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "install__log",
+				hidden: !log,
+				children: log
+			})
+		]
+	});
+}
+function openShopForm(values) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShopForm, {
+		values,
+		close
+	}), "settings-shop-form");
+}
+function openPasswordForm() {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PasswordForm, { close }), "settings-password-form");
+}
+function openVaultPasswordForm() {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(VaultPasswordForm, { close }), "settings-vault-password-form");
+}
+function openIconTemplateForm(st, onDone) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(IconTemplateForm, {
+		st,
+		onDone,
+		close
+	}), "settings-icon-template-form");
+}
+function ShopForm({ values, close }) {
+	const [form, setForm] = (0, import_react.useState)(() => ({
+		business_name: values.business_name || "",
+		admin_name: values.admin_name || "",
+		contact: values.contact || "",
+		quote_footer: values.quote_footer || "",
+		quote_valid_days: String(values.quote_valid_days || 7),
+		default_note: values.default_note || ""
+	}));
+	const [errors, setErrors] = (0, import_react.useState)({});
+	const [serverError, setServerError] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const set = (key) => (value) => setForm((current) => ({
+		...current,
+		[key]: value
+	}));
+	async function submit(event) {
+		event.preventDefault();
+		const next = {};
+		if (!String(form.business_name).trim()) next.business_name = "请填写店铺 / 招牌名";
+		if (form.quote_valid_days.trim() !== "" && !Number.isFinite(Number(form.quote_valid_days))) next.quote_valid_days = "请填数字";
+		setErrors(next);
+		if (Object.keys(next).length) {
+			document.getElementById(SHOP_IDS[Object.keys(next)[0]])?.focus();
+			return;
+		}
+		setBusy(true);
+		setServerError("");
+		try {
+			const saved = await api.patch("/api/settings", {
+				business_name: form.business_name,
+				admin_name: form.admin_name,
+				contact: form.contact,
+				quote_footer: form.quote_footer,
+				quote_valid_days: form.quote_valid_days.trim() === "" ? "" : Number(form.quote_valid_days),
+				default_note: form.default_note
+			});
+			toast$1("已保存", "ok");
+			close(saved);
+		} catch (err) {
+			setServerError(err && err.message || "保存失败");
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: "店铺信息",
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "取消"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "submit",
+				form: SHOP_FORM_ID,
+				disabled: busy,
+				"data-loading": busy ? "1" : void 0,
+				children: "保存"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: SHOP_FORM_ID,
+			noValidate: true,
+			onSubmit: submit,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "formgrid",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "店铺 / 招牌名",
+							required: true,
+							htmlFor: SHOP_IDS.business_name,
+							error: errors.business_name,
+							hint: "显示在页面标题和报价单抬头",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: SHOP_IDS.business_name,
+								value: form.business_name,
+								onChange: set("business_name"),
+								"aria-invalid": errors.business_name ? "true" : void 0
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "怎么称呼你",
+							half: true,
+							htmlFor: SHOP_IDS.admin_name,
+							hint: "保险箱审计里的操作人",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: SHOP_IDS.admin_name,
+								value: form.admin_name,
+								onChange: set("admin_name")
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "联系方式",
+							half: true,
+							htmlFor: SHOP_IDS.contact,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: SHOP_IDS.contact,
+								value: form.contact,
+								onChange: set("contact"),
+								placeholder: "例：微信 xiaofeng"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "报价单页脚",
+							htmlFor: SHOP_IDS.quote_footer,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: SHOP_IDS.quote_footer,
+								value: form.quote_footer,
+								onChange: set("quote_footer"),
+								placeholder: "例：价格随版本更新，以最新报价为准"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "报价默认有效期",
+							half: true,
+							suffix: "天",
+							htmlFor: SHOP_IDS.quote_valid_days,
+							error: errors.quote_valid_days,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: SHOP_IDS.quote_valid_days,
+								numeric: true,
+								value: form.quote_valid_days,
+								onChange: set("quote_valid_days"),
+								"aria-invalid": errors.quote_valid_days ? "true" : void 0
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "开单默认备注",
+							half: true,
+							htmlFor: SHOP_IDS.default_note,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: SHOP_IDS.default_note,
+								value: form.default_note,
+								onChange: set("default_note")
+							})
+						})
+					]
+				}), serverError ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note note--alert",
+					children: serverError
+				}) : null]
+			})
+		})
+	});
+}
+function PasswordForm({ close }) {
+	const [form, setForm] = (0, import_react.useState)({
+		current: "",
+		next: "",
+		confirm: ""
+	});
+	const [errors, setErrors] = (0, import_react.useState)({});
+	const [serverError, setServerError] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const set = (key) => (value) => setForm((current) => ({
+		...current,
+		[key]: value
+	}));
+	async function submit(event) {
+		event.preventDefault();
+		const next = {};
+		if (!form.current) next.current = "请填写当前密码";
+		if (!form.next) next.next = "请填写新密码";
+		if (!form.confirm) next.confirm = "请填写再输一次新密码";
+		setErrors(next);
+		if (Object.keys(next).length) {
+			document.getElementById(PASSWORD_IDS[Object.keys(next)[0]])?.focus();
+			return;
+		}
+		setBusy(true);
+		setServerError("");
+		try {
+			await api.post("/api/auth/password", {
+				current: form.current,
+				next: form.next,
+				confirm: form.confirm
+			});
+			toast$1("登录密码已改", "ok");
+			close(true);
+		} catch (err) {
+			setServerError(err && err.message || "保存失败");
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: "改登录密码",
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "取消"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "submit",
+				form: PASSWORD_FORM_ID,
+				disabled: busy,
+				"data-loading": busy ? "1" : void 0,
+				children: "改密码"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: PASSWORD_FORM_ID,
+			noValidate: true,
+			onSubmit: submit,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "note",
+						children: "改完之后，其他设备上的登录会全部退出。"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "formgrid",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "当前密码",
+								required: true,
+								htmlFor: PASSWORD_IDS.current,
+								error: errors.current,
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									id: PASSWORD_IDS.current,
+									className: "inp",
+									type: "password",
+									autoComplete: "current-password",
+									value: form.current,
+									onChange: (event) => set("current")(event.target.value)
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "新密码",
+								required: true,
+								htmlFor: PASSWORD_IDS.next,
+								hint: "至少 6 位",
+								error: errors.next,
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									id: PASSWORD_IDS.next,
+									className: "inp",
+									type: "password",
+									autoComplete: "new-password",
+									value: form.next,
+									onChange: (event) => set("next")(event.target.value)
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "再输一次新密码",
+								required: true,
+								htmlFor: PASSWORD_IDS.confirm,
+								error: errors.confirm,
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									id: PASSWORD_IDS.confirm,
+									className: "inp",
+									type: "password",
+									autoComplete: "new-password",
+									value: form.confirm,
+									onChange: (event) => set("confirm")(event.target.value)
+								})
+							})
+						]
+					}),
+					serverError ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "note note--alert",
+						children: serverError
+					}) : null
+				]
+			})
+		})
+	});
+}
+function VaultPasswordForm({ close }) {
+	const [form, setForm] = (0, import_react.useState)({
+		current: "",
+		next: ""
+	});
+	const [errors, setErrors] = (0, import_react.useState)({});
+	const [serverError, setServerError] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const set = (key) => (value) => setForm((current) => ({
+		...current,
+		[key]: value
+	}));
+	async function submit(event) {
+		event.preventDefault();
+		const next = {};
+		if (!form.current) next.current = "请填写当前保险箱密码";
+		if (!form.next) next.next = "请填写新保险箱密码";
+		setErrors(next);
+		if (Object.keys(next).length) {
+			document.getElementById(VAULT_PASSWORD_IDS[Object.keys(next)[0]])?.focus();
+			return;
+		}
+		setBusy(true);
+		setServerError("");
+		try {
+			toast$1(`已重新加密 ${(await api.post("/api/vault/password", {
+				current: form.current,
+				next: form.next
+			})).reencrypted} 条凭证`, "ok");
+			await refreshVault();
+			close(true);
+		} catch (err) {
+			setServerError(err && err.message || "保存失败");
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: "改保险箱密码",
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "取消"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "submit",
+				form: VAULT_PASSWORD_FORM_ID,
+				disabled: busy,
+				"data-loading": busy ? "1" : void 0,
+				children: "改密码"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: VAULT_PASSWORD_FORM_ID,
+			noValidate: true,
+			onSubmit: submit,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "note note--warn",
+						children: "改密码会把数据库里所有凭证重新加密一遍。过程中不要关掉启动窗口。如果中途断电，旧密文可能解不开——改之前建议先导出一份备份。"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "formgrid",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "当前保险箱密码",
+							required: true,
+							htmlFor: VAULT_PASSWORD_IDS.current,
+							error: errors.current,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+								id: VAULT_PASSWORD_IDS.current,
+								className: "inp",
+								type: "password",
+								autoComplete: "current-password",
+								value: form.current,
+								onChange: (event) => set("current")(event.target.value)
+							})
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "新保险箱密码",
+							required: true,
+							htmlFor: VAULT_PASSWORD_IDS.next,
+							hint: "至少 8 位，不能纯数字",
+							error: errors.next,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+								id: VAULT_PASSWORD_IDS.next,
+								className: "inp",
+								type: "password",
+								autoComplete: "new-password",
+								value: form.next,
+								onChange: (event) => set("next")(event.target.value)
+							})
+						})]
+					}),
+					serverError ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "note note--alert",
+						children: serverError
+					}) : null
+				]
+			})
+		})
+	});
+}
+/** 自备图标模板：给一张顶栏截图 + 一个方框，后端当场抠出图标本体存下 */
+function IconTemplateForm({ st, onDone, close }) {
+	const resources = st.resources || [];
+	const [key, setKey] = (0, import_react.useState)(() => resources[0] || "");
+	const [dataUrl, setDataUrl] = (0, import_react.useState)("");
+	const [box, setBox] = (0, import_react.useState)({
+		x: 0,
+		y: 0,
+		w: 200,
+		h: 80
+	});
+	const [error, setError] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const fileRef = (0, import_react.useRef)(null);
+	function pickFile(event) {
+		const file = event.target.files && event.target.files[0];
+		event.target.value = "";
+		if (!file) return;
+		const reader = new FileReader();
+		reader.onload = () => {
+			const url = String(reader.result);
+			setDataUrl(url);
+			const img = new Image();
+			img.onload = () => {
+				setBox({
+					x: Math.round(img.naturalWidth * .25),
+					y: Math.round(img.naturalHeight * .02),
+					w: Math.round(img.naturalWidth * .06),
+					h: Math.round(img.naturalHeight * .05)
+				});
+			};
+			img.src = url;
+		};
+		reader.readAsDataURL(file);
+	}
+	async function submit(event) {
+		event.preventDefault();
+		if (!dataUrl) {
+			setError("先选一张截图");
+			return;
+		}
+		setBusy(true);
+		setError("");
+		try {
+			const r = await api.post("/api/ocr/icons", {
+				key,
+				data_url: dataUrl,
+				box
+			});
+			toast$1(`${r.key} 的模板已存下（${r.size[0]}×${r.size[1]}）`, "ok", 4200);
+			onDone();
+			close(r);
+		} catch (err) {
+			setError(err && err.message || "保存失败");
+		} finally {
+			setBusy(false);
+		}
+	}
+	const numField = (name, label) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+		className: "inline",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+			className: "dim tiny",
+			children: label
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+			numeric: true,
+			"aria-label": name,
+			style: { width: "76px" },
+			value: String(box[name]),
+			onChange: (value) => setBox((current) => ({
+				...current,
+				[name]: Number(value) || 0
+			}))
+		})]
+	}, name);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: "自备图标模板",
+		subtitle: "游戏版本更新、图标改了样子，就自己抠一个",
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "取消"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "submit",
+				form: ICON_FORM_ID,
+				disabled: busy,
+				"data-loading": busy ? "1" : void 0,
+				children: "抠出来存下"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: ICON_FORM_ID,
+			noValidate: true,
+			onSubmit: submit,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "formgrid",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "图标类型",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+								value: key,
+								onChange: setKey,
+								options: resources.map((item) => ({
+									value: item,
+									label: item
+								}))
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "游戏截图（顶栏那张）",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "stack stack--tight",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+										className: "btn btn--sm",
+										type: "button",
+										onClick: () => fileRef.current && fileRef.current.click(),
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Upload, { ...iconProps$2(14) }), "选一张图"]
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+										ref: fileRef,
+										type: "file",
+										accept: "image/png,image/jpeg,image/webp",
+										style: { display: "none" },
+										onChange: pickFile
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+										src: dataUrl || void 0,
+										alt: "截图预览",
+										style: {
+											maxWidth: "100%",
+											borderRadius: "8px",
+											marginTop: "6px"
+										}
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+										className: "tbl__meta",
+										children: "选完图之后程序会给一个默认的方框；把下面四个数改成图标本体所在的位置。"
+									})
+								]
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "图标所在的方框（像素）",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "cluster",
+								style: {
+									gap: "8px",
+									flexWrap: "wrap"
+								},
+								children: [
+									numField("x", "x"),
+									numField("y", "y"),
+									numField("w", "宽"),
+									numField("h", "高")
+								]
+							})
+						})
+					]
+				}), error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note note--alert",
+					children: error
+				}) : null]
+			})
+		})
+	});
+}
+async function exportBackup() {
+	const data = await api.get("/api/backup/export");
+	const text = JSON.stringify(data, null, 2);
+	const name = `代肝运营台-备份-${(/* @__PURE__ */ new Date()).toISOString().slice(0, 19).replace(/[:T]/g, "-")}.json`;
+	downloadBlob(new Blob([text], { type: "application/json" }), name);
+	const counts = data.counts || {};
+	toast$1(`备份已导出：${counts.orders || 0} 单 / ${counts.customers || 0} 客户 / ${counts.credentials || 0} 凭证`, "ok", 4200);
 }
 //#endregion
 //#region client/app/legacy-page.jsx
@@ -27388,35 +33266,63 @@ function ActionsSlot({ nodes }) {
 	});
 }
 //#endregion
-//#region client/customer-form.jsx
-var SOURCES = [
-	"微信",
-	"QQ群",
-	"朋友介绍",
-	"闲鱼",
-	"贴吧",
-	"回头客",
-	"其他"
-];
-var FORM_ID = "customer-form";
-function openCustomerForm(values = {}, { title } = {}) {
-	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CustomerForm, {
-		values,
-		title: title || (values.id ? "改客户资料" : "新客户"),
-		close
-	}), "customer-form");
+//#region client/app/toast.jsx
+function ToastItem({ item }) {
+	const [shown, setShown] = (0, import_react.useState)(false);
+	(0, import_react.useEffect)(() => {
+		const raf = requestAnimationFrame(() => setShown(true));
+		return () => cancelAnimationFrame(raf);
+	}, []);
+	(0, import_react.useEffect)(() => {
+		const timer = setTimeout(() => setShown(false), item.ms);
+		return () => clearTimeout(timer);
+	}, [item.ms]);
+	const tone = item.tone === "err" ? " toast--err" : item.tone === "ok" ? " toast--ok" : "";
+	const mark = item.tone === "err" ? "!" : item.tone === "ok" ? "✓" : "·";
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: `toast${tone}`,
+		"data-show": shown ? "1" : void 0,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+			className: "toast__ico",
+			children: mark
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: item.message })]
+	});
 }
-function CustomerForm({ values, title, close }) {
-	const [form, setForm] = (0, import_react.useState)(() => ({
-		avatar: values.avatar || "",
-		name: values.name || "",
-		phone: values.phone || "",
-		wechat: values.wechat || "",
-		qq: values.qq || "",
-		source: values.source || "微信",
-		tags: Array.isArray(values.tags) ? values.tags : [],
-		note: values.note || ""
-	}));
+function ToastHost() {
+	const [items, setItems] = (0, import_react.useState)(() => currentToasts());
+	(0, import_react.useEffect)(() => {
+		const unsubscribe = subscribeToasts(setItems);
+		setItems(currentToasts());
+		return unsubscribe;
+	}, []);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "toasts",
+		role: "status",
+		"aria-live": "polite",
+		children: items.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToastItem, { item }, item.id))
+	});
+}
+//#endregion
+//#region client/status-form.jsx
+var FORM_ID = "status-form";
+function openStatusForm(order, onDone) {
+	const nexts = order.next_statuses || [];
+	if (!nexts.length) {
+		toast$1("这个状态没有下一步了", "err");
+		return Promise.resolve(null);
+	}
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StatusForm, {
+		order,
+		nexts,
+		onDone,
+		close
+	}), `status-form-${order.id}`);
+}
+function StatusForm({ order, nexts, onDone, close }) {
+	const [form, setForm] = (0, import_react.useState)({
+		status: "",
+		note: ""
+	});
 	const [errors, setErrors] = (0, import_react.useState)({});
 	const [serverError, setServerError] = (0, import_react.useState)("");
 	const [busy, setBusy] = (0, import_react.useState)(false);
@@ -27427,28 +33333,28 @@ function CustomerForm({ values, title, close }) {
 	async function submit(event) {
 		event.preventDefault();
 		const next = {};
-		if (!String(form.name).trim()) next.name = "请填写昵称";
+		if (!form.status) next.status = "请填写改成";
 		setErrors(next);
 		if (Object.keys(next).length) {
-			document.getElementById("customer-name")?.focus();
+			document.getElementById("status-status")?.focus();
 			return;
 		}
 		setBusy(true);
 		setServerError("");
 		try {
-			const payload = {
-				...form,
-				name: String(form.name).trim()
-			};
-			close(values.id ? await api.patch(`/api/customers/${values.id}`, payload) : await api.post("/api/customers", payload));
+			const saved = await api.post(`/api/orders/${order.id}/status`, form);
+			toast$1("状态已更新", "ok");
+			close(saved);
+			if (onDone) onDone(saved);
 		} catch (err) {
-			setServerError(err && err.message ? err.message : "保存失败");
+			setServerError(err && err.message ? err.message : "推不动这个状态");
 		} finally {
 			setBusy(false);
 		}
 	}
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
-		title,
+		title: "推进状态",
+		subtitle: `${order.order_no} · 现在是「${order.status_label}」`,
 		onClose: () => close(null),
 		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
@@ -27463,7 +33369,7 @@ function CustomerForm({ values, title, close }) {
 				type: "submit",
 				form: FORM_ID,
 				disabled: busy,
-				children: busy ? "保存中…" : "保存"
+				children: busy ? "推进中…" : "推进"
 			})
 		] }),
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
@@ -27474,108 +33380,1227 @@ function CustomerForm({ values, title, close }) {
 				className: "stack",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "formgrid",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ImageField, {
-							label: "头像",
-							value: form.avatar,
-							onChange: set("avatar"),
-							prefix: "customer",
-							shape: "circle",
-							size: 60,
-							hint: "选填。会显示在客户列表和订单列表上，客户多了好认。"
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
-							label: "昵称",
-							required: true,
-							htmlFor: "customer-name",
-							error: errors.name,
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
-								id: "customer-name",
-								name: "name",
-								value: form.name,
-								onChange: set("name"),
-								"aria-invalid": errors.name ? "true" : void 0,
-								placeholder: "客户怎么称呼"
-							})
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
-							label: "手机号",
-							half: true,
-							htmlFor: "customer-phone",
-							hint: "用作客户标识，方便搜索",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
-								id: "customer-phone",
-								name: "phone",
-								value: form.phone,
-								onChange: set("phone")
-							})
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
-							label: "微信",
-							half: true,
-							htmlFor: "customer-wechat",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
-								id: "customer-wechat",
-								name: "wechat",
-								value: form.wechat,
-								onChange: set("wechat")
-							})
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
-							label: "QQ",
-							half: true,
-							htmlFor: "customer-qq",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
-								id: "customer-qq",
-								name: "qq",
-								value: form.qq,
-								onChange: set("qq")
-							})
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
-							label: "来源",
-							half: true,
-							htmlFor: "customer-source",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
-								id: "customer-source",
-								name: "source",
-								value: form.source,
-								onChange: set("source"),
-								options: SOURCES.map((value) => ({
-									value,
-									label: value
-								}))
-							})
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
-							label: "标签",
-							htmlFor: "customer-tags",
-							hint: "例如：爽快、老客户、要发票",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TagsInput, {
-								id: "customer-tags",
-								name: "tags",
-								value: form.tags,
-								onChange: set("tags")
-							})
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
-							label: "备注",
-							htmlFor: "customer-note",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
-								id: "customer-note",
-								name: "note",
-								rows: 3,
-								value: form.note,
-								onChange: set("note"),
-								placeholder: "作息、沟通习惯、忌讳…"
-							})
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+						label: "改成",
+						required: true,
+						htmlFor: "status-status",
+						error: errors.status,
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+							id: "status-status",
+							name: "status",
+							value: form.status,
+							onChange: set("status"),
+							"aria-invalid": errors.status ? "true" : void 0,
+							options: nexts.map((status) => ({
+								value: status,
+								label: ORDER_STATUS_LABEL[status] || status
+							}))
 						})
-					]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+						label: "顺便记一句（会写进进度时间线）",
+						htmlFor: "status-note",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+							id: "status-note",
+							name: "note",
+							value: form.note,
+							onChange: set("note"),
+							placeholder: "例：做完了，等客户验收"
+						})
+					})]
 				}), serverError ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 					className: "note note--alert",
 					children: serverError
 				}) : null]
 			})
+		})
+	});
+}
+//#endregion
+//#region client/order-detail.jsx
+var iconProps$1 = (size) => ({
+	size,
+	strokeWidth: 1.8,
+	absoluteStrokeWidth: true,
+	"aria-hidden": true
+});
+function OrderDetailPage({ route, navigate, onReload, reloadKey }) {
+	const id = route.sub;
+	const [order, setOrder] = (0, import_react.useState)(null);
+	const [error, setError] = (0, import_react.useState)("");
+	const load = (0, import_react.useCallback)(async () => {
+		try {
+			const data = await api.get(`/api/orders/${id}`);
+			setOrder(data);
+			setError("");
+		} catch (err) {
+			setError(err?.message || String(err));
+			setOrder(null);
+		}
+	}, [id]);
+	(0, import_react.useEffect)(() => {
+		load();
+	}, [load, reloadKey]);
+	const reload = (0, import_react.useCallback)(() => {
+		load();
+		if (onReload) onReload();
+	}, [load, onReload]);
+	if (error) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "orders-page",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "refactor-alert",
+			role: "alert",
+			children: error
+		})
+	});
+	if (!order) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "orders-page",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "refactor-loading",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+			]
+		})
+	});
+	const closed = ["done", "cancelled"].includes(order.status);
+	/** 今日已完成：日体、包天那种天天要做的单，今天做完了先挪出「在做」，明天自己回来 */
+	async function dailyDone(done) {
+		if (done && (order.other_items || []).length) {
+			if (!await confirmDialog({
+				title: "这张单里还有别的活",
+				message: `标成「今日已完成」之后，整张单这个「今天」都会从「在做」里消失，过了凌晨 4 点才回来。这张单里除了每天要做的，还有：${order.other_items.join("、")}。这些今天也做完了吗？`,
+				confirmLabel: "都做完了，标吧"
+			})) return;
+		}
+		try {
+			await api.post(`/api/orders/${order.id}/daily-done`, { done });
+			toast$1(done ? "标成今日完成，过了凌晨 4 点自动回到「在做的」" : "已撤销，回到「在做的」", "ok", 3400);
+			reload();
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	/** 直接推进到已完成（状态机允许才能走，比如还没付钱的单会被拦下） */
+	async function finishNow() {
+		if (!await confirmDialog({
+			title: `把 ${order.order_no} 标成已完成？`,
+			message: "整张单就结束了，不再出现在「在做的」里。如果这是每天都要做的日体单，应该用「今日已完成」。",
+			confirmLabel: "标成已完成"
+		})) return;
+		try {
+			await api.post(`/api/orders/${order.id}/status`, { status: "done" });
+			toast$1("订单已完成", "ok");
+			reload();
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	async function removeOrder() {
+		if (!await confirmDelete({
+			title: "删除这张单？",
+			message: `订单 ${order.order_no} 及其进度、收款记录会一并消失，不能撤销。如果只是不做了，建议改成「已取消」。`
+		})) return;
+		try {
+			await api.del(`/api/orders/${order.id}`);
+			toast$1("订单已删除", "ok");
+			navigate("/orders");
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	async function removeProgress(progress) {
+		if (!await confirmDelete({
+			title: "删掉这条进度？",
+			message: `${fmtDay(progress.happened_on)}：${String(progress.content || "").slice(0, 40)}`
+		})) return;
+		try {
+			await api.del(`/api/progress/${progress.id}`);
+			toast$1("已删除", "ok");
+			reload();
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	async function removePayment(payment) {
+		if (!await confirmDelete({
+			title: "删掉这笔记录？",
+			message: `${PAY_KIND_LABEL[payment.kind] || payment.kind} ¥${fmtMoney(payment.amount)}（${payment.paid_at}）`
+		})) return;
+		try {
+			await api.del(`/api/payments/${payment.id}`);
+			toast$1("已删除", "ok");
+			reload();
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	const gainAll = gainTotalText(order.items);
+	const remain = remainInfo(order.ordered_at, order.due_at);
+	const ctx = {
+		navigate,
+		onReload: reload
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "orders-page",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
+			className: "orders-page__head",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "refactor-eyebrow",
+					children: "订单详情"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: order.order_no }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: order.title || "（没写标题）" })
+			] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "order-detail__actions",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "refactor-button",
+						type: "button",
+						onClick: () => openProgressForm(order, reload),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$1(14) }), "记进度"]
+					}),
+					order.due_total > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "refactor-button",
+						type: "button",
+						onClick: () => openPaymentForm(order, reload),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Wallet, { ...iconProps$1(14) }), "记收款"]
+					}) : null,
+					!closed ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "refactor-button",
+						type: "button",
+						title: order.daily_done_today ? "撤销今日完成，重新回到「在做」" : "今天这份做完了，先挪出「在做」，明天自动回来",
+						onClick: () => dailyDone(!order.daily_done_today),
+						children: [order.daily_done_today ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps$1(14) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$1(14) }), order.daily_done_today ? "撤销今日完成" : "今日已完成"]
+					}) : null,
+					!closed && (order.next_statuses || []).includes("done") ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "refactor-button",
+						type: "button",
+						title: "整张单结束",
+						onClick: finishNow,
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$1(14) }), "标记完成"]
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "refactor-button",
+						type: "button",
+						onClick: () => openStatusForm(order, reload),
+						children: "推进状态"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "refactor-button",
+						type: "button",
+						onClick: () => openOrderComposer(ctx, { existing: order }),
+						children: "改明细"
+					}),
+					order.items.length > 1 ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "refactor-button",
+						type: "button",
+						title: "把其中几个服务项拆成一张新单",
+						onClick: () => openSplit(order, reload),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Copy, { ...iconProps$1(14) }), "拆单"]
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "refactor-button order-detail__danger",
+						type: "button",
+						title: "删除订单",
+						onClick: removeOrder,
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$1(14) })
+					})
+				]
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "stack",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+				className: "panel",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "panel__body",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "cluster",
+							style: {
+								justifyContent: "space-between",
+								alignItems: "flex-start"
+							},
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								style: { minWidth: "0" },
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "cluster",
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "mono strong",
+												children: order.order_no
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Lamp, {
+												label: order.status_label,
+												tone: STATUS_TONE[order.status] || "muted"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CopyIcon, {
+												text: order.order_no,
+												label: "复单号"
+											})
+										]
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+										style: { marginTop: "4px" },
+										children: order.title || "（没写标题）"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "cluster sm dim",
+										style: { marginTop: "4px" },
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: order.customer_name || "散客" }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "·" }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: order.game_name || "未指定游戏" }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "·" }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: `下单 ${fmtDateTime(order.ordered_at)}` }),
+											order.due_at ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: `· 交付 ${fmtDay(order.due_at)}` }) : null,
+											!closed && remain.kind !== "none" ? remain.kind === "invalid" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "duepill duepill--bad",
+												children: "交付日期填错了"
+											}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: `duepill duepill--${remain.kind}`,
+												children: remain.text
+											}) : null
+										]
+									})
+								]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								style: { textAlign: "right" },
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+										className: "cell__lbl",
+										children: "订单总额"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+										style: {
+											fontFamily: "var(--font-fig)",
+											fontSize: "var(--fs-2xl)",
+											fontWeight: "600",
+											letterSpacing: "-0.02em"
+										},
+										children: `¥${fmtMoney(order.total)}`
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+										className: "sm",
+										children: order.due_total > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "tone-amber",
+											children: `还差 ¥${fmtMoney(order.due_total)}`
+										}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "tone-jade",
+											children: "已结清"
+										})
+									})
+								]
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							style: { marginTop: "var(--sp-4)" },
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrderTrack, {
+								status: order.status,
+								statusLabel: order.status_label
+							})
+						}),
+						order.customer_id ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "cluster",
+							style: { marginTop: "var(--sp-3)" },
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								className: "btn btn--sm",
+								type: "button",
+								onClick: () => navigate(`/customers/${order.customer_id}`),
+								children: "看客户档案"
+							}), order.credentials?.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								className: "btn btn--sm",
+								type: "button",
+								onClick: () => navigate(`/vault?customer=${order.customer_id}`),
+								children: `这个客户有 ${order.credentials.length} 条登录凭证`
+							}) : null]
+						}) : null
+					]
+				})
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "split",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "stack",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+						className: "panel",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "panel__body",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SectionHead, {
+									title: "服务明细（下单时的快照）",
+									note: "改价格表不影响这里"
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "panel__body panel__body--flush",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ItemsList, { items: order.items })
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "panel__foot",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "sm dim",
+										children: `共 ${order.items.length} 项`
+									}),
+									gainAll ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "sm dim",
+										style: { marginLeft: "10px" },
+										children: `可得 ${gainAll}`
+									}) : null,
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "sm dim",
+										children: "合计"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "strong",
+										children: `¥${fmtMoney(order.total)}`
+									})
+								]
+							})
+						]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+						className: "panel",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "panel__body",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SectionHead, {
+								title: "进度时间线",
+								note: `${order.progress.length} 条`,
+								actions: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									className: "btn btn--sm",
+									type: "button",
+									onClick: () => shareProgress(order, ctx),
+									children: "分享进度"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+									className: "btn btn--sm btn--primary",
+									type: "button",
+									onClick: () => openProgressForm(order, reload),
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(14) }), "记一条"]
+								})] })
+							})
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "panel__body",
+							style: { paddingTop: "0" },
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ProgressTimeline, {
+								list: order.progress,
+								onEdit: (progress) => openEditProgressForm(progress, reload),
+								onDelete: removeProgress
+							})
+						})]
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "stack",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+							className: "panel",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "panel__body",
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SectionHead, { title: "钱" })
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "panel__body",
+									style: { paddingTop: "0" },
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										style: {
+											display: "grid",
+											gridTemplateColumns: "1fr auto",
+											gap: "6px 12px",
+											fontSize: "var(--fs-base)"
+										},
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "dim",
+												children: "服务小计"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "num",
+												children: `¥${fmtMoney(order.items_subtotal)}`
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "dim",
+												children: "增项合计"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "num",
+												children: `¥${fmtMoney(order.addon_total)}`
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "dim",
+												children: "折扣"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "num",
+												children: `−¥${fmtMoney(order.discount)}`
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "dim",
+												children: "平台手续费"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "num",
+												children: `¥${fmtMoney(order.platform_fee)}`
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "dim",
+												children: "成本"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "num",
+												children: `¥${fmtMoney(order.cost)}`
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "strong",
+												style: {
+													borderTop: "1px solid var(--line)",
+													paddingTop: "6px",
+													marginTop: "4px"
+												},
+												children: "合计"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "num strong",
+												style: {
+													borderTop: "1px solid var(--line)",
+													paddingTop: "6px",
+													marginTop: "4px"
+												},
+												children: `¥${fmtMoney(order.total)}`
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "dim tone-jade",
+												children: "已收"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "num tone-jade",
+												children: `¥${fmtMoney(order.paid_total)}`
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "dim",
+												children: order.due_total > .001 ? "还差" : "尾款"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "num",
+												children: order.due_total > .001 ? `¥${fmtMoney(order.due_total)}` : "0"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "dim",
+												children: "利润"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "num",
+												children: `¥${fmtMoney(order.profit)}`
+											})
+										]
+									})
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "panel__body",
+									style: { paddingTop: "0" },
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+										className: "cluster",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+											className: "btn btn--sm btn--block",
+											type: "button",
+											onClick: () => openPaymentForm(order, reload),
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(14) }), "记一笔收款"]
+										})
+									})
+								})
+							]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+							className: "panel",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "panel__body",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SectionHead, {
+									title: "收款记录",
+									note: `${order.payments.length} 笔`
+								})
+							}), order.payments.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "itemlist",
+								children: order.payments.map((payment) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "item",
+									style: { cursor: "default" },
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "item__main",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											className: "item__title",
+											children: [PAY_KIND_LABEL[payment.kind] || payment.kind, /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												className: "tag",
+												children: PAY_METHOD_LABEL[payment.method] || payment.method
+											})]
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											className: "item__meta",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: fmtDay(payment.paid_at) }), payment.note ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: payment.note }) : null]
+										})]
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "item__right",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											className: `item__fig ${payment.kind === "refund" ? "tone-oxblood" : "tone-jade"}`,
+											children: `${payment.kind === "refund" ? "−" : "+"}¥${fmtMoney(payment.amount)}`
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+											className: "btn btn--sm btn--quiet",
+											type: "button",
+											title: "删除这笔",
+											onClick: () => removePayment(payment),
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$1(13) })
+										})]
+									})]
+								}, payment.id))
+							}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "panel__body",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "dim sm",
+									children: "还没有收款记录。"
+								})
+							})]
+						}),
+						order.note || order.internal_note ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+							className: "panel",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "panel__body",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SectionHead, { title: "备注" })
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "panel__body",
+								style: { paddingTop: "0" },
+								children: [order.note ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "tbl__meta",
+									children: "给客户看的"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									style: { whiteSpace: "pre-wrap" },
+									children: order.note
+								})] }) : null, order.internal_note ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									style: { marginTop: "10px" },
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+										className: "tbl__meta",
+										children: "只有自己看得到"
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+										style: { whiteSpace: "pre-wrap" },
+										children: order.internal_note
+									})]
+								}) : null]
+							})]
+						}) : null
+					]
+				})]
+			})]
+		})]
+	});
+}
+function Lamp({ label, tone = "muted" }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+		className: `lamp lamp--${tone}`,
+		children: label
+	});
+}
+function CopyIcon({ text, label }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+		className: "btn btn--sm btn--icon",
+		type: "button",
+		title: label,
+		onClick: async (event) => {
+			event.stopPropagation();
+			const ok = await copyText(text);
+			toast$1(ok ? "已复制" : "复制失败，请手动选中", ok ? "ok" : "err", 1600);
+		},
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Copy, { ...iconProps$1(15) })
+	});
+}
+/** 订单走的五步轨；售后/取消单独用灯表示 */
+function OrderTrack({ status, statusLabel }) {
+	if (status === "cancelled" || status === "after_sale") return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "cluster",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Lamp, {
+			label: statusLabel || status,
+			tone: STATUS_TONE[status] || "muted"
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+			className: "dim tiny",
+			children: "已离开主流程"
+		})]
+	});
+	const labels = {
+		pending_confirm: "待确认",
+		pending_pay: "待付款",
+		in_progress: "进行中",
+		pending_accept: "待验收",
+		done: "已完成"
+	};
+	const at = STATUS_FLOW.indexOf(status);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "track",
+		children: STATUS_FLOW.map((step, index) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_react.Fragment, { children: [index > 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "track__sep" }) : null, /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: `track__step${index < at ? " track__step--done" : index === at ? " track__step--now" : ""}`,
+			children: labels[step]
+		})] }, step))
+	});
+}
+function SectionHead({ title, note, actions = null }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "sechead",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: title }),
+			note ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+				className: "sechead__note",
+				children: note
+			}) : null,
+			actions
+		]
+	});
+}
+function Tag({ text, tone = "" }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+		className: `tag${tone ? ` tag--${tone}` : ""}`,
+		children: text
+	});
+}
+/** 这一条明细能让客户拿到多少货币（快照里是每个的数量，乘上本条数量）。没配就返回空串 */
+function itemGain(item) {
+	const gain = item?.snapshot?.gain;
+	if (!gain || !gain.name) return "";
+	const total = Number(gain.amount || 0) * (Number(item.quantity) || 1);
+	if (!Number.isFinite(total) || total <= 0) return "";
+	return `${gain.name} ${fmtQty(total)}`;
+}
+function gainTotalText(items) {
+	const byName = /* @__PURE__ */ new Map();
+	for (const item of items || []) {
+		const gain = item?.snapshot?.gain;
+		if (!gain || !gain.name) continue;
+		const amount = Number(gain.amount || 0) * (Number(item.quantity) || 1);
+		if (!Number.isFinite(amount) || amount <= 0) continue;
+		byName.set(gain.name, (byName.get(gain.name) || 0) + amount);
+	}
+	if (!byName.size) return "";
+	return [...byName.entries()].map(([name, amount]) => `${name} ${fmtQty(amount)}`).join(" + ");
+}
+function ItemsList({ items }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "itemlist",
+		children: items.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "item",
+			style: {
+				cursor: "default",
+				alignItems: "flex-start"
+			},
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "item__main",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "item__title",
+						children: [
+							item.name,
+							item.is_daily ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, {
+								text: "每天做",
+								tone: "jade"
+							}) : null,
+							item.snapshot?.price_overridden ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, {
+								text: "改过价",
+								tone: "cinnabar"
+							}) : null,
+							item.snapshot?.matched_tier ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, {
+								text: "阶梯价",
+								tone: "slate"
+							}) : null
+						]
+					}),
+					item.spec ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "tbl__meta",
+						children: item.spec
+					}) : null,
+					itemGain(item) ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "subitems",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "subitem",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "subitem__k",
+								children: "可得"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "strong",
+								children: itemGain(item)
+							})]
+						})
+					}) : null,
+					item.snapshot?.package_items?.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "subitems",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "subitem",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "subitem__k",
+								children: "套餐含"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: item.snapshot.package_items.join(" · ") })]
+						})
+					}) : null,
+					item.snapshot?.addons?.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "subitems",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "subitem",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "subitem__k",
+								children: "增项"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: item.snapshot.addons.map((addon) => `${addon.name}${addon.price_mode === "percent" ? ` +${addon.price}%` : ` +${fmtMoney(addon.price)}元`}`).join(" · ") })]
+						})
+					}) : null
+				]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "item__right",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "item__fig",
+					children: [fmtMoney(item.unit_price), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "dim",
+						children: `${item.unit_label ? `/${item.unit_label}` : ""} × ${fmtQty(item.quantity)}`
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "tbl__meta",
+					children: `= ${fmtMoney(item.amount)} 元`
+				})]
+			})]
+		}, item.id))
+	});
+}
+/** 「今天 / 昨天 / 3 天前 / 更早写日期」 */
+function relDay(dateStr) {
+	const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateStr || ""));
+	if (!match) return String(dateStr || "");
+	const then = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+	const now = /* @__PURE__ */ new Date();
+	const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+	const days = Math.round((today - then) / 864e5);
+	if (days === 0) return "今天";
+	if (days === 1) return "昨天";
+	if (days === 2) return "前天";
+	if (days > 2 && days < 8) return `${days} 天前`;
+	if (days === -1) return "明天";
+	return `${Number(match[2])}月${Number(match[3])}日`;
+}
+function ProgressTimeline({ list, onEdit, onDelete }) {
+	if (!list.length) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "empty",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "empty__mark",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$1(20) })
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "empty__title",
+				children: "还没有进度记录"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "empty__body",
+				children: "每做一段就记一条，客户问起来直接发，自己回头看也清楚。"
+			})
+		]
+	});
+	const sorted = [...list].sort((a, b) => String(a.happened_on || "").localeCompare(String(b.happened_on || "")) || (a.id || 0) - (b.id || 0));
+	const lastIndex = sorted.length - 1;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "timeline",
+		children: sorted.map((progress, index) => {
+			const deltas = resourceDelta(progress.resources_before, progress.resources_after);
+			const media = progress.media || [];
+			const shots = media.filter((item) => /\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(item));
+			const links = media.filter((item) => !/\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(item));
+			return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: `tl${index === lastIndex ? " tl--now" : ""}`,
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "tl__rail",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "tl__dot" })
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "tl__body",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "tl__head",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "tl__date",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: relDay(progress.happened_on) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "tl__datefull",
+										children: fmtDay(progress.happened_on)
+									})]
+								}),
+								index === lastIndex ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, {
+									text: "最新",
+									tone: "slate"
+								}) : null,
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "tl__step",
+									children: `第 ${index + 1} 条`
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }),
+								onEdit ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									className: "btn btn--sm btn--quiet",
+									type: "button",
+									title: "编辑",
+									onClick: () => onEdit(progress),
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$1(13) })
+								}) : null,
+								onDelete ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									className: "btn btn--sm btn--quiet",
+									type: "button",
+									title: "删除",
+									onClick: () => onDelete(progress),
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$1(13) })
+								}) : null
+							]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "tl__content",
+							children: progress.content
+						}),
+						progress.resources_before || progress.resources_after ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "tl__resrow",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "tl__reslabel",
+								children: "资源变化"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+								className: "tl__res",
+								children: [
+									progress.resources_before ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: progress.resources_before }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "dim",
+										children: "未记录"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "tl__arrow",
+										children: "→"
+									}),
+									progress.resources_after ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: progress.resources_after }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "dim",
+										children: "未记录"
+									})
+								]
+							})]
+						}) : null,
+						deltas.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "tl__deltas",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "dim tiny",
+								children: "本次消耗"
+							}), deltas.map((delta) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: `tl__delta tone-${delta.diff < 0 ? "oxblood" : delta.diff > 0 ? "jade" : "muted"}`,
+								children: `${delta.key} ${delta.diff < 0 ? "−" : delta.diff > 0 ? "+" : "±"}${fmtQty(Math.abs(delta.diff))}`
+							}, delta.key))]
+						}) : null,
+						shots.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "tl__shots",
+							children: shots.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+								href: item,
+								target: "_blank",
+								rel: "noreferrer noopener",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+									className: "shot",
+									src: item,
+									alt: "进度截图",
+									loading: "lazy"
+								})
+							}, item))
+						}) : null,
+						links.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "tl__shots",
+							children: links.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("a", {
+								className: "shot-link",
+								href: item,
+								target: "_blank",
+								rel: "noreferrer noopener",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, { ...iconProps$1(12) }), "录屏 / 链接"]
+							}, item))
+						}) : null,
+						progress.note ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "tl__note",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "tl__note-label",
+								children: "备注"
+							}), progress.note]
+						}) : null
+					]
+				})]
+			}, progress.id);
+		})
+	});
+}
+/** 拆单：把几个服务项挪到一张新单上，两边各自收款结单 */
+function openSplit(order, onDone) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SplitModal, {
+		order,
+		close,
+		onDone
+	}), `order-split-${order.id}`);
+}
+function SplitModal({ order, close, onDone }) {
+	const [picked, setPicked] = (0, import_react.useState)([]);
+	const [payMode, setPayMode] = (0, import_react.useState)("proportional");
+	const [progMode, setProgMode] = (0, import_react.useState)("keep");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const hasPay = (order.payments || []).length > 0;
+	const hasProgress = (order.progress || []).length > 0;
+	const rest = order.items.length - picked.length;
+	const hint = picked.length === 0 ? "还没勾任何服务项。" : rest === 0 ? "不能全拆走 —— 原单得至少留一个服务项（整张都要挪的话，不如直接改这一张）。" : `拆出去 ${picked.length} 项，原单留 ${rest} 项。折扣 / 手续费 / 成本留在原单，新单从 0 开始。`;
+	async function go() {
+		setBusy(true);
+		try {
+			const result = await api.post(`/api/orders/${order.id}/split`, {
+				item_ids: picked,
+				payments: payMode,
+				progress: progMode
+			});
+			close(true);
+			const bits = [`已拆出 ${result.moved_count} 项，新单 ${result.created.order_no}`];
+			if (result.payments_moved) bits.push(`收款分了 ${result.payments_moved} 笔`);
+			if (result.progress_moved) bits.push(`进度跟过去 ${result.progress_moved} 条`);
+			toast$1(bits.join(" · "), "ok", 4600);
+			if (result.original_overpaid > .001) setTimeout(() => toast$1(`注意：原单还留着 ¥${fmtMoney(result.original_paid)} 的收款，但金额只剩 ¥${fmtMoney(result.original.total)}，多收了 ¥${fmtMoney(result.original_overpaid)}`, "err", 9e3), 400);
+			onDone();
+		} catch (err) {
+			toastErr(err);
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Modal, {
+		title: `拆单 · ${order.order_no}`,
+		wide: true,
+		onClose: () => close(false),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			className: "btn",
+			type: "button",
+			onClick: () => close(false),
+			children: "取消"
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			className: "btn btn--primary",
+			type: "button",
+			disabled: busy || picked.length === 0 || rest === 0,
+			onClick: go,
+			children: "拆成新单"
+		})] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "stack",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "sm",
+					children: "适合「30天日体 + 几个活动」这种单：把活动拆出去单独结算，日体那张继续天天标今日完成。"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "sm dim",
+					children: "勾上要拆出去的 —— 选中的会变成一张新单，没选的留在原单。"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "itemlist",
+					children: order.items.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+						className: "item",
+						style: {
+							cursor: "pointer",
+							alignItems: "center",
+							gap: "10px"
+						},
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+								className: "chk",
+								type: "checkbox",
+								"aria-label": `拆出 ${item.name}`,
+								checked: picked.includes(item.id),
+								onChange: (event) => setPicked((current) => event.target.checked ? [...current, item.id] : current.filter((id) => id !== item.id))
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "item__main",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "item__title",
+									children: [item.name, item.is_daily ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, {
+										text: "每天做",
+										tone: "jade"
+									}) : null]
+								}), item.spec ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "tbl__meta",
+									children: item.spec
+								}) : null]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "item__right",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "item__fig",
+									children: `¥${fmtMoney(item.amount)}`
+								})
+							})
+						]
+					}, item.id))
+				}),
+				hasPay ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "field",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+						className: "lbl",
+						htmlFor: "split-pay",
+						children: `收款怎么分（这张单已收 ¥${fmtMoney(order.paid_total)}）`
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
+						id: "split-pay",
+						className: "sel",
+						"aria-label": "收款怎么分",
+						value: payMode,
+						onChange: (event) => setPayMode(event.target.value),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+							value: "proportional",
+							children: "按金额比例分到两张单（推荐）"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+							value: "keep",
+							children: "全部留在原单"
+						})]
+					})]
+				}) : null,
+				hasProgress ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "field",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+						className: "lbl",
+						htmlFor: "split-progress",
+						children: `进度时间线（现有 ${order.progress.length} 条）`
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
+						id: "split-progress",
+						className: "sel",
+						"aria-label": "进度时间线怎么处理",
+						value: progMode,
+						onChange: (event) => setProgMode(event.target.value),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+							value: "keep",
+							children: "留在原单"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+							value: "move",
+							children: "跟到新单"
+						})]
+					})]
+				}) : null,
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note note--warn",
+					children: hint
+				})
+			]
+		})
+	});
+}
+function shareProgress(order, ctx) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShareModal, {
+		order,
+		ctx,
+		close
+	}), `order-share-${order.id}`);
+}
+function ShareModal({ order, ctx, close }) {
+	const [text, setText] = (0, import_react.useState)("");
+	const [preview, setPreview] = (0, import_react.useState)("");
+	const [previewError, setPreviewError] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const [report, setReport] = (0, import_react.useState)(null);
+	(0, import_react.useEffect)(() => {
+		let alive = true;
+		api.get(`/api/orders/${order.id}/progress-report`).then((data) => {
+			if (!alive) return;
+			setText(data.text || "");
+			setReport(data.report);
+			try {
+				setPreview(renderProgressCard(data.report, { scale: 1 }).toDataURL("image/png"));
+			} catch (err) {
+				setPreviewError(err?.message || String(err));
+			}
+		}).catch((err) => {
+			if (!alive) return;
+			setPreviewError(err?.message || String(err));
+			toastErr(err);
+		});
+		return () => {
+			alive = false;
+		};
+	}, [order.id]);
+	async function doCopy() {
+		const ok = await copyText(text);
+		toast$1(ok ? "进度文字已复制，粘到微信里就能发" : "复制失败，请手动选中", ok ? "ok" : "err", 3200);
+	}
+	async function doImage() {
+		setBusy(true);
+		try {
+			const blob = await canvasToBlob(renderProgressCard(report, { scale: 2 }));
+			if (!blob) {
+				toast$1("这个浏览器不支持生成图片，请换 Chrome / Edge / Safari 试试", "err", 4200);
+				return;
+			}
+			const safe = String(report.orderNo || "订单").replace(/[\\/:*?"<>|]/g, "_");
+			downloadBlob(blob, `${report.shopName}-进度-${safe}.png`);
+			toast$1("图片已生成，去下载文件夹看看", "ok", 3200);
+		} catch (err) {
+			toastErr(err);
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Modal, {
+		title: "分享进度",
+		wide: true,
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "关闭"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				disabled: !text,
+				onClick: doCopy,
+				children: "复制文字"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "button",
+				disabled: !report || busy,
+				"data-loading": busy ? "1" : void 0,
+				onClick: doImage,
+				children: "存成图片"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "stack",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "muted sm",
+					style: { margin: "0" },
+					children: "发给客户看这次做到哪了。图片发微信最好用，文字想改两句就复制。"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "sechead",
+					style: { marginBottom: "0" },
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "图片" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "sechead__note",
+						children: "一张竖图，直接发"
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "report-preview",
+					children: preview ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+						src: preview,
+						alt: "进度汇报预览"
+					}) : previewError ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "hint",
+						children: `图片预览画不出来：${previewError}`
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "dim sm",
+						children: "正在画图…"
+					})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "sechead",
+					style: { marginBottom: "0" },
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "文字" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "sechead__note",
+						children: "复制了就能粘"
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("pre", {
+					className: "report-text",
+					children: text
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note",
+					children: "进度、资源变化、截图张数都会带上。截图原图发不进这张图里，图上只会写「附 N 张截图」，图还是自己另发。"
+				})
+			]
 		})
 	});
 }
@@ -27990,7 +35015,7 @@ function Shell({ me, onLogout }) {
 		try {
 			const saved = await openCustomerForm();
 			if (saved) {
-				toast(`客户「${saved.name}」已建档`, "ok");
+				toast$1(`客户「${saved.name}」已建档`, "ok");
 				await refresh();
 			}
 		} catch (err) {
@@ -28008,7 +35033,7 @@ function Shell({ me, onLogout }) {
 		try {
 			await openQuoteComposer({
 				navigate,
-				app: { reload: refresh }
+				onReload: refresh
 			});
 		} catch (err) {
 			toastErr(err);
@@ -28116,7 +35141,7 @@ function Shell({ me, onLogout }) {
 								type: "button",
 								onClick: createQuote,
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps(15) }), "做报价单"]
-							}) : current.seg === "finance" && !route.sub ? null : current.seg === "media" && !route.sub ? null : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							}) : current.seg === "finance" && !route.sub ? null : current.seg === "media" && !route.sub ? null : current.seg === "settings" && !route.sub ? null : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 								className: "refactor-button refactor-button--primary refactor-top-action",
 								type: "button",
 								onClick: () => navigate("/orders/new"),
@@ -28140,12 +35165,31 @@ function Shell({ me, onLogout }) {
 						onNew: () => navigate("/orders/new"),
 						onReload: refresh,
 						reloadKey
-					}) : current.seg === "customers" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CustomersPage, {
+					}) : current.seg === "orders" && (route.sub === "new" || route.query.get("new") === "1") ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrdersPage, {
+						route,
+						navigate,
+						onNew: () => navigate("/orders/new"),
+						onReload: refresh,
+						reloadKey
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrderComposerRoute, {
+						navigate,
+						onReload: refresh
+					})] }) : current.seg === "orders" && route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OrderDetailPage, {
+						route,
+						navigate,
+						onReload: refresh,
+						reloadKey
+					}, `order-${route.sub}-${reloadKey}`) : current.seg === "customers" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CustomersPage, {
 						route,
 						navigate,
 						onNew: createCustomer,
 						reloadKey
-					}) : current.seg === "games" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GamesPage, {
+					}) : current.seg === "customers" && route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CustomerDetailPage, {
+						route,
+						navigate,
+						onReload: refresh,
+						reloadKey
+					}, `customer-${route.sub}-${reloadKey}`) : current.seg === "games" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GamesPage, {
 						route,
 						navigate,
 						onNew: createGame,
@@ -28167,7 +35211,17 @@ function Shell({ me, onLogout }) {
 						onNew: createQuote,
 						onReload: refresh,
 						reloadKey
-					}) : current.seg === "media" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MediaPage, { reloadKey }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LegacyPage, {
+					}) : current.seg === "media" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MediaPage, { reloadKey }) : current.seg === "vault" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(VaultPage, {
+						route,
+						navigate,
+						onReload: refresh,
+						reloadKey
+					}) : current.seg === "settings" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SettingsPage, {
+						route,
+						navigate,
+						onReload: refresh,
+						reloadKey
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LegacyPage, {
 						route,
 						item: current,
 						setActions: updateActions,
@@ -28218,25 +35272,25 @@ function App() {
 	(0, import_react.useEffect)(() => {
 		load();
 	}, [load]);
-	if (loading || !me) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+	if (loading || !me) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "refactor-boot",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Activity, {
 			className: "spin",
 			...iconProps(20)
 		}), "正在连接本机工作台…"]
-	});
-	if (!me.authenticated) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gate, {
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToastHost, {})] });
+	if (!me.authenticated) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gate, {
 		setup: !me.setup,
 		onDone: load
-	});
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Shell, {
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToastHost, {})] });
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Shell, {
 		me,
 		onLogout: async () => {
 			await api.post("/api/auth/logout");
-			toast("已退出登录", "ok");
+			toast$1("已退出登录", "ok");
 			load();
 		}
-	});
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToastHost, {})] });
 }
 var AppErrorBoundary = class extends import_react.Component {
 	state = { error: null };

@@ -30,6 +30,12 @@ export function setVaultListener(fn) {
   onVaultChange = fn
 }
 
+/** 退订。React 页面卸载时要用，否则每进一次保险箱就多一个监听器 */
+export function removeVaultListener(fn) {
+  vaultListeners = vaultListeners.filter((item) => item !== fn)
+  if (onVaultChange === fn) onVaultChange = vaultListeners[vaultListeners.length - 1] || null
+}
+
 /** 重建外壳时清掉旧监听，否则登出再登录会一直堆，还会往拆掉的按钮上写 */
 export function resetVaultListeners() {
   vaultListeners = []

@@ -1,7 +1,7 @@
-import React from 'react'
+﻿import React from 'react'
 import { Copy } from 'lucide-react'
 import { copyText } from '../lib/dom.js'
-import { toast } from '../lib/legacy-ui.js'
+import { toast } from './toast-store.js'
 
 /* ============================================================
    复制按钮（React 版）

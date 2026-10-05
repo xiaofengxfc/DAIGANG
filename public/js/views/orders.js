@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    订单：列表、下单台、详情
    下单那一刻把价格、套餐内容、增项全部冻成快照，以后改价不影响老单。
    ============================================================ */
@@ -24,6 +24,19 @@ import {
 import { orderTable, progressDrawer, paymentDrawer, statusDrawer, orderItemsList, progressTimeline, editProgressDrawer } from './orderbits.js'
 import { renderProgressCard } from '../progresscard.js'
 import { canvasToBlob, downloadBlob } from '../pricecard.js'
+// 开单试算只有一份：shared/order-calc.js（React 开单台也用它）。
+// 必须 import + export，不能只写 `export {} from` —— 那样本文件里没有本地绑定。
+import {
+  calcPicked,
+  dailyPlan,
+  defaultUnit,
+  gainSum,
+  gainTotal,
+  serviceDays,
+  svcIsDaily,
+  addDays,
+  unitPriceFor,
+} from '../../../shared/order-calc.js'
 
 /* ============================================================
    分享进度：文本发微信 / 图片发微信
@@ -105,109 +118,8 @@ async function shareProgress(order, ctx) {
    客户端试算（和服务器同一套口径，仅用于即时预览）
    ============================================================ */
 
-function unitPriceFor(service, tiers, qty) {
-  const list = (tiers || []).filter(Boolean)
-  for (const t of list) {
-    const lo = Number(t.min_qty) || 0
-    const hi = t.max_qty === null || t.max_qty === undefined || t.max_qty === '' ? Infinity : Number(t.max_qty)
-    if (qty >= lo && qty <= hi) return Number(t.unit_price) || 0
-  }
-  let pick = null
-  for (const t of [...list].sort((a, b) => Number(a.min_qty) - Number(b.min_qty))) {
-    if (qty >= (Number(t.min_qty) || 0)) pick = t
-  }
-  if (pick) return Number(pick.unit_price) || 0
-  return Number(service.base_price) || 0
-}
-
-const defaultUnit = (s) =>
-  s.unit_label || { fixed: '单', daily: '天', per_time: '次', per_unit: '个', package: '套' }[s.price_type] || '单'
-
-/**
- * 这个服务项大概要做多少天。按信息量从大到小推：
- *   1. 单位写成「30天」这种 → 取那个数 × 数量（你库里日体/精托/全托都是这种）
- *   2. 单位就是「天 / 日」→ 数量
- *   3. 按天计价但没写单位 → 数量
- *   4. 其它（单 / 次 / 层 / 个 / 套）→ 推不出来，返回 0（那就不自动填交付日期）
- */
-function serviceDays(svc, qty) {
-  const n = Number(qty) || 0
-  if (n <= 0) return 0
-  const unit = String(svc.unit_label || '').trim()
-  const m = /^(\d+(?:\.\d+)?)\s*[天日]$/.exec(unit)
-  if (m) return Number(m[1]) * n
-  if (unit === '天' || unit === '日') return n
-  if (!unit && svc.price_type === 'daily') return n
-  return 0
-}
-
-/** 'YYYY-MM-DD' 往后推 n 天 */
-function addDays(iso, n) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''))
-  if (!m) return ''
-  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
-  d.setDate(d.getDate() + Number(n))
-  const p = (x) => String(x).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
-}
-
-/** 大类/服务项两级的「每天都做」：服务项自己设了就听它的，没设（null）跟着大类走 */
-const svcIsDaily = (s) => (s.is_daily === null || s.is_daily === undefined ? Boolean(s._catDaily) : Boolean(s.is_daily))
-
-/**
- * 把若干 [货币名, 数量] 加起来写成一行。
- * 一个游戏一种货币，正常只有一种；真混了两种（跨游戏下单）就分着写、不硬加。
- */
-function gainSum(pairs) {
-  const byName = new Map()
-  for (const pair of pairs || []) {
-    if (!pair) continue
-    const [name, amount] = pair
-    if (!name || !Number.isFinite(amount) || amount <= 0) continue
-    byName.set(name, (byName.get(name) || 0) + amount)
-  }
-  if (!byName.size) return ''
-  return [...byName.entries()].map(([name, amount]) => `${name} ${fmtQty(amount)}`).join(' + ')
-}
-
-/**
- * 单子里这些明细加起来能让客户拿到多少货币。
- * 认的是快照里的 gain（下单那刻冻住的），所以之后改价格表不影响老单。
- */
-function gainTotal(items) {
-  return gainSum(
-    (items || [])
-      .map((it) => {
-        const g = it?.snapshot?.gain
-        if (!g || !g.name) return null
-        return [g.name, Number(g.amount || 0) * (Number(it.quantity) || 1)]
-      })
-      .filter(Boolean)
-  )
-}
-
-function calcPicked(picked, servicesById) {
-  let subtotal = 0
-  let addons = 0
-  const lines = []
-  for (const [id, sel] of picked) {
-    const svc = servicesById.get(id)
-    if (!svc) continue
-    const qty = Number(sel.quantity) || 1
-    const auto = unitPriceFor(svc, sel.tiers, qty)
-    const unit = sel.unitPrice === '' || sel.unitPrice === null || sel.unitPrice === undefined ? auto : Number(sel.unitPrice)
-    const base = unit * qty
-    let add = 0
-    for (const o of sel.options || []) {
-      if (!sel.optionIds.has(o.id)) continue
-      add += o.price_mode === 'percent' ? (base * Number(o.price)) / 100 : Number(o.price)
-    }
-    subtotal += base
-    addons += add
-    lines.push({ svc, qty, unit, base, add, amount: base + add })
-  }
-  return { lines, subtotal, addons }
-}
+/* 开单试算（阶梯价、单位、天数、增项合计）已经搬到 shared/order-calc.js，
+   上面 import 进来了。旧开单台和新 React 开单台共用一份口径。 */
 
 /* ============================================================
    下单台

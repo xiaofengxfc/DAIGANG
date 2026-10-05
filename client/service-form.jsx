@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import { api, PRICE_TYPES } from './lib/api.js'
-import { toast } from './lib/legacy-ui.js'
+import { toast } from './app/toast-store.js'
 import Drawer from './app/drawer.jsx'
 import { Field, SelectInput, TagsInput, TextArea, TextInput } from './app/fields.jsx'
 import { openOverlay } from './app/overlay-host.jsx'

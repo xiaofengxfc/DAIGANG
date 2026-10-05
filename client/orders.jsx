@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowUpRight, Check, Clock3, ListFilter, Plus, Search, Users, WalletCards } from 'lucide-react'
 import { api, ORDER_STATUS_LABEL, STATUS_TONE } from './lib/api.js'
 import { fmtDay, fmtMoney, remainInfo } from './lib/formatters.js'
-import { paymentDrawer, progressDrawer } from './lib/legacy-features.js'
+import { openPaymentForm } from './payment-form.jsx'
+import { openProgressForm } from './progress-form.jsx'
 
 const FILTERS = [
   { key: 'open', label: '在做的' },
@@ -78,8 +79,8 @@ function OrderRow({ order, navigate, onReload }) {
       <div className="orders-row__due"><DueLabel order={order} /></div>
       <div className="orders-row__money"><b>¥{fmtMoney(order.total)}</b><span className={due > 0.001 ? 'is-due' : ''}>{due > 0.001 ? `还差 ¥${fmtMoney(due)}` : '已结清'}</span></div>
       <div className="orders-row__actions" onClick={(event) => event.stopPropagation()}>
-        <button className="react-mini-button" type="button" title="记进度" onClick={() => progressDrawer(order, onReload)}><Clock3 {...iconProps(14)} /></button>
-        {due > 0.001 ? <button className="react-mini-button" type="button" title="记收款" onClick={() => paymentDrawer(order, onReload)}><WalletCards {...iconProps(14)} /></button> : null}
+        <button className="react-mini-button" type="button" title="记进度" onClick={() => openProgressForm(order, onReload)}><Clock3 {...iconProps(14)} /></button>
+        {due > 0.001 ? <button className="react-mini-button" type="button" title="记收款" onClick={() => openPaymentForm(order, onReload)}><WalletCards {...iconProps(14)} /></button> : null}
         <button className="react-mini-button" type="button" title="看详情" onClick={() => navigate(`/orders/${order.id}`)}><ArrowUpRight {...iconProps(14)} /></button>
       </div>
     </article>

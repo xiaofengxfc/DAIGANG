@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Archive, Gamepad2, Pencil, Plus, RefreshCw, Search, Trash2 } from 'lucide-react'
 import { api } from './lib/api.js'
 import { fmtDate } from './lib/formatters.js'
-import { toast, toastErr } from './lib/legacy-ui.js'
+import { toast, toastErr } from './app/toast-store.js'
 import { confirmDelete, confirmDialog } from './app/confirm.jsx'
 import { openGameForm } from './game-form.jsx'
 

@@ -8,39 +8,13 @@ import { api, STATUS_TONE, STATUS_FLOW } from '../../client/lib/api.js'
 
 /* ============================================================
    吐司
+   ------------------------------------------------------------
+   实现已经搬到 client/app/toast-store.js：React 那边（app/toast.jsx）
+   负责把它画出来，这里只转发。两边各弹各的话，屏幕上会同时出现
+   两个 .toasts 容器，位置一模一样、互相盖住。
    ============================================================ */
 
-let toastHost = null
-
-function ensureToastHost() {
-  if (!toastHost) {
-    toastHost = h('div.toasts', { role: 'status', 'aria-live': 'polite' })
-    document.body.appendChild(toastHost)
-  }
-  return toastHost
-}
-
-export function toast(message, tone = 'info', ms = 2600) {
-  const host = ensureToastHost()
-  const mark = tone === 'err' ? '!' : tone === 'ok' ? '✓' : '·'
-  const el = h(
-    `div.toast${tone === 'err' ? '.toast--err' : tone === 'ok' ? '.toast--ok' : ''}`,
-    h('span.toast__ico', mark),
-    h('span', message)
-  )
-  host.appendChild(el)
-  requestAnimationFrame(() => el.setAttribute('data-show', '1'))
-  setTimeout(() => {
-    el.removeAttribute('data-show')
-    setTimeout(() => el.remove(), 240)
-  }, ms)
-  return el
-}
-
-export const toastErr = (e) => {
-  const msg = typeof e === 'string' ? e : e && e.message ? e.message : '出错了'
-  toast(msg, 'err', 4200)
-}
+export { toast, toastErr } from '../../client/app/toast-store.js'
 
 /* ============================================================
    <dialog> 基座

@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, FileText, Plus, Search, Trash2 } from 'lucide-react'
 import { api } from './lib/api.js'
-import { fmtMoney, h, copyText } from './lib/dom.js'
-import { modal, toast, toastErr } from './lib/legacy-ui.js'
+import { fmtMoney, copyText } from './lib/dom.js'
+import Modal from './app/modal.jsx'
+import { openOverlay } from './app/overlay-host.jsx'
+import { toast, toastErr } from './app/toast-store.js'
 import { confirmDelete } from './app/confirm.jsx'
-import { openQuoteComposer } from './lib/legacy-features.js'
+import { openQuoteComposer } from './quote-composer.jsx'
 
 const iconProps = (size = 15) => ({ size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true })
 
@@ -34,7 +36,31 @@ export default function QuotesPage({ route, navigate, onNew, onReload, reloadKey
   const showText = async (quote) => {
     try {
       const result = await api.get(`/api/quotes/${quote.id}/text`)
-      modal({ title: `报价单文字 · ${quote.quote_no}`, wide: true, body: h('pre.plaintext.quotes-plaintext', result.text), actions: [{ label: '复制', tone: 'primary', keepOpen: true, onClick: async () => { const ok = await copyText(result.text); toast(ok ? '已复制' : '复制失败', ok ? 'ok' : 'err'); return false } }, { label: '关闭' }] })
+      // 文字版弹窗以前是旧 ui.js 的 modal()，现在换成 React 的（复制逻辑一样）
+      openOverlay((close) => (
+        <Modal
+          title={`报价单文字 · ${quote.quote_no}`}
+          wide
+          onClose={() => close(null)}
+          footer={
+            <>
+              <button className="btn" type="button" onClick={() => close(null)}>关闭</button>
+              <button
+                className="btn btn--primary"
+                type="button"
+                onClick={async () => {
+                  const ok = await copyText(result.text)
+                  toast(ok ? '已复制' : '复制失败', ok ? 'ok' : 'err')
+                }}
+              >
+                复制
+              </button>
+            </>
+          }
+        >
+          <pre className="plaintext quotes-plaintext">{result.text}</pre>
+        </Modal>
+      ), `quote-text-${quote.id}`)
     } catch (err) { toastErr(err) }
   }
 

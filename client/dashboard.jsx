@@ -1,10 +1,11 @@
-import React from 'react'
+﻿import React from 'react'
 import { ArrowUpRight, Check, Clock3, CreditCard, ListTodo, Plus, WalletCards } from 'lucide-react'
 import { api, ORDER_STATUS_LABEL, PAY_KIND_LABEL, PAY_METHOD_LABEL, STATUS_TONE } from './lib/api.js'
 import { fmtDay, fmtDayFull, fmtMoney, todayStr } from './lib/formatters.js'
-import { toast, toastErr } from './lib/legacy-ui.js'
+import { toast, toastErr } from './app/toast-store.js'
 import { confirmDelete } from './app/confirm.jsx'
-import { paymentDrawer, progressDrawer } from './lib/legacy-features.js'
+import { openPaymentForm } from './payment-form.jsx'
+import { openProgressForm } from './progress-form.jsx'
 
 const STATUS_LABEL = ORDER_STATUS_LABEL
 
@@ -85,8 +86,8 @@ function OrderRow({ order, navigate, onReload }) {
       <div className="react-order-row__progress">{order.progress_count ? `${order.progress_count} 条进度` : '还没记进度'}</div>
       <div className="react-order-row__money"><b>¥{fmtMoney(order.total)}</b><span className={due > 0.001 ? 'is-due' : ''}>{due > 0.001 ? `尾款 ¥${fmtMoney(due)}` : '已结清'}</span></div>
       <div className="react-order-row__actions" onClick={(event) => event.stopPropagation()}>
-        <button className="react-mini-button" type="button" title="记进度" onClick={() => progressDrawer(order, onReload)}><Clock3 {...iconProps(14)} /></button>
-        {due > 0.001 ? <button className="react-mini-button" type="button" title="记收款" onClick={() => paymentDrawer(order, onReload)}><WalletCards {...iconProps(14)} /></button> : null}
+        <button className="react-mini-button" type="button" title="记进度" onClick={() => openProgressForm(order, onReload)}><Clock3 {...iconProps(14)} /></button>
+        {due > 0.001 ? <button className="react-mini-button" type="button" title="记收款" onClick={() => openPaymentForm(order, onReload)}><WalletCards {...iconProps(14)} /></button> : null}
         <button className="react-mini-button" type="button" title="看详情" onClick={() => navigate(`/orders/${order.id}`)}><ArrowUpRight {...iconProps(14)} /></button>
       </div>
     </article>
@@ -112,7 +113,7 @@ function DashboardSide({ data, navigate, onReload }) {
   return (
     <div className="react-dashboard-side">
       <SideList title="停滞提醒" note="两天没记进度了" rows={data.stale_orders || []} renderRow={(order) => <button className="react-side-row" key={order.id} type="button" onClick={() => navigate(`/orders/${order.id}`)}><span><b>{order.order_no}</b><small>{order.customer_name || '散客'} · 上次 {fmtDay(order.last_progress_on)}</small></span><em>{order.idle_days} 天</em></button>} />
-      <SideList title="还没收齐" note="点一下就能记收款" rows={data.unpaid_orders || []} renderRow={(order) => <div className="react-side-row" key={order.id}><span><b>{order.order_no}</b><small>{order.customer_name || '散客'} · {order.title || '未填写标题'}</small></span><div><strong>¥{fmtMoney(order.due_total)}</strong><button className="react-mini-button" type="button" title="记收款" onClick={() => paymentDrawer(order, onReload)}><CreditCard {...iconProps(14)} /></button></div></div>} />
+      <SideList title="还没收齐" note="点一下就能记收款" rows={data.unpaid_orders || []} renderRow={(order) => <div className="react-side-row" key={order.id}><span><b>{order.order_no}</b><small>{order.customer_name || '散客'} · {order.title || '未填写标题'}</small></span><div><strong>¥{fmtMoney(order.due_total)}</strong><button className="react-mini-button" type="button" title="记收款" onClick={() => openPaymentForm(order, onReload)}><CreditCard {...iconProps(14)} /></button></div></div>} />
       <SideList title="最近收款" note="最新确认的资金记录" rows={data.recent_payments || []} renderRow={(payment) => <div className="react-side-row" key={payment.id}><span><b>{payment.customer_name || '散客'}</b><small>{payment.order_no || '未挂订单'} · {fmtDay(payment.paid_at)}</small></span><div><strong className={payment.kind === 'refund' ? 'is-refund' : 'is-paid'}>{payment.kind === 'refund' ? '−' : '+'}¥{fmtMoney(payment.amount)}</strong><button className="react-mini-button" type="button" title="删除这笔收款" onClick={async () => { const ok = await confirmDelete({ title: '删掉这笔收款？', message: `${payment.customer_name || '散客'} · ${PAY_KIND_LABEL[payment.kind] || payment.kind} ¥${fmtMoney(payment.amount)}` }); if (!ok) return; try { await api.del(`/api/payments/${payment.id}`); toast('已删除这笔收款', 'ok'); onReload() } catch (err) { toastErr(err) } }}><Check {...iconProps(14)} /></button></div></div>} />
     </div>
   )

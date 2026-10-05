@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { toastErr } from '../lib/legacy-ui.js'
+﻿import React, { useEffect, useState } from 'react'
+import { toastErr } from './toast-store.js'
 
 export default function LegacyPage({ route, item, setActions, onReload, counts, settings, vaultgate, navigate }) {
   const hostRef = React.useRef(null)
