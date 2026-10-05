@@ -520,7 +520,9 @@ DH260922-002  30天日体（拆出）        ¥80     ← 自己走完成 / 收�
 
 ```bash
 npm run test                      # 后端冒烟测试：自己起干净实例，跑完自己收尾（见下）
-npm run check                     # 闸门：语法自检 + 冒烟测试 + 构建前端
+npm run test:ui                   # 界面冒烟：真浏览器点一遍主要页面和抽屉（见下）
+npm run check                     # 闸门：语法自检 + 接口冒烟 + 构建前端
+npm run check:full                # 上面这些 + 界面冒烟，全量
 node scripts/check.mjs            # 只做语法自检：.mjs / .js 走 node --check，.jsx 走 rolldown
 node scripts/vision-selftest.mjs  # 屏幕识别自检：拿真截图测十一种分辨率的准确率
 node scripts/inspect.mjs          # 只读查看库里有什么（游戏/大类/服务项/订单…），不改任何东西
@@ -588,11 +590,35 @@ XFC_DATA_DIR=./data-smoke node server.mjs --port 8790 --local
 `npm run test` 还有两个开关：`XFC_SMOKE_KEEP=1` 跑完保留数据目录，`XFC_SMOKE_DATA_DIR=<目录>` 换一个目录
 （那个目录会被整个删掉重建，所以只接受 `data-smoke*` 这种名字，或者系统临时目录里的路径）。
 
+### 界面冒烟测试
+
+```bash
+npm run test:ui               # 约 40 秒：起实例 → 种一份最小数据 → 真浏览器点一遍
+npm run test:ui -- --shots    # 顺手把每个页面截一张图存到 shots/ui-smoke/
+```
+
+接口那 242 项断言看不见界面这一层：React 的列表页直接 import 旧模块里的抽屉和表单
+（`paymentDrawer`、`servicePeek`、`openQuoteComposer`…），这类调用**只有真点下去才会炸**，
+构建也看不出来。所以这里用无头 Edge 走一遍：
+
+- 登录页 → 登录 → 工作台外壳；
+- 总览 / 订单 / 客户 / 价格表 / 游戏 / 财务 / 报价单 / 自媒体，以及两个旧视图（保险箱、设置）：
+  每页都要渲染出内容、内容里有该有的字、**页面零报错**；
+- 四处关键交互：价格表「看服务详情」、订单「记收款」「记进度」、报价单顶部「做报价单」——
+  点下去必须开出抽屉，且抽屉里有该有的内容。
+
+机器上没装 Edge/Chrome 时会明确打印「跳过」并以 0 退出（不假装测过）；
+想指定浏览器用 `XFC_UI_BROWSER=<路径>`，换 CDP 端口用 `XFC_UI_CDP_PORT`。
+它的数据目录规则和 `npm run test` 一样：全绿删掉，有失败留着。
+
+> 它不在 `npm run check` 里：40 秒对提交前太慢，而且依赖机器上装了浏览器。
+> 想连它一起过就用 `npm run check:full`。
+
 ### 提交前的闸门
 
-`hooks/pre-commit` 会在提交前跑「语法自检 + 冒烟测试」，一条 `git config core.hooksPath hooks` 启用；
-急的时候 `git commit --no-verify` 跳过。它故意**不跑构建**（慢，而且会动 `public/dist`），
-想连构建一起过就用 `npm run check`。
+`hooks/pre-commit` 会在提交前跑「语法自检 + 接口冒烟」，一条 `git config core.hooksPath hooks` 启用；
+急的时候 `git commit --no-verify` 跳过。它故意**不跑构建、也不跑界面冒烟**（慢，而且构建会动 `public/dist`），
+想全量过一遍就用 `npm run check:full`。
 
 ---
 
@@ -796,8 +822,9 @@ src/
   server/app.mjs      应用工厂、鉴权、静态资源和生命周期
 client/               React 壳层、页面、共享客户端工具和过渡适配器
 public/               构建产物、旧业务模块与静态资源
-scripts/             运维与自检：check（语法）、smoke（接口冒烟）、smoke-run（自起实例）、shot（截图）
-hooks/pre-commit     提交前闸门：语法自检 + 冒烟测试（git config core.hooksPath hooks 启用）
+scripts/             运维与自检：check（语法）、smoke（接口冒烟）、smoke-run（自起实例）、
+                     ui-smoke（界面冒烟）、shot（截图）、lib/（测试实例与 CDP 客户端）
+hooks/pre-commit     提交前闸门：语法自检 + 接口冒烟（git config core.hooksPath hooks 启用）
 data/                 运行时生成：console.db + uploads/ + resource-icons/
 tools/ocr/            自动安装的本地 OCR 引擎（不进版本库）
 ```

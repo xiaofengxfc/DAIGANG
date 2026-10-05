@@ -1,11 +1,8 @@
 /**
  * 无头浏览器截图（CDP 驱动，零依赖）
  *
- * 为什么不用 --screenshot + --virtual-time-budget：
- *   实测这个 Edge 版本下，虚拟时间预算会在 fetch 落地之前就烧完，
- *   页面永远停在骨架屏 / 「正在加载」，截出来的是空壳。
- * 所以这里用 --remote-debugging-port 起一个真浏览器，
- * 用 Node 自带的 WebSocket 走 CDP：能等元素出现、能执行 JS、能截整页。
+ * 起浏览器、执行 JS、收页面报错这套逻辑在 scripts/lib/cdp.mjs 里，
+ * 跟 UI 冒烟（scripts/ui-smoke.mjs）共用。
  *
  * 用法：
  *   node scripts/shot.mjs --url http://127.0.0.1:8802 --password xxx \
@@ -23,9 +20,7 @@
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import { spawn } from 'node:child_process'
-
-const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+import { launchBrowser, sleep } from './lib/cdp.mjs'
 
 function parseArgs(argv) {
   const out = {}
@@ -60,131 +55,14 @@ const PASSWORD = args.password || ''
 const CLIP = args.clip ? String(args.clip).split(',').map(Number) : null
 
 const log = (...a) => console.log(...a)
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
-/* ---------------- CDP 小客户端 ---------------- */
-
-class CDP {
-  constructor(ws) {
-    this.ws = ws
-    this.id = 0
-    this.pending = new Map()
-    this.errors = []
-    ws.addEventListener('message', (ev) => {
-      const msg = JSON.parse(ev.data)
-      if (msg.id && this.pending.has(msg.id)) {
-        const { resolve, reject } = this.pending.get(msg.id)
-        this.pending.delete(msg.id)
-        if (msg.error) reject(new Error(msg.error.message))
-        else resolve(msg.result)
-        return
-      }
-      if (msg.method === 'Runtime.exceptionThrown') {
-        const d = msg.params?.exceptionDetails
-        this.errors.push(d?.exception?.description || d?.text || 'unknown')
-      }
-      if (msg.method === 'Runtime.consoleAPICalled' && msg.params?.type === 'error') {
-        this.errors.push(msg.params.args.map((a) => a.value ?? a.description ?? '').join(' '))
-      }
-    })
-  }
-
-  send(method, params = {}) {
-    const id = ++this.id
-    return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject })
-      this.ws.send(JSON.stringify({ id, method, params }))
-      setTimeout(() => {
-        if (this.pending.has(id)) {
-          this.pending.delete(id)
-          reject(new Error('CDP 超时: ' + method))
-        }
-      }, 30000)
-    })
-  }
-
-  /** 在页面里跑一段 JS，返回它的值（支持 await） */
-  async eval(expr) {
-    const r = await this.send('Runtime.evaluate', {
-      expression: expr,
-      awaitPromise: true,
-      returnByValue: true,
-      userGesture: true,
-    })
-    if (r.exceptionDetails) {
-      throw new Error('页面里报错: ' + (r.exceptionDetails.exception?.description || r.exceptionDetails.text))
-    }
-    return r.result?.value
-  }
-}
-
-/* ---------------- 起浏览器 ---------------- */
-
-const profile = path.resolve('.edge-cdp-' + PORT)
-fs.rmSync(profile, { recursive: true, force: true })
 fs.mkdirSync(path.dirname(path.resolve(OUT)), { recursive: true })
 
-const child = spawn(
-  EDGE,
-  [
-    '--headless=new',
-    '--disable-gpu',
-    '--no-sandbox',
-    '--disable-crashpad',
-    '--no-first-run',
-    '--disable-extensions',
-    '--hide-scrollbars',
-    `--remote-debugging-port=${PORT}`,
-    `--user-data-dir=${profile}`,
-    `--window-size=${WIDTH},${HEIGHT}`,
-    'about:blank',
-  ],
-  { stdio: 'ignore', detached: false }
-)
-
-let cdp = null
-const cleanup = async () => {
-  try {
-    if (cdp) await cdp.send('Browser.close')
-  } catch {}
-  try {
-    child.kill()
-  } catch {}
-  await sleep(300)
-  try {
-    fs.rmSync(profile, { recursive: true, force: true })
-  } catch {}
-}
-
 let code = 0
+let browser = null
 try {
-  /* 等 CDP 端口起来 */
-  let target = null
-  for (let i = 0; i < 100; i++) {
-    try {
-      const list = await fetch(`http://127.0.0.1:${PORT}/json/list`).then((r) => r.json())
-      target = list.find((t) => t.type === 'page' && t.webSocketDebuggerUrl)
-      if (target) break
-    } catch {}
-    await sleep(120)
-  }
-  if (!target) throw new Error('CDP 起不来（端口 ' + PORT + '）')
-
-  const ws = new WebSocket(target.webSocketDebuggerUrl)
-  await new Promise((res, rej) => {
-    ws.addEventListener('open', res)
-    ws.addEventListener('error', () => rej(new Error('WebSocket 连不上 CDP')))
-  })
-  cdp = new CDP(ws)
-
-  await cdp.send('Page.enable')
-  await cdp.send('Runtime.enable')
-  await cdp.send('Emulation.setDeviceMetricsOverride', {
-    width: WIDTH,
-    height: HEIGHT,
-    deviceScaleFactor: 1,
-    mobile: false,
-  })
+  browser = await launchBrowser({ port: PORT, width: WIDTH, height: HEIGHT, browserPath: args.browser || '' })
+  const { cdp } = browser
 
   /* 先落在站点根上，才能设 localStorage / 打登录接口 */
   await cdp.send('Page.navigate', { url: BASE + '/' })
@@ -284,6 +162,6 @@ try {
   console.error('截图失败：' + (err.message || err))
   code = 1
 } finally {
-  await cleanup()
+  if (browser) await browser.close()
 }
 process.exit(code)
