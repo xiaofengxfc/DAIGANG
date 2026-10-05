@@ -622,8 +622,11 @@ npm run test:ui -- --shots    # 顺手把每个页面截一张图存到 shots/ui
 ### 提交前的闸门
 
 `hooks/pre-commit` 会在提交前跑「语法自检 + 接口冒烟」，一条 `git config core.hooksPath hooks` 启用；
-急的时候 `git commit --no-verify` 跳过。它故意**不跑构建、也不跑界面冒烟**（慢，而且构建会动 `public/dist`），
+急的时候 `git commit --no-verify` 跳过。它故意**不跑构建、也不跑界面冒烟**（慢），
 想全量过一遍就用 `npm run check:full`。
+
+> `public/dist/` 不进版本库（构建产物），但界面冒烟跑的是磁盘上那一份，
+> 所以改完前端记得 `npm run build` 再 `npm run test:ui`，别拿旧产物测新代码。
 
 ---
 
@@ -828,8 +831,7 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 - **价格表整页**（`client/price.jsx` + 五个浮层模块）—— 大类表单、组合报价、
   服务项表单、阶梯价编辑器、套餐增项编辑器、服务项详情抽屉、导出器，全部换成 React；
 - **提示条**（`client/app/toast-store.js` + `client/app/toast.jsx`）—— 全站唯一一份
-  toast 实现，`public/js/ui.js` 反过来从它 re-export，旧视图和 React 页面弹的是
-  同一串提示，样式和时长不会再各走各的；
+  toast 实现：谁都能 `toast()`，由 `<ToastHost />` 统一画，样式和时长不会再各走各的；
 - **订单整页**（`client/order-composer.jsx` + `client/order-detail.jsx`）—— 开单台
   （挑服务、算钱、自动到期日、改明细）和订单详情（记进度、记收款、推进状态、
   分享进度、拆单、删单）都换成 React，`/orders`、`/orders/new`、`/orders/:id`
@@ -854,13 +856,16 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 原生 `<dialog>`，浏览器管 top layer，Esc 只关最上面那层），滚动锁也交给宿主统一管
 （里层关掉不能把外层的锁也解了）。防连点靠 key：同一把 key 已经在最上面就先关掉再开。
 
-`public/js/views/` 下那批旧视图（`price.js` / `orders.js` / `orderbits.js` /
-`settings.js` …）**现在没有任何页面在用了**，留着只为一件事：界面冒烟里的
-「新旧对比」还拿它们当参照物 —— `/price/:id`、`/games/:id` 这两条子路由由旧视图
-接管，测试从那儿开出旧表单，和 React 那份并排量宽度、字段顺序、控件类型。
-等这些参照也不需要了（金标准形状全写死之后），整批删掉即可，删的时候
-`client/lib/legacy-features.js`、`client/lib/legacy-ui.js` 和 `main.jsx` 里那几个
-`view:` 一起清掉就行。
+**旧栈已经清零**：`public/js/views/` 那一整批命令式视图（`price.js` / `orders.js` /
+`orderbits.js` / `settings.js` …约 6000 行）、`client/lib/legacy-features.js`、
+`client/lib/legacy-ui.js`、`public/js/ui.js`、`public/js/dom.js` 全删了。
+`main.jsx` 里不再有 `view:` 适配器、`setActions` 管线和 `vaultgate` 传参；
+认不出来的地址走 `client/app/not-found.jsx`（以前会偷偷退回总览）。
+`public/js/` 现在只剩三个真正被 React 调用的文件：`pricecard.js`（画价格表图片）、
+`progresscard.js`（画进度卡）、`vaultgate.js`（保险箱状态，只剩状态没有界面 ——
+弹窗都在 `client/vault-gate.jsx`）。
+`public/dist/` 也从版本库里拿出来了（`.gitignore` 里有一条）：`npm start` 的
+`prestart` 会自动 build，不必再把 1.2MB 的产物提交进 git。
 
 新表单照着这四块写：
 
@@ -876,29 +881,24 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 - `client/app/confirm.jsx` —— 确认框（`confirmDialog` / `confirmDelete`）；
 - `client/app/copy-button.jsx` —— 「复制价款」这类复制按钮。
 
-**怎么确认「搬完长得一样」**：`npm run test:ui` 会把新旧两个表单在同一个浏览器里
-各开一次，量出抽屉宽度、字段顺序、半宽/整宽、控件类型、每个字段的宽度、页脚按钮，
+**怎么确认「搬完长得一样」**：搬一页的时候，`npm run test:ui` 会把新旧两个表单在同一个
+浏览器里各开一次，量出抽屉宽度、字段顺序、半宽/整宽、控件类型、每个字段的宽度、页脚按钮，
 逐项对比（差 1px 以上就算不一致）。这比截图目测可靠 —— 结构和类名悄悄变了会当场红。
 
 这一步真抓到过东西：旧引擎对自定义字段会补一个 `field--full`（`ui.js` 里
 `if (f.width !== 'half') node.classList.add('field--full')`），漏掉它两个下拉就会
 挤进网格的一列里 —— 光看代码看不出来，量宽度 358 vs 173 一眼就看出来了。
 
-`npm run test:ui` 里有两段专门盯这条缝：一段是「点开抽屉」（价格表看详情、报价单做单），
-一段是「填表提交」（新 React 表单 + 旧命令式表单各走一遍，从校验、提交、抽屉关闭一路
-查到列表刷新和接口落库）。另外还有几段是「这一页独有的钱」：组合报价的合计和复制出去的
-报价单格式、阶梯价改动有没有落库、导出图片/Word 的文件名（把 `<a download>` 的点击截下来
-看，不真往磁盘写）。
-
-一页的旧视图不再当参照物之后，就改用 `checkFormShape()`：把那一页表单的**金标准形状**
+旧实现删干净之后就没得对比了，改用 `checkFormShape()`：把那一页表单的**金标准形状**
 （标题、宽窄、字段顺序与半宽/整宽、控件类型、页脚按钮）写死在测试里，以后谁把字段挪走、
-加宽、换个控件类型，当场红。游戏表单、客户表单、订单的记进度/记收款、开单台、报价单做单、
-凭证表单、店铺信息、改密码、导出器现在都是这么盯的 —— 结构照样是量出来的，只是参照物
-从「旧实现」换成了「上一次认可的结构」。
+加宽、换个控件类型，当场红。现在**每一页都是这么盯的** —— 结构照样是量出来的，
+只是参照物从「旧实现」换成了「上一次认可的结构」。
 
-界面冒烟还会顺手查那些「不该漏的东西」：订单详情记完收款要能对上 `已收`、删完要剩几笔，
-保险箱锁着的时候明文一个字都不能出现在列表里，客户档案上点一张单要能进订单详情，
-复制出去的文字要能对上合计。
+`npm run test:ui` 里还有几段是「这一页独有的钱」：组合报价的合计和复制出去的报价单格式、
+阶梯价改动有没有落库、导出图片/Word 的文件名（把 `<a download>` 的点击截下来看，
+不真往磁盘写）、财务页八个格子对不对得上接口。另外那些「不该漏的东西」也在里面：
+订单详情记完收款要能对上 `已收`、删完要剩几笔，保险箱锁着的时候明文一个字都不能出现在
+列表里，客户档案上点一张单要能进订单详情，乱敲地址要落到兜底页。
 
 ```
 server.mjs            服务入口：应用启动
@@ -924,12 +924,12 @@ src/
 client/
   main.jsx            React 壳层：导航、主题、路由、顶栏动作
   app/                壳层零件：路由、浮层宿主（overlay-host）、抽屉与字段原语、
-                      toast（toast-store + toast.jsx）、旧视图适配器（迁移收尾后删）
-  lib/                共享客户端工具（api、格式化）与旧模块适配器（legacy-ui / legacy-features）
-  *.jsx               各业务页面（订单、客户、价格表、游戏、财务、报价单、保险箱、自媒体…）
+                      toast（toast-store + toast.jsx）、兜底页（not-found）
+  lib/                共享客户端工具（api、dom、formatters）
+  *.jsx               各业务页面（订单、客户、价格表、游戏、财务、报价单、保险箱、设置、自媒体…）
 shared/
-  order-calc.js       订单口径的纯函数（阶梯单价、日体、可得、进度、收款），新旧视图共用一份
-public/               构建产物、旧业务模块（只剩界面冒烟的参照物）与静态资源
+  order-calc.js       订单口径的纯函数（阶梯单价、日体、可得、进度、收款）
+public/               静态资源 + 三个仍被 React 调用的画图/状态模块（dist 不进版本库）
 scripts/             运维与自检：check（语法）、smoke（接口冒烟）、smoke-run（自起实例）、
                      ui-smoke（界面冒烟）、shot（截图）、lib/（测试实例与 CDP 客户端）
 hooks/pre-commit     提交前闸门：语法自检 + 接口冒烟（git config core.hooksPath hooks 启用）

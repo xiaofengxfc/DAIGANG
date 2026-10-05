@@ -416,30 +416,6 @@ function checkFormShape(ok, form, expected, prefix = '') {
 }
 
 /**
- * 把「新 React 表单」和「旧命令式表单」并排比一遍。
- * 迁移最怕的是结构悄悄变了（少个字段、宽度不对、页脚按钮换了），
- * 这些东西肉眼不一定当场看得出来，量出来比最实在。
- */
-function compareForms(ok, legacy, fresh, { prefix = '', checkTitle = true, checkFoot = true } = {}) {
-  ok(`${prefix}两边都量到了`, Boolean(legacy) && Boolean(fresh))
-  if (!legacy || !fresh) return
-  if (checkTitle) ok(`${prefix}标题一致`, legacy.title === fresh.title, `${legacy.title} / ${fresh.title}`)
-  ok(`${prefix}抽屉宽窄一致（wide=${fresh.wide}）`, legacy.wide === fresh.wide, `${legacy.wide} / ${fresh.wide}`)
-  const legacyLabels = legacy.fields.map((f) => f.label)
-  const freshLabels = fresh.fields.map((f) => f.label)
-  ok(`${prefix}字段数量和顺序一致`, JSON.stringify(legacyLabels) === JSON.stringify(freshLabels), `旧 ${legacyLabels.join('/')} 新 ${freshLabels.join('/')}`)
-  ok(`${prefix}半宽 / 整宽布局一致`, JSON.stringify(legacy.fields.map((f) => f.half)) === JSON.stringify(fresh.fields.map((f) => f.half)))
-  ok(`${prefix}控件类型一致`, JSON.stringify(legacy.fields.map((f) => f.control)) === JSON.stringify(fresh.fields.map((f) => f.control)), `旧 ${legacy.fields.map((f) => f.control).join('/')} 新 ${fresh.fields.map((f) => f.control).join('/')}`)
-  ok(`${prefix}提示文字都在`, JSON.stringify(legacy.fields.map((f) => f.hint)) === JSON.stringify(fresh.fields.map((f) => f.hint)))
-  ok(`${prefix}抽屉宽度一致`, Math.abs(legacy.drawer.w - fresh.drawer.w) <= 1, `${legacy.drawer.w} / ${fresh.drawer.w}`)
-  const widthDiff = legacy.fields
-    .map((f, i) => ({ 字段: f.label, 旧: f.box.w, 新: fresh.fields[i] ? fresh.fields[i].box.w : null }))
-    .filter((d) => d.新 === null || Math.abs(d.旧 - d.新) > 1)
-  ok(`${prefix}每个字段的宽度一致`, widthDiff.length === 0, `宽度不同的字段：${JSON.stringify(widthDiff)}`)
-  if (checkFoot) ok(`${prefix}页脚按钮一致`, JSON.stringify(legacy.foot) === JSON.stringify(fresh.foot), `旧 ${legacy.foot.join('/')} 新 ${fresh.foot.join('/')}`)
-}
-
-/**
  * 量一个抽屉表单的结构和几何。
  * 用来把「新 React 表单」和「旧命令式表单」放在一起比 —— 迁移最怕的是
  * 结构变了（少个字段、宽度不对、页脚按钮换了），肉眼不一定当场看得出来。
@@ -559,6 +535,20 @@ async function main() {
     let index = 1
     for (const route of ROUTES) {
       await checkRoute(cdp, route, index++)
+    }
+
+    // 旧视图全删了之后，没匹配上的地址走的是兜底页
+    {
+      const before = cdp.errors.length
+      await gotoHash(cdp, '/nope')
+      const shown = await waitFor(cdp, `Boolean(document.querySelector('.react-panel-empty'))`, { tries: 30, interval: 200 })
+      ok('乱敲地址给的是兜底页', shown)
+      const text = await cdp.eval(`document.querySelector('.react-panel-empty')?.innerText?.replace(/\\s+/g, ' ') || ''`)
+      ok('兜底页说清了「没有这一页」', text.includes('没有这一页'), text)
+      ok('兜底页把地址也写出来了', text.includes('/nope'), text)
+      await cdp.eval(`[...document.querySelectorAll('.react-panel-empty button')].find((b) => b.textContent.includes('回工作台')).click()`)
+      ok('点「回工作台」能回到总览', await waitFor(cdp, `location.hash === '#/' || location.hash === ''`, { tries: 30, interval: 200 }), await cdp.eval('location.hash'))
+      ok('兜底页也没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
     }
 
     section('点开抽屉')
@@ -1000,20 +990,17 @@ async function main() {
     {
       const before = cdp.errors.length
 
-      // 旧大类表单：/price/1 是旧价格表视图接管的那条路由
-      await gotoHash(cdp, '/price/1')
-      ok('旧价格表视图里有「新建大类」', await waitFor(cdp, `[...document.querySelectorAll('.react-main__inner button')].some((b) => b.textContent.includes('新建大类'))`, { tries: 30, interval: 200 }))
-      await clickInMain(cdp, '新建大类')
-      ok('旧大类表单打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
-      const legacy = await measureForm(cdp)
-      await cdp.eval(`document.querySelector(${JSON.stringify(OPEN_DRAWER)}).close()`)
-      await sleep(300)
-
+      // 旧视图删掉之后没得对比了，形状写死在这儿
       await gotoHash(cdp, '/price')
       await clickInMain(cdp, '新建大类')
       ok('React 大类表单打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
-      const fresh = await measureForm(cdp)
-      compareForms(ok, legacy, fresh)
+      checkFormShape(ok, await measureForm(cdp), {
+        title: '新建大类',
+        wide: true,
+        fields: ['大类名称｜整', '属于哪个游戏｜整', '｜整', '备注｜整', '大类提示｜整'],
+        controls: ['INPUT', 'SELECT', 'INPUT', 'INPUT', 'TEXTAREA'],
+        foot: ['取消', '保存'],
+      }, '大类表单：')
 
       await cdp.eval(`document.querySelector(${JSON.stringify(SUBMIT)}).click()`)
       await sleep(300)
@@ -1097,22 +1084,17 @@ async function main() {
     {
       const before = cdp.errors.length
 
-      // 旧表单：/price/1 由旧价格表视图接管；服务行藏在大类里，先点开大类
-      await gotoHash(cdp, '/price/1')
-      ok('旧价格表里有大类', await waitFor(cdp, `Boolean(document.querySelector('.pcat__head'))`, { tries: 30, interval: 200 }))
-      await cdp.eval(`document.querySelector('.pcat__head').click()`)
-      ok('展开大类后能看到服务行', await waitFor(cdp, `Boolean(document.querySelector('button[title="改这个服务项"]'))`, { tries: 25, interval: 200 }))
-      await cdp.eval(`document.querySelector('button[title="改这个服务项"]').click()`)
-      ok('旧服务项表单打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
-      const legacy = await measureForm(cdp)
-      await cdp.eval(`document.querySelector(${JSON.stringify(OPEN_DRAWER)}).close()`)
-      await sleep(300)
-
+      // 旧视图删掉之后没得对比了，形状写死在这儿
       await gotoHash(cdp, '/price')
       await cdp.eval(`document.querySelector('button[title="编辑服务"]').click()`)
       ok('React 服务项表单打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
-      const fresh = await measureForm(cdp)
-      compareForms(ok, legacy, fresh)
+      checkFormShape(ok, await measureForm(cdp), {
+        title: '改服务项',
+        wide: true,
+        fields: ['服务名｜整', '属于哪个游戏｜整', '放在哪个大类下｜整', '计价方式', '单位', '基准单价（元）', '起订量', '封顶量（留空不限）', '可获得货币（星声）', '说明｜整', '每天都做', '套餐包含内容｜整', '状态', '内部备注'],
+        controls: ['INPUT', 'SELECT', 'SELECT', 'SELECT', 'INPUT', 'INPUT', 'INPUT', 'INPUT', 'INPUT', 'TEXTAREA', 'SELECT', 'INPUT', 'SELECT', 'INPUT'],
+        foot: ['取消', '保存'],
+      }, '服务项表单：')
 
       // 游戏↔大类联动：清掉大类再提交，应当被「先选大类」拦住（旧版是自定义块报的错）
       await fillField(cdp, `${OPEN_DRAWER} #service-category`, '')

@@ -242,9 +242,13 @@ function VaultBar({ vault, onChanged }) {
           className="btn"
           type="button"
           onClick={async () => {
-            await lockVault()
-            toast('已落锁', 'ok')
-            onChanged()
+            try {
+              await lockVault()
+              toast('已落锁', 'ok')
+              onChanged()
+            } catch (err) {
+              toastErr(err)
+            }
           }}
         >
           <LockKeyhole {...iconProps(15)} />落锁

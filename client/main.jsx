@@ -6,6 +6,7 @@ import {
   ArrowUpRight,
   ClipboardList,
   Command,
+  Compass,
   FileText,
   Gamepad2,
   LayoutDashboard,
@@ -25,7 +26,6 @@ import {
   WalletCards,
 } from 'lucide-react'
 import { api } from './lib/api.js'
-import { ordersView, customersView, priceView, gamesView, vaultView, financeView, quotesView, settingsView, vaultgate } from './lib/legacy-features.js'
 import { openQuoteComposer } from './quote-composer.jsx'
 import DashboardPage from './dashboard.jsx'
 import OrdersPage from './orders.jsx'
@@ -39,8 +39,8 @@ import MediaPage from './media.jsx'
 import VaultPage from './vault.jsx'
 import SettingsPage from './settings.jsx'
 import { toast, toastErr } from './app/toast-store.js'
-import LegacyPage from './app/legacy-page.jsx'
-import ActionsSlot from './app/actions-slot.jsx'
+
+import NotFound from './app/not-found.jsx'
 import OverlayHost from './app/overlay-host.jsx'
 import ToastHost from './app/toast.jsx'
 import { OrderComposerRoute } from './order-composer.jsx'
@@ -52,15 +52,15 @@ import './styles.css'
 
 const NAV = [
   { seg: '', label: '总览', icon: LayoutDashboard, group: '工作台' },
-  { seg: 'orders', label: '订单', icon: ClipboardList, group: '工作台', view: ordersView, badge: (c) => c.open },
-  { seg: 'customers', label: '客户', icon: Users, group: '业务', view: customersView },
-  { seg: 'price', label: '价格表', icon: Tags, group: '业务', view: priceView },
-  { seg: 'games', label: '游戏', icon: Gamepad2, group: '业务', view: gamesView },
-  { seg: 'vault', label: '保险箱', icon: LockKeyhole, group: '工具', view: vaultView, badge: (c) => c.credentials },
-  { seg: 'finance', label: '财务', icon: WalletCards, group: '工具', view: financeView },
-  { seg: 'quotes', label: '报价单', icon: FileText, group: '工具', view: quotesView },
+  { seg: 'orders', label: '订单', icon: ClipboardList, group: '工作台', badge: (c) => c.open },
+  { seg: 'customers', label: '客户', icon: Users, group: '业务' },
+  { seg: 'price', label: '价格表', icon: Tags, group: '业务' },
+  { seg: 'games', label: '游戏', icon: Gamepad2, group: '业务' },
+  { seg: 'vault', label: '保险箱', icon: LockKeyhole, group: '工具', badge: (c) => c.credentials },
+  { seg: 'finance', label: '财务', icon: WalletCards, group: '工具' },
+  { seg: 'quotes', label: '报价单', icon: FileText, group: '工具' },
   { seg: 'media', label: '自媒体', icon: Radio, group: '工具', badge: (c) => c.media_pending },
-  { seg: 'settings', label: '设置', icon: Settings2, group: '工具', view: settingsView },
+  { seg: 'settings', label: '设置', icon: Settings2, group: '工具' },
 ]
 
 const NAV_BY_SEG = new Map(NAV.map((item) => [item.seg, item]))
@@ -252,14 +252,10 @@ function NavItem({ item, active, count, onClick }) {
 function Shell({ me, onLogout }) {
   const [route, setRoute] = useState(parseRoute())
   const [theme, setTheme] = useState(() => localStorage.getItem('xfc.theme') || 'dark')
-  const [actions, setActions] = useState([])
   const [counts, setCounts] = useState({})
   const [dashboard, setDashboard] = useState(null)
   const [settings, setSettings] = useState(me.settings || {})
   const [reloadKey, setReloadKey] = useState(0)
-  const updateActions = useCallback((...nodes) => {
-    setActions(nodes.flat(Infinity).filter(Boolean))
-  }, [])
 
   useEffect(() => {
     const onHash = () => setRoute(parseRoute())
@@ -320,7 +316,8 @@ function Shell({ me, onLogout }) {
     refresh()
   }, [refresh])
 
-  const current = NAV_BY_SEG.get(route.seg) || NAV[0]
+  // 认不出来的地址不偷偷退回总览 —— 抬头和正文都明说「没有这一页」
+  const current = NAV_BY_SEG.get(route.seg) || (route.seg ? { seg: route.seg, label: '没有这一页', icon: Compass } : NAV[0])
   const groups = ['工作台', '业务', '工具']
   const toggleTheme = () => setTheme((value) => (value === 'light' ? 'dark' : 'light'))
 
@@ -356,12 +353,12 @@ function Shell({ me, onLogout }) {
         <div className="react-topbar__tools">
           <span className="react-online"><i />本机运行</span>
           <button className="react-icon-button" type="button" title="刷新数据" onClick={refresh}><RefreshCw {...iconProps(17)} /></button>
-          {actions.length ? <ActionsSlot nodes={actions} /> : current.seg === 'customers' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createCustomer}><Plus {...iconProps(15)} />新建客户</button> : current.seg === 'games' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createGame}><Plus {...iconProps(15)} />新建游戏</button> : current.seg === 'price' && !route.sub ? null : current.seg === 'quotes' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createQuote}><Plus {...iconProps(15)} />做报价单</button> : current.seg === 'finance' && !route.sub ? null : current.seg === 'media' && !route.sub ? null : current.seg === 'settings' && !route.sub ? null : <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={() => go('/orders/new')}><Plus {...iconProps(15)} />开新单</button>}
+          {current.seg === 'customers' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createCustomer}><Plus {...iconProps(15)} />新建客户</button> : current.seg === 'games' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createGame}><Plus {...iconProps(15)} />新建游戏</button> : current.seg === 'price' && !route.sub ? null : current.seg === 'quotes' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createQuote}><Plus {...iconProps(15)} />做报价单</button> : current.seg === 'finance' && !route.sub ? null : current.seg === 'media' && !route.sub ? null : current.seg === 'settings' && !route.sub ? null : <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={() => go('/orders/new')}><Plus {...iconProps(15)} />开新单</button>}
         </div>
       </header>
       <main className="react-main">
         <div className="react-main__inner">
-          {current.seg === '' ? <DashboardPage data={dashboard} navigate={go} onReload={refresh} /> : current.seg === 'orders' && !route.sub && route.query.get('new') !== '1' ? <OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'orders' && (route.sub === 'new' || route.query.get('new') === '1') ? <><OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /><OrderComposerRoute navigate={go} onReload={refresh} /></> : current.seg === 'orders' && route.sub ? <OrderDetailPage key={`order-${route.sub}-${reloadKey}`} route={route} navigate={go} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'customers' && !route.sub ? <CustomersPage route={route} navigate={go} onNew={createCustomer} reloadKey={reloadKey} /> : current.seg === 'customers' && route.sub ? <CustomerDetailPage key={`customer-${route.sub}-${reloadKey}`} route={route} navigate={go} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'games' && !route.sub ? <GamesPage route={route} navigate={go} onNew={createGame} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'price' && !route.sub ? <PricePage route={route} navigate={go} onNewGame={createGame} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'finance' && !route.sub ? <FinancePage route={route} navigate={go} reloadKey={reloadKey} /> : current.seg === 'quotes' && !route.sub ? <QuotesPage route={route} navigate={go} onNew={createQuote} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'media' && !route.sub ? <MediaPage reloadKey={reloadKey} /> : current.seg === 'vault' && !route.sub ? <VaultPage route={route} navigate={go} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'settings' && !route.sub ? <SettingsPage route={route} navigate={go} onReload={refresh} reloadKey={reloadKey} /> : <LegacyPage key={`${route.seg}/${route.sub}?${route.query.toString()}-${reloadKey}`} route={route} item={current} setActions={updateActions} onReload={refresh} counts={counts} settings={settings} vaultgate={vaultgate} navigate={go} />}
+          {current.seg === '' ? <DashboardPage data={dashboard} navigate={go} onReload={refresh} /> : current.seg === 'orders' && !route.sub && route.query.get('new') !== '1' ? <OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'orders' && (route.sub === 'new' || route.query.get('new') === '1') ? <><OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /><OrderComposerRoute navigate={go} onReload={refresh} /></> : current.seg === 'orders' && route.sub ? <OrderDetailPage key={`order-${route.sub}-${reloadKey}`} route={route} navigate={go} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'customers' && !route.sub ? <CustomersPage route={route} navigate={go} onNew={createCustomer} reloadKey={reloadKey} /> : current.seg === 'customers' && route.sub ? <CustomerDetailPage key={`customer-${route.sub}-${reloadKey}`} route={route} navigate={go} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'games' && !route.sub ? <GamesPage route={route} navigate={go} onNew={createGame} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'price' && !route.sub ? <PricePage route={route} navigate={go} onNewGame={createGame} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'finance' && !route.sub ? <FinancePage route={route} navigate={go} reloadKey={reloadKey} /> : current.seg === 'quotes' && !route.sub ? <QuotesPage route={route} navigate={go} onNew={createQuote} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'media' && !route.sub ? <MediaPage reloadKey={reloadKey} /> : current.seg === 'vault' && !route.sub ? <VaultPage route={route} navigate={go} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'settings' && !route.sub ? <SettingsPage route={route} navigate={go} onReload={refresh} reloadKey={reloadKey} /> : <NotFound route={route} navigate={go} />}
         </div>
       </main>
       <nav className="react-mobile-tabs" aria-label="移动端导航">
