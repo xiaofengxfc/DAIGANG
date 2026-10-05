@@ -29,6 +29,7 @@ import { lock, status as vaultStatus } from '../vault.mjs'
 import { registerAll } from '../routes/index.mjs'
 import { stopMediaExecutor } from '../media-deps.mjs'
 import { dispatchDueScheduledTasks } from '../routes/media.mjs'
+import { ensureEnginesProbed } from '../ocr.mjs'
 import { MEDIA_SCHEDULER_INTERVAL_MS } from '../config.mjs'
 
 const PUBLIC_PATHS = new Set(['/api/auth/me', '/api/auth/login', '/api/setup', '/api/health'])
@@ -40,6 +41,9 @@ function initialize() {
   migrate()
   registerAll()
   initialized = true
+  // 顺手探一次引擎（不阻塞启动）。Umi-OCR 分最高，但「在不在」只有真发过请求
+  // 才知道；不先探一次的话，冷启动后它一律显示「未安装」，识别也轮不到它。
+  void ensureEnginesProbed().catch(() => {})
 }
 
 function clientIP(req) {

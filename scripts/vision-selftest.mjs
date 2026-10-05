@@ -17,12 +17,14 @@
    ============================================================ */
 
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
+import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { decodePNG } from '../src/imgmatch.mjs'
 import { resampleBilinear } from '../src/vision.mjs'
-import { recognizeFrame, recognizeImageFile, ocrTopBand, templateStatus, loadTemplates } from '../src/screen.mjs'
-import { ocrStatus } from '../src/ocr.mjs'
+import { recognizeFrame, recognizeImageFile, ocrTopBand, templateStatus, loadTemplates, grabScreen } from '../src/screen.mjs'
+import { ensureEnginesProbed } from '../src/ocr.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const SAMPLE = path.join(ROOT, 'shots', 'samples', 'weapon-list.png')
@@ -49,15 +51,91 @@ const ALL_SIZES = [
 ]
 const SIZES = QUICK ? [ALL_SIZES[1], ALL_SIZES[5]] : ALL_SIZES
 
-if (!fs.existsSync(SAMPLE)) {
-  console.log(`跳过：没有样例图 ${path.relative(ROOT, SAMPLE)}（把一张游戏顶栏截图放进去就能跑）`)
-  process.exit(0)
+/* ============================================================
+   截屏自检：截出来的必须是**整屏**，不能是被 DPI 虚拟化裁掉的一块。
+
+   为什么单独有这一条：scripts/grab.ps1 以前没做 DPI 感知，在 150% 缩放的
+   2560x1600 屏上它以为屏幕是 1707x1067，CopyFromScreen 就只抓了左上角那一块
+   （不是整屏缩小）。而游戏顶栏的资源图标在画面宽度 ~89% 处，正好全落在被裁掉的
+   部分里 —— 于是一个数字都认不出来。上面那些分辨率全对也没用，因为自检喂的是
+   图片文件、界面冒烟也不会真去截屏，这个 bug 一直没被测到。
+
+   判据：用 scripts/screen-info.ps1 问系统要主屏的**真实显示模式**
+   （EnumDisplaySettings，不受 DPI 虚拟化影响 —— 而 GetSystemMetrics / Screen.Bounds
+   在不感知 DPI 的进程里给的是 1707x1067 这种虚拟值，拿它比对等于自己跟自己比），
+   再和截出来的图比。不一致就说明截屏那条路又退回虚拟化了。
+   截不了屏（无桌面 / 权限）就跳过，不算失败。
+   ============================================================ */
+
+const SCREEN_INFO_PS1 = path.join(ROOT, 'scripts', 'screen-info.ps1')
+
+function physicalScreenSize() {
+  if (process.platform !== 'win32') return null
+  const ps = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', SCREEN_INFO_PS1], {
+    encoding: 'utf8',
+    timeout: 30000,
+    windowsHide: true,
+  })
+  const m = /(\d+)\s*x\s*(\d+)/.exec(String(ps.stdout || ''))
+  return m ? { width: Number(m[1]), height: Number(m[2]) } : null
 }
 
-const st = ocrStatus()
+const grabTmp = path.join(os.tmpdir(), `xfc-selftest-grab-${process.pid}.png`)
+let captured = null
+let grabError = ''
+try {
+  const g = await grabScreen(grabTmp)
+  if (!g.ok) grabError = g.error || '截屏失败'
+  else {
+    try {
+      captured = decodePNG(fs.readFileSync(grabTmp))
+    } catch (err) {
+      grabError = `截到的图自己解不了像素：${err.message}`
+    }
+  }
+} catch (err) {
+  grabError = err.message
+} finally {
+  try {
+    fs.unlinkSync(grabTmp)
+  } catch {
+    /* 清不掉就算了 */
+  }
+}
+
+const phys = captured ? physicalScreenSize() : null
+const virtualized =
+  captured && phys && captured.width < phys.width && [1.25, 1.5, 1.75, 2, 2.25, 2.5, 3].some((f) => Math.abs(phys.width / captured.width - f) < 0.05)
+let captureFailure = ''
+if (!captured) {
+  console.log(`截屏自检：跳过（${grabError}）`)
+} else if (virtualized) {
+  captureFailure =
+    `截出来的画面只有 ${captured.width}x${captured.height}，而这块屏的物理分辨率是 ${phys.width}x${phys.height}` +
+    `（差 ${(phys.width / captured.width).toFixed(2)} 倍）—— 截屏没做 DPI 感知，只抓到了左上角一块。` +
+    '游戏顶栏的资源图标在画面宽度 ~89% 处，会被整个裁掉，一个数字都认不出来。检查 scripts/grab.ps1 的 DPI 那一段。'
+  console.log(`截屏自检：失败 —— ${captureFailure}`)
+} else {
+  console.log(
+    `截屏自检：截到 ${captured.width}x${captured.height}` +
+      (phys ? `，物理屏 ${phys.width}x${phys.height} —— 整屏，DPI 感知正常` : '（问不到物理屏尺寸，跳过比对）')
+  )
+}
+console.log('')
+
+if (!fs.existsSync(SAMPLE)) {
+  console.log(`跳过：没有样例图 ${path.relative(ROOT, SAMPLE)}（把一张游戏顶栏截图放进去就能跑）`)
+  // 截屏那条是独立的，没有样例图也该管住它
+  process.exit(captureFailure ? 1 : 0)
+}
+
+// 真探一次（Umi-OCR 在不在只有发过请求才知道），这样自检用的引擎
+// 和实际识别时用的引擎是同一个 —— 不然冷启动时会拿着 RapidOCR 跑，
+// 报出来的引擎名也是错的。
+const st = await ensureEnginesProbed()
 if (!st.available) {
   console.log('跳过：这台机器上没有可用的 OCR 引擎')
-  process.exit(0)
+  process.exit(captureFailure ? 1 : 0)
 }
 
 const tpl = templateStatus()
@@ -116,7 +194,7 @@ const wideSilent = rows.filter((r) => r.silent_wrong && r.silent_wrong.length).f
 
 if (AS_JSON) {
   console.log(JSON.stringify({ templates: tpl, engines: { engine: st.engine, name: st.engine_name }, rows, pass, total, widePass, wideTotal, entry }, null, 2))
-  process.exit(pass === total && !entry.error ? 0 : 1)
+  process.exit(pass === total && !entry.error && !captureFailure ? 0 : 1)
 }
 
 console.log(`引擎：${st.engine_name || st.engine}    图标模板：${tpl.items.map((i) => `${i.key}(${i.w}×${i.h},${i.from})`).join(' ')}`)
@@ -142,16 +220,18 @@ if (wideTotal) {
 }
 console.log(`真实入口 recognizeImageFile：${entry.error ? '失败 ' + entry.error : JSON.stringify(entry.resources) + ' 引擎=' + entry.engine}`)
 
-// 通过线只压在两件真事上：
+// 通过线压在三件真事上：
 //   1. 常规比例必须全对（这是「任何分辨率都能用」的承诺）；
-//   2. 不许崩、不许静默给出明显不合理的位数。
+//   2. 不许崩、不许静默给出明显不合理的位数；
+//   3. 截屏必须是整屏（不然上面全对也没用，真用起来一个都认不出来）。
 // 超宽那条上限算已知情况，只报告不判失败。
 const absurd = rows.filter((r) => Object.entries(r.got).some(([k, v]) => v !== undefined && v !== null && String(v).length > 9))
-const ok = pass === total && !entry.error && !absurd.length
+const ok = pass === total && !entry.error && !absurd.length && !captureFailure
 if (!ok) {
+  if (captureFailure) console.log(`\n失败（截屏）：${captureFailure}`)
   if (absurd.length) console.log(`\n失败：${absurd.map((r) => r.size).join('、')} 上出现了明显不合理的位数（>9 位）`)
-  else if (pass !== total) console.log('\n失败：常规比例下有分辨率没认对（见上面标 ✗ 的那些）')
-  else console.log('\n失败：真实入口没跑通')
+  if (pass !== total) console.log('\n失败：常规比例下有分辨率没认对（见上面标 ✗ 的那些）')
+  if (entry.error) console.log('\n失败：真实入口没跑通')
   process.exit(1)
 }
 console.log('\n通过')

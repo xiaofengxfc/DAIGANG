@@ -524,7 +524,7 @@ npm run test:ui                   # 界面冒烟：真浏览器点一遍主要�
 npm run check                     # 闸门：语法自检 + 接口冒烟 + 构建前端
 npm run check:full                # 上面这些 + 界面冒烟，全量
 node scripts/check.mjs            # 只做语法自检：.mjs / .js 走 node --check，.jsx 走 rolldown
-node scripts/vision-selftest.mjs  # 屏幕识别自检：拿真截图测十一种分辨率的准确率
+node scripts/vision-selftest.mjs  # 屏幕识别自检：先核对截屏是不是整屏，再拿真截图测十一种分辨率的准确率
 node scripts/inspect.mjs          # 只读查看库里有什么（游戏/大类/服务项/订单…），不改任何东西
 node scripts/reset-password.mjs   # 忘了登录密码时用：清掉密码，下次启动回到初始化引导
 node scripts/reset-password.mjs 我的新密码    # 或者直接设一个新密码（≥6 位）
@@ -653,6 +653,15 @@ npm run test:ui -- --shots    # 顺手把每个页面截一张图存到 shots/ui
 4. **每个数字要认到两次以上（跨帧投票）才填进表单**。两次不一致就接着看，
    到时间还没凑够就留空 —— 认不准的时候它绝不硬凑一个数字。
 
+截屏这一步还有一条不显眼但致命的规矩：**截到的必须是整屏，而且跟 Windows 的
+显示缩放无关**。`scripts/grab.ps1` 会先把自己标成 DPI 感知，再去问屏幕尺寸 ——
+少了这一步，在 150% 缩放的 2560×1600 屏上它以为屏幕只有 1707×1067，
+`CopyFromScreen` 就只抓了**左上角那一块**（不是整屏缩小）；而上面那个锚点在画面
+宽度 ~89% 处，正好整个落在被裁掉的部分里，于是一个数字都认不出来。
+`vision-selftest` 里有一条**截屏自检**专门守这件事：拿 `scripts/screen-info.ps1`
+问来的真实显示模式（`EnumDisplaySettings`，不受 DPI 虚拟化影响）跟截出来的图比，
+对不上就直接判失败。
+
 实测（同一台机器、同一张截图缩到不同尺寸）：
 
 | 分辨率 | 认出来的星声 | 认出来的贝币 |
@@ -675,9 +684,11 @@ npm run test:ui -- --shots    # 顺手把每个页面截一张图存到 shots/ui
 
 第一次认某个分辨率约 1 秒（要找锚点定标），同一个窗口之后每帧 60~130ms。
 
-> 改动识别相关代码（`src/vision.mjs` / `src/screen.mjs` / `src/ocr.mjs`）之后，
-> 跑一下 `node scripts/vision-selftest.mjs` —— 它拿 `shots/samples/` 里的真截图
-> 把这十一种分辨率过一遍，能立刻看出哪一档退化了。
+> 改动识别相关代码（`src/vision.mjs` / `src/screen.mjs` / `src/ocr.mjs` /
+> `scripts/grab.ps1`）之后，跑一下 `node scripts/vision-selftest.mjs` ——
+> 它先真截一次屏核对「截到的是不是整屏」（显示缩放变了、截屏脚本退回 DPI 不感知，
+> 都会在这里当场报出来），再拿 `shots/samples/` 里的真截图把这十一种分辨率过一遍，
+> 能立刻看出哪一档退化了。
 > 没有样例图它会自己跳过，不会让 `node scripts/check.mjs` 失败。
 
 ### 想认得更全，装一个本地 OCR 引擎（推荐，能一键装）
@@ -689,7 +700,12 @@ npm run test:ui -- --shots    # 顺手把每个页面截一张图存到 shots/ui
 **怎么装：设置 → 屏幕识别 → 安装选项 → 点「自动安装」。**
 它会自己从 GitHub 官方 Release 下载、解压到 `tools\ocr\`、然后自动切过去用，
 界面上有下载进度和日志（70MB 的包看网络，可能要几分钟）。装完点「自检一下」
-可以确认它真的跑得起来。
+可以确认它真的跑得起来 —— 它是**真认一张小图**，缺运行库、CPU 不支持 AVX、
+杀软拦了这些都会当场现原形。Umi-OCR 是手动装的，「自检一下」查的是它的本地
+HTTP 服务在不在，没开服务会直接告诉你该怎么开。
+
+网络卡住也不会一直转圈：**45 秒没收到数据**就会停下来，告诉你「多半是 GitHub
+连不上，挂个代理重试，或者照下载页手动装」；总时长也封了 30 分钟。
 
 | 顺序 | 引擎 | 能不能一键装 | 说明 |
 | --- | --- | --- | --- |
@@ -778,6 +794,9 @@ npm run test:ui -- --shots    # 顺手把每个页面截一张图存到 shots/ui
    不到 26px 高（超宽分辨率下常见），对着游戏核一遍；装了上面那个引擎就不会再提示。
 3. **换了游戏大版本、图标重画了？** 设置 → 屏幕识别 → 自备一个图标模板，
    给一张顶栏截图 + 图标所在的方框（x/y/宽/高），它会当场抠出来存下。
+4. **一个数字都认不出来（连「没配上数字的」都没有）？** 那是截屏这一层的问题，
+   不是识别的阈值问题：跑 `node scripts/vision-selftest.mjs`，第一条「截屏自检」
+   会直接告诉你截到的是不是整屏（显示器缩放不是 100% 时最容易踩这个）。
 
 想自己确认「换分辨率还认不认得出」，跑 `node scripts/vision-selftest.mjs`。
 
@@ -938,7 +957,9 @@ shared/
   order-calc.js       订单口径的纯函数（阶梯单价、日体、可得、进度、收款）
 public/               静态资源 + 三个仍被 React 调用的画图/状态模块（dist 不进版本库）
 scripts/             运维与自检：check（语法）、smoke（接口冒烟）、smoke-run（自起实例）、
-                     ui-smoke（界面冒烟）、shot（截图）、lib/（测试实例与 CDP 客户端）
+                     ui-smoke（界面冒烟）、shot（截图）、vision-selftest（识别+截屏自检）、
+                     grab.ps1（截屏，先做 DPI 感知）、screen-info.ps1（真实显示模式，
+                     用来核对截屏是不是整屏）、ocr.ps1（Windows 自带 OCR）、lib/（测试实例与 CDP 客户端）
 hooks/pre-commit     提交前闸门：语法自检 + 接口冒烟（git config core.hooksPath hooks 启用）
 data/                 运行时生成：console.db + uploads/ + resource-icons/
 tools/ocr/            自动安装的本地 OCR 引擎（不进版本库）

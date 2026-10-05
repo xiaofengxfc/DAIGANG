@@ -5,7 +5,7 @@ import { db, setSetting, stamp, nextSerialNo } from '../db.mjs'
 import { get, post, patch, del, saveDataURL, setBodyLimit } from '../http.mjs'
 import { UPLOAD_DIR, needsRestart, ROOT, MAX_OCR_IMAGE_BYTES } from '../config.mjs'
 import { bad, notFound, fail, int, num, money, clampStr, nowISO, localDate, localMonth, bizDate, parseJSON } from '../util.mjs'
-import { ocrAvailable, ocrImage, extractResources, ocrStatus, probeEngines, ocrEngines } from '../ocr.mjs'
+import { ocrImage, extractResources, probeEnginesStatus, ensureEnginesProbed, ocrEngines } from '../ocr.mjs'
 import { installOptions, installEngine, installStatus, extractorStatus, releasePage, INSTALL_SPECS, engineHealth, cleanupTmp } from '../ocr-install.mjs'
 import { recognizeScreenOnce, recognizeImageFile, resetVotes, screenAvailable, templateStatus, loadTemplates, extractIconTemplate, TEMPLATE_FILE, SCREEN_RESOURCES, MIN_SCORE } from '../screen.mjs'
 import { decodePNG, encodePNG } from '../imgmatch.mjs'
@@ -428,7 +428,9 @@ export function register() {
    * 认出来的只是「猜」，前端会让人核对后再填，不直接写库。
    */
   post('/api/ocr', async (ctx) => {
-    if (!ocrAvailable()) fail(400, '这台机器上没有可用的 OCR（Windows 自带引擎或本地 OCR 程序，二者有一即可）', 'no_ocr')
+    // 识别前先把引擎状态探一次：不然 Umi-OCR 明明开着也轮不到它（见 /api/ocr/status 的注释）
+    const st = await ensureEnginesProbed()
+    if (!st.available) fail(400, '这台机器上没有可用的 OCR（Windows 自带引擎或本地 OCR 程序，二者有一即可）', 'no_ocr')
     const { name, buf } = saveDataURL(ctx.body.data_url, 'ocr', { maxBytes: MAX_OCR_IMAGE_BYTES })
     const ext = /\.(jpe?g|webp)$/i.test(name) ? path.extname(name) : '.png'
     const tmp = path.join(os.tmpdir(), `xfc-ocr-src-${process.pid}-${Date.now()}${ext}`)
@@ -468,7 +470,12 @@ export function register() {
    */
   get('/api/ocr/status', async (ctx) => {
     const probe = String(ctx.query.probe || '') === '1'
-    const st = probe ? await probeEngines({ force: true }) : ocrStatus()
+    // probe=1 是用户点了「重新检测」，强制真探一次。
+    // 不 probe 也要保证「Umi-OCR 在不在」是刚探过的：ocrEngines() 是同步的，
+    // 冷启动时它一律说 Umi-OCR 未安装 —— 于是设置页上半截说「未安装」、
+    // 下半截「安装选项」（真探过）说「已装好」，同一屏上打架；识别也永远
+    // 轮不到 Umi-OCR。ensureEnginesProbed 带 TTL 缓存，不会每次都白等。
+    const st = probe ? await probeEnginesStatus({ force: true }) : await ensureEnginesProbed()
     return { ...st, screen: process.platform === 'win32', templates: templateStatus(), resources: SCREEN_RESOURCES, min_score: MIN_SCORE }
   })
 
@@ -478,7 +485,9 @@ export function register() {
    * 返回里 agreed 是过了票的、pending 是还在核对的，前端两种都要显示。
    */
   post('/api/ocr/screen', async (ctx) => {
-    if (!ocrAvailable()) fail(400, '这台机器上用不了屏幕识别（需要有可用的 OCR）', 'no_screen')
+    // 同上：看屏幕之前先探一次，别让首选引擎白白闲置
+    const st = await ensureEnginesProbed()
+    if (!st.available) fail(400, '这台机器上用不了屏幕识别（需要有可用的 OCR）', 'no_screen')
     const r = await recognizeScreenOnce({
       id: clampStr(ctx.body.session, 40) || 'default',
       minVotes: Math.max(1, Math.min(6, int(ctx.body.min_votes, 2) || 2)),
@@ -528,8 +537,8 @@ export function register() {
     return r
   })
 
-  /** 环境自检：这个引擎的可执行文件到底跑不跑得起来 */
-  post('/api/ocr/install/health', (ctx) => {
+  /** 环境自检：这个引擎到底跑不跑得起来（Umi-OCR 是探它的本地 HTTP 服务） */
+  post('/api/ocr/install/health', async (ctx) => {
     const id = clampStr(ctx.body.engine, 20)
     if (!INSTALL_SPECS[id]) fail(400, `不认识的引擎：${id}`, 'bad_engine')
     return engineHealth(id)

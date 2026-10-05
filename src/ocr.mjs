@@ -908,6 +908,39 @@ export async function probeEngines({ force = false, timeoutMs = 1200 } = {}) {
   return engineCache
 }
 
+/**
+ * Umi-OCR 在不在，只有真发一次请求才知道；而 ocrEngines() 是同步的，
+ * 只能读到「上一次探出来的结果」。
+ *
+ * 这一条以前没有，于是冷启动之后：
+ *   · 设置页上面说「Umi-OCR 未安装」，下面「安装选项」（它会真探）说「已装好」，
+ *     同一屏上自相矛盾；
+ *   · 识别也永远轮不到 Umi-OCR（它分最高、最好用），只能退到 RapidOCR；
+ *   · 用户点「重新检测」才把这些纠正过来。
+ *
+ * 所以凡是「要给人看引擎状态」和「马上要开始识别」的地方，都先过
+ * ensureEnginesProbed()：缓存够新就直接用，冷掉/过期就真探一次（心跳请求很便宜）。
+ */
+const UMI_PROBE_TTL_MS = 60 * 1000
+let umiProbedAt = 0
+
+/** 真探一次，返回公开状态（available / engine / engine_name …） */
+export async function probeEnginesStatus({ force = false, timeoutMs = 1200 } = {}) {
+  try {
+    await probeEngines({ force, timeoutMs })
+  } catch {
+    /* 探不动就用手上的缓存，别把调用方拖崩 */
+  }
+  umiProbedAt = Date.now()
+  return ocrStatus()
+}
+
+/** 状态够新就直接给，冷启动或过期就真探一次 */
+export async function ensureEnginesProbed({ maxAgeMs = UMI_PROBE_TTL_MS, timeoutMs = 1200 } = {}) {
+  if (umiProbedAt && Date.now() - umiProbedAt < maxAgeMs) return ocrStatus()
+  return probeEnginesStatus({ timeoutMs })
+}
+
 function safeExists(p) {
   try {
     return fs.existsSync(p)

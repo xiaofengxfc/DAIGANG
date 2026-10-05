@@ -24,7 +24,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { spawn, spawnSync } from 'node:child_process'
 import { ROOT } from './config.mjs'
-import { CONSOLE_OCR, CONSOLE_CLI, probeEngines, ocrEngines, rememberEngineBin, recordedEngineBin } from './ocr.mjs'
+import { CONSOLE_OCR, CONSOLE_CLI, probeEngines, probeEnginesStatus, ocrEngines, rememberEngineBin, recordedEngineBin } from './ocr.mjs'
 
 const TOOLS_DIR = path.join(ROOT, 'tools', 'ocr')
 const TMP_DIR = path.join(TOOLS_DIR, '.tmp')
@@ -330,6 +330,16 @@ function publicJob(job) {
   }
 }
 
+/**
+ * 下载卡死的两条线。
+ *
+ * 以前这里没有任何超时：GitHub 的 Release 资产在国内经常是「连上了但不传数据」，
+ * 于是任务永远停在「下载 xx 0%」，界面上就是一直转圈、既不出结果也不报错。
+ * 现在「多久没收到数据」和「总共最多下多久」都设上限，卡住了给一句能照做的话。
+ */
+const DOWNLOAD_IDLE_MS = 45 * 1000
+const DOWNLOAD_MAX_MS = 30 * 60 * 1000
+
 /** 开始下载（返回 job，调用方轮询 installStatus） */
 function startDownload(job, asset) {
   return new Promise((resolve) => {
@@ -342,7 +352,34 @@ function startDownload(job, asset) {
     log(job, `开始下载 ${asset.name}（${asset.size ? Math.round(asset.size / 1024 / 1024) + 'MB' : '大小未知'}）`)
 
     const ac = new AbortController()
+    let settled = false
+    let idleTimer = null
+    let maxTimer = null
+    const finish = (r) => {
+      if (settled) return
+      settled = true
+      clearTimeout(idleTimer)
+      clearTimeout(maxTimer)
+      resolve(r)
+    }
+    // 每收到一块数据就把「卡住」的计时往后推
+    const armIdle = () => {
+      clearTimeout(idleTimer)
+      idleTimer = setTimeout(() => {
+        ac.abort()
+        finish({
+          ok: false,
+          error: `下载卡住了（${DOWNLOAD_IDLE_MS / 1000} 秒没收到数据）—— 多半是 GitHub 连不上。挂个代理再试，或者照设置页「下载页」手动下载后解压到 tools\\ocr\\`,
+        })
+      }, DOWNLOAD_IDLE_MS)
+    }
+    maxTimer = setTimeout(() => {
+      ac.abort()
+      finish({ ok: false, error: `下载超过 ${DOWNLOAD_MAX_MS / 60000} 分钟还没完，先放弃了。网络好一点再试，或手动下载` })
+    }, DOWNLOAD_MAX_MS)
     job._abort = () => ac.abort()
+    armIdle()
+
     fetch(asset.url, { headers: { 'User-Agent': UA['User-Agent'] }, signal: ac.signal })
       .then(async (res) => {
         if (!res.ok) throw new Error(`下载失败 HTTP ${res.status}`)
@@ -352,17 +389,18 @@ function startDownload(job, asset) {
           for await (const chunk of res.body) {
             fs.writeSync(fd, chunk)
             job.received += chunk.length
+            armIdle()
           }
         } finally {
           fs.closeSync(fd)
         }
         job.step = '下载完成'
         log(job, `下载完成（${Math.round(job.received / 1024 / 1024)}MB）`)
-        resolve({ ok: true, path: outPath })
+        finish({ ok: true, path: outPath })
       })
       .catch((err) => {
         log(job, `下载出错：${err.message}`)
-        resolve({ ok: false, error: /abort/i.test(String(err.message)) ? '下载被取消' : err.message })
+        finish({ ok: false, error: /abort/i.test(String(err.message)) ? '下载被取消' : err.message })
       })
   })
 }
@@ -566,10 +604,15 @@ function copyDir(src, dest) {
  * 缺 VC 运行库、CPU 不支持 AVX、杀软拦了、模型文件没跟着搬过来 ——
  * 这些都会在真跑的时候现原形。1×1 的图认不出字是正常的，
  * 只要它给出 `code:100`（没认到文字）就算通了。
+ *
+ * Umi-OCR 没有命令行可执行文件，它的「能不能用」等于「本地 HTTP 服务在不在」，
+ * 所以走另一条路（见 umiHealth）。旧版这里直接报「这个引擎没有可自检的
+ * 可执行文件」，而卡片上又写着「已装好」，用户点了只会看到一句没头没脑的报错。
  */
-export function engineHealth(engineId) {
+export async function engineHealth(engineId) {
   const spec = INSTALL_SPECS[engineId]
-  if (!spec || spec.manual) return { ok: false, engine: engineId, error: '这个引擎没有可自检的可执行文件' }
+  if (!spec) return { ok: false, engine: engineId, error: `不认识的引擎：${engineId}` }
+  if (spec.manual) return umiHealth(engineId)
   const bin = engineBinPath(engineId)
   if (!bin) return { ok: false, engine: engineId, error: '还没找到可执行文件（没装？）' }
 
@@ -600,6 +643,30 @@ export function engineHealth(engineId) {
         /* 清不掉就算了 */
       }
     }
+  }
+}
+
+/**
+ * Umi-OCR 的自检：探它的本地 HTTP 服务（和识别时用的是同一个心跳）。
+ * 给的是「连上了没有 + 怎么办」，而不是一句「没有可自检的可执行文件」。
+ */
+async function umiHealth(engineId) {
+  const st = await probeEnginesStatus({ force: true, timeoutMs: 2000 })
+  const eng = st.engines.find((e) => e.id === engineId)
+  if (eng && eng.available) {
+    return {
+      ok: true,
+      engine: engineId,
+      alive: true,
+      service: `127.0.0.1:${st.umi_port}`,
+      verdict: `本地服务在线（127.0.0.1:${st.umi_port}），识别会优先用它`,
+    }
+  }
+  return {
+    ok: false,
+    engine: engineId,
+    alive: false,
+    error: '没连上 Umi-OCR 的本地服务。先打开 Umi-OCR，在它自己的设置里把「HTTP 服务」打开（默认 127.0.0.1:1224），再回来点「重新检测」',
   }
 }
 
@@ -721,28 +788,44 @@ export function cleanupTmp() {
 /**
  * 安装选项清单：给设置页「安装选项」那一块用。
  * 只列**还没装**的；已装的就没什么好装的了。
+ *
+ * 状态一律以 probeEnginesStatus() 为准（真的发过请求），
+ * 不然同一屏上会跟上面的「屏幕识别」引擎列表打架。
  */
 export async function installOptions() {
-  const st = await probeEngines()
+  const st = await probeEnginesStatus()
   const ex = extractorStatus()
   const opts = []
   for (const id of ['rapidocr', 'paddleocr', 'umi']) {
     const spec = INSTALL_SPECS[id]
     const eng = st.engines.find((e) => e.id === id)
+    const installed = Boolean(eng && eng.available)
+    // Umi-OCR 的「能用」= 它的本地 HTTP 服务在不在，跟别的引擎不是一回事：
+    // 装好了但没开服务，说「未安装」会让人以为要重装一遍。所以说清是「服务没开」。
+    const serviceOff = id === 'umi' && !installed
     opts.push({
       id,
       name: spec.name,
       license: spec.license,
       size: spec.size,
-      note: spec.note,
+      note: serviceOff
+        ? '没连上本地服务：打开 Umi-OCR，在它自己的设置里把「HTTP 服务」打开（默认 127.0.0.1:1224），再回上面点「重新检测」。'
+        : spec.note,
       manual: Boolean(spec.manual),
-      installed: Boolean(eng && eng.available),
+      installed,
+      state_label: installed ? '已装好' : serviceOff ? '服务没开' : '未安装',
       path: (eng && eng.path) || recordedBin(id) || '',
       release_page: releasePage(spec),
       env_key: spec.envKey,
       can_auto: !spec.manual && Boolean(ex.lzma),
-      blocked_reason: spec.manual ? '官方包是自解压 exe，最后一步要你自己点' : ex.lzma ? '' : ex.hint,
+      blocked_reason: spec.manual
+        ? installed
+          ? ''
+          : '官方包是自解压 exe，装完还要在它自己的设置里打开「HTTP 服务」'
+        : ex.lzma
+          ? ''
+          : ex.hint,
     })
   }
-  return { options: opts, extractor: ex, engine: st.preferred, engine_name: st.engines.find((e) => e.id === st.preferred)?.name || '' }
+  return { options: opts, extractor: ex, engine: st.engine, engine_name: st.engine_name }
 }

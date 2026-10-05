@@ -662,20 +662,28 @@ function InstallOptionCard({ option, onChanged }) {
     <div className="install">
       <div className="install__head">
         <span className="install__name">{option.name}</span>
-        {option.installed ? <span className="tag tag--jade">已装好</span> : <span className="tag tag--muted">未安装</span>}
+        {/* 状态用后端给的 state_label：Umi-OCR 装好了但没开 HTTP 服务时
+            它既不是「已装好」也不该说「未安装」，说「服务没开」才对 */}
+        <span className={`tag ${option.installed ? 'tag--jade' : option.manual ? 'tag--amber' : 'tag--muted'}`}>
+          {option.state_label || (option.installed ? '已装好' : '未安装')}
+        </span>
         <span className="tiny dim">{option.license}</span>
         <div style={{ flex: '1' }} />
         {option.installed ? null : <span className="tiny dim">{option.size}</span>}
       </div>
       <div className="tiny dim" style={{ marginTop: '2px' }}>{option.note}</div>
       <div className="cluster" style={{ gap: '6px', flexWrap: 'wrap' }}>
-        {option.installed ? (
+        {/* 手动装的引擎（Umi-OCR）也留一个「自检一下」：它自检的是本地服务在不在，
+            没开服务时正好给一句能照做的提示 */}
+        {option.installed || option.manual ? (
           <button className="btn btn--sm" type="button" data-loading={checking ? '1' : undefined} onClick={checkHealth}><Check {...iconProps(14)} />自检一下</button>
-        ) : option.can_auto ? (
+        ) : null}
+        {!option.installed && option.can_auto ? (
           <button className="btn btn--sm btn--primary" type="button" disabled={installing} data-loading={installing ? '1' : undefined} onClick={install}><Download {...iconProps(14)} />{`自动安装（${shortSize(option.size)}）`}</button>
-        ) : (
+        ) : null}
+        {!option.installed && !option.can_auto ? (
           <a className="btn btn--sm" href={option.release_page} target="_blank" rel="noreferrer noopener"><Download {...iconProps(14)} />去下载页</a>
-        )}
+        ) : null}
         {!option.can_auto && !option.installed ? <span className="tiny dim">{option.blocked_reason || '需要手动装'}</span> : null}
         {option.env_key ? <span className="tiny dim">{`装到别处也可以在环境变量里设 ${option.env_key}`}</span> : null}
       </div>
