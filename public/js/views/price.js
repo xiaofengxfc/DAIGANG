@@ -9,7 +9,7 @@
    ============================================================ */
 
 import { api, PRICE_TYPE_LABEL } from '../../../client/lib/api.js'
-import { unitOf as unitOfShared, unitPriceOf } from '../../../shared/pricing.js'
+import { currencyGain, unitOf as unitOfShared, unitPriceOf } from '../../../shared/pricing.js'
 import { h, icon, fmtMoney, fmtQty, debounce, fmtDate, mount, copyText } from '../dom.js'
 import { gameForm } from './games.js'
 import { renderPriceCard, canvasToBlob, downloadBlob } from '../pricecard.js'
@@ -191,20 +191,8 @@ function priceRange(list) {
 /* ---------------- 可获得货币 ----------------
    货币名字配在游戏上（一个游戏一种），服务项上只填数量。
    归属这么找：服务项自己的 game_id → 没有就跟它大类走。
-   游戏没配货币名，或者服务项没填数量，就返回空字符串（那就不显示）。 */
-function currencyGain(service, games = [], categories = []) {
-  const raw = service?.currency_amount
-  if (raw === null || raw === undefined || raw === '') return ''
-  const n = Number(raw)
-  // 数量得是正数：0 和空一样，都当没填（不然会显示「星声 0」）
-  if (!Number.isFinite(n) || n <= 0) return ''
-  let gid = service.game_id || ''
-  if (!gid && service.category_id) {
-    gid = (categories || []).find((c) => String(c.id) === String(service.category_id))?.game_id || ''
-  }
-  const name = String((games || []).find((g) => String(g.id) === String(gid))?.currency || '').trim()
-  return name ? `${name} ${fmtQty(n)}` : ''
-}
+   游戏没配货币名，或者服务项没填数量，就返回空字符串（那就不显示）。
+   实现放在 shared/pricing.js —— 旧页面和 React 详情抽屉共用一份。 */
 
 /* ---------------- 大类的展开/收起状态 ----------------
    必须放在模块这一层，不能放在 render() 里面：

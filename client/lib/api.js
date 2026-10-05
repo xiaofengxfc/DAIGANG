@@ -2,6 +2,7 @@ import {
   LOGIN_TYPE_LABEL,
   PAY_KIND_LABEL,
   PAY_METHOD_LABEL,
+  PRICE_TYPES,
   PRICE_TYPE_LABEL,
   PRICE_TYPE_UNIT_LABEL,
   ORDER_STATUS,
@@ -80,7 +81,7 @@ export const STATUS_TONE = Object.freeze(Object.fromEntries(ORDER_STATUS.map(({ 
 export const STATUS_FLOW = ORDER_STATUS.filter((item) => !['after_sale', 'cancelled'].includes(item.key)).map((item) => item.key)
 export { ORDER_STATUS_LABEL }
 
-export { LOGIN_TYPE_LABEL, PAY_KIND_LABEL, PAY_METHOD_LABEL, PRICE_TYPE_LABEL, PRICE_TYPE_UNIT_LABEL }
+export { LOGIN_TYPE_LABEL, PAY_KIND_LABEL, PAY_METHOD_LABEL, PRICE_TYPES, PRICE_TYPE_LABEL, PRICE_TYPE_UNIT_LABEL }
 
 export const AUDIT_ACTION_LABEL = Object.freeze({
   'vault.setup': '设置保险箱密码',

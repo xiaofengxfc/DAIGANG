@@ -6,7 +6,9 @@ import { toast, toastErr } from './lib/legacy-ui.js'
 import { confirmDelete } from './app/confirm.jsx'
 import { openCategoryForm } from './category-form.jsx'
 import { openPriceSum } from './price-sum.jsx'
-import { openExporter, serviceForm, servicePeek } from './lib/legacy-features.js'
+import { openExporter } from './price-exporter.jsx'
+import { openServiceForm } from './service-form.jsx'
+import { openServicePeek } from './service-peek.jsx'
 import { unitOf as unitOfShared } from '../shared/pricing.js'
 
 const iconProps = (size = 15) => ({ size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true })
@@ -107,7 +109,7 @@ function GroupWorkspace({ group, query, onNewCategory, onService, onEditCategory
   )
 }
 
-export default function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reloadKey }) {
+export default function PricePage({ route, navigate, onNewGame, onReload, reloadKey }) {
   const query = useMemo(() => ({ game: route.query.get('game') || '', q: route.query.get('q') || '', status: route.query.get('status') || 'active' }), [route.query.toString()])
   const [book, setBook] = useState(null)
   const [search, setSearch] = useState(query.q)
@@ -170,12 +172,12 @@ export default function PricePage({ route, navigate, onNewGame, onNewCategory, o
       return createCategory(query.game)
     }
     try {
-      if (await serviceForm({ category_id: category.id, game_id: category.game_id || (query.game !== 'generic' ? query.game : '') }, { games: data.games || [], categories: data.categories || [] }, { quick: true })) await onReload()
+      if (await openServiceForm({ category_id: category.id, game_id: category.game_id || (query.game !== 'generic' ? query.game : '') }, { games: data.games || [], categories: data.categories || [] }, { quick: true })) await onReload()
     } catch (err) { toastErr(err) }
   }
-  const editService = async (service) => { try { if (await serviceForm(service, { games: data.games || [], categories: data.categories || [] })) await onReload() } catch (err) { toastErr(err) } }
+  const editService = async (service) => { try { if (await openServiceForm(service, { games: data.games || [], categories: data.categories || [] })) await onReload() } catch (err) { toastErr(err) } }
   const peekContext = { meta: { games: data.games || [], categories: data.categories || [] }, app: { reload: () => {} } }
-  const peekService = (service) => { try { servicePeek(service, peekContext, { onChanged: onReload }) } catch (err) { toastErr(err) } }
+  const peekService = (service) => { try { openServicePeek(service, peekContext, { onChanged: onReload }) } catch (err) { toastErr(err) } }
   const toggleCategory = async (category) => { try { await api.patch(`/api/categories/${category.id}`, { status: category.status === 'active' ? 'archived' : 'active' }); toast(category.status === 'active' ? '大类已归档' : '大类已恢复', 'ok'); await onReload() } catch (err) { toastErr(err) } }
   const deleteCategory = async (category) => { try { const usage = await api.get(`/api/categories/${category.id}/usage`); if (!await confirmDelete({ title: `删除「${category.name}」？`, message: usage.services ? `${usage.services} 个服务项会变成未分类，老订单不受影响。` : '这个大类没有服务项。' })) return; await api.del(`/api/categories/${category.id}`, { hard: 1 }); toast('大类已删除', 'ok'); await onReload() } catch (err) { toastErr(err) } }
   const toggleService = async (service) => { try { await api.patch(`/api/services/${service.id}`, { status: service.status === 'active' ? 'archived' : 'active' }); toast(service.status === 'active' ? '服务已归档' : '服务已恢复', 'ok'); await onReload() } catch (err) { toastErr(err) } }

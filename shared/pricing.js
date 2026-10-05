@@ -56,3 +56,26 @@ export function unitOf(service) {
   if (!service) return '单'
   return service.unit_label || UNIT_BY_TYPE[service.price_type] || '单'
 }
+
+const qtyText = (value) => (Number.isInteger(value) ? String(value) : String(Math.round(value * 100) / 100))
+
+/**
+ * 「这个服务项能让客户拿到多少货币」，例：`星声 200`。
+ *
+ * 货币名字配在**游戏**上，服务项只填数量，所以归属要这么找：
+ * 服务项自己的 game_id → 没有就跟它的大类走。
+ * 游戏没配货币名、或者数量不是正数，就返回空字符串（调用方据此不显示）。
+ */
+export function currencyGain(service, games = [], categories = []) {
+  const raw = service && service.currency_amount
+  if (raw === null || raw === undefined || raw === '') return ''
+  const amount = Number(raw)
+  // 数量得是正数：0 和空一样，都当没填（不然会显示「星声 0」）
+  if (!Number.isFinite(amount) || amount <= 0) return ''
+  let gameId = (service && service.game_id) || ''
+  if (!gameId && service && service.category_id) {
+    gameId = (categories || []).find((category) => String(category.id) === String(service.category_id))?.game_id || ''
+  }
+  const name = String((games || []).find((game) => String(game.id) === String(gameId))?.currency || '').trim()
+  return name ? `${name} ${qtyText(amount)}` : ''
+}

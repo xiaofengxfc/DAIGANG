@@ -19,7 +19,7 @@ import { unitOf, unitPriceOf } from '../shared/pricing.js'
    ============================================================ */
 
 export function openPriceSum(category, services) {
-  return openOverlay((close) => <PriceSum category={category} services={services} close={close} />)
+  return openOverlay((close) => <PriceSum category={category} services={services} close={close} />, 'price-sum')
 }
 
 function PriceSum({ category, services, close }) {

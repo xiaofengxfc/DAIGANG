@@ -94,9 +94,18 @@ async function seed(base) {
     base_price: 30,
     unit_label: '层',
     min_qty: 1,
+    currency_amount: 300,
   }, cookie)
   await api(base, 'POST', `/api/services/${tiered.body.id}/tiers`, { min_qty: 1, max_qty: 5, unit_price: 30 }, cookie)
   await api(base, 'POST', `/api/services/${tiered.body.id}/tiers`, { min_qty: 6, max_qty: 12, unit_price: 25 }, cookie)
+  // 留着给「详情抽屉里删服务项」那条链路用（没被任何订单用过，删得掉）
+  const doomed = await api(base, 'POST', '/api/services', {
+    name: 'UI待删服务',
+    category_id: category.body.id,
+    game_id: game.body.id,
+    price_type: 'fixed',
+    base_price: 1,
+  }, cookie)
   const customer = await api(base, 'POST', '/api/customers', { name: 'UI客户', phone: '13900000001' }, cookie)
   const order = await api(base, 'POST', '/api/orders', {
     customer_id: customer.body.id,
@@ -106,7 +115,7 @@ async function seed(base) {
   }, cookie)
   if (order.status !== 200) throw new Error(`建单失败：HTTP ${order.status} ${JSON.stringify(order.body)}`)
 
-  return { cookie, orderNo: order.body.order_no, customerId: customer.body.id, game: 'UI冒烟游戏', customer: 'UI客户', service: 'UI服务项' }
+  return { cookie, orderNo: order.body.order_no, customerId: customer.body.id, game: 'UI冒烟游戏', customer: 'UI客户', service: 'UI服务项', categoryId: category.body.id, tiered: 'UI阶梯服务', doomed: doomed.body.name }
 }
 
 /* ---------------- 页面检查 ---------------- */
@@ -170,6 +179,107 @@ function fillRowQty(cdp, rowName, value) {
   })()`)
 }
 
+/**
+ * 把 navigator.clipboard.writeText 换成一个记录器。
+ * 「复制给客户的报价」是这一页的核心产出之一，格式错了比报错还难发现，
+ * 所以这里不去赌无头浏览器的剪贴板权限，直接把传进剪贴板 API 的那段字截下来看。
+ */
+function captureClipboard(cdp) {
+  return cdp.eval(`(() => {
+    window.__copied = null
+    try {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: { writeText: (text) => { window.__copied = String(text); return Promise.resolve() } },
+      })
+      return true
+    } catch (err) {
+      return String((err && err.message) || err)
+    }
+  })()`)
+}
+
+const readClipboard = (cdp) => cdp.eval('window.__copied')
+
+/**
+ * 把 <a download> 的点击截下来。
+ * 「生成图片 / 生成 Word」最后都是 downloadBlob() 造一个 a 元素点一下，
+ * 这里拦住那一下，就能看出到底生成了什么文件名，而不必真往磁盘上写文件。
+ */
+function captureDownloads(cdp) {
+  return cdp.eval(`(() => {
+    window.__downloads = []
+    const original = HTMLAnchorElement.prototype.click
+    HTMLAnchorElement.prototype.click = function () {
+      if (this.download) {
+        window.__downloads.push({ name: this.download, href: String(this.href).slice(0, 24) })
+        return undefined
+      }
+      return original.apply(this, arguments)
+    }
+    return true
+  })()`)
+}
+
+/** 价格表里所有服务项（页面就是这么读的，验证也用同一个接口） */
+async function pricebookServices(app, cookie) {
+  const res = await api(app.base, 'GET', '/api/pricebook?status=all', undefined, cookie)
+  const services = []
+  for (const category of res.body.categories || []) for (const service of category.services || []) services.push(service)
+  for (const service of res.body.loose || []) services.push(service)
+  return services
+}
+
+/** 顶层浮层：叠了好几层时，最后挂上去的那个才是用户看到的那层 */
+const TOP_DRAWER = '[...document.querySelectorAll("dialog.drawer[open]")].pop()'
+
+/** 点最上层抽屉里带这段文字的按钮 */
+function clickTopDrawer(cdp, text) {
+  return cdp.eval(`(() => {
+    const top = ${TOP_DRAWER}
+    if (!top) return false
+    const btn = [...top.querySelectorAll('button')].find((b) => b.textContent.includes(${JSON.stringify(text)}))
+    if (!btn) return false
+    btn.click()
+    return true
+  })()`)
+}
+
+/** 给最上层抽屉里的某个字段塞值（表单叠了多层时不能只按 id 找） */
+function fillTopField(cdp, selector, value) {
+  return cdp.eval(`(() => {
+    const top = ${TOP_DRAWER}
+    const el = top && top.querySelector(${JSON.stringify(selector)})
+    if (!el) return 'missing'
+    const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype
+      : el.tagName === 'SELECT' ? HTMLSelectElement.prototype
+      : HTMLInputElement.prototype
+    Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, ${JSON.stringify(value)})
+    el.dispatchEvent(new Event('input', { bubbles: true }))
+    el.dispatchEvent(new Event('change', { bubbles: true }))
+    return el.value
+  })()`)
+}
+
+/** 提交最上层抽屉 */
+function submitTopDrawer(cdp) {
+  return cdp.eval(`(() => {
+    const top = ${TOP_DRAWER}
+    const btn = top && top.querySelector('.drawer__foot button[type="submit"]')
+    if (!btn) return false
+    btn.click()
+    return true
+  })()`)
+}
+
+const drawerCountText = 'document.querySelectorAll("dialog.drawer[open]").length'
+const modalCountText = 'document.querySelectorAll("dialog.modal[open]").length'
+const drawerCount = (cdp) => cdp.eval(drawerCountText)
+const modalCount = (cdp) => cdp.eval(modalCountText)
+const topText = (cdp) => cdp.eval(`(${TOP_DRAWER})?.innerText.replace(/\\s+/g, ' ') || ''`)
+const topTitle = (cdp) => cdp.eval(`(${TOP_DRAWER})?.querySelector('.drawer__title')?.textContent || ''`)
+const closeTopDrawer = (cdp) => cdp.eval(`(() => { const top = ${TOP_DRAWER}; if (top) top.close(); return true })()`)
+
 /** 点主区域里带这段文字的按钮（旧视图和 React 页面的类名不同，按文字找最稳） */
 function clickInMain(cdp, text, root = '.react-main__inner') {
   return cdp.eval(`(() => {
@@ -207,8 +317,10 @@ function compareForms(ok, legacy, fresh, { prefix = '', checkTitle = true } = {}
   ok(`${prefix}控件类型一致`, JSON.stringify(legacy.fields.map((f) => f.control)) === JSON.stringify(fresh.fields.map((f) => f.control)), `旧 ${legacy.fields.map((f) => f.control).join('/')} 新 ${fresh.fields.map((f) => f.control).join('/')}`)
   ok(`${prefix}提示文字都在`, JSON.stringify(legacy.fields.map((f) => f.hint)) === JSON.stringify(fresh.fields.map((f) => f.hint)))
   ok(`${prefix}抽屉宽度一致`, Math.abs(legacy.drawer.w - fresh.drawer.w) <= 1, `${legacy.drawer.w} / ${fresh.drawer.w}`)
-  const widthDiff = legacy.fields.map((f, i) => Math.abs(f.box.w - fresh.fields[i].box.w)).filter((d) => d > 1)
-  ok(`${prefix}每个字段的宽度一致`, widthDiff.length === 0, `有 ${widthDiff.length} 个字段宽度不同：${JSON.stringify(widthDiff)}`)
+  const widthDiff = legacy.fields
+    .map((f, i) => ({ 字段: f.label, 旧: f.box.w, 新: fresh.fields[i] ? fresh.fields[i].box.w : null }))
+    .filter((d) => d.新 === null || Math.abs(d.旧 - d.新) > 1)
+  ok(`${prefix}每个字段的宽度一致`, widthDiff.length === 0, `宽度不同的字段：${JSON.stringify(widthDiff)}`)
   ok(`${prefix}页脚按钮一致`, JSON.stringify(legacy.foot) === JSON.stringify(fresh.foot), `旧 ${legacy.foot.join('/')} 新 ${fresh.foot.join('/')}`)
 }
 
@@ -282,9 +394,12 @@ async function checkDrawer(cdp, { label, hash, click, expect, expectText }) {
   const errors = cdp.errors.slice(before)
   ok(`${label}：打开过程没有报错`, errors.length === 0, errors.slice(0, 2))
 
-  // 关掉，别影响下一项
+  // 关掉，别影响下一项。关完必须真的一层不剩 ——
+  // 只把 dialog 关掉、React 那边没卸载的话，残留的元素会污染后面的检查。
   await cdp.eval(`document.querySelector(${JSON.stringify(expect)})?.close()`)
   await sleep(250)
+  const left = await cdp.eval(`document.querySelectorAll('dialog[open]').length`)
+  ok(`${label}：关掉后没有残留浮层`, left === 0, `还剩 ${left} 层`)
 }
 
 /* ---------------- 主流程 ---------------- */
@@ -587,8 +702,211 @@ async function main() {
       ok('两项合计 ¥212', (await sumText()).includes('¥212'), await sumText())
       ok('合计旁边显示已选几项', (await sumText()).includes('已选 2 项'), await sumText())
 
+      // 复制出去的那段字是要直接粘给客户的，格式和旧版必须一字不差
+      await captureClipboard(cdp)
+      await cdp.eval(`[...document.querySelectorAll('dialog.modal[open] .modal__foot button')].find((b) => b.textContent.includes('复制报价')).click()`)
+      await sleep(400)
+      const copied = await readClipboard(cdp)
+      ok('复制出去的报价单和旧版格式一致', copied === '【UI大类】\nUI服务项  1单 × ¥12 = ¥12\nUI阶梯服务  8层 × ¥25 = ¥200\n合计：¥212', JSON.stringify(copied))
+      ok('复制完弹窗不关（方便接着调数量）', await cdp.eval(`Boolean(document.querySelector('dialog.modal[open]'))`))
+
       await cdp.eval(`[...document.querySelectorAll('dialog.modal[open] .modal__foot button')].find((b) => b.textContent.includes('关闭')).click()`)
       ok('关掉之后弹窗没了', await waitFor(cdp, `!document.querySelector('dialog.modal[open]')`, { tries: 25, interval: 200 }))
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+    }
+
+    /* ---- 价格表：服务项表单（几何对比 + 校验 + 提交）---- */
+    section('价格表 · 服务项表单')
+    {
+      const before = cdp.errors.length
+
+      // 旧表单：/price/1 由旧价格表视图接管；服务行藏在大类里，先点开大类
+      await gotoHash(cdp, '/price/1')
+      ok('旧价格表里有大类', await waitFor(cdp, `Boolean(document.querySelector('.pcat__head'))`, { tries: 30, interval: 200 }))
+      await cdp.eval(`document.querySelector('.pcat__head').click()`)
+      ok('展开大类后能看到服务行', await waitFor(cdp, `Boolean(document.querySelector('button[title="改这个服务项"]'))`, { tries: 25, interval: 200 }))
+      await cdp.eval(`document.querySelector('button[title="改这个服务项"]').click()`)
+      ok('旧服务项表单打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
+      const legacy = await measureForm(cdp)
+      await cdp.eval(`document.querySelector(${JSON.stringify(OPEN_DRAWER)}).close()`)
+      await sleep(300)
+
+      await gotoHash(cdp, '/price')
+      await cdp.eval(`document.querySelector('button[title="编辑服务"]').click()`)
+      ok('React 服务项表单打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
+      const fresh = await measureForm(cdp)
+      compareForms(ok, legacy, fresh)
+
+      // 游戏↔大类联动：清掉大类再提交，应当被「先选大类」拦住（旧版是自定义块报的错）
+      await fillField(cdp, `${OPEN_DRAWER} #service-category`, '')
+      await cdp.eval(`document.querySelector(${JSON.stringify(SUBMIT)}).click()`)
+      await sleep(300)
+      const catErr = await cdp.eval(`document.querySelector(${JSON.stringify(`${OPEN_DRAWER} .note--alert`)})?.textContent || ''`)
+      ok('没选大类时被拦住', catErr.includes('请先选一个大类'), catErr)
+      ok('被拦住时抽屉不关', await cdp.eval(`Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`))
+
+      // 选回大类，清空服务名 → 应当提示填服务名
+      await fillField(cdp, `${OPEN_DRAWER} #service-category`, String(fixture.categoryId))
+      await fillField(cdp, `${OPEN_DRAWER} #service-name`, '')
+      await cdp.eval(`document.querySelector(${JSON.stringify(SUBMIT)}).click()`)
+      await sleep(300)
+      const nameErr = await cdp.eval(`document.querySelector(${JSON.stringify(`${OPEN_DRAWER} .err:not([hidden])`)})?.textContent || ''`)
+      ok('空服务名被校验拦住', nameErr.includes('请填写服务名'), nameErr)
+
+      // 填好保存：改基准价 + 可获得货币
+      await fillField(cdp, `${OPEN_DRAWER} #service-name`, fixture.service)
+      await fillField(cdp, `${OPEN_DRAWER} #service-base-price`, '31')
+      await fillField(cdp, `${OPEN_DRAWER} #service-currency`, '200')
+      await cdp.eval(`document.querySelector(${JSON.stringify(SUBMIT)}).click()`)
+      ok('保存后抽屉自己关掉', await waitFor(cdp, `!document.querySelector(${JSON.stringify(OPEN_DRAWER)})`, { tries: 40, interval: 200 }))
+
+      const saved = (await pricebookServices(app, fixture.cookie)).find((service) => service.name === fixture.service)
+      ok('基准价改成了 31', saved && Number(saved.base_price) === 31, saved && saved.base_price)
+      ok('可获得货币存成了 200', saved && Number(saved.currency_amount) === 200, saved && saved.currency_amount)
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+    }
+
+    /* ---- 价格表：服务项详情抽屉（浮层能叠三层）---- */
+    section('价格表 · 服务项详情抽屉')
+    {
+      const before = cdp.errors.length
+      await gotoHash(cdp, '/price')
+      ok('服务行上有「查看服务详情」', await waitFor(cdp, `Boolean(document.querySelector('button[title="查看服务详情"]'))`, { tries: 30, interval: 200 }))
+      await cdp.eval(`[...document.querySelectorAll('button[title="查看服务详情"]')].find((b) => b.closest('.price-service')?.innerText.includes(${JSON.stringify(fixture.tiered)})).click()`)
+      ok('详情抽屉打开了', await waitFor(cdp, `${drawerCountText} === 1`, { tries: 25, interval: 200 }), await drawerCount(cdp))
+
+      const text = await topText(cdp)
+      ok('详情里有可获得货币', text.includes('可获得 星声 300'), text.slice(0, 200))
+      ok('详情里列出了两档阶梯价', text.includes('1-5层：¥30/层') && text.includes('6-12层：¥25/层'), text.slice(0, 240))
+      ok('详情里有四个动作按钮', ['改价格和说明', '阶梯价', '套餐与增项', '复制价款'].every((label) => text.includes(label)), text.slice(0, 300))
+
+      await captureClipboard(cdp)
+      await clickTopDrawer(cdp, '复制价款')
+      await sleep(400)
+      ok('复制价款复制的是「名字 ¥单价/单位」', (await readClipboard(cdp)) === `${fixture.tiered} ¥30/层`, JSON.stringify(await readClipboard(cdp)))
+
+      // 第二层：阶梯价（叠在详情抽屉上）
+      await clickTopDrawer(cdp, '阶梯价')
+      ok('阶梯价抽屉叠上来了', await waitFor(cdp, `${drawerCountText} === 2`, { tries: 25, interval: 200 }), await drawerCount(cdp))
+      ok('最上面那层标题是「阶梯价」', (await topTitle(cdp)) === '阶梯价', await topTitle(cdp))
+
+      // 第三层：加一档
+      await clickTopDrawer(cdp, '加一档')
+      ok('加一档表单叠成了第三层', await waitFor(cdp, `${drawerCountText} === 3`, { tries: 25, interval: 200 }), await drawerCount(cdp))
+      ok('最上面那层标题是「加一档阶梯价」', (await topTitle(cdp)) === '加一档阶梯价', await topTitle(cdp))
+
+      // 填一档 13 层以上 20 元，存完只关掉这一层，阶梯价列表要刷新出来
+      await fillTopField(cdp, '#tier-min_qty', '13')
+      await fillTopField(cdp, '#tier-unit_price', '20')
+      await submitTopDrawer(cdp)
+      ok('存完第三层自己关掉', await waitFor(cdp, `${drawerCountText} === 2`, { tries: 40, interval: 200 }), await drawerCount(cdp))
+      ok('阶梯价列表里出现了新的一档', await waitFor(cdp, `((${TOP_DRAWER})?.innerText || '').includes('13 ~ 不限 层')`, { tries: 30, interval: 200 }), (await topText(cdp)).slice(0, 200))
+
+      const tiers = (await pricebookServices(app, fixture.cookie)).find((service) => service.name === fixture.tiered)?.tiers || []
+      ok('新阶梯落到了接口里（13 层起 20 元）', tiers.some((tier) => Number(tier.min_qty) === 13 && Number(tier.unit_price) === 20), tiers)
+
+      // 关掉阶梯价那层，回到详情抽屉
+      await closeTopDrawer(cdp)
+      ok('关掉一层后只剩详情抽屉', await waitFor(cdp, `${drawerCountText} === 1`, { tries: 25, interval: 200 }), await drawerCount(cdp))
+
+      // 套餐与增项：列表要真的拉出来（旧版这里漏过 load()，打开永远是空的）
+      await clickTopDrawer(cdp, '套餐与增项')
+      ok('套餐与增项抽屉打开了', await waitFor(cdp, `${drawerCountText} === 2`, { tries: 25, interval: 200 }), await drawerCount(cdp))
+      ok('列表拉出来了（不是空的加载态）', await waitFor(cdp, `((${TOP_DRAWER})?.innerText || '').includes('这个服务项专属')`, { tries: 30, interval: 200 }))
+      ok('全局通用增项那一段也在', (await topText(cdp)).includes('全局通用增项'), (await topText(cdp)).slice(0, 240))
+
+      // 加一个增项，看它出现在列表里
+      await clickTopDrawer(cdp, '加增项')
+      ok('加增项表单叠上来了', await waitFor(cdp, `${drawerCountText} === 3`, { tries: 25, interval: 200 }), await drawerCount(cdp))
+      await fillTopField(cdp, '#option-name', 'UI加急')
+      await fillTopField(cdp, '#option-price', '5')
+      await submitTopDrawer(cdp)
+      ok('存完只剩两层', await waitFor(cdp, `${drawerCountText} === 2`, { tries: 40, interval: 200 }), await drawerCount(cdp))
+      ok('列表里出现了新增加项', await waitFor(cdp, `((${TOP_DRAWER})?.innerText || '').includes('UI加急')`, { tries: 30, interval: 200 }), (await topText(cdp)).slice(0, 240))
+      ok('增项加价写的是 ¥5', (await topText(cdp)).includes('加 ¥5'), (await topText(cdp)).slice(0, 240))
+
+      await closeTopDrawer(cdp)
+      await closeTopDrawer(cdp)
+      ok('全部关掉后一层不剩', await waitFor(cdp, `${drawerCountText} === 0`, { tries: 25, interval: 200 }), await drawerCount(cdp))
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+    }
+
+    /* ---- 价格表：详情抽屉里删服务项（确认框叠在抽屉上）---- */
+    section('价格表 · 删服务项')
+    {
+      const before = cdp.errors.length
+      await gotoHash(cdp, '/price')
+      ok('待删服务在列表里', await waitFor(cdp, `(document.querySelector('.price-page')?.innerText || '').includes(${JSON.stringify(fixture.doomed)})`, { tries: 30, interval: 200 }))
+      await cdp.eval(`[...document.querySelectorAll('button[title="查看服务详情"]')].find((b) => b.closest('.price-service')?.innerText.includes(${JSON.stringify(fixture.doomed)})).click()`)
+      ok('详情抽屉打开了', await waitFor(cdp, `${drawerCountText} === 1`, { tries: 25, interval: 200 }), await drawerCount(cdp))
+
+      await clickTopDrawer(cdp, '删除')
+      ok('确认框叠在抽屉上面', await waitFor(cdp, `${modalCountText} === 1 && ${drawerCountText} === 1`, { tries: 25, interval: 200 }), await cdp.eval(`document.querySelectorAll('dialog[open]').length`))
+      const confirmText = await cdp.eval(`[...document.querySelectorAll('dialog.modal[open]')].pop()?.innerText.replace(/\\s+/g, ' ') || ''`)
+      ok('确认框问的是这个服务项', confirmText.includes(`真的删掉「${fixture.doomed}」？`), confirmText.slice(0, 160))
+
+      // 先点取消：确认框关掉，抽屉还得在（不该把两层一起关掉）
+      await cdp.eval(`[...document.querySelectorAll('dialog.modal[open] .modal__foot button')].find((b) => b.textContent.trim() === '取消').click()`)
+      ok('取消后确认框关掉', await waitFor(cdp, `${modalCountText} === 0`, { tries: 25, interval: 200 }), await modalCount(cdp))
+      ok('取消后详情抽屉还在', (await drawerCount(cdp)) === 1, await drawerCount(cdp))
+
+      // 再点删除，这回确认
+      await clickTopDrawer(cdp, '删除')
+      await waitFor(cdp, `${modalCountText} === 1`, { tries: 25, interval: 200 })
+      await cdp.eval(`[...document.querySelectorAll('dialog.modal[open] .modal__foot button')].find((b) => b.textContent.trim() === '删除').click()`)
+      ok('删完抽屉自己关掉（删掉的东西不该还挂在屏幕上）', await waitFor(cdp, `document.querySelectorAll('dialog[open]').length === 0`, { tries: 40, interval: 200 }), await cdp.eval(`document.querySelectorAll('dialog[open]').length`))
+      ok('列表里也没有它了', await waitFor(cdp, `!(document.querySelector('.price-page')?.innerText || '').includes(${JSON.stringify(fixture.doomed)})`, { tries: 40, interval: 200 }))
+
+      const gone = (await pricebookServices(app, fixture.cookie)).find((service) => service.name === fixture.doomed)
+      ok('接口里也查不到了（hard 删除）', !gone, gone && gone.status)
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+    }
+
+    /* ---- 价格表：导出（几何对比 + 预览 + 真下载）---- */
+    section('价格表 · 导出')
+    {
+      const before = cdp.errors.length
+
+      // 旧导出器：/price/1 的顶栏动作（旧视图是 ctx.setActions 挂上去的，不在正文里）
+      await gotoHash(cdp, '/price/1')
+      ok('旧价格表视图顶栏有导出按钮', await waitFor(cdp, `[...document.querySelectorAll('.react-topbar__tools button')].some((b) => b.textContent.includes('导出图片/文档'))`, { tries: 30, interval: 200 }))
+      await clickTopAction(cdp, '导出图片/文档')
+      ok('旧导出抽屉打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
+      const legacy = await measureForm(cdp)
+      await cdp.eval(`document.querySelector(${JSON.stringify(OPEN_DRAWER)}).close()`)
+      await sleep(300)
+
+      await gotoHash(cdp, '/price')
+      await clickInMain(cdp, '导出')
+      ok('React 导出抽屉打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
+      const fresh = await measureForm(cdp)
+      compareForms(ok, legacy, fresh)
+
+      // 预览是真的画出来的：canvas → data URL
+      ok('预览图画出来了', await waitFor(cdp, `(document.querySelector(${JSON.stringify(`${OPEN_DRAWER} .exporter__preview img`)})?.src || '').startsWith('data:image/png')`, { tries: 40, interval: 250 }))
+      const summary = await cdp.eval(`document.querySelector(${JSON.stringify(`${OPEN_DRAWER} .exporter__preview + .hint`)})?.textContent || ''`)
+      ok('预览下面写清了会生成几份、多少项', summary.includes('会生成') && summary.includes('个服务项'), summary)
+
+      // 换成「全部合并」→ 预览跟着重画
+      await fillField(cdp, `${OPEN_DRAWER} #export-scope`, 'merged')
+      ok('换范围后预览重新算', await waitFor(cdp, `(document.querySelector(${JSON.stringify(`${OPEN_DRAWER} .exporter__preview + .hint`)})?.textContent || '').includes('所有游戏合在一起')`, { tries: 30, interval: 250 }), await cdp.eval(`document.querySelector(${JSON.stringify(`${OPEN_DRAWER} .exporter__preview + .hint`)})?.textContent || ''`))
+
+      // 真点一次「生成图片」和「生成 Word 文档」，把下载动作截下来看文件名
+      await captureDownloads(cdp)
+      await cdp.eval(`[...document.querySelector(${JSON.stringify(OPEN_DRAWER)}).querySelectorAll('.drawer__foot button')].find((b) => b.textContent.includes('生成图片')).click()`)
+      ok('点「生成图片」触发了下载', await waitFor(cdp, `(window.__downloads || []).length > 0`, { tries: 40, interval: 250 }), JSON.stringify(await cdp.eval('window.__downloads')))
+      const png = (await cdp.eval('window.__downloads'))[0]
+      ok('图片文件名是「店铺-游戏-日期.png」', /^UI冒烟小铺-.+-\d{4}-\d{2}-\d{2}\.png$/.test(png.name), png.name)
+      ok('下载的是 blob 地址', String(png.href).startsWith('blob:'), png.href)
+
+      await cdp.eval(`window.__downloads = []`)
+      await cdp.eval(`[...document.querySelector(${JSON.stringify(OPEN_DRAWER)}).querySelectorAll('.drawer__foot button')].find((b) => b.textContent.includes('生成 Word 文档')).click()`)
+      ok('点「生成 Word 文档」触发了下载', await waitFor(cdp, `(window.__downloads || []).length > 0`, { tries: 60, interval: 300 }), JSON.stringify(await cdp.eval('window.__downloads')))
+      const docx = (await cdp.eval('window.__downloads'))[0]
+      ok('Word 文件名是「店铺-价目表-日期.docx」（合并模式不带游戏名）', /^UI冒烟小铺-价目表-\d{4}-\d{2}-\d{2}\.docx$/.test(docx.name), docx.name)
+
+      await cdp.eval(`document.querySelector(${JSON.stringify(OPEN_DRAWER)}).close()`)
+      ok('导出抽屉关掉后没有残留', await waitFor(cdp, `document.querySelectorAll('dialog[open]').length === 0`, { tries: 25, interval: 200 }), await cdp.eval(`document.querySelectorAll('dialog[open]').length`))
       ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
     }
 

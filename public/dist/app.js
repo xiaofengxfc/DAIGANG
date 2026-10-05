@@ -11715,7 +11715,7 @@ function createLucideIcon(iconDataOrName, iconNode = [], aliases = []) {
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$52 = {
+var __iconData$53 = {
 	name: "activity",
 	size: 24,
 	node: [["path", {
@@ -11723,8 +11723,8 @@ var __iconData$52 = {
 		key: "169zse"
 	}]]
 };
-__iconData$52.node;
-var Activity = createLucideIcon(__iconData$52);
+__iconData$53.node;
+var Activity = createLucideIcon(__iconData$53);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/archive-restore.mjs
 /**
@@ -11733,7 +11733,7 @@ var Activity = createLucideIcon(__iconData$52);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$51 = {
+var __iconData$52 = {
 	name: "archive-restore",
 	size: 24,
 	node: [
@@ -11763,8 +11763,8 @@ var __iconData$51 = {
 		}]
 	]
 };
-__iconData$51.node;
-var ArchiveRestore = createLucideIcon(__iconData$51);
+__iconData$52.node;
+var ArchiveRestore = createLucideIcon(__iconData$52);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/archive.mjs
 /**
@@ -11773,7 +11773,7 @@ var ArchiveRestore = createLucideIcon(__iconData$51);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$50 = {
+var __iconData$51 = {
 	name: "archive",
 	size: 24,
 	node: [
@@ -11795,8 +11795,8 @@ var __iconData$50 = {
 		}]
 	]
 };
-__iconData$50.node;
-var Archive = createLucideIcon(__iconData$50);
+__iconData$51.node;
+var Archive = createLucideIcon(__iconData$51);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/arrow-right.mjs
 /**
@@ -11805,7 +11805,7 @@ var Archive = createLucideIcon(__iconData$50);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$49 = {
+var __iconData$50 = {
 	name: "arrow-right",
 	size: 24,
 	node: [["path", {
@@ -11816,8 +11816,8 @@ var __iconData$49 = {
 		key: "xquz4c"
 	}]]
 };
-__iconData$49.node;
-var ArrowRight = createLucideIcon(__iconData$49);
+__iconData$50.node;
+var ArrowRight = createLucideIcon(__iconData$50);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/arrow-up-right.mjs
 /**
@@ -11826,7 +11826,7 @@ var ArrowRight = createLucideIcon(__iconData$49);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$48 = {
+var __iconData$49 = {
 	name: "arrow-up-right",
 	size: 24,
 	node: [["path", {
@@ -11837,8 +11837,8 @@ var __iconData$48 = {
 		key: "1vkiza"
 	}]]
 };
-__iconData$48.node;
-var ArrowUpRight = createLucideIcon(__iconData$48);
+__iconData$49.node;
+var ArrowUpRight = createLucideIcon(__iconData$49);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/calendar-clock.mjs
 /**
@@ -11847,7 +11847,7 @@ var ArrowUpRight = createLucideIcon(__iconData$48);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$47 = {
+var __iconData$48 = {
 	name: "calendar-clock",
 	size: 24,
 	node: [
@@ -11879,8 +11879,8 @@ var __iconData$47 = {
 		}]
 	]
 };
-__iconData$47.node;
-var CalendarClock = createLucideIcon(__iconData$47);
+__iconData$48.node;
+var CalendarClock = createLucideIcon(__iconData$48);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/calendar-days.mjs
 /**
@@ -11889,7 +11889,7 @@ var CalendarClock = createLucideIcon(__iconData$47);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$46 = {
+var __iconData$47 = {
 	name: "calendar-days",
 	size: 24,
 	node: [
@@ -11939,8 +11939,8 @@ var __iconData$46 = {
 		}]
 	]
 };
-__iconData$46.node;
-var CalendarDays = createLucideIcon(__iconData$46);
+__iconData$47.node;
+var CalendarDays = createLucideIcon(__iconData$47);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/check.mjs
 /**
@@ -11949,7 +11949,7 @@ var CalendarDays = createLucideIcon(__iconData$46);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$45 = {
+var __iconData$46 = {
 	name: "check",
 	size: 24,
 	node: [["path", {
@@ -11957,8 +11957,8 @@ var __iconData$45 = {
 		key: "1gmf2c"
 	}]]
 };
-__iconData$45.node;
-var Check = createLucideIcon(__iconData$45);
+__iconData$46.node;
+var Check = createLucideIcon(__iconData$46);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/chevron-down.mjs
 /**
@@ -11967,7 +11967,7 @@ var Check = createLucideIcon(__iconData$45);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$44 = {
+var __iconData$45 = {
 	name: "chevron-down",
 	size: 24,
 	node: [["path", {
@@ -11975,8 +11975,8 @@ var __iconData$44 = {
 		key: "qrunsl"
 	}]]
 };
-__iconData$44.node;
-var ChevronDown = createLucideIcon(__iconData$44);
+__iconData$45.node;
+var ChevronDown = createLucideIcon(__iconData$45);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/chevron-right.mjs
 /**
@@ -11985,7 +11985,7 @@ var ChevronDown = createLucideIcon(__iconData$44);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$43 = {
+var __iconData$44 = {
 	name: "chevron-right",
 	size: 24,
 	node: [["path", {
@@ -11993,8 +11993,8 @@ var __iconData$43 = {
 		key: "mthhwq"
 	}]]
 };
-__iconData$43.node;
-var ChevronRight = createLucideIcon(__iconData$43);
+__iconData$44.node;
+var ChevronRight = createLucideIcon(__iconData$44);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/circle-alert.mjs
 /**
@@ -12003,7 +12003,7 @@ var ChevronRight = createLucideIcon(__iconData$43);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$42 = {
+var __iconData$43 = {
 	name: "circle-alert",
 	size: 24,
 	node: [
@@ -12030,8 +12030,8 @@ var __iconData$42 = {
 	],
 	aliases: ["alert-circle"]
 };
-__iconData$42.node;
-var CircleAlert = createLucideIcon(__iconData$42);
+__iconData$43.node;
+var CircleAlert = createLucideIcon(__iconData$43);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/circle-dollar-sign.mjs
 /**
@@ -12040,7 +12040,7 @@ var CircleAlert = createLucideIcon(__iconData$42);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$41 = {
+var __iconData$42 = {
 	name: "circle-dollar-sign",
 	size: 24,
 	node: [
@@ -12060,8 +12060,8 @@ var __iconData$41 = {
 		}]
 	]
 };
-__iconData$41.node;
-var CircleDollarSign = createLucideIcon(__iconData$41);
+__iconData$42.node;
+var CircleDollarSign = createLucideIcon(__iconData$42);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/clipboard-list.mjs
 /**
@@ -12070,7 +12070,7 @@ var CircleDollarSign = createLucideIcon(__iconData$41);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$40 = {
+var __iconData$41 = {
 	name: "clipboard-list",
 	size: 24,
 	node: [
@@ -12105,8 +12105,8 @@ var __iconData$40 = {
 		}]
 	]
 };
-__iconData$40.node;
-var ClipboardList = createLucideIcon(__iconData$40);
+__iconData$41.node;
+var ClipboardList = createLucideIcon(__iconData$41);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/clock-3.mjs
 /**
@@ -12115,7 +12115,7 @@ var ClipboardList = createLucideIcon(__iconData$40);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$39 = {
+var __iconData$40 = {
 	name: "clock-3",
 	size: 24,
 	node: [["circle", {
@@ -12128,8 +12128,8 @@ var __iconData$39 = {
 		key: "135r8i"
 	}]]
 };
-__iconData$39.node;
-var Clock3 = createLucideIcon(__iconData$39);
+__iconData$40.node;
+var Clock3 = createLucideIcon(__iconData$40);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/command.mjs
 /**
@@ -12138,7 +12138,7 @@ var Clock3 = createLucideIcon(__iconData$39);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$38 = {
+var __iconData$39 = {
 	name: "command",
 	size: 24,
 	node: [["path", {
@@ -12146,8 +12146,8 @@ var __iconData$38 = {
 		key: "11bfej"
 	}]]
 };
-__iconData$38.node;
-var Command = createLucideIcon(__iconData$38);
+__iconData$39.node;
+var Command = createLucideIcon(__iconData$39);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/contact-round.mjs
 /**
@@ -12156,7 +12156,7 @@ var Command = createLucideIcon(__iconData$38);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$37 = {
+var __iconData$38 = {
 	name: "contact-round",
 	size: 24,
 	node: [
@@ -12189,8 +12189,8 @@ var __iconData$37 = {
 	],
 	aliases: ["contact-2"]
 };
-__iconData$37.node;
-var ContactRound = createLucideIcon(__iconData$37);
+__iconData$38.node;
+var ContactRound = createLucideIcon(__iconData$38);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/copy.mjs
 /**
@@ -12199,7 +12199,7 @@ var ContactRound = createLucideIcon(__iconData$37);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$36 = {
+var __iconData$37 = {
 	name: "copy",
 	size: 24,
 	node: [["rect", {
@@ -12215,8 +12215,8 @@ var __iconData$36 = {
 		key: "zix9uf"
 	}]]
 };
-__iconData$36.node;
-var Copy = createLucideIcon(__iconData$36);
+__iconData$37.node;
+var Copy = createLucideIcon(__iconData$37);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/credit-card.mjs
 /**
@@ -12225,7 +12225,7 @@ var Copy = createLucideIcon(__iconData$36);
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var __iconData$35 = {
+var __iconData$36 = {
 	name: "credit-card",
 	size: 24,
 	node: [
@@ -12250,8 +12250,36 @@ var __iconData$35 = {
 		}]
 	]
 };
+__iconData$36.node;
+var CreditCard = createLucideIcon(__iconData$36);
+//#endregion
+//#region node_modules/lucide-react/dist/esm/icons/download.mjs
+/**
+* @license lucide-react v1.50.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var __iconData$35 = {
+	name: "download",
+	size: 24,
+	node: [
+		["path", {
+			d: "M12 15V3",
+			key: "m9g1x1"
+		}],
+		["path", {
+			d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4",
+			key: "ih7n3h"
+		}],
+		["path", {
+			d: "m7 10 5 5 5-5",
+			key: "brsn70"
+		}]
+	]
+};
 __iconData$35.node;
-var CreditCard = createLucideIcon(__iconData$35);
+var Download = createLucideIcon(__iconData$35);
 //#endregion
 //#region node_modules/lucide-react/dist/esm/icons/ellipsis.mjs
 /**
@@ -17084,6 +17112,24 @@ function unitOf$2(service) {
 	if (!service) return "单";
 	return service.unit_label || UNIT_BY_TYPE[service.price_type] || "单";
 }
+var qtyText = (value) => Number.isInteger(value) ? String(value) : String(Math.round(value * 100) / 100);
+/**
+* 「这个服务项能让客户拿到多少货币」，例：`星声 200`。
+*
+* 货币名字配在**游戏**上，服务项只填数量，所以归属要这么找：
+* 服务项自己的 game_id → 没有就跟它的大类走。
+* 游戏没配货币名、或者数量不是正数，就返回空字符串（调用方据此不显示）。
+*/
+function currencyGain(service, games = [], categories = []) {
+	const raw = service && service.currency_amount;
+	if (raw === null || raw === void 0 || raw === "") return "";
+	const amount = Number(raw);
+	if (!Number.isFinite(amount) || amount <= 0) return "";
+	let gameId = service && service.game_id || "";
+	if (!gameId && service && service.category_id) gameId = (categories || []).find((category) => String(category.id) === String(service.category_id))?.game_id || "";
+	const name = String((games || []).find((game) => String(game.id) === String(gameId))?.currency || "").trim();
+	return name ? `${name} ${qtyText(amount)}` : "";
+}
 //#endregion
 //#region public/js/views/games.js
 /** 公告可能有好几行、也可能很长，列表里只给一个开头 */
@@ -17404,16 +17450,6 @@ function priceRange$1(list) {
 	const lo = Math.min(...vals);
 	const hi = Math.max(...vals);
 	return lo === hi ? `¥${fmtMoney$1(lo)}` : `¥${fmtMoney$1(lo)} – ¥${fmtMoney$1(hi)}`;
-}
-function currencyGain(service, games = [], categories = []) {
-	const raw = service?.currency_amount;
-	if (raw === null || raw === void 0 || raw === "") return "";
-	const n = Number(raw);
-	if (!Number.isFinite(n) || n <= 0) return "";
-	let gid = service.game_id || "";
-	if (!gid && service.category_id) gid = (categories || []).find((c) => String(c.id) === String(service.category_id))?.game_id || "";
-	const name = String((games || []).find((g) => String(g.id) === String(gid))?.currency || "").trim();
-	return name ? `${name} ${fmtQty$1(n)}` : "";
 }
 var CAT_OPEN_KEY = "xfc.price.catOpen";
 var catOpen = /* @__PURE__ */ new Map();
@@ -18148,7 +18184,7 @@ function servicePeek(service, ctx, { onChanged } = {}) {
 	});
 	return d;
 }
-async function openExporter(ctx, { games = [] } = {}) {
+async function openExporter$1(ctx, { games = [] } = {}) {
 	const state = {
 		scope: "per-game",
 		perCategory: "99",
@@ -18483,7 +18519,7 @@ var price_default = {
 			onclick: () => newCategory()
 		}, icon("plus", 14), "新建大类"), h$1("button.btn.btn--sm", {
 			type: "button",
-			onclick: () => openExporter(ctx, { games: allGames })
+			onclick: () => openExporter$1(ctx, { games: allGames })
 		}, icon("download", 14), "导出图片/文档"));
 		if (!allGames.length && !categories.length && !services.length) return h$1("section.panel", h$1("div.panel__body", emptyState({
 			iconName: "price",
@@ -20864,14 +20900,17 @@ function Modal({ title, wide = false, footer = null, onClose, children }) {
 		const onClick = (event) => {
 			if (event.target === node && closeRef.current) closeRef.current();
 		};
+		const onClosed = () => {
+			if (closeRef.current) closeRef.current();
+		};
 		node.addEventListener("cancel", onCancel);
 		node.addEventListener("click", onClick);
-		document.body.classList.add("is-locked");
+		node.addEventListener("close", onClosed);
 		if (!node.open) node.showModal();
 		return () => {
 			node.removeEventListener("cancel", onCancel);
 			node.removeEventListener("click", onClick);
-			document.body.classList.remove("is-locked");
+			node.removeEventListener("close", onClosed);
 			if (node.open) node.close();
 		};
 	}, []);
@@ -20892,43 +20931,55 @@ function Modal({ title, wide = false, footer = null, onClose, children }) {
 }
 //#endregion
 //#region client/app/overlay-host.jsx
-var current = null;
+var stack = [];
+var seq = 0;
 var listeners = /* @__PURE__ */ new Set();
 function publish() {
-	for (const listener of listeners) listener(current);
+	const snapshot = [...stack];
+	for (const listener of listeners) listener(snapshot);
 }
 /**
 * 打开一个浮层，返回 Promise。
-* render 收到一个 close(值) 函数：调它就卸载浮层并 resolve(值)。
+* render 收到一个 close(值) 函数：调它就卸载这一层并 resolve(值)。
+* key 用来防连点：最上面那层如果是同一个 key，先关掉它。
 */
-function openOverlay(render) {
-	if (current) current.settle(null);
+function openOverlay(render, key = "") {
+	const top = stack[stack.length - 1];
+	if (top && key && top.key === key) top.settle(null);
 	return new Promise((resolve) => {
 		const entry = {
+			id: ++seq,
+			key,
 			render,
 			settle(value) {
-				if (current === entry) {
-					current = null;
+				const index = stack.indexOf(entry);
+				if (index >= 0) {
+					stack.splice(index, 1);
 					publish();
 				}
 				resolve(value);
 			}
 		};
-		current = entry;
+		stack.push(entry);
 		publish();
 	});
 }
 function OverlayHost() {
-	const [overlay, setOverlay] = (0, import_react.useState)(current);
+	const [entries, setEntries] = (0, import_react.useState)(() => [...stack]);
 	(0, import_react.useEffect)(() => {
-		listeners.add(setOverlay);
-		setOverlay(current);
+		listeners.add(setEntries);
+		setEntries([...stack]);
 		return () => {
-			listeners.delete(setOverlay);
+			listeners.delete(setEntries);
 		};
 	}, []);
-	if (!overlay) return null;
-	return overlay.render(overlay.settle);
+	(0, import_react.useEffect)(() => {
+		if (entries.length) document.body.classList.add("is-locked");
+		else document.body.classList.remove("is-locked");
+	}, [entries.length]);
+	(0, import_react.useEffect)(() => () => document.body.classList.remove("is-locked"), []);
+	if (!entries.length) return null;
+	return entries.map((entry) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_react.Fragment, { children: entry.render(entry.settle) }, entry.id));
 }
 //#endregion
 //#region client/app/confirm.jsx
@@ -20968,7 +21019,7 @@ function confirmDelete({ title, message, confirmLabel = "删除" }) {
 //#endregion
 //#region client/dashboard.jsx
 var STATUS_LABEL$1 = ORDER_STATUS_LABEL;
-var iconProps$8 = (size = 16) => ({
+var iconProps$12 = (size = 16) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -21064,7 +21115,7 @@ function EmptyOnboarding({ navigate }) {
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "react-dashboard-empty__icon",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$8(21) })
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$12(21) })
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "帐桌支好了，先录第一批价格" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "这个后台不预置任何数据。按下面顺序录入，十分钟就能接手第一单。" }),
@@ -21081,7 +21132,7 @@ function EmptyOnboarding({ navigate }) {
 					className: "refactor-button refactor-button--primary",
 					type: "button",
 					onClick: () => navigate("/games"),
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$8(15) }), "先加一个游戏"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$12(15) }), "先加一个游戏"]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 					className: "refactor-button",
 					type: "button",
@@ -21146,21 +21197,21 @@ function OrderRow$1({ order, navigate, onReload }) {
 						type: "button",
 						title: "记进度",
 						onClick: () => progressDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$8(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$12(14) })
 					}),
 					due > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "记收款",
 						onClick: () => paymentDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$8(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$12(14) })
 					}) : null,
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "看详情",
 						onClick: () => navigate(`/orders/${order.id}`),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$8(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$12(14) })
 					})
 				]
 			})
@@ -21188,14 +21239,14 @@ function OpenOrders({ orders, count, navigate, onReload }) {
 			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "react-panel-empty",
 				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$8(19) }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListTodo, { ...iconProps$12(19) }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: "现在手上没有在做的单" }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "开一单试试，价格会在下单时冻结。" }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 						className: "refactor-button",
 						type: "button",
 						onClick: () => navigate("/orders/new"),
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$8(14) }), "开一张新单"]
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$12(14) }), "开一张新单"]
 					})
 				]
 			}),
@@ -21205,7 +21256,7 @@ function OpenOrders({ orders, count, navigate, onReload }) {
 					className: "refactor-button",
 					type: "button",
 					onClick: () => navigate("/orders?status=open"),
-					children: ["看全部在做的单 ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$8(14) })]
+					children: ["看全部在做的单 ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$12(14) })]
 				})
 			}) : null
 		]
@@ -21258,7 +21309,7 @@ function DashboardSide({ data, navigate, onReload }) {
 						type: "button",
 						title: "记收款",
 						onClick: () => paymentDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CreditCard, { ...iconProps$8(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CreditCard, { ...iconProps$12(14) })
 					})] })]
 				}, order.id)
 			}),
@@ -21296,7 +21347,7 @@ function DashboardSide({ data, navigate, onReload }) {
 								toastErr(err);
 							}
 						},
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$8(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$12(14) })
 					})] })]
 				}, payment.id)
 			})
@@ -21393,7 +21444,7 @@ var SORTS = [
 	}
 ];
 var STATUS_LABEL = ORDER_STATUS_LABEL;
-var iconProps$7 = (size = 15) => ({
+var iconProps$11 = (size = 15) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -21524,21 +21575,21 @@ function OrderRow({ order, navigate, onReload }) {
 						type: "button",
 						title: "记进度",
 						onClick: () => progressDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$7(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock3, { ...iconProps$11(14) })
 					}),
 					due > .001 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "记收款",
 						onClick: () => paymentDrawer(order, onReload),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$7(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$11(14) })
 					}) : null,
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: "看详情",
 						onClick: () => navigate(`/orders/${order.id}`),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$7(14) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$11(14) })
 					})
 				]
 			})
@@ -21551,14 +21602,14 @@ function EmptyOrders({ search, status, onNew }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "orders-empty",
 		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListFilter, { ...iconProps$7(21) }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ListFilter, { ...iconProps$11(21) }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: title }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: body }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 				className: "refactor-button refactor-button--primary",
 				type: "button",
 				onClick: onNew,
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$7(15) }), "开新单"]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$11(15) }), "开新单"]
 			})
 		]
 	});
@@ -21646,7 +21697,7 @@ function OrdersPage({ route, navigate, onNew, onReload, reloadKey }) {
 					className: "refactor-button refactor-button--primary",
 					type: "button",
 					onClick: onNew,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$7(15) }), "开新单"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$11(15) }), "开新单"]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
@@ -21681,7 +21732,7 @@ function OrdersPage({ route, navigate, onNew, onReload, reloadKey }) {
 						title: "取消客户筛选",
 						onClick: () => update({ customerId: "" }),
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Users, { ...iconProps$7(13) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Users, { ...iconProps$11(13) }),
 							"只看「",
 							customer?.name || "这个客户",
 							"」",
@@ -21705,7 +21756,7 @@ function OrdersPage({ route, navigate, onNew, onReload, reloadKey }) {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 						className: "orders-search",
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$7(15) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$11(15) }),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 								type: "search",
 								value: search,
@@ -21724,7 +21775,7 @@ function OrdersPage({ route, navigate, onNew, onReload, reloadKey }) {
 			}),
 			queryFilters.status === "daily_done" ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "orders-note",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$7(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "这些是今天标了「今日已完成」的单，过了凌晨 4 点会自动回到「在做的」。点进订单可以撤销。" })]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { ...iconProps$11(15) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "这些是今天标了「今日已完成」的单，过了凌晨 4 点会自动回到「在做的」。点进订单可以撤销。" })]
 			}) : null,
 			error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "refactor-alert",
@@ -21784,7 +21835,7 @@ var FILTERS = [
 		label: "回头客"
 	}
 ];
-var iconProps$6 = (size = 16) => ({
+var iconProps$10 = (size = 16) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -21858,7 +21909,7 @@ function CustomerRow({ customer, navigate }) {
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "customers-row__credentials",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$6(14) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: customer.credential_count || 0 })]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WalletCards, { ...iconProps$10(14) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: customer.credential_count || 0 })]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 				className: "react-mini-button customers-row__open",
@@ -21868,7 +21919,7 @@ function CustomerRow({ customer, navigate }) {
 					event.stopPropagation();
 					navigate(`/customers/${customer.id}`);
 				},
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$6(15) })
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowUpRight, { ...iconProps$10(15) })
 			})
 		]
 	});
@@ -21877,14 +21928,14 @@ function EmptyCustomers({ filtered, onNew }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "customers-empty",
 		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ContactRound, { ...iconProps$6(22) }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ContactRound, { ...iconProps$10(22) }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: filtered ? "没有符合条件的客户" : "还没有客户" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: filtered ? "换个关键词试试，或者清空筛选。" : "建立客户档案后，可以直接查看订单、收款和登录凭证。" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 				className: "refactor-button refactor-button--primary",
 				type: "button",
 				onClick: onNew,
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$6(15) }), "建第一个客户"]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$10(15) }), "建第一个客户"]
 			})
 		]
 	});
@@ -21952,7 +22003,7 @@ function CustomersPage({ route, navigate, onNew, reloadKey }) {
 					className: "refactor-button refactor-button--primary",
 					type: "button",
 					onClick: onNew,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$6(15) }), "新建客户"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$10(15) }), "新建客户"]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
@@ -21983,7 +22034,7 @@ function CustomersPage({ route, navigate, onNew, reloadKey }) {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 						className: "customers-search",
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$6(15) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$10(15) }),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 								type: "search",
 								value: search,
@@ -22054,14 +22105,17 @@ function Drawer({ title, subtitle, wide = false, footer = null, onClose, childre
 		const onClick = (event) => {
 			if (event.target === node && closeRef.current) closeRef.current();
 		};
+		const onClosed = () => {
+			if (closeRef.current) closeRef.current();
+		};
 		node.addEventListener("cancel", onCancel);
 		node.addEventListener("click", onClick);
-		document.body.classList.add("is-locked");
+		node.addEventListener("close", onClosed);
 		if (!node.open) node.showModal();
 		return () => {
 			node.removeEventListener("cancel", onCancel);
 			node.removeEventListener("click", onClick);
-			document.body.classList.remove("is-locked");
+			node.removeEventListener("close", onClosed);
 			if (node.open) node.close();
 		};
 	}, []);
@@ -22109,17 +22163,24 @@ function Drawer({ title, subtitle, wide = false, footer = null, onClose, childre
 //#endregion
 //#region client/app/fields.jsx
 /** 字段外壳：标签 + 控件 + 提示 + 错误位，和旧 fieldShell 结构一致 */
-function Field$1({ label, hint, error, required = false, half = false, htmlFor, children }) {
+function Field$1({ label, hint, error, required = false, half = false, suffix = "", htmlFor, children }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: `field${half ? "" : " field--full"}${error ? " is-bad" : ""}`,
 		children: [
 			label ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 				className: "lbl",
 				htmlFor,
-				children: [label, required ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-					className: "req",
-					children: "*"
-				}) : null]
+				children: [
+					label,
+					required ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "req",
+						children: "*"
+					}) : null,
+					suffix ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "dim tiny",
+						children: `（${suffix}）`
+					}) : null
+				]
 			}) : null,
 			children,
 			hint ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -22134,16 +22195,21 @@ function Field$1({ label, hint, error, required = false, half = false, htmlFor, 
 		]
 	});
 }
-function TextInput({ value, onChange, numeric = false, maxLength = 300, ...rest }) {
+function TextInput({ value, onChange, numeric = false, money = false, maxLength = 300, onBlur, ...rest }) {
+	const fig = numeric || money;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 		...rest,
-		className: `inp${numeric ? " inp--fig" : ""}`,
+		className: `inp${fig ? " inp--fig" : ""}`,
 		type: "text",
-		inputMode: numeric ? "decimal" : void 0,
+		inputMode: fig ? "decimal" : void 0,
 		autoComplete: "off",
 		maxLength,
 		value: value ?? "",
-		onChange: (event) => onChange(event.target.value)
+		onChange: (event) => onChange(event.target.value),
+		onBlur: (event) => {
+			if (money && event.target.value !== "") onChange(String(Math.round((Number(event.target.value) || 0) * 100) / 100));
+			if (onBlur) onBlur(event);
+		}
 	});
 }
 function TextArea({ value, onChange, rows = 3, maxLength = 4e3, ...rest }) {
@@ -22158,7 +22224,9 @@ function TextArea({ value, onChange, rows = 3, maxLength = 4e3, ...rest }) {
 	});
 }
 function SelectInput({ value, onChange, options = [], ...rest }) {
-	const wanted = value === null || value === void 0 ? "" : String(value);
+	const raw = value === null || value === void 0 ? "" : String(value);
+	const alias = raw === "true" ? "1" : raw === "false" ? "0" : raw;
+	const wanted = alias !== raw && options.some((option) => String(option.value) === alias) ? alias : raw;
 	const known = options.some((option) => String(option.value) === wanted);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
 		...rest,
@@ -22320,12 +22388,12 @@ function ImageField({ label = "图片", value, onChange, prefix = "img", hint = 
 }
 //#endregion
 //#region client/game-form.jsx
-var FORM_ID$2 = "game-form";
+var FORM_ID$3 = "game-form";
 function openGameForm(values = {}) {
 	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GameForm, {
 		values,
 		close
-	}));
+	}), "game-form");
 }
 function GameForm({ values, close }) {
 	const [form, setForm] = (0, import_react.useState)(() => ({
@@ -22387,13 +22455,13 @@ function GameForm({ values, close }) {
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 				className: "btn btn--primary",
 				type: "submit",
-				form: FORM_ID$2,
+				form: FORM_ID$3,
 				disabled: busy,
 				children: busy ? "保存中…" : "保存"
 			})
 		] }),
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
-			id: FORM_ID$2,
+			id: FORM_ID$3,
 			noValidate: true,
 			onSubmit: submit,
 			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -22528,7 +22596,7 @@ function GameForm({ values, close }) {
 }
 //#endregion
 //#region client/games.jsx
-var iconProps$5 = (size = 16) => ({
+var iconProps$9 = (size = 16) => ({
 	size,
 	strokeWidth: 1.8,
 	absoluteStrokeWidth: true,
@@ -22607,21 +22675,21 @@ function GameRow({ game, navigate, onEdit, onToggle, onDelete }) {
 						type: "button",
 						title: "编辑游戏",
 						onClick: () => onEdit(game),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$5(15) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$9(15) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button",
 						type: "button",
 						title: game.status === "active" ? "归档游戏" : "恢复上架",
 						onClick: () => onToggle(game),
-						children: game.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$5(15) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps$5(15) })
+						children: game.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Archive, { ...iconProps$9(15) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RefreshCw, { ...iconProps$9(15) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "react-mini-button games-delete",
 						type: "button",
 						title: "彻底删除",
 						onClick: () => onDelete(game),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$5(15) })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$9(15) })
 					})
 				]
 			})
@@ -22632,14 +22700,14 @@ function EmptyGames({ filtered, onNew }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "games-empty",
 		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gamepad2, { ...iconProps$5(23) }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gamepad2, { ...iconProps$9(23) }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("b", { children: filtered ? "没有符合条件的游戏" : "还没有加游戏" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: filtered ? "换个关键词试试，或者清空筛选。" : "先添加正在代肝的游戏，区服和货币也可以一起设置。" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 				className: "refactor-button refactor-button--primary",
 				type: "button",
 				onClick: onNew,
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$5(15) }), "新建游戏"]
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$9(15) }), "新建游戏"]
 			})
 		]
 	});
@@ -22746,7 +22814,7 @@ function GamesPage({ route, navigate, onNew, onReload, reloadKey }) {
 					className: "refactor-button refactor-button--primary",
 					type: "button",
 					onClick: onNew,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$5(15) }), "新建游戏"]
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$9(15) }), "新建游戏"]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
@@ -22788,7 +22856,7 @@ function GamesPage({ route, navigate, onNew, onReload, reloadKey }) {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 						className: "games-search",
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$5(15) }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { ...iconProps$9(15) }),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 								type: "search",
 								value: search,
@@ -22849,14 +22917,14 @@ function GamesPage({ route, navigate, onNew, onReload, reloadKey }) {
 }
 //#endregion
 //#region client/category-form.jsx
-var FORM_ID$1 = "category-form";
+var FORM_ID$2 = "category-form";
 function openCategoryForm(values = {}, games = [], presetGameId = null) {
 	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CategoryForm, {
 		values,
 		games,
 		presetGameId,
 		close
-	}));
+	}), "category-form");
 }
 function CategoryForm({ values, games, presetGameId, close }) {
 	const isEdit = Boolean(values.id);
@@ -22919,13 +22987,13 @@ function CategoryForm({ values, games, presetGameId, close }) {
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 				className: "btn btn--primary",
 				type: "submit",
-				form: FORM_ID$1,
+				form: FORM_ID$2,
 				disabled: busy,
 				children: busy ? "保存中…" : "保存"
 			})
 		] }),
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
-			id: FORM_ID$1,
+			id: FORM_ID$2,
 			noValidate: true,
 			onSubmit: submit,
 			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -23087,7 +23155,7 @@ function openPriceSum(category, services) {
 		category,
 		services,
 		close
-	}));
+	}), "price-sum");
 }
 function PriceSum({ category, services, close }) {
 	const list = (0, import_react.useMemo)(() => (services || []).filter((service) => service.status !== "archived"), [services]);
@@ -23278,6 +23346,1590 @@ function PriceSum({ category, services, close }) {
 					className: "hint",
 					children: "已复制到剪贴板，可以直接粘给客户。"
 				}) : null
+			]
+		})
+	});
+}
+//#endregion
+//#region client/price-exporter.jsx
+var iconProps$8 = (size = 14) => ({
+	size,
+	strokeWidth: 1.8,
+	absoluteStrokeWidth: true,
+	"aria-hidden": true
+});
+function openExporter(ctx, { games = [] } = {}) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PriceExporter, {
+		games,
+		close
+	}), "price-exporter");
+}
+function PriceExporter({ games, close }) {
+	const [scope, setScope] = (0, import_react.useState)("per-game");
+	const [withDesc, setWithDesc] = (0, import_react.useState)(true);
+	const [contact, setContact] = (0, import_react.useState)(null);
+	const [footer, setFooter] = (0, import_react.useState)(null);
+	const [contactText, setContactText] = (0, import_react.useState)("");
+	const [footerText, setFooterText] = (0, import_react.useState)("");
+	const [model, setModel] = (0, import_react.useState)(null);
+	const [previewUrl, setPreviewUrl] = (0, import_react.useState)("");
+	const [summary, setSummary] = (0, import_react.useState)("正在生成预览…");
+	const [busy, setBusy] = (0, import_react.useState)("");
+	const tokenRef = (0, import_react.useRef)(0);
+	const baseQuery = (extra) => {
+		const query = {
+			full: "1",
+			format: "full",
+			with_desc: withDesc ? "1" : "0"
+		};
+		if (contact !== null) query.contact = contact;
+		if (footer !== null) query.footer = footer;
+		return {
+			...query,
+			...extra
+		};
+	};
+	/** 这次导出会产出哪几份 */
+	const targets = (source) => {
+		if (!source) return [];
+		if (scope === "merged") return [{
+			key: "",
+			name: "",
+			count: source.itemCount
+		}];
+		if (scope.startsWith("game:")) {
+			const id = scope.slice(5);
+			const one = (source.gameOptions || []).find((game) => game.key === id);
+			return one ? [one] : [];
+		}
+		return (source.gameOptions || []).slice();
+	};
+	const list = targets(model);
+	async function refresh() {
+		const token = ++tokenRef.current;
+		let all;
+		try {
+			all = await api.get("/api/pricebook/export-model", baseQuery());
+		} catch (err) {
+			setSummary("预览生成失败：" + (err.message || ""));
+			return;
+		}
+		if (token !== tokenRef.current) return;
+		setModel(all);
+		if (contact === null) setContactText(all.contact || "");
+		if (footer === null) setFooterText(all.footer || "");
+		const jobs = targets(all);
+		let preview = all;
+		let previewName = "";
+		if (scope !== "merged" && jobs.length) {
+			const first = jobs[0];
+			previewName = first.name;
+			if (first.key) try {
+				preview = await api.get("/api/pricebook/export-model", baseQuery({ game_id: first.key }));
+			} catch {
+				preview = all;
+			}
+		}
+		if (token !== tokenRef.current) return;
+		let canvas;
+		try {
+			canvas = renderPriceCard(preview, { scale: 1 });
+		} catch (err) {
+			setSummary("预览画不出来：" + (err.message || ""));
+			return;
+		}
+		setPreviewUrl(canvas.toDataURL("image/png"));
+		const hidden = preview.hiddenServices + preview.hiddenCategories;
+		const parts = [];
+		if (scope === "per-game") parts.push(jobs.length > 1 ? `会生成 ${jobs.length} 份，每个游戏一份（不混在一起）` : "会生成 1 份");
+		else if (scope === "merged") parts.push("会生成 1 份，所有游戏合在一起");
+		else parts.push(`只导出「${previewName || preview.subtitle}」1 份`);
+		parts.push(`本份预览：${preview.itemCount} 个服务项、${preview.groups.length} 个大类` + (hidden ? `，另有 ${hidden} 项没展开` : ""));
+		setSummary(parts.join(" · "));
+	}
+	(0, import_react.useEffect)(() => {
+		const timer = setTimeout(() => {
+			refresh();
+		}, 220);
+		return () => clearTimeout(timer);
+	}, [
+		scope,
+		withDesc,
+		contact,
+		footer
+	]);
+	const safeName = (text) => String(text || "").replace(/[\\/:*?"<>|]/g, "_").slice(0, 60);
+	const fileName = (source, target, ext) => {
+		const game = scope === "merged" ? "" : target?.name || "";
+		return `${safeName(source.shopName)}-${safeName(game || "价目表")}-${source.date}.${ext}`;
+	};
+	/** 逐个游戏取模型；合并模式就取一次 */
+	async function eachModel() {
+		const jobs = targets(model);
+		const out = [];
+		for (const target of jobs) if (scope === "merged") out.push({
+			target,
+			model
+		});
+		else {
+			const one = target.key ? await api.get("/api/pricebook/export-model", baseQuery({ game_id: target.key })) : model;
+			out.push({
+				target,
+				model: one
+			});
+		}
+		return out;
+	}
+	async function exportImages() {
+		if (!model) return;
+		setBusy("img");
+		try {
+			const jobs = await eachModel();
+			if (!jobs.length) return;
+			let count = 0;
+			for (const job of jobs) {
+				const blob = await canvasToBlob(renderPriceCard(job.model, { scale: 2 }));
+				if (!blob) {
+					toast("这个浏览器不支持生成图片，请换 Chrome / Edge / Safari 试试", "err", 4200);
+					return;
+				}
+				downloadBlob(blob, fileName(job.model, job.target, "png"));
+				count++;
+				if (count < jobs.length) await new Promise((resolve) => setTimeout(resolve, 400));
+			}
+			toast(count > 1 ? `已生成 ${count} 张完整图片` : "图片已生成，去下载文件夹看看", "ok", 3600);
+		} catch (err) {
+			toastErr(err);
+		} finally {
+			setBusy("");
+		}
+	}
+	async function exportDocx() {
+		if (!model) return;
+		setBusy("doc");
+		try {
+			const jobs = await eachModel();
+			if (!jobs.length) return;
+			let count = 0;
+			for (const job of jobs) {
+				const query = new URLSearchParams(baseQuery());
+				if (scope !== "merged" && job.target.key) query.set("game_id", job.target.key);
+				const res = await fetch(`/api/pricebook/export.docx?${query.toString()}`, { credentials: "same-origin" });
+				if (!res.ok) {
+					let message = "生成文档失败";
+					try {
+						const body = await res.json();
+						if (body && body.error) message = body.error;
+					} catch {}
+					toast(message, "err", 4200);
+					return;
+				}
+				downloadBlob(await res.blob(), fileName(job.model, job.target, "docx"));
+				count++;
+				if (count < jobs.length) await new Promise((resolve) => setTimeout(resolve, 400));
+			}
+			toast(count > 1 ? `已生成 ${count} 份 Word 文档，每个游戏一份` : "Word 文档已生成，可以用 Word / WPS 打开和修改", "ok", 3600);
+		} catch (err) {
+			toastErr(err);
+		} finally {
+			setBusy("");
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: "导出价格表",
+		subtitle: "生成能直接发微信的图片，或者能打印、能编辑的 Word 文档",
+		wide: true,
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "关闭"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+				className: "btn",
+				type: "button",
+				disabled: !list.length || busy === "doc",
+				"data-loading": busy === "doc" ? "1" : void 0,
+				onClick: exportDocx,
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { ...iconProps$8() }), "生成 Word 文档"]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+				className: "btn btn--primary",
+				type: "button",
+				disabled: !list.length || busy === "img",
+				"data-loading": busy === "img" ? "1" : void 0,
+				onClick: exportImages,
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, { ...iconProps$8() }), "生成图片"]
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "stack",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "formgrid",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "导出范围",
+							htmlFor: "export-scope",
+							hint: "默认每个游戏单独出一份，发给客户时只发他那款游戏，不会把几个游戏混在一张图上。",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+								id: "export-scope",
+								value: scope,
+								onChange: setScope,
+								options: [
+									{
+										value: "per-game",
+										label: "每个游戏各出一份（推荐 · 分开的文件）"
+									},
+									{
+										value: "merged",
+										label: "全部游戏合并成一份"
+									},
+									...(games || []).map((game) => ({
+										value: `game:${game.id}`,
+										label: `只要「${game.name}」这一份`
+									}))
+								]
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "图片内容",
+							hint: "按游戏生成一张完整的客户速览长图；Word 会保留完整服务和阶梯价。"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "带说明文字",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+								className: "inline",
+								style: { cursor: "pointer" },
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									className: "chk",
+									type: "checkbox",
+									checked: withDesc,
+									onChange: (event) => setWithDesc(event.target.checked)
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "sm",
+									children: "展示服务说明、套餐内容和增项"
+								})]
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "联系方式",
+							htmlFor: "export-contact",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "export-contact",
+								value: contactText,
+								onChange: (value) => {
+									setContactText(value);
+									setContact(value);
+								},
+								placeholder: "例：微信 xiaofeng"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "页脚说明",
+							htmlFor: "export-footer",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "export-footer",
+								value: footerText,
+								onChange: (value) => {
+									setFooterText(value);
+									setFooter(value);
+								},
+								placeholder: "例：价格随版本更新，以最新报价为准"
+							})
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "sechead",
+					style: { marginBottom: "0" },
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { children: "预览" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "sechead__note",
+						children: "这就是生成出来的图片"
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "exporter__preview",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "stack",
+						children: previewUrl ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+							src: previewUrl,
+							alt: "价格表速览卡预览"
+						}) : null
+					})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "hint",
+					children: summary
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note",
+					children: "图片按游戏生成一张完整长图；Word 是 A4 完整价目册，使用真实表格并逐档列出阶梯价。"
+				})
+			]
+		})
+	});
+}
+//#endregion
+//#region client/service-form.jsx
+var FORM_ID$1 = "service-form";
+function openServiceForm(values = {}, { games = [], categories = [] } = {}, { quick = false } = {}) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ServiceForm, {
+		values,
+		games,
+		categories,
+		quick,
+		close
+	}), "service-form");
+}
+function ServiceForm({ values, games, categories, quick, close }) {
+	const isEdit = Boolean(values.id);
+	const gameIdOf = values.game_id || categories.find((category) => String(category.id) === String(values.category_id))?.game_id || "";
+	const currency = games.find((game) => String(game.id) === String(gameIdOf))?.currency || "";
+	const [form, setForm] = (0, import_react.useState)(() => ({
+		name: values.name || "",
+		game_id: values.game_id === null || values.game_id === void 0 ? "" : String(values.game_id),
+		category_id: values.category_id === null || values.category_id === void 0 ? "" : String(values.category_id),
+		price_type: values.price_type || "fixed",
+		unit_label: values.unit_label || "",
+		base_price: values.base_price === null || values.base_price === void 0 ? "" : String(values.base_price),
+		min_qty: values.min_qty === null || values.min_qty === void 0 || values.min_qty === "" ? "1" : String(values.min_qty),
+		max_qty: values.max_qty === null || values.max_qty === void 0 ? "" : String(values.max_qty),
+		currency_amount: values.currency_amount === null || values.currency_amount === void 0 ? "" : String(values.currency_amount),
+		description: values.description || "",
+		is_daily: values.is_daily === null || values.is_daily === void 0 ? "" : String(values.is_daily),
+		package_items: Array.isArray(values.package_items) ? values.package_items : [],
+		status: values.status || "active",
+		note: values.note || ""
+	}));
+	const [errors, setErrors] = (0, import_react.useState)({});
+	const [alert, setAlert] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const set = (key) => (value) => setForm((current) => ({
+		...current,
+		[key]: value
+	}));
+	async function submit(event) {
+		event.preventDefault();
+		if (!form.category_id) {
+			setAlert("请先选一个大类。价格表的结构是：游戏 → 大类 → 服务项，服务项不能直接挂到游戏上。");
+			return;
+		}
+		const next = {};
+		if (!String(form.name).trim()) next.name = "请填写服务名";
+		if (String(form.base_price).trim() === "") next.base_price = "请填写基准单价";
+		else if (!Number.isFinite(Number(form.base_price))) next.base_price = "请填数字";
+		if (String(form.min_qty).trim() !== "" && !Number.isFinite(Number(form.min_qty))) next.min_qty = "请填数字";
+		if (String(form.max_qty).trim() !== "" && !Number.isFinite(Number(form.max_qty))) next.max_qty = "请填数字";
+		if (String(form.currency_amount).trim() !== "" && !Number.isFinite(Number(form.currency_amount))) next.currency_amount = "请填数字";
+		setErrors(next);
+		setAlert("");
+		if (Object.keys(next).length) {
+			document.getElementById(`service-${Object.keys(next)[0]}`)?.focus();
+			return;
+		}
+		setBusy(true);
+		try {
+			const payload = {
+				...form,
+				name: String(form.name).trim(),
+				game_id: form.game_id || null,
+				min_qty: Number(form.min_qty) || 1,
+				max_qty: form.max_qty === "" || form.max_qty === null ? null : Number(form.max_qty),
+				currency_amount: form.currency_amount === "" || form.currency_amount === null ? null : Number(form.currency_amount)
+			};
+			const saved = isEdit ? await api.patch(`/api/services/${values.id}`, payload) : await api.post("/api/services/append", payload);
+			toast("服务项已保存", "ok");
+			close(saved);
+		} catch (err) {
+			setAlert(err && err.message ? err.message : "保存失败");
+		} finally {
+			setBusy(false);
+		}
+	}
+	const fields = quick ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "服务名",
+			required: true,
+			htmlFor: "service-name",
+			error: errors.name,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+				id: "service-name",
+				value: form.name,
+				onChange: set("name"),
+				placeholder: "例：每日委托 / 深渊 12 层 / 活动全包",
+				"aria-invalid": errors.name ? "true" : void 0
+			})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(GameCategoryFields, {
+			games,
+			categories,
+			gameId: form.game_id,
+			categoryId: form.category_id,
+			onGame: set("game_id"),
+			onCategory: set("category_id")
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "计价方式",
+			required: true,
+			half: true,
+			htmlFor: "service-price-type",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+				id: "service-price-type",
+				value: form.price_type,
+				onChange: set("price_type"),
+				options: PRICE_TYPES$1
+			})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "单位",
+			half: true,
+			htmlFor: "service-unit",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+				id: "service-unit",
+				value: form.unit_label,
+				onChange: set("unit_label"),
+				placeholder: "天 / 次 / 层 / 个 / 套"
+			})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "基准单价",
+			required: true,
+			half: true,
+			suffix: "元",
+			htmlFor: "service-base-price",
+			error: errors.base_price,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+				id: "service-base-price",
+				money: true,
+				value: form.base_price,
+				onChange: set("base_price"),
+				"aria-invalid": errors.base_price ? "true" : void 0
+			})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "起订量",
+			half: true,
+			htmlFor: "service-min-qty",
+			error: errors.min_qty,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+				id: "service-min-qty",
+				numeric: true,
+				value: form.min_qty,
+				onChange: set("min_qty")
+			})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "说明（可选）",
+			htmlFor: "service-description",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
+				id: "service-description",
+				rows: 2,
+				value: form.description,
+				onChange: set("description"),
+				placeholder: "客户问到时需要说明的内容"
+			})
+		})
+	] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "服务名",
+			required: true,
+			htmlFor: "service-name",
+			error: errors.name,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+				id: "service-name",
+				value: form.name,
+				onChange: set("name"),
+				placeholder: "例：每日委托 / 深渊 12 层 / 活动全包",
+				"aria-invalid": errors.name ? "true" : void 0
+			})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(GameCategoryFields, {
+			games,
+			categories,
+			gameId: form.game_id,
+			categoryId: form.category_id,
+			onGame: set("game_id"),
+			onCategory: set("category_id")
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "计价方式",
+			required: true,
+			half: true,
+			htmlFor: "service-price-type",
+			hint: "按数量会自动用阶梯价（如果配了的话）",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+				id: "service-price-type",
+				value: form.price_type,
+				onChange: set("price_type"),
+				options: PRICE_TYPES$1
+			})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "单位",
+			half: true,
+			htmlFor: "service-unit",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+				id: "service-unit",
+				value: form.unit_label,
+				onChange: set("unit_label"),
+				placeholder: "天 / 次 / 层 / 个 / 套"
+			})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "基准单价",
+			required: true,
+			half: true,
+			suffix: "元",
+			htmlFor: "service-base-price",
+			error: errors.base_price,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+				id: "service-base-price",
+				money: true,
+				value: form.base_price,
+				onChange: set("base_price"),
+				"aria-invalid": errors.base_price ? "true" : void 0
+			})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "起订量",
+			half: true,
+			htmlFor: "service-min-qty",
+			error: errors.min_qty,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+				id: "service-min-qty",
+				numeric: true,
+				value: form.min_qty,
+				onChange: set("min_qty")
+			})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "封顶量（留空不限）",
+			half: true,
+			htmlFor: "service-max-qty",
+			error: errors.max_qty,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+				id: "service-max-qty",
+				numeric: true,
+				value: form.max_qty,
+				onChange: set("max_qty")
+			})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "可获得货币",
+			half: true,
+			suffix: currency,
+			htmlFor: "service-currency",
+			error: errors.currency_amount,
+			hint: currency ? `这个服务项能让客户拿到多少「${currency}」。留空就不显示。价格表图片 / Word 和详情里都会带上。` : "这个服务项能让客户拿到多少游戏货币。货币名字先去「游戏」里填，填了这里才显示得出来。留空就不显示。",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+				id: "service-currency",
+				numeric: true,
+				value: form.currency_amount,
+				onChange: set("currency_amount"),
+				placeholder: "例：200"
+			})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "说明",
+			htmlFor: "service-description",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
+				id: "service-description",
+				rows: 3,
+				value: form.description,
+				onChange: set("description"),
+				placeholder: "客户问的时候你能直接念出来的一段话"
+			})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "每天都做",
+			half: true,
+			htmlFor: "service-is-daily",
+			hint: "默认跟着大类走 —— 往「日常」大类里加的服务项自动就算每天做",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+				id: "service-is-daily",
+				value: form.is_daily,
+				onChange: set("is_daily"),
+				options: [
+					{
+						value: "",
+						label: "跟随大类（推荐）"
+					},
+					{
+						value: "1",
+						label: "是，每天都做"
+					},
+					{
+						value: "0",
+						label: "否，一次性的"
+					}
+				]
+			})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "套餐包含内容",
+			htmlFor: "service-package-items",
+			hint: "套餐价 / 全包类服务用。逗号分隔，报价单上会逐条列出来。",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TagsInput, {
+				id: "service-package-items",
+				value: form.package_items,
+				onChange: set("package_items")
+			})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "状态",
+			half: true,
+			htmlFor: "service-status",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+				id: "service-status",
+				value: form.status,
+				onChange: set("status"),
+				options: [{
+					value: "active",
+					label: "在架"
+				}, {
+					value: "archived",
+					label: "已下架（老订单不受影响）"
+				}]
+			})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+			label: "内部备注",
+			half: true,
+			htmlFor: "service-note",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+				id: "service-note",
+				value: form.note,
+				onChange: set("note")
+			})
+		})
+	] });
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: isEdit ? "改服务项" : "快速添加服务",
+		wide: true,
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "取消"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: 1 } }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "submit",
+				form: FORM_ID$1,
+				disabled: busy,
+				children: busy ? "保存中…" : quick ? "保存服务" : "保存"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: FORM_ID$1,
+			noValidate: true,
+			onSubmit: submit,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [
+					quick ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "hint",
+						children: "先录入客户最常用的信息；阶梯价、套餐、增项和可获得货币可在保存后从服务行的高级设置补充。"
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "formgrid",
+						children: fields
+					}),
+					alert ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "note note--alert",
+						children: alert
+					}) : null
+				]
+			})
+		})
+	});
+}
+/** 游戏 ↔ 大类 联动的那两个下拉（自定义块，占满一行） */
+function GameCategoryFields({ games, categories, gameId, categoryId, onGame, onCategory }) {
+	const [keepCurrent, setKeepCurrent] = (0, import_react.useState)(Boolean(categoryId));
+	const list = categories.filter((category) => {
+		if (keepCurrent && categoryId && String(category.id) === String(categoryId)) return true;
+		if (category.status === "archived") return false;
+		if (!gameId) return true;
+		return !category.game_id || String(category.game_id) === String(gameId);
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "row-2 field--full",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "field field--full",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+					className: "lbl",
+					htmlFor: "service-game",
+					children: "属于哪个游戏"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
+					id: "service-game",
+					className: "sel",
+					value: gameId,
+					onChange: (event) => {
+						onGame(event.target.value);
+						onCategory("");
+						setKeepCurrent(false);
+					},
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+						value: "",
+						children: "通用（不属于某个游戏）"
+					}), games.map((game) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+						value: String(game.id),
+						children: game.name
+					}, game.id))]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "hint",
+					children: "选「通用」表示这张价格表不绑游戏"
+				})
+			]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "field field--full",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+					className: "lbl",
+					htmlFor: "service-category",
+					children: ["放在哪个大类下", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "req",
+						children: "*"
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
+					id: "service-category",
+					className: "sel",
+					value: list.some((category) => String(category.id) === String(categoryId)) ? categoryId : "",
+					onChange: (event) => {
+						const next = event.target.value;
+						onCategory(next);
+						const picked = categories.find((category) => String(category.id) === next);
+						if (picked?.game_id && String(picked.game_id) !== String(gameId)) onGame(String(picked.game_id));
+					},
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+						value: "",
+						children: list.length ? "— 选一个大类 —" : "这个游戏下还没有大类"
+					}), list.map((category) => {
+						const foreign = category.game_id && String(category.game_id) !== String(gameId);
+						return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+							value: String(category.id),
+							children: `${category.name}${category.game_name ? `（${category.game_name}）` : ""}${foreign ? " ⚠" : ""}`
+						}, category.id);
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "hint",
+					children: "服务项必须挂在某个大类里。还没有大类就先去「新建分类」。"
+				})
+			]
+		})]
+	});
+}
+//#endregion
+//#region client/app/copy-button.jsx
+function CopyButton({ text, label = "复制", onCopied = null }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+		className: "btn btn--sm",
+		type: "button",
+		title: label,
+		onClick: async (event) => {
+			event.stopPropagation();
+			const ok = await copyText(text);
+			toast(ok ? "已复制" : "复制失败，请手动选中", ok ? "ok" : "err", 1600);
+			if (ok && onCopied) onCopied();
+		},
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Copy, {
+			size: 15,
+			strokeWidth: 1.8,
+			absoluteStrokeWidth: true,
+			"aria-hidden": "true"
+		}), label]
+	});
+}
+//#endregion
+//#region client/option-editor.jsx
+var iconProps$7 = (size = 14) => ({
+	size,
+	strokeWidth: 1.8,
+	absoluteStrokeWidth: true,
+	"aria-hidden": true
+});
+var KIND_OPTIONS = [{
+	value: "addon",
+	label: "增项（加钱）"
+}, {
+	value: "package",
+	label: "套餐（组合内容）"
+}];
+var MODE_OPTIONS = [{
+	value: "fixed",
+	label: "固定加价（元）"
+}, {
+	value: "percent",
+	label: "按比例加价（%）"
+}];
+function Tag$1({ text, tone = "" }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+		className: `tag${tone ? ` tag--${tone}` : ""}`,
+		children: text
+	});
+}
+function openOptionEditor(service) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OptionEditor, {
+		service,
+		close
+	}), "option-editor");
+}
+function OptionEditor({ service, close }) {
+	const [mine, setMine] = (0, import_react.useState)(null);
+	const [globals, setGlobals] = (0, import_react.useState)([]);
+	const [error, setError] = (0, import_react.useState)("");
+	async function load() {
+		try {
+			const [own, all] = await Promise.all([api.get("/api/options", {
+				service_id: service.id,
+				limit: 200
+			}), api.get("/api/options", { limit: 400 })]);
+			setMine(own.items || []);
+			setGlobals((all.items || []).filter((option) => !option.service_id && option.status !== "archived"));
+			setError("");
+		} catch (err) {
+			setError(err && err.message ? err.message : "增项拉不出来");
+			setMine([]);
+			setGlobals([]);
+		}
+	}
+	(0, import_react.useEffect)(() => {
+		load();
+	}, []);
+	async function remove(option) {
+		if (!await confirmDelete({
+			title: "删掉这个增项？",
+			message: option.name
+		})) return;
+		try {
+			await api.del(`/api/options/${option.id}`);
+			toast("已删除", "ok");
+			load();
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	const row = (option) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "item",
+		style: {
+			cursor: "default",
+			alignItems: "flex-start"
+		},
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "item__main",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "item__title",
+				children: [
+					option.name,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag$1, {
+						text: option.kind === "package" ? "套餐" : "增项",
+						tone: option.kind === "package" ? "slate" : ""
+					}),
+					option.default_selected ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag$1, {
+						text: "默认选中",
+						tone: "jade"
+					}) : null,
+					option.status === "archived" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag$1, {
+						text: "已下架",
+						tone: "oxblood"
+					}) : null
+				]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "item__meta",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: option.price_mode === "percent" ? `加价 ${option.price}%` : option.price ? `加 ¥${fmtMoney(option.price)}` : "不加价" }), option.description ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: option.description }) : null]
+			})]
+		}), option.service_id ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "tbl__acts",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--sm",
+				type: "button",
+				title: "改增项",
+				onClick: () => openOptionForm({ option }).then((saved) => saved && load()),
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$7() })
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--sm",
+				type: "button",
+				title: "删掉这个增项",
+				onClick: () => remove(option),
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$7() })
+			})]
+		}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+			className: "tag tag--outline",
+			children: "通用"
+		})]
+	}, option.id);
+	const section = (title, rows, note) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_react.Fragment, { children: [
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "search__grouplbl",
+			style: { padding: "10px 0 4px" },
+			children: title
+		}),
+		note ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "hint",
+			style: { paddingBottom: "6px" },
+			children: note
+		}) : null,
+		rows.length ? rows.map(row) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			style: { padding: "0 0 8px" },
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+				className: "dim sm",
+				children: "（空）"
+			})
+		})
+	] }, title);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: "套餐与增项",
+		subtitle: service.name,
+		onClose: () => close(null),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "stack",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note",
+					children: "增项会作为可勾选项出现在下单台里，选了就自动加进金额，并且一起冻进订单快照。"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "itemlist",
+					children: mine === null ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "panel__body",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "dim sm",
+							children: "读取中…"
+						})
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [section("这个服务项专属", mine), section("全局通用增项", globals, "建在所有服务项上都可用，比如「不动原石」「全程录屏」。在「新建增项」里把绑定服务留空即可。")] })
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "cluster",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						className: "btn btn--primary",
+						type: "button",
+						onClick: () => openOptionForm({ service }).then((saved) => saved && load()),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$7() }), "加增项"]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						className: "btn",
+						type: "button",
+						onClick: () => openOptionForm({ global: true }).then((saved) => saved && load()),
+						children: "通用增项"
+					})]
+				}),
+				error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note note--alert",
+					children: error
+				}) : null
+			]
+		})
+	});
+}
+/** 改增项 / 给这个服务项加增项 / 新建全局通用增项 —— 三种形态共用一个表单 */
+function openOptionForm({ option = null, service = null, global = false }) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OptionForm, {
+		option,
+		service,
+		global,
+		close
+	}), option ? `option-form-${option.id}` : global ? "option-form-global" : `option-form-${service ? service.id : "new"}`);
+}
+function OptionForm({ option, service, global, close }) {
+	const isEdit = Boolean(option);
+	const [form, setForm] = (0, import_react.useState)(() => ({
+		name: option ? option.name || "" : "",
+		kind: option ? option.kind || "addon" : "addon",
+		price_mode: option ? option.price_mode || "fixed" : "fixed",
+		price: option ? option.price === null || option.price === void 0 ? "" : String(option.price) : "0",
+		default_selected: option ? Boolean(option.default_selected) : false,
+		description: option ? option.description || "" : ""
+	}));
+	const [errors, setErrors] = (0, import_react.useState)({});
+	const [alert, setAlert] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const set = (key) => (value) => setForm((current) => ({
+		...current,
+		[key]: value
+	}));
+	async function submit(event) {
+		event.preventDefault();
+		const next = {};
+		if (!String(form.name).trim()) next.name = "请填写名称";
+		if (String(form.price).trim() !== "" && !Number.isFinite(Number(form.price))) next.price = "请填数字";
+		setErrors(next);
+		setAlert("");
+		if (Object.keys(next).length) {
+			document.getElementById(`option-${Object.keys(next)[0]}`)?.focus();
+			return;
+		}
+		setBusy(true);
+		try {
+			const payload = {
+				...form,
+				name: String(form.name).trim(),
+				price: form.price === "" ? 0 : Number(form.price)
+			};
+			if (isEdit) {
+				await api.patch(`/api/options/${option.id}`, payload);
+				toast("已更新", "ok");
+			} else if (global) {
+				await api.post("/api/options/append", {
+					...payload,
+					service_id: null,
+					kind: "addon"
+				});
+				toast("已加上", "ok");
+			} else {
+				await api.post("/api/options/append", {
+					...payload,
+					service_id: service.id
+				});
+				toast("已加上", "ok");
+			}
+			close(true);
+		} catch (err) {
+			setAlert(err && err.message ? err.message : "保存失败");
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: isEdit ? "改增项" : global ? "新建全局通用增项" : "给这个服务项加增项",
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "取消"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: 1 } }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "submit",
+				form: "option-form",
+				disabled: busy,
+				children: busy ? "保存中…" : isEdit ? "保存" : "加上"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: "option-form",
+			noValidate: true,
+			onSubmit: submit,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [
+					global ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "hint",
+						children: "不绑定任何服务项，所有服务都能勾。"
+					}) : null,
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "formgrid",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "名称",
+								required: true,
+								htmlFor: "option-name",
+								error: errors.name,
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									id: "option-name",
+									value: form.name,
+									onChange: set("name"),
+									"aria-invalid": errors.name ? "true" : void 0,
+									placeholder: isEdit || global ? void 0 : "例：加急 / 指定角色 / 不动原石"
+								})
+							}),
+							global ? null : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "类型",
+								half: true,
+								htmlFor: "option-kind",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+									id: "option-kind",
+									value: form.kind,
+									onChange: set("kind"),
+									options: KIND_OPTIONS
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "加价方式",
+								half: true,
+								htmlFor: "option-price-mode",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+									id: "option-price-mode",
+									value: form.price_mode,
+									onChange: set("price_mode"),
+									options: MODE_OPTIONS
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "数值",
+								half: true,
+								htmlFor: "option-price",
+								error: errors.price,
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									id: "option-price",
+									numeric: true,
+									value: form.price,
+									onChange: set("price")
+								})
+							}),
+							global ? null : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CheckField, {
+								id: "option-default-selected",
+								checked: form.default_selected,
+								onChange: set("default_selected"),
+								label: isEdit ? "默认勾上" : "下单时默认勾上"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "说明",
+								htmlFor: "option-description",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									id: "option-description",
+									value: form.description,
+									onChange: set("description")
+								})
+							})
+						]
+					}),
+					alert ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "note note--alert",
+						children: alert
+					}) : null
+				]
+			})
+		})
+	});
+}
+//#endregion
+//#region client/tier-editor.jsx
+var iconProps$6 = (size = 14) => ({
+	size,
+	strokeWidth: 1.8,
+	absoluteStrokeWidth: true,
+	"aria-hidden": true
+});
+function openTierEditor(service) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TierEditor, {
+		service,
+		close
+	}), "tier-editor");
+}
+function TierEditor({ service, close }) {
+	const [items, setItems] = (0, import_react.useState)(null);
+	const [error, setError] = (0, import_react.useState)("");
+	async function load() {
+		try {
+			const { items: rows } = await api.get(`/api/services/${service.id}/tiers`);
+			setItems(rows || []);
+			setError("");
+		} catch (err) {
+			setError(err && err.message ? err.message : "阶梯价拉不出来");
+			setItems([]);
+		}
+	}
+	(0, import_react.useEffect)(() => {
+		load();
+	}, []);
+	const unit = unitOf$2(service);
+	async function remove(tier) {
+		if (!await confirmDelete({
+			title: "删掉这一档？",
+			message: `第 ${fmtQty(tier.min_qty)} 档`
+		})) return;
+		try {
+			await api.del(`/api/tiers/${tier.id}`);
+			toast("已删除", "ok");
+			load();
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: "阶梯价",
+		subtitle: `${service.name} · 按数量越多越便宜`,
+		onClose: () => close(null),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "stack",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note",
+					children: "按「数量」计价的服务项会先来这里找匹配的一档；找不到就用基准单价。例：1~5 层 30 元/层，6~12 层 25 元/层。"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "itemlist",
+					children: [
+						items === null ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "panel__body",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "dim sm",
+								children: "读取中…"
+							})
+						}) : null,
+						items !== null && !items.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "panel__body",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "dim sm",
+								children: "还没有阶梯价。不配的话就一律用基准单价。"
+							})
+						}) : null,
+						(items || []).map((tier) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "item",
+							style: { cursor: "default" },
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "item__main",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "item__title",
+									children: `${fmtQty(tier.min_qty)} ~ ${tier.max_qty === null || tier.max_qty === "" ? "不限" : fmtQty(tier.max_qty)} ${unit}`
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "item__meta",
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: `单价 ¥${fmtMoney(tier.unit_price)}/${unit}` })
+								})]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "tbl__acts",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									className: "btn btn--sm",
+									type: "button",
+									title: "改这一档",
+									onClick: () => openTierForm(service, tier).then((saved) => saved && load()),
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$6() })
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									className: "btn btn--sm",
+									type: "button",
+									title: "删掉这一档",
+									onClick: () => remove(tier),
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$6() })
+								})]
+							})]
+						}, tier.id))
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					className: "btn btn--primary",
+					type: "button",
+					onClick: () => openTierForm(service).then((saved) => saved && load()),
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { ...iconProps$6() }), "加一档"]
+				}),
+				error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note note--alert",
+					children: error
+				}) : null
+			]
+		})
+	});
+}
+/** 加一档 / 改一档：叠在阶梯价抽屉上面的小表单 */
+function openTierForm(service, tier = null) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TierForm, {
+		service,
+		tier,
+		close
+	}), `tier-form-${tier ? tier.id : "new"}`);
+}
+function TierForm({ service, tier, close }) {
+	const isEdit = Boolean(tier);
+	const [form, setForm] = (0, import_react.useState)(() => ({
+		min_qty: tier && tier.min_qty !== null && tier.min_qty !== void 0 ? String(tier.min_qty) : "",
+		max_qty: tier && tier.max_qty !== null && tier.max_qty !== void 0 ? String(tier.max_qty) : "",
+		unit_price: tier && tier.unit_price !== null && tier.unit_price !== void 0 ? String(tier.unit_price) : ""
+	}));
+	const [errors, setErrors] = (0, import_react.useState)({});
+	const [alert, setAlert] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const set = (key) => (value) => setForm((current) => ({
+		...current,
+		[key]: value
+	}));
+	async function submit(event) {
+		event.preventDefault();
+		const next = {};
+		if (String(form.min_qty).trim() === "") next.min_qty = "请填写起始数量";
+		else if (!Number.isFinite(Number(form.min_qty))) next.min_qty = "请填数字";
+		if (String(form.unit_price).trim() === "") next.unit_price = "请填写这一档的单价";
+		else if (!Number.isFinite(Number(form.unit_price))) next.unit_price = "请填数字";
+		if (String(form.max_qty).trim() !== "" && !Number.isFinite(Number(form.max_qty))) next.max_qty = "请填数字";
+		setErrors(next);
+		setAlert("");
+		if (Object.keys(next).length) {
+			document.getElementById(`tier-${Object.keys(next)[0]}`)?.focus();
+			return;
+		}
+		setBusy(true);
+		try {
+			const payload = {
+				min_qty: Number(form.min_qty),
+				max_qty: form.max_qty === "" ? null : Number(form.max_qty),
+				unit_price: Number(form.unit_price)
+			};
+			if (isEdit) await api.patch(`/api/tiers/${tier.id}`, payload);
+			else await api.post(`/api/services/${service.id}/tiers`, payload);
+			toast(isEdit ? "已更新" : "已加上", "ok");
+			close(true);
+		} catch (err) {
+			setAlert(err && err.message ? err.message : "保存失败");
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: isEdit ? "改阶梯价" : "加一档阶梯价",
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "取消"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: 1 } }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "submit",
+				form: "tier-form",
+				disabled: busy,
+				children: busy ? "保存中…" : isEdit ? "保存" : "加上"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: "tier-form",
+			noValidate: true,
+			onSubmit: submit,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "formgrid",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "起始数量",
+							required: true,
+							half: true,
+							htmlFor: "tier-min_qty",
+							error: errors.min_qty,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "tier-min_qty",
+								numeric: true,
+								value: form.min_qty,
+								onChange: set("min_qty")
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "结束数量（留空不限）",
+							half: true,
+							htmlFor: "tier-max_qty",
+							error: errors.max_qty,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "tier-max_qty",
+								numeric: true,
+								value: form.max_qty,
+								onChange: set("max_qty"),
+								placeholder: isEdit ? void 0 : "留空 = 到无限"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "这一档的单价",
+							required: true,
+							half: true,
+							htmlFor: "tier-unit_price",
+							error: errors.unit_price,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "tier-unit_price",
+								money: true,
+								value: form.unit_price,
+								onChange: set("unit_price")
+							})
+						})
+					]
+				}), alert ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note note--alert",
+					children: alert
+				}) : null]
+			})
+		})
+	});
+}
+//#endregion
+//#region client/service-peek.jsx
+var iconProps$5 = (size = 14) => ({
+	size,
+	strokeWidth: 1.8,
+	absoluteStrokeWidth: true,
+	"aria-hidden": true
+});
+function Tag({ text, tone = "" }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+		className: `tag${tone ? ` tag--${tone}` : ""}`,
+		children: text
+	});
+}
+function openServicePeek(service, ctx, { onChanged } = {}) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ServicePeek, {
+		service,
+		ctx,
+		onChanged,
+		close
+	}), `service-peek-${service.id}`);
+}
+function ServicePeek({ service, ctx, onChanged, close }) {
+	const reload = () => {
+		if (onChanged) onChanged();
+		if (ctx?.app?.reload) ctx.app.reload();
+	};
+	const unit = unitOf$2(service);
+	const tiers = [...service.tiers || []].sort((a, b) => (Number(a.min_qty) || 0) - (Number(b.min_qty) || 0));
+	const options = (service.options || []).filter((option) => option.status !== "archived");
+	const tierLines = tiers.map((tier) => {
+		return `${tier.max_qty === null || tier.max_qty === void 0 || tier.max_qty === "" ? `${fmtQty(tier.min_qty || 1)}${unit}+` : `${fmtQty(tier.min_qty || 1)}-${fmtQty(tier.max_qty)}${unit}`}：¥${fmtMoney(tier.unit_price)}/${unit}`;
+	});
+	const optionLines = options.map((option) => {
+		const price = option.price_mode === "percent" ? ` +${fmtQty(option.price)}%` : Number(option.price) ? ` +¥${fmtMoney(option.price)}` : "";
+		const description = String(option.description || "").trim();
+		return `${option.name || "未命名"}${price}${description ? ` · 说明：${description}` : ""}`;
+	});
+	const gain = currencyGain(service, ctx?.meta?.games || [], ctx?.meta?.categories || []);
+	async function toggleStatus() {
+		const next = service.status === "active" ? "archived" : "active";
+		try {
+			await api.patch(`/api/services/${service.id}`, { status: next });
+			toast(next === "archived" ? "已下架，老订单不受影响" : "已重新上架", "ok");
+			reload();
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	async function remove() {
+		try {
+			const usage = await api.get(`/api/services/${service.id}/usage`);
+			if (!await confirmDialog({
+				title: `真的删掉「${service.name}」？`,
+				message: usage.order_items ? `已经有 ${usage.order_items} 条订单明细引用过它。删除后老订单的快照还在，但价格表里再也找不回来了。` : "这个服务项还没被任何订单用过，可以安全删除。",
+				confirmLabel: "删除",
+				tone: "danger"
+			})) return;
+			await api.del(`/api/services/${service.id}`, { hard: 1 });
+			toast("已删除", "ok");
+			close(null);
+			reload();
+		} catch (err) {
+			toastErr(err);
+		}
+	}
+	const subitems = (lines) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "subitems",
+		children: lines.map((line) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "subitem",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "·" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: line })]
+		}, line))
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: service.name,
+		subtitle: `${PRICE_TYPE_LABEL[service.price_type] || service.price_type} · ${service.category_name || "未分类"}${service.game_name ? ` · ${service.game_name}` : ""}`,
+		onClose: () => close(null),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "stack",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "cluster",
+					style: {
+						justifyContent: "space-between",
+						alignItems: "flex-start"
+					},
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "pitem__fig",
+							children: `¥${fmtMoney(service.base_price)}`
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "pitem__unit",
+							children: service.price_type === "per_unit" && tiers.length ? `/${unit} 起` : `/${unit}`
+						}),
+						service.price_type === "per_unit" && tiers.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "tbl__meta",
+							children: `${tiers.length} 档阶梯价`
+						}) : null
+					] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "cluster",
+						children: service.status === "active" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, {
+							text: "在架",
+							tone: "jade"
+						}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, {
+							text: "已下架",
+							tone: "oxblood"
+						})
+					})]
+				}),
+				gain ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "tag tag--outline",
+					children: `可获得 ${gain}`
+				}) }) : null,
+				service.description ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					style: { lineHeight: "1.7" },
+					children: service.description
+				}) : null,
+				service.package_items?.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "tbl__meta",
+					children: "套餐包含"
+				}), subitems(service.package_items)] }) : null,
+				tiers.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "tbl__meta",
+					children: "阶梯价"
+				}), subitems(tierLines)] }) : null,
+				options.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "tbl__meta",
+					children: "套餐与增项"
+				}), subitems(optionLines)] }) : null,
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("hr", {}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "cluster",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							className: "btn btn--sm",
+							type: "button",
+							onClick: () => openServiceForm(service, ctx?.meta || {}).then((saved) => saved ? reload() : null),
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { ...iconProps$5() }), "改价格和说明"]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							className: "btn btn--sm",
+							type: "button",
+							onClick: () => openTierEditor(service),
+							children: "阶梯价"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							className: "btn btn--sm",
+							type: "button",
+							onClick: () => openOptionEditor(service),
+							children: "套餐与增项"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CopyButton, {
+							text: `${service.name} ¥${fmtMoney(service.base_price)}/${unit}`,
+							label: "复制价款"
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("hr", {}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "cluster",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							className: "btn btn--sm",
+							type: "button",
+							onClick: toggleStatus,
+							children: service.status === "active" ? "下架" : "重新上架"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: "1" } }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							className: "btn btn--sm btn--danger",
+							type: "button",
+							onClick: remove,
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash, { ...iconProps$5() }), "删除"]
+						})
+					]
+				})
 			]
 		})
 	});
@@ -23650,7 +25302,7 @@ function GroupWorkspace({ group, query, onNewCategory, onService, onEditCategory
 		})]
 	}, group.key || "generic");
 }
-function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reloadKey }) {
+function PricePage({ route, navigate, onNewGame, onReload, reloadKey }) {
 	const query = (0, import_react.useMemo)(() => ({
 		game: route.query.get("game") || "",
 		q: route.query.get("q") || "",
@@ -23757,7 +25409,7 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 			return createCategory(query.game);
 		}
 		try {
-			if (await serviceForm({
+			if (await openServiceForm({
 				category_id: category.id,
 				game_id: category.game_id || (query.game !== "generic" ? query.game : "")
 			}, {
@@ -23770,7 +25422,7 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 	};
 	const editService = async (service) => {
 		try {
-			if (await serviceForm(service, {
+			if (await openServiceForm(service, {
 				games: data.games || [],
 				categories: data.categories || []
 			})) await onReload();
@@ -23787,7 +25439,7 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 	};
 	const peekService = (service) => {
 		try {
-			servicePeek(service, peekContext, { onChanged: onReload });
+			openServicePeek(service, peekContext, { onChanged: onReload });
 		} catch (err) {
 			toastErr(err);
 		}
@@ -25752,7 +27404,7 @@ function openCustomerForm(values = {}, { title } = {}) {
 		values,
 		title: title || (values.id ? "改客户资料" : "新客户"),
 		close
-	}));
+	}), "customer-form");
 }
 function CustomerForm({ values, title, close }) {
 	const [form, setForm] = (0, import_react.useState)(() => ({
@@ -26352,16 +28004,6 @@ function Shell({ me, onLogout }) {
 			toastErr(err);
 		}
 	}, [refresh]);
-	const createCategory = (0, import_react.useCallback)(async () => {
-		try {
-			if (await categoryForm({}, (await api.get("/api/games", {
-				status: "active",
-				limit: 200
-			})).items || [])) await refresh();
-		} catch (err) {
-			toastErr(err);
-		}
-	}, [refresh]);
 	const createQuote = (0, import_react.useCallback)(async () => {
 		try {
 			await openQuoteComposer({
@@ -26513,7 +28155,6 @@ function Shell({ me, onLogout }) {
 						route,
 						navigate,
 						onNewGame: createGame,
-						onNewCategory: createCategory,
 						onReload: refresh,
 						reloadKey
 					}) : current.seg === "finance" && !route.sub ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FinancePage, {

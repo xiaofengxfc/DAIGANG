@@ -25,7 +25,7 @@ import {
   WalletCards,
 } from 'lucide-react'
 import { api } from './lib/api.js'
-import { ordersView, customersView, priceView, categoryForm, gamesView, vaultView, financeView, quotesView, openQuoteComposer, settingsView, vaultgate } from './lib/legacy-features.js'
+import { ordersView, customersView, priceView, gamesView, vaultView, financeView, quotesView, openQuoteComposer, settingsView, vaultgate } from './lib/legacy-features.js'
 import DashboardPage from './dashboard.jsx'
 import OrdersPage from './orders.jsx'
 import CustomersPage from './customers.jsx'
@@ -301,16 +301,6 @@ function Shell({ me, onLogout }) {
     }
   }, [refresh])
 
-  const createCategory = useCallback(async () => {
-    try {
-      const games = (await api.get('/api/games', { status: 'active', limit: 200 })).items || []
-      const saved = await categoryForm({}, games)
-      if (saved) await refresh()
-    } catch (err) {
-      toastErr(err)
-    }
-  }, [refresh])
-
   const createQuote = useCallback(async () => {
     try {
       await openQuoteComposer({ navigate: go, app: { reload: refresh } })
@@ -364,7 +354,7 @@ function Shell({ me, onLogout }) {
       </header>
       <main className="react-main">
         <div className="react-main__inner">
-          {current.seg === '' ? <DashboardPage data={dashboard} navigate={go} onReload={refresh} /> : current.seg === 'orders' && !route.sub && route.query.get('new') !== '1' ? <OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'customers' && !route.sub ? <CustomersPage route={route} navigate={go} onNew={createCustomer} reloadKey={reloadKey} /> : current.seg === 'games' && !route.sub ? <GamesPage route={route} navigate={go} onNew={createGame} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'price' && !route.sub ? <PricePage route={route} navigate={go} onNewGame={createGame} onNewCategory={createCategory} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'finance' && !route.sub ? <FinancePage route={route} navigate={go} reloadKey={reloadKey} /> : current.seg === 'quotes' && !route.sub ? <QuotesPage route={route} navigate={go} onNew={createQuote} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'media' && !route.sub ? <MediaPage reloadKey={reloadKey} /> : <LegacyPage key={`${route.seg}/${route.sub}?${route.query.toString()}-${reloadKey}`} route={route} item={current} setActions={updateActions} onReload={refresh} counts={counts} settings={settings} vaultgate={vaultgate} navigate={go} />}
+          {current.seg === '' ? <DashboardPage data={dashboard} navigate={go} onReload={refresh} /> : current.seg === 'orders' && !route.sub && route.query.get('new') !== '1' ? <OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'customers' && !route.sub ? <CustomersPage route={route} navigate={go} onNew={createCustomer} reloadKey={reloadKey} /> : current.seg === 'games' && !route.sub ? <GamesPage route={route} navigate={go} onNew={createGame} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'price' && !route.sub ? <PricePage route={route} navigate={go} onNewGame={createGame} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'finance' && !route.sub ? <FinancePage route={route} navigate={go} reloadKey={reloadKey} /> : current.seg === 'quotes' && !route.sub ? <QuotesPage route={route} navigate={go} onNew={createQuote} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'media' && !route.sub ? <MediaPage reloadKey={reloadKey} /> : <LegacyPage key={`${route.seg}/${route.sub}?${route.query.toString()}-${reloadKey}`} route={route} item={current} setActions={updateActions} onReload={refresh} counts={counts} settings={settings} vaultgate={vaultgate} navigate={go} />}
         </div>
       </main>
       <nav className="react-mobile-tabs" aria-label="移动端导航">

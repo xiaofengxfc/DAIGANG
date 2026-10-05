@@ -26,14 +26,18 @@ export function Modal({ title, wide = false, footer = null, onClose, children })
     const onClick = (event) => {
       if (event.target === node && closeRef.current) closeRef.current()
     }
+    // 外面调 dlg.close() 时也要收摊（和 drawer.jsx 同理）
+    const onClosed = () => {
+      if (closeRef.current) closeRef.current()
+    }
     node.addEventListener('cancel', onCancel)
     node.addEventListener('click', onClick)
-    document.body.classList.add('is-locked')
+    node.addEventListener('close', onClosed)
     if (!node.open) node.showModal()
     return () => {
       node.removeEventListener('cancel', onCancel)
       node.removeEventListener('click', onClick)
-      document.body.classList.remove('is-locked')
+      node.removeEventListener('close', onClosed)
       if (node.open) node.close()
     }
   }, [])

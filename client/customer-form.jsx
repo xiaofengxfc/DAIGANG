@@ -22,7 +22,7 @@ const SOURCES = ['微信', 'QQ群', '朋友介绍', '闲鱼', '贴吧', '回头�
 const FORM_ID = 'customer-form'
 
 export function openCustomerForm(values = {}, { title } = {}) {
-  return openOverlay((close) => <CustomerForm values={values} title={title || (values.id ? '改客户资料' : '新客户')} close={close} />)
+  return openOverlay((close) => <CustomerForm values={values} title={title || (values.id ? '改客户资料' : '新客户')} close={close} />, 'customer-form')
 }
 
 function CustomerForm({ values, title, close }) {

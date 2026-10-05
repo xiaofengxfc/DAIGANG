@@ -13,8 +13,8 @@ import { openOverlay } from './overlay-host.jsx'
    React 页面（游戏、客户、价格表、财务、报价单）现在都在用它们 —— 点下去弹出来的
    却是旧 DOM 对话框。这里换成 React 渲染的，调用方式一字不改。
 
-   注：一次只开一个浮层（见 overlay-host.jsx）。这里都是「页面上点一下 → 弹一个确认」，
-   不会出现抽屉里再套确认框的情况。
+   这里都是「页面上点一下 → 弹一个确认」；确认框会叠在打开它的那层上面，
+   服务项详情抽屉里点「删除」就是「抽屉 + 确认框」两层，确认完抽屉再自己关掉。
    ============================================================ */
 
 export function confirmDialog({ title, message, confirmLabel = '确定', cancelLabel = '取消', tone = 'primary', extra = null }) {

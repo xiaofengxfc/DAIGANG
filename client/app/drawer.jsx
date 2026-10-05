@@ -32,14 +32,19 @@ export function Drawer({ title, subtitle, wide = false, footer = null, onClose, 
     const onClick = (event) => {
       if (event.target === node && closeRef.current) closeRef.current()
     }
+    // 有人从外面调 dlg.close()（测试、脚本、以后别处的代码）时也要收摊。
+    // 只认 'cancel' 的话，对话框是关掉了，但 React 这边还挂在浮层栈里没卸载。
+    const onClosed = () => {
+      if (closeRef.current) closeRef.current()
+    }
     node.addEventListener('cancel', onCancel)
     node.addEventListener('click', onClick)
-    document.body.classList.add('is-locked')
+    node.addEventListener('close', onClosed)
     if (!node.open) node.showModal()
     return () => {
       node.removeEventListener('cancel', onCancel)
       node.removeEventListener('click', onClick)
-      document.body.classList.remove('is-locked')
+      node.removeEventListener('close', onClosed)
       if (node.open) node.close()
     }
   }, [])

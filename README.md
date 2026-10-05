@@ -820,17 +820,22 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 
 - **游戏表单**（`client/game-form.jsx`）—— 第一个全 React 的表单；
 - **客户表单**（`client/customer-form.jsx`）—— 字段和提示跟旧的一字不差；
-- **大类表单**（`client/category-form.jsx`）和**组合报价弹窗**（`client/price-sum.jsx`）
-  —— 价格表这一页先搬了这两块；
 - **确认框**（`client/app/confirm.jsx`）—— 游戏、客户、价格表、财务、报价单这五个
   React 页面原先弹的都是旧 DOM 对话框，现在换成 React 渲染的，调用方式
-  （`if (!await confirmDelete({...})) return`）一字未改。
+  （`if (!await confirmDelete({...})) return`）一字未改；
+- **价格表整页**（`client/price.jsx` + 五个浮层模块）—— 大类表单、组合报价、
+  服务项表单、阶梯价编辑器、套餐增项编辑器、服务项详情抽屉、导出器，
+  全部换成 React。这一页现在只从旧栈借一个 `toast`。
 
-价格表还剩三块没搬（它们互相嵌套，得一起动）：服务项表单、阶梯价编辑器、
-套餐增项编辑器，以及服务项详情抽屉和导出器。
+价格表这一页值得单独说一句：它的浮层是**互相叠**的 —— 服务项详情抽屉上点「阶梯价」
+会再开一层，阶梯价里点「加一档」再开一层，删服务项时确认框又叠在抽屉上。
+所以 `client/app/overlay-host.jsx` 从「一次只开一个」改成了**一叠**（每层各自一个
+原生 `<dialog>`，浏览器管 top layer，Esc 只关最上面那层），滚动锁也交给宿主统一管
+（里层关掉不能把外层的锁也解了）。防连点靠 key：同一把 key 已经在最上面就先关掉再开。
 
-旧的那份 `gameForm` / `customerForm` / `categoryForm` / `sumDialog` 先留着：
-客户档案详情页（`/customers/:id`）、旧价格表页面（`price.js`）、旧开单器还在用它们。
+旧的那份 `gameForm` / `customerForm` / `categoryForm` / `serviceForm` / `servicePeek` /
+`sumDialog` / `tierEditor` / `optionEditor` / `openExporter` 先留着：
+客户档案详情页（`/customers/:id`）、旧价格表页面（`price.js` 自己）、旧开单器还在用它们。
 两套并存、互不影响，等那些页面也搬完再删。
 
 新表单照着这四块写：
@@ -843,16 +848,23 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
   `dialog.modal` / `.modal__foot`），因为 `client/styles.css` 直接 `@import` 了
   `public/css/app.css`，样式能继承，迁移期间新旧浮层长得一模一样，不会出现视觉断层；
 - `client/app/fields.jsx` —— 受控字段：文本、多行、下拉、逗号分隔（区服/标签）、
-  图片上传。同样沿用 `.field` / `.lbl` / `.inp` / `.ta` / `.sel` / `.err`；
-- `client/app/confirm.jsx` —— 确认框（`confirmDialog` / `confirmDelete`）。
+  勾选框、图片上传。同样沿用 `.field` / `.lbl` / `.inp` / `.ta` / `.sel` / `.err`；
+- `client/app/confirm.jsx` —— 确认框（`confirmDialog` / `confirmDelete`）；
+- `client/app/copy-button.jsx` —— 「复制价款」这类复制按钮。
 
 **怎么确认「搬完长得一样」**：`npm run test:ui` 会把新旧两个表单在同一个浏览器里
 各开一次，量出抽屉宽度、字段顺序、半宽/整宽、控件类型、每个字段的宽度、页脚按钮，
 逐项对比（差 1px 以上就算不一致）。这比截图目测可靠 —— 结构和类名悄悄变了会当场红。
 
+这一步真抓到过东西：旧引擎对自定义字段会补一个 `field--full`（`ui.js` 里
+`if (f.width !== 'half') node.classList.add('field--full')`），漏掉它两个下拉就会
+挤进网格的一列里 —— 光看代码看不出来，量宽度 358 vs 173 一眼就看出来了。
+
 `npm run test:ui` 里有两段专门盯这条缝：一段是「点开抽屉」（价格表看详情、订单记收款/
 记进度、报价单做单），一段是「填表提交」（新 React 表单 + 旧命令式表单各走一遍，
-从校验、提交、抽屉关闭一路查到列表刷新和接口落库）。
+从校验、提交、抽屉关闭一路查到列表刷新和接口落库）。另外还有几段是「这一页独有的钱」：
+组合报价的合计和复制出去的报价单格式、阶梯价改动有没有落库、导出图片/Word 的文件名
+（把 `<a download>` 的点击截下来看，不真往磁盘写）。
 
 ```
 server.mjs            服务入口：应用启动

@@ -15,13 +15,15 @@ import { toast } from '../lib/legacy-ui.js'
    ============================================================ */
 
 /** 字段外壳：标签 + 控件 + 提示 + 错误位，和旧 fieldShell 结构一致 */
-export function Field({ label, hint, error, required = false, half = false, htmlFor, children }) {
+export function Field({ label, hint, error, required = false, half = false, suffix = '', htmlFor, children }) {
   return (
     <div className={`field${half ? '' : ' field--full'}${error ? ' is-bad' : ''}`}>
       {label ? (
         <label className="lbl" htmlFor={htmlFor}>
           {label}
           {required ? <span className="req">*</span> : null}
+          {/* 单位跟在标签后面（基准单价（元）），旧引擎就是放在 .lbl 里的 */}
+          {suffix ? <span className="dim tiny">{`（${suffix}）`}</span> : null}
         </label>
       ) : null}
       {children}
@@ -33,17 +35,23 @@ export function Field({ label, hint, error, required = false, half = false, html
   )
 }
 
-export function TextInput({ value, onChange, numeric = false, maxLength = 300, ...rest }) {
+export function TextInput({ value, onChange, numeric = false, money = false, maxLength = 300, onBlur, ...rest }) {
+  const fig = numeric || money
   return (
     <input
       {...rest}
-      className={`inp${numeric ? ' inp--fig' : ''}`}
+      className={`inp${fig ? ' inp--fig' : ''}`}
       type="text"
-      inputMode={numeric ? 'decimal' : undefined}
+      inputMode={fig ? 'decimal' : undefined}
       autoComplete="off"
       maxLength={maxLength}
       value={value ?? ''}
       onChange={(event) => onChange(event.target.value)}
+      // 金额框失焦时收成两位小数，和旧引擎的 money 字段一样
+      onBlur={(event) => {
+        if (money && event.target.value !== '') onChange(String(Math.round((Number(event.target.value) || 0) * 100) / 100))
+        if (onBlur) onBlur(event)
+      }}
     />
   )
 }
@@ -63,7 +71,12 @@ export function TextArea({ value, onChange, rows = 3, maxLength = 4000, ...rest 
 }
 
 export function SelectInput({ value, onChange, options = [], ...rest }) {
-  const wanted = value === null || value === undefined ? '' : String(value)
+  const raw = value === null || value === undefined ? '' : String(value)
+  // 后端把 bool 列原样传成 true / false，而选项里写的是 '1' / '0'。
+  // 直接 String() 对不上，就会冒出一个「（原值：false）」。
+  // 所以先按选项集试一次别名换算（只在选项里真有 '1' / '0' 时才换）—— 和旧引擎一致。
+  const alias = raw === 'true' ? '1' : raw === 'false' ? '0' : raw
+  const wanted = alias !== raw && options.some((option) => String(option.value) === alias) ? alias : raw
   const known = options.some((option) => String(option.value) === wanted)
   return (
     <select {...rest} className="sel" value={wanted} onChange={(event) => onChange(event.target.value)}>

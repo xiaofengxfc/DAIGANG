@@ -23,7 +23,7 @@ import { openOverlay } from './app/overlay-host.jsx'
 const FORM_ID = 'category-form'
 
 export function openCategoryForm(values = {}, games = [], presetGameId = null) {
-  return openOverlay((close) => <CategoryForm values={values} games={games} presetGameId={presetGameId} close={close} />)
+  return openOverlay((close) => <CategoryForm values={values} games={games} presetGameId={presetGameId} close={close} />, 'category-form')
 }
 
 function CategoryForm({ values, games, presetGameId, close }) {

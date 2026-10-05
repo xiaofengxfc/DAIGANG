@@ -24,7 +24,7 @@ import { openOverlay } from './app/overlay-host.jsx'
 const FORM_ID = 'game-form'
 
 export function openGameForm(values = {}) {
-  return openOverlay((close) => <GameForm values={values} close={close} />)
+  return openOverlay((close) => <GameForm values={values} close={close} />, 'game-form')
 }
 
 function GameForm({ values, close }) {
