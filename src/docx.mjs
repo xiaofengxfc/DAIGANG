@@ -114,6 +114,15 @@ const RULE_STRONG = 'CBD3DE'
 const TINT = 'F1F2FF'
 const FONT = '微软雅黑'
 
+/**
+ * 调色板对外只读副本，给 scripts/smoke.mjs 比对用。
+ *
+ * 为什么要把色值导出：冒烟测试以前把 'FDF1EA' / 'B33A22' 这两个旧色值写死在断言里，
+ * 导出配色换成现在的靛蓝之后，测试还在查老色值，于是长期红着两项没人发现。
+ * 让测试从这份定义里取色值，以后换配色只需要改这里。
+ */
+export const DOCX_PALETTE = Object.freeze({ INK, GRAY, CINNABAR, RULE, RULE_STRONG, TINT })
+
 const PAGE_W = 11906 // A4 宽（twips）
 const MARGIN = 1134 // 上下左右 2cm
 const TEXT_W = PAGE_W - MARGIN * 2

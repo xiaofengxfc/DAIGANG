@@ -519,7 +519,9 @@ DH260922-002  30天日体（拆出）        ¥80     ← 自己走完成 / 收�
 ## 六、几个运维小工具
 
 ```bash
-node scripts/check.mjs            # 语法自检：把所有 .mjs / .js 过一遍
+npm run test                      # 后端冒烟测试：自己起干净实例，跑完自己收尾（见下）
+npm run check                     # 闸门：语法自检 + 冒烟测试 + 构建前端
+node scripts/check.mjs            # 只做语法自检：.mjs / .js 走 node --check，.jsx 走 rolldown
 node scripts/vision-selftest.mjs  # 屏幕识别自检：拿真截图测十一种分辨率的准确率
 node scripts/inspect.mjs          # 只读查看库里有什么（游戏/大类/服务项/订单…），不改任何东西
 node scripts/reset-password.mjs   # 忘了登录密码时用：清掉密码，下次启动回到初始化引导
@@ -562,10 +564,18 @@ node scripts/shot.mjs --url http://127.0.0.1:8802 --password 临时密码 \
 ### 接口冒烟测试
 
 ```bash
-node scripts/smoke.mjs     # 238 项，从初始化跑到财务结算
+npm run test     # 242 项，从初始化跑到财务结算，一条命令
 ```
 
-跑之前先起一个**干净实例**（用独立数据目录，别拿你自己的库跑）：
+它**自己起一个干净实例**（数据目录 `data-smoke-run`，端口由系统分配，不跟 8787 抢），
+跑完关服务、关库；全绿就把数据目录删掉，有失败就留着，方便进目录里翻库和上传件。
+**不碰 `data/` 里的真数据。**
+
+覆盖范围：初始化、登录、价格表、阶梯价、增项、客户去重、凭证加解密与审计、
+订单快照冻结、状态机拦截、收款自动推进、进度时间线、报价单生成与转单、
+财务口径、归档保护、备份导出、Word 导出里的提示框样式。
+
+想对着一个已经开着的实例调接口，还是可以手工来：
 
 ```bash
 # Windows
@@ -574,9 +584,15 @@ set XFC_DATA_DIR=./data-smoke && node server.mjs --port 8790 --local
 XFC_DATA_DIR=./data-smoke node server.mjs --port 8790 --local
 ```
 
-然后另开一个终端 `node scripts/smoke.mjs`。它覆盖了初始化、登录、价格表、
-阶梯价、增项、客户去重、凭证加解密与审计、订单快照冻结、状态机拦截、
-收款自动推进、进度时间线、报价单生成与转单、财务口径、归档保护、备份导出。
+然后另开一个终端 `node scripts/smoke.mjs`（实例地址用 `XFC_BASE` 覆盖，默认 `http://127.0.0.1:8790`）。
+`npm run test` 还有两个开关：`XFC_SMOKE_KEEP=1` 跑完保留数据目录，`XFC_SMOKE_DATA_DIR=<目录>` 换一个目录
+（那个目录会被整个删掉重建，所以只接受 `data-smoke*` 这种名字，或者系统临时目录里的路径）。
+
+### 提交前的闸门
+
+`hooks/pre-commit` 会在提交前跑「语法自检 + 冒烟测试」，一条 `git config core.hooksPath hooks` 启用；
+急的时候 `git commit --no-verify` 跳过。它故意**不跑构建**（慢，而且会动 `public/dist`），
+想连构建一起过就用 `npm run check`。
 
 ---
 
@@ -780,6 +796,8 @@ src/
   server/app.mjs      应用工厂、鉴权、静态资源和生命周期
 client/               React 壳层、页面、共享客户端工具和过渡适配器
 public/               构建产物、旧业务模块与静态资源
+scripts/             运维与自检：check（语法）、smoke（接口冒烟）、smoke-run（自起实例）、shot（截图）
+hooks/pre-commit     提交前闸门：语法自检 + 冒烟测试（git config core.hooksPath hooks 启用）
 data/                 运行时生成：console.db + uploads/ + resource-icons/
 tools/ocr/            自动安装的本地 OCR 引擎（不进版本库）
 ```

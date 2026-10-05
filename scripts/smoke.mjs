@@ -1,14 +1,26 @@
 /**
  * 后端接口冒烟测试：从零初始化到下单、收款、保险箱取用、财务结算，全流程跑一遍。
  *
- *   先启动一个干净的实例：
- *     set XFC_DATA_DIR=./data-smoke && node server.mjs --port 8790 --local
- *   再跑：
- *     node scripts/smoke.mjs
+ * 两种跑法：
+ *
+ *   1. 一条命令（推荐，自己起干净实例、自己收尾）：
+ *        npm run test
+ *      等价于 node scripts/smoke-run.mjs。
+ *
+ *   2. 对着已经开着的实例跑（调接口时用）：
+ *        set XFC_DATA_DIR=./data-smoke && node server.mjs --port 8790 --local
+ *        node scripts/smoke.mjs
+ *      实例地址可以用 XFC_BASE 覆盖，默认 http://127.0.0.1:8790。
+ *
+ * 本文件导出 run()，由 smoke-run.mjs 调用；直接执行时才自己跑一遍。
  */
+import path from 'node:path'
 import zlib from 'node:zlib'
+import { pathToFileURL } from 'node:url'
 // 纯函数，不连数据库，可以直接拿来验「凌晨 4 点换日」的边界
 import { bizDate, localDate, DAY_START_HOUR } from '../src/util.mjs'
+// 导出配色的定义处，断言从这里取色值，不再把十六进制写死在测试里
+import { DOCX_PALETTE } from '../src/docx.mjs'
 
 const BASE = process.env.XFC_BASE || 'http://127.0.0.1:8790'
 
@@ -47,7 +59,32 @@ function section(title) {
   console.log(`\n── ${title} ${'─'.repeat(Math.max(0, 46 - title.length))}`)
 }
 
-async function main() {
+/* ---------- docx 断言的小工具 ---------- */
+
+/** 取出 document.xml 里承载这段文字的那个段落（到最近的 </w:p> 为止） */
+function paragraphOf(xml, text) {
+  return xml.split('</w:p>').find((chunk) => chunk.includes(text)) || ''
+}
+
+/**
+ * 这段文字所在的段落，是不是「暖色底纹 + 左侧竖线」那种提示框。
+ * 必须按段落判断：全文里只要出现过色值就通过的话，提示框样式丢了测试也看不出来。
+ */
+function isNoticeBox(xml, text) {
+  const para = paragraphOf(xml, text)
+  return (
+    para.includes(`w:fill="${DOCX_PALETTE.TINT}"`) &&
+    para.includes(`w:color="${DOCX_PALETTE.CINNABAR}"`) &&
+    para.includes('w:pBdr') &&
+    para.includes('w:left')
+  )
+}
+
+/**
+ * 跑一遍全流程。返回 { pass, failures }，不自己退出进程——
+ * 退出码由调用方决定（被 smoke-run.mjs 调用时由它定，直接执行时由下面的守卫定）。
+ */
+export async function run() {
   console.log(`目标：${BASE}`)
 
   /* ---------- 初始化 ---------- */
@@ -679,7 +716,7 @@ async function main() {
   const iFirstCat = noticeTexts.indexOf('日常')
   ok('docx 里不再出现「公告」两个字', !noticeTexts.includes('公告'), noticeTexts.slice(0, 8).join(' | '))
   ok('docx 里公告正文排在第一个大类之前', iNotice >= 0 && iFirstCat > iNotice, `正文@${iNotice} 大类@${iFirstCat}`)
-  ok('公告带暖色底纹和朱砂竖线', noticeXml.includes('w:fill="FDF1EA"') && noticeXml.includes('w:color="B33A22"'))
+  ok('公告段落自带底纹和朱砂竖线', isNoticeBox(noticeXml, NOTICE), paragraphOf(noticeXml, NOTICE).slice(0, 200))
 
   // 清空之后不能有残留（老游戏的 notice 默认是空串）
   await api('PATCH', `/api/games/${gameId}`, { notice: '' })
@@ -712,7 +749,7 @@ async function main() {
     iCat >= 0 && iCatNotice > iCat && iItem > iCatNotice,
     `大类@${iCat} 提示@${iCatNotice} 服务项@${iItem}`
   )
-  ok('大类提示也带暖色底纹和朱砂竖线', catXml.includes('w:fill="FDF1EA"') && catXml.includes('w:color="B33A22"'))
+  ok('大类提示也自带底纹和朱砂竖线', isNoticeBox(catXml, CAT_NOTICE), paragraphOf(catXml, CAT_NOTICE).slice(0, 200))
   ok('docx 里同样不出现「公告」两个字', !catTexts.includes('公告'))
 
   await api('PATCH', `/api/categories/${catId}`, { notice: '' })
@@ -885,10 +922,18 @@ async function main() {
     for (const f of failures) console.log(`    · ${f}`)
   }
   console.log(`${'═'.repeat(52)}\n`)
-  process.exit(failures.length ? 1 : 0)
+  return { pass, failures }
 }
 
-main().catch((err) => {
-  console.error('\n冒烟测试崩了：', err)
-  process.exit(2)
-})
+/* 直接执行（node scripts/smoke.mjs）时才自己跑；被 smoke-run.mjs import 时只导出 run() */
+const isDirect = Boolean(process.argv[1]) && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href
+if (isDirect) {
+  run()
+    .then(({ failures }) => {
+      process.exit(failures.length ? 1 : 0)
+    })
+    .catch((err) => {
+      console.error('\n冒烟测试崩了：', err)
+      process.exit(2)
+    })
+}

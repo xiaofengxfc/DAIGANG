@@ -1,0 +1,17 @@
+#!/bin/sh
+# 提交前闸门：语法自检（含 .jsx）+ 后端冒烟测试。
+#
+# 冒烟测试自己起一次性实例（data-smoke-run）并自己收尾，不碰 data/ 里的真数据。
+# 构建（vite build）故意不放在这里：它慢，而且会动 public/dist。
+# 想连构建一起过，用 npm run check。
+#
+# 启用：git config core.hooksPath hooks
+# 临时跳过：git commit --no-verify
+
+set -e
+
+echo "[pre-commit] 语法自检…"
+node scripts/check.mjs
+
+echo "[pre-commit] 后端冒烟测试…"
+node scripts/smoke-run.mjs
