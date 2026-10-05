@@ -13411,7 +13411,7 @@ var PRICE_TYPES$1 = [
 	}
 ];
 var PRICE_TYPE_LABEL = Object.freeze(Object.fromEntries(PRICE_TYPES$1.map(({ key, label }) => [key, label])));
-var PRICE_TYPE_UNIT_LABEL = Object.freeze(Object.fromEntries(PRICE_TYPES$1.map(({ key, unitLabel }) => [key, unitLabel])));
+Object.freeze(Object.fromEntries(PRICE_TYPES$1.map(({ key, unitLabel }) => [key, unitLabel])));
 var PAY_METHOD_LABEL = Object.freeze({
 	wechat: "微信",
 	alipay: "支付宝",
@@ -15716,7 +15716,7 @@ async function shareProgress(order, ctx) {
 		]
 	});
 }
-function unitPriceFor$1(service, tiers, qty) {
+function unitPriceFor$2(service, tiers, qty) {
 	const list = (tiers || []).filter(Boolean);
 	for (const t of list) {
 		const lo = Number(t.min_qty) || 0;
@@ -15797,7 +15797,7 @@ function calcPicked(picked, servicesById) {
 		const svc = servicesById.get(id);
 		if (!svc) continue;
 		const qty = Number(sel.quantity) || 1;
-		const auto = unitPriceFor$1(svc, sel.tiers, qty);
+		const auto = unitPriceFor$2(svc, sel.tiers, qty);
 		const unit = sel.unitPrice === "" || sel.unitPrice === null || sel.unitPrice === void 0 ? auto : Number(sel.unitPrice);
 		const base = unit * qty;
 		let add = 0;
@@ -16049,7 +16049,7 @@ async function openComposer(ctx, { existing = null, presetCustomer = null } = {}
 			if (!cur) return;
 			if (document.activeElement !== qty) qty.value = String(cur.quantity);
 			if (document.activeElement !== price) price.value = cur.unitPrice === "" ? "" : String(cur.unitPrice);
-			const auto = unitPriceFor$1(s, s.tiers, Number(cur.quantity) || 1);
+			const auto = unitPriceFor$2(s, s.tiers, Number(cur.quantity) || 1);
 			tierHint.textContent = Number(cur.quantity) >= 1 ? `按 ${fmtQty$1(cur.quantity)} ${defaultUnit$1(s)} 算，基准单价 ¥${fmtMoney$1(auto)}` : "";
 		}
 		/** 增项只在勾选状态变化时重建 */
@@ -17016,6 +17016,75 @@ var customers_default = {
 	}
 };
 //#endregion
+//#region shared/pricing.js
+/**
+* 阶梯价与计价单位 —— 前后端共用一份。
+*
+* 为什么单独放 shared/：这条规则以前有两份实现（服务端 src/pricing.mjs、
+* 旧价格表页面 public/js/views/price.js），而它决定的是**钱**：
+* 前端组合报价显示多少、下单台就算多少。两份实现一旦漂移，客户看到的价
+* 和实际收的价就对不上，而且很难发现。现在服务端、旧页面、新的 React 组合报价
+* 都调这里，改一处就是全改。
+*
+* 纯函数、不碰数据库、不 import 任何 src/ 下的东西。
+*/
+var num = (value, fallback = 0) => {
+	if (value === "" || value === null || value === void 0) return fallback;
+	const n = Number(value);
+	return Number.isFinite(n) ? n : fallback;
+};
+var money = (value) => Math.round((Number(value) || 0) * 100) / 100;
+/**
+* 按数量找命中的那一档单价。
+* 先找完全落在区间里的；找不到就退到「起量最大且不超过这个数量」的那一档；
+* 再找不到就用服务项的基准价。
+*
+* @param {object} service 服务项（至少要有 base_price）
+* @param {Array} tiers 阶梯价列表；服务端从库里读，前端直接传 service.tiers
+* @param {number} qty 数量
+* @returns {{ price: number, tier: object|null }}
+*/
+function unitPriceFor$1(service, tiers, qty) {
+	const list = (tiers || []).filter(Boolean);
+	if (list.length) {
+		for (const tier of list) {
+			const lo = num(tier.min_qty, 0);
+			const hi = tier.max_qty === null || tier.max_qty === void 0 || tier.max_qty === "" ? Infinity : num(tier.max_qty);
+			if (qty >= lo && qty <= hi) return {
+				price: money(tier.unit_price),
+				tier
+			};
+		}
+		const sorted = [...list].sort((a, b) => num(a.min_qty, 0) - num(b.min_qty, 0));
+		let pick = null;
+		for (const tier of sorted) if (qty >= num(tier.min_qty, 0)) pick = tier;
+		if (pick) return {
+			price: money(pick.unit_price),
+			tier: pick
+		};
+	}
+	return {
+		price: money(service && service.base_price),
+		tier: null
+	};
+}
+/** 只关心单价时的便捷写法（前端展示用） */
+function unitPriceOf(service, qty) {
+	return unitPriceFor$1(service, service && service.tiers, qty).price;
+}
+/** 计价单位：服务项自己写了就用它，否则按计价方式取默认（单 / 天 / 次 / 个 / 套） */
+var UNIT_BY_TYPE = Object.freeze({
+	fixed: "单",
+	daily: "天",
+	per_time: "次",
+	per_unit: "个",
+	package: "套"
+});
+function unitOf$2(service) {
+	if (!service) return "单";
+	return service.unit_label || UNIT_BY_TYPE[service.price_type] || "单";
+}
+//#endregion
 //#region public/js/views/games.js
 /** 公告可能有好几行、也可能很长，列表里只给一个开头 */
 function firstLine$1(text, max = 64) {
@@ -17196,32 +17265,15 @@ var PRICE_TYPES = Object.entries(PRICE_TYPE_LABEL).map(([value, label]) => ({
 	label
 }));
 function unitOf$1(s) {
-	return s.unit_label || {
-		fixed: "单",
-		daily: "天",
-		per_time: "次",
-		per_unit: "个",
-		package: "套"
-	}[s.price_type] || "单";
+	return unitOf$2(s);
 }
 /**
-* 按数量找命中那一档的单价，找不到就退到「起量最大且不超过」那档，再不行用基准价。
-* 规则跟下单台（pricing.mjs）一样 —— 这里算出来多少，开单就是多少。
+* 按数量找命中那一档的单价。
+* 规则本体在 shared/pricing.js —— 和下单台（src/pricing.mjs）是同一份实现，
+* 这里算出多少，开单就是多少。
 */
 function tierUnitPrice(s, qty) {
-	const tiers = (s.tiers || []).filter(Boolean);
-	if (tiers.length) {
-		for (const t of tiers) {
-			const lo = Number(t.min_qty) || 0;
-			const hi = t.max_qty === null || t.max_qty === void 0 || t.max_qty === "" ? Infinity : Number(t.max_qty);
-			if (qty >= lo && qty <= hi) return Number(t.unit_price) || 0;
-		}
-		const sorted = [...tiers].sort((a, b) => (Number(a.min_qty) || 0) - (Number(b.min_qty) || 0));
-		let pick = null;
-		for (const t of sorted) if (qty >= (Number(t.min_qty) || 0)) pick = t;
-		if (pick) return Number(pick.unit_price) || 0;
-	}
-	return Number(s.base_price) || 0;
+	return unitPriceOf(s, qty);
 }
 /**
 * 组合报价：把**这一个大类**下勾中的服务项加起来。
@@ -22139,6 +22191,33 @@ function TagsInput({ value, onChange, placeholder = "用逗号分隔，例如：
 		}
 	});
 }
+/**
+* 勾选框。
+*
+* 注意这里**不渲染 .hint**：旧引擎对 check 字段走的是 bare 分支
+* （makeField 里 `if (bare) return h('div.field.field--full', control)`），
+* 提示文字会被直接丢掉。迁移时保持一致，免得顺手改了样子；
+* 但作者写的说明不该消失，所以挂到 label 的 title 上——鼠标停一下能看到，
+* 又不占版面、不影响和新旧表单的几何对比。
+*/
+function CheckField({ label, hint, checked, onChange, id }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "field field--full",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+			className: "inline",
+			htmlFor: id,
+			style: { cursor: "pointer" },
+			title: hint || void 0,
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+				id,
+				className: "chk",
+				type: "checkbox",
+				checked: Boolean(checked),
+				onChange: (event) => onChange(event.target.checked)
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: label })]
+		})
+	});
+}
 /** 图片上传：读成 data URL 传给 /api/uploads，拿回来的地址直接当 img src */
 function ImageField({ label = "图片", value, onChange, prefix = "img", hint = "", size = 56, shape = "square", placeholder = "无" }) {
 	const fileRef = (0, import_react.useRef)(null);
@@ -22241,7 +22320,7 @@ function ImageField({ label = "图片", value, onChange, prefix = "img", hint = 
 }
 //#endregion
 //#region client/game-form.jsx
-var FORM_ID$1 = "game-form";
+var FORM_ID$2 = "game-form";
 function openGameForm(values = {}) {
 	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GameForm, {
 		values,
@@ -22308,13 +22387,13 @@ function GameForm({ values, close }) {
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 				className: "btn btn--primary",
 				type: "submit",
-				form: FORM_ID$1,
+				form: FORM_ID$2,
 				disabled: busy,
 				children: busy ? "保存中…" : "保存"
 			})
 		] }),
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
-			id: FORM_ID$1,
+			id: FORM_ID$2,
 			noValidate: true,
 			onSubmit: submit,
 			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -22769,6 +22848,441 @@ function GamesPage({ route, navigate, onNew, onReload, reloadKey }) {
 	});
 }
 //#endregion
+//#region client/category-form.jsx
+var FORM_ID$1 = "category-form";
+function openCategoryForm(values = {}, games = [], presetGameId = null) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CategoryForm, {
+		values,
+		games,
+		presetGameId,
+		close
+	}));
+}
+function CategoryForm({ values, games, presetGameId, close }) {
+	const isEdit = Boolean(values.id);
+	const [form, setForm] = (0, import_react.useState)(() => {
+		const initial = {
+			name: values.name || "",
+			game_id: values.game_id === null || values.game_id === void 0 ? "" : String(values.game_id),
+			is_daily: Boolean(values.is_daily),
+			note: values.note || "",
+			notice: values.notice || ""
+		};
+		if (!isEdit && presetGameId && !initial.game_id) initial.game_id = String(presetGameId);
+		return initial;
+	});
+	const [errors, setErrors] = (0, import_react.useState)({});
+	const [serverError, setServerError] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const set = (key) => (value) => setForm((current) => ({
+		...current,
+		[key]: value
+	}));
+	async function submit(event) {
+		event.preventDefault();
+		const next = {};
+		if (!String(form.name).trim()) next.name = "请填写大类名称";
+		setErrors(next);
+		if (Object.keys(next).length) {
+			document.getElementById("category-name")?.focus();
+			return;
+		}
+		setBusy(true);
+		setServerError("");
+		try {
+			const payload = {
+				...form,
+				name: String(form.name).trim(),
+				game_id: form.game_id || null
+			};
+			const saved = isEdit ? await api.patch(`/api/categories/${values.id}`, payload) : await api.post("/api/categories/append", payload);
+			toast("大类已保存", "ok");
+			close(saved);
+		} catch (err) {
+			setServerError(err && err.message ? err.message : "保存失败");
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: isEdit ? "改大类" : "新建大类",
+		wide: true,
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "取消"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: 1 } }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "submit",
+				form: FORM_ID$1,
+				disabled: busy,
+				children: busy ? "保存中…" : "保存"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: FORM_ID$1,
+			noValidate: true,
+			onSubmit: submit,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "hint",
+						children: "价格表的结构是三层：游戏 → 大类 → 服务项。先建大类（日常 / 周常 / 深渊 / 活动 / 材料…），再往大类里加具体的服务项。"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "formgrid",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "大类名称",
+								required: true,
+								htmlFor: "category-name",
+								error: errors.name,
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									id: "category-name",
+									name: "name",
+									value: form.name,
+									onChange: set("name"),
+									"aria-invalid": errors.name ? "true" : void 0,
+									placeholder: "例：日常 / 周常 / 深渊 / 活动"
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "属于哪个游戏",
+								htmlFor: "category-game",
+								hint: "选「通用」就是一个所有游戏都能用的大类",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+									id: "category-game",
+									name: "game_id",
+									value: form.game_id,
+									onChange: set("game_id"),
+									options: [{
+										value: "",
+										label: "通用（不属于某个游戏）"
+									}, ...(games || []).map((game) => ({
+										value: String(game.id),
+										label: game.name
+									}))]
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CheckField, {
+								id: "category-is-daily",
+								checked: form.is_daily,
+								onChange: set("is_daily"),
+								label: "每天都做（日常 / 日体 / 包天这种天天要做的）",
+								hint: "勾上之后，开单时会标出来，标「今日已完成」时也会提醒你这张单里是不是还夹着别的活"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "备注",
+								htmlFor: "category-note",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									id: "category-note",
+									name: "note",
+									value: form.note,
+									onChange: set("note"),
+									placeholder: "选填"
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+								label: "大类提示",
+								htmlFor: "category-notice",
+								hint: "只给客户看的一句话，可以做多行。导出价格表时，它会显示在「这个大类」的名字下面、服务项上面 —— 缩进一格，比游戏那条顶部提示低一级。和「备注」分开：备注是你自己看的，不会出现在导出里。",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
+									id: "category-notice",
+									name: "notice",
+									rows: 2,
+									maxLength: 400,
+									value: form.notice,
+									onChange: set("notice"),
+									placeholder: "例：本大类按层数计价，10 层起接。"
+								})
+							})
+						]
+					}),
+					serverError ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "note note--alert",
+						children: serverError
+					}) : null
+				]
+			})
+		})
+	});
+}
+//#endregion
+//#region client/lib/dom.js
+function appendChildren(element, children) {
+	for (const child of children.flat(Infinity)) {
+		if (child === null || child === void 0 || child === false || child === true || child === "") continue;
+		element.appendChild(child instanceof Node ? child : document.createTextNode(String(child)));
+	}
+}
+function h(spec, props, ...children) {
+	const parts = String(spec).split(".");
+	const element = document.createElement(parts[0] || "div");
+	if (parts.length > 1) element.className = parts.slice(1).join(" ");
+	if (props !== null && props !== void 0) {
+		if (!(typeof props === "object" && !(props instanceof Node) && !Array.isArray(props) && !(props instanceof Date))) children.unshift(props);
+		else for (const [key, value] of Object.entries(props)) {
+			if (value === null || value === void 0 || value === false) continue;
+			if (key === "class" || key === "className") element.className = [element.className, value].filter(Boolean).join(" ");
+			else if (key === "text") element.textContent = String(value);
+			else if (key === "html") element.innerHTML = String(value);
+			else if (key === "style" && typeof value === "object") Object.assign(element.style, value);
+			else if (key === "dataset") Object.assign(element.dataset, value);
+			else if (key === "for") element.htmlFor = value;
+			else if (key.startsWith("on") && typeof value === "function") element.addEventListener(key.slice(2).toLowerCase(), value);
+			else if (key === "value") element.value = value;
+			else if ([
+				"checked",
+				"disabled",
+				"hidden",
+				"selected",
+				"multiple"
+			].includes(key)) element[key] = Boolean(value);
+			else if (key in element && typeof value !== "object") try {
+				element[key] = value;
+			} catch {
+				element.setAttribute(key, String(value));
+			}
+			else element.setAttribute(key, value === true ? "" : String(value));
+		}
+	}
+	appendChildren(element, children);
+	return element;
+}
+async function copyText(text) {
+	const value = String(text ?? "");
+	try {
+		if (navigator.clipboard && window.isSecureContext) {
+			await navigator.clipboard.writeText(value);
+			return true;
+		}
+	} catch {}
+	try {
+		const textarea = document.createElement("textarea");
+		textarea.value = value;
+		textarea.setAttribute("readonly", "");
+		textarea.style.position = "fixed";
+		textarea.style.top = "-1000px";
+		textarea.style.opacity = "0";
+		document.body.appendChild(textarea);
+		textarea.select();
+		textarea.setSelectionRange(0, value.length);
+		const ok = document.execCommand("copy");
+		textarea.remove();
+		return ok;
+	} catch {
+		return false;
+	}
+}
+//#endregion
+//#region client/price-sum.jsx
+function openPriceSum(category, services) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PriceSum, {
+		category,
+		services,
+		close
+	}));
+}
+function PriceSum({ category, services, close }) {
+	const list = (0, import_react.useMemo)(() => (services || []).filter((service) => service.status !== "archived"), [services]);
+	const [picked, setPicked] = (0, import_react.useState)(() => /* @__PURE__ */ new Set());
+	const [qty, setQty] = (0, import_react.useState)(() => Object.fromEntries(list.map((service) => [service.id, String(Number(service.min_qty) || 1)])));
+	const [copied, setCopied] = (0, import_react.useState)(false);
+	const rows = list.map((service) => {
+		const on = picked.has(service.id);
+		const q = on ? Math.max(.01, Number(qty[service.id]) || 1) : 1;
+		const unit = unitPriceOf(service, q);
+		const amount = on ? unit * q : 0;
+		const hasTiers = (service.tiers || []).length > 0;
+		return {
+			service,
+			on,
+			q,
+			unit,
+			amount,
+			hasTiers,
+			hint: on && hasTiers ? `按 ${fmtQty(q)} ${unitOf$2(service)} 算，单价 ¥${fmtMoney(unit)}` : "",
+			meta: [
+				PRICE_TYPE_LABEL[service.price_type] || service.price_type,
+				hasTiers ? `${service.tiers.length} 档阶梯价` : null,
+				service.description || null
+			].filter(Boolean).join(" · ")
+		};
+	});
+	const total = rows.reduce((sum, row) => sum + row.amount, 0);
+	const pickedCount = rows.filter((row) => row.on).length;
+	const toggle = (id) => setPicked((current) => {
+		const next = new Set(current);
+		if (next.has(id)) next.delete(id);
+		else next.add(id);
+		return next;
+	});
+	const setAll = (on) => setPicked(on ? new Set(list.map((service) => service.id)) : /* @__PURE__ */ new Set());
+	async function copy() {
+		const lines = [];
+		let sum = 0;
+		for (const row of rows) {
+			if (!row.on) continue;
+			sum += row.amount;
+			lines.push(`${row.service.name}  ${fmtQty(row.q)}${unitOf$2(row.service)} × ¥${fmtMoney(row.unit)} = ¥${fmtMoney(row.amount)}`);
+		}
+		if (!lines.length) return;
+		const ok = await copyText([
+			`【${category.name}】`,
+			...lines,
+			`合计：¥${fmtMoney(sum)}`
+		].join("\n"));
+		toast(ok ? "报价已复制" : "复制失败，手动选一下吧", ok ? "ok" : "err");
+		setCopied(ok);
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Modal, {
+		title: `组合报价 · ${category.name}`,
+		wide: true,
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			className: "btn",
+			type: "button",
+			onClick: () => close(null),
+			children: "关闭"
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			className: "btn btn--primary",
+			type: "button",
+			disabled: !pickedCount,
+			onClick: copy,
+			children: "复制报价"
+		})] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "stack",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "cluster",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							className: "sm dim",
+							children: [
+								"勾上客户要的服务项",
+								list.some((service) => (service.tiers || []).length) ? "；数量能改，会自动套阶梯价" : "",
+								"。"
+							]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: 1 } }),
+						list.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							className: "btn btn--sm",
+							type: "button",
+							onClick: () => setAll(true),
+							children: "全选"
+						}) : null,
+						list.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							className: "btn btn--sm",
+							type: "button",
+							onClick: () => setAll(false),
+							children: "全不选"
+						}) : null
+					]
+				}),
+				list.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "picker",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "picker__scroll",
+						children: rows.map((row) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: `pickrow${row.on ? " pickrow--on" : ""}`,
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "pickrow__top",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									className: "chk",
+									type: "checkbox",
+									"aria-label": `选择 ${row.service.name}`,
+									checked: row.on,
+									onChange: () => toggle(row.service.id)
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+									className: "pickrow__main",
+									type: "button",
+									onClick: () => toggle(row.service.id),
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+										className: "pickrow__line",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "pickrow__name",
+											children: row.service.name
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "pickrow__fig",
+											children: `¥${fmtMoney(row.on ? row.amount : Number(row.service.base_price) || 0)}`
+										})]
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "pickrow__meta",
+										children: row.meta
+									})]
+								})]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "pickrow__ctrl",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "cluster",
+									style: { gap: "6px" },
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+											className: "inp inp--fig",
+											inputMode: "decimal",
+											style: { width: "64px" },
+											disabled: !row.on,
+											"aria-label": `${row.service.name} 数量`,
+											value: qty[row.service.id],
+											onChange: (event) => setQty((current) => ({
+												...current,
+												[row.service.id]: event.target.value
+											}))
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "dim tiny",
+											children: unitOf$2(row.service)
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											className: "hint",
+											children: row.hint
+										})
+									]
+								})
+							})]
+						}, row.service.id))
+					})
+				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "empty",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "empty__body",
+						children: "这个大类下还没有服务项。"
+					})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "sumline",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "dim",
+							children: "合计"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "dim sm",
+							children: pickedCount ? `已选 ${pickedCount} 项` : "还没勾"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: 1 } }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "sumline__v",
+							children: `¥${fmtMoney(total)}`
+						})
+					]
+				}),
+				copied ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "hint",
+					children: "已复制到剪贴板，可以直接粘给客户。"
+				}) : null
+			]
+		})
+	});
+}
+//#endregion
 //#region client/price.jsx
 var iconProps$4 = (size = 15) => ({
 	size,
@@ -22776,7 +23290,7 @@ var iconProps$4 = (size = 15) => ({
 	absoluteStrokeWidth: true,
 	"aria-hidden": true
 });
-var unitOf = (service) => service.unit_label || PRICE_TYPE_UNIT_LABEL[service.price_type] || "单";
+var unitOf = (service) => unitOf$2(service);
 function priceRange(services) {
 	const values = services.map((service) => Number(service.base_price)).filter(Number.isFinite);
 	if (!values.length) return "暂无价格";
@@ -23225,14 +23739,14 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 	const groups = [...groupMap.values()];
 	const createCategory = async (gameId = "") => {
 		try {
-			if (await categoryForm({}, data.games || [], gameId && gameId !== "generic" ? gameId : null)) await onReload();
+			if (await openCategoryForm({}, data.games || [], gameId && gameId !== "generic" ? gameId : null)) await onReload();
 		} catch (err) {
 			toastErr(err);
 		}
 	};
 	const editCategory = async (category) => {
 		try {
-			if (await categoryForm(category, data.games || [])) await onReload();
+			if (await openCategoryForm(category, data.games || [])) await onReload();
 		} catch (err) {
 			toastErr(err);
 		}
@@ -23470,7 +23984,7 @@ function PricePage({ route, navigate, onNewGame, onNewCategory, onReload, reload
 					onNewCategory: createCategory,
 					onService: newService,
 					onEditCategory: editCategory,
-					onSum: (cat) => sumDialog(cat, cat.services || []),
+					onSum: (cat) => openPriceSum(cat, cat.services || []),
 					onToggleCategory: toggleCategory,
 					onDeleteCategory: deleteCategory,
 					onEditService: editService,
@@ -23868,73 +24382,6 @@ function FinancePage({ route, navigate, reloadKey }) {
 			})
 		]
 	});
-}
-//#endregion
-//#region client/lib/dom.js
-function appendChildren(element, children) {
-	for (const child of children.flat(Infinity)) {
-		if (child === null || child === void 0 || child === false || child === true || child === "") continue;
-		element.appendChild(child instanceof Node ? child : document.createTextNode(String(child)));
-	}
-}
-function h(spec, props, ...children) {
-	const parts = String(spec).split(".");
-	const element = document.createElement(parts[0] || "div");
-	if (parts.length > 1) element.className = parts.slice(1).join(" ");
-	if (props !== null && props !== void 0) {
-		if (!(typeof props === "object" && !(props instanceof Node) && !Array.isArray(props) && !(props instanceof Date))) children.unshift(props);
-		else for (const [key, value] of Object.entries(props)) {
-			if (value === null || value === void 0 || value === false) continue;
-			if (key === "class" || key === "className") element.className = [element.className, value].filter(Boolean).join(" ");
-			else if (key === "text") element.textContent = String(value);
-			else if (key === "html") element.innerHTML = String(value);
-			else if (key === "style" && typeof value === "object") Object.assign(element.style, value);
-			else if (key === "dataset") Object.assign(element.dataset, value);
-			else if (key === "for") element.htmlFor = value;
-			else if (key.startsWith("on") && typeof value === "function") element.addEventListener(key.slice(2).toLowerCase(), value);
-			else if (key === "value") element.value = value;
-			else if ([
-				"checked",
-				"disabled",
-				"hidden",
-				"selected",
-				"multiple"
-			].includes(key)) element[key] = Boolean(value);
-			else if (key in element && typeof value !== "object") try {
-				element[key] = value;
-			} catch {
-				element.setAttribute(key, String(value));
-			}
-			else element.setAttribute(key, value === true ? "" : String(value));
-		}
-	}
-	appendChildren(element, children);
-	return element;
-}
-async function copyText(text) {
-	const value = String(text ?? "");
-	try {
-		if (navigator.clipboard && window.isSecureContext) {
-			await navigator.clipboard.writeText(value);
-			return true;
-		}
-	} catch {}
-	try {
-		const textarea = document.createElement("textarea");
-		textarea.value = value;
-		textarea.setAttribute("readonly", "");
-		textarea.style.position = "fixed";
-		textarea.style.top = "-1000px";
-		textarea.style.opacity = "0";
-		document.body.appendChild(textarea);
-		textarea.select();
-		textarea.setSelectionRange(0, value.length);
-		const ok = document.execCommand("copy");
-		textarea.remove();
-		return ok;
-	} catch {
-		return false;
-	}
 }
 //#endregion
 //#region client/quotes.jsx

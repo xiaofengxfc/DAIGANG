@@ -799,6 +799,9 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 - 前端正在从「React 壳 + 旧命令式视图」往单栈收敛，迁移方式和现状见下面「界面是怎么从旧栈搬到 React 的」。
 - 密码用 scrypt 哈希；会话是 HttpOnly + SameSite=Lax 的 Cookie，有效期 14 天。
 - 数据库开了 WAL 和外键约束；迁移按 `PRAGMA user_version` 顺序前进，只增不改。
+- **钱的算法只有一份**：阶梯价规则在 `shared/pricing.js`，服务端（`src/pricing.mjs`）、
+  旧价格表页面、React 组合报价弹窗都调它。以前服务端和前端各有一份实现，一旦漂移就会
+  「客户看到的价」和「实际收的价」对不上，而且很难发现。
 - 附 `PRODUCT.md` 和 `DESIGN.md`：前者是产品定义，后者是视觉与交互的规则书。
 
 ### 界面是怎么从旧栈搬到 React 的
@@ -817,13 +820,18 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 
 - **游戏表单**（`client/game-form.jsx`）—— 第一个全 React 的表单；
 - **客户表单**（`client/customer-form.jsx`）—— 字段和提示跟旧的一字不差；
+- **大类表单**（`client/category-form.jsx`）和**组合报价弹窗**（`client/price-sum.jsx`）
+  —— 价格表这一页先搬了这两块；
 - **确认框**（`client/app/confirm.jsx`）—— 游戏、客户、价格表、财务、报价单这五个
   React 页面原先弹的都是旧 DOM 对话框，现在换成 React 渲染的，调用方式
   （`if (!await confirmDelete({...})) return`）一字未改。
 
-旧的那份 `gameForm` / `customerForm` 先留着：客户档案详情页（`/customers/:id`）、
-旧价格表页面（`price.js`）、旧开单器还在用它们。两套并存、互不影响，
-等那些页面也搬完再删。
+价格表还剩三块没搬（它们互相嵌套，得一起动）：服务项表单、阶梯价编辑器、
+套餐增项编辑器，以及服务项详情抽屉和导出器。
+
+旧的那份 `gameForm` / `customerForm` / `categoryForm` / `sumDialog` 先留着：
+客户档案详情页（`/customers/:id`）、旧价格表页面（`price.js`）、旧开单器还在用它们。
+两套并存、互不影响，等那些页面也搬完再删。
 
 新表单照着这四块写：
 
@@ -850,6 +858,7 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 server.mjs            服务入口：应用启动
 shared/
   domain.js           前后端共用的订单状态、计价方式和业务标签
+  pricing.js          阶梯价规则（服务端、旧页面、React 组合报价共用一份）
 src/
   config.mjs          端口、路径和运行时配置
   db.mjs              SQLite 连接、表结构迁移、单号生成

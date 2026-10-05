@@ -22,6 +22,7 @@ const PASSWORD = 'ui-smoke-pass-8888'
 const VAULT_PASSWORD = 'ui-smoke-vault-8888'
 const NEW_GAME = 'UI新建游戏'
 const NEW_CUSTOMER = 'UI新客户'
+const NEW_CATEGORY = 'UI新大类'
 const PROGRESS_TEXT = '清完今日委托，深渊打到第 7 层'
 const SHOTS = process.argv.includes('--shots')
 const SHOT_DIR = path.resolve('shots/ui-smoke')
@@ -84,6 +85,18 @@ async function seed(base) {
     base_price: 12,
     description: '界面冒烟用的服务项',
   }, cookie)
+  // 带阶梯价的服务项：组合报价弹窗里的钱要对得上（1-5 层 30，6-12 层 25）
+  const tiered = await api(base, 'POST', '/api/services', {
+    name: 'UI阶梯服务',
+    category_id: category.body.id,
+    game_id: game.body.id,
+    price_type: 'per_unit',
+    base_price: 30,
+    unit_label: '层',
+    min_qty: 1,
+  }, cookie)
+  await api(base, 'POST', `/api/services/${tiered.body.id}/tiers`, { min_qty: 1, max_qty: 5, unit_price: 30 }, cookie)
+  await api(base, 'POST', `/api/services/${tiered.body.id}/tiers`, { min_qty: 6, max_qty: 12, unit_price: 25 }, cookie)
   const customer = await api(base, 'POST', '/api/customers', { name: 'UI客户', phone: '13900000001' }, cookie)
   const order = await api(base, 'POST', '/api/orders', {
     customer_id: customer.body.id,
@@ -138,6 +151,34 @@ async function fillField(cdp, selector, value) {
 
 const OPEN_DRAWER = 'dialog.drawer[open]'
 const SUBMIT = `${OPEN_DRAWER} .drawer__foot button[type="submit"]`
+
+/**
+ * 给「某一行的数量框」塞值。
+ * 组合报价弹窗里每行都有一个数量框，直接写 `.pickrow input.inp` 会命中第一行
+ * （很可能是没勾的那个），所以必须先按行里的文字找到那一行。
+ */
+function fillRowQty(cdp, rowName, value) {
+  return cdp.eval(`(() => {
+    const row = [...document.querySelectorAll('dialog.modal[open] .pickrow')].find((r) => r.innerText.includes(${JSON.stringify(rowName)}))
+    if (!row) return 'missing'
+    const el = row.querySelector('input.inp')
+    if (!el) return 'missing'
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, ${JSON.stringify(value)})
+    el.dispatchEvent(new Event('input', { bubbles: true }))
+    el.dispatchEvent(new Event('change', { bubbles: true }))
+    return el.value
+  })()`)
+}
+
+/** 点主区域里带这段文字的按钮（旧视图和 React 页面的类名不同，按文字找最稳） */
+function clickInMain(cdp, text, root = '.react-main__inner') {
+  return cdp.eval(`(() => {
+    const btn = [...document.querySelectorAll(${JSON.stringify(root + ' button')})].find((b) => b.textContent.includes(${JSON.stringify(text)}) && !b.disabled)
+    if (!btn) return false
+    btn.click()
+    return true
+  })()`)
+}
 
 /** 点顶栏里带这段文字的动作按钮（旧视图的动作按钮类名和 React 的不一样，按文字找最稳） */
 function clickTopAction(cdp, text) {
@@ -464,6 +505,90 @@ async function main() {
 
       const fetched = await api(app.base, 'GET', `/api/games?q=${encodeURIComponent(NEW_GAME)}`, undefined, fixture.cookie)
       ok('接口里状态也变成 archived 了', (fetched.body.items || [])[0]?.status === 'archived', (fetched.body.items || [])[0]?.status)
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+    }
+
+    /* ---- 价格表：大类表单（几何对比 + 提交）---- */
+    section('价格表 · 大类表单')
+    {
+      const before = cdp.errors.length
+
+      // 旧大类表单：/price/1 是旧价格表视图接管的那条路由
+      await gotoHash(cdp, '/price/1')
+      ok('旧价格表视图里有「新建大类」', await waitFor(cdp, `[...document.querySelectorAll('.react-main__inner button')].some((b) => b.textContent.includes('新建大类'))`, { tries: 30, interval: 200 }))
+      await clickInMain(cdp, '新建大类')
+      ok('旧大类表单打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
+      const legacy = await measureForm(cdp)
+      await cdp.eval(`document.querySelector(${JSON.stringify(OPEN_DRAWER)}).close()`)
+      await sleep(300)
+
+      await gotoHash(cdp, '/price')
+      await clickInMain(cdp, '新建大类')
+      ok('React 大类表单打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
+      const fresh = await measureForm(cdp)
+      compareForms(ok, legacy, fresh)
+
+      await cdp.eval(`document.querySelector(${JSON.stringify(SUBMIT)}).click()`)
+      await sleep(300)
+      const errText = await cdp.eval(`document.querySelector(${JSON.stringify(`${OPEN_DRAWER} .err:not([hidden])`)})?.textContent || ''`)
+      ok('空大类名被校验拦住', errText.includes('请填写大类名称'), errText)
+
+      await fillField(cdp, `${OPEN_DRAWER} #category-name`, NEW_CATEGORY)
+      await fillField(cdp, `${OPEN_DRAWER} #category-notice`, '本大类按层数计价，10 层起接。')
+      await cdp.eval(`document.querySelector(${JSON.stringify(SUBMIT)}).click()`)
+      ok('保存后抽屉自己关掉', await waitFor(cdp, `!document.querySelector(${JSON.stringify(OPEN_DRAWER)})`, { tries: 40, interval: 200 }))
+      const listed = await waitFor(cdp, `(document.querySelector('.price-page')?.innerText || '').includes(${JSON.stringify(NEW_CATEGORY)})`, { tries: 40, interval: 200 })
+      ok('价格表里出现了新大类（保存后自动刷新）', listed)
+
+      const fetched = await api(app.base, 'GET', '/api/categories', undefined, fixture.cookie)
+      const row = (fetched.body.items || []).find((item) => item.name === NEW_CATEGORY)
+      ok('接口里确实落了这个大类', Boolean(row), row)
+      ok('没绑游戏就存成 null（通用）', Boolean(row) && row.game_id === null, row && row.game_id)
+      ok('大类提示也存进去了', Boolean(row) && row.notice === '本大类按层数计价，10 层起接。', row && row.notice)
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+    }
+
+    /* ---- 价格表：组合报价（钱要对）---- */
+    section('价格表 · 组合报价')
+    {
+      const before = cdp.errors.length
+      await gotoHash(cdp, '/price')
+      ok('大类上有「组合报价」按钮', await waitFor(cdp, `Boolean(document.querySelector('button[title="组合报价"]'))`, { tries: 30, interval: 200 }))
+      await cdp.eval(`document.querySelector('button[title="组合报价"]').click()`)
+      ok('组合报价弹窗打开了', await waitFor(cdp, `Boolean(document.querySelector('dialog.modal[open] .picker'))`, { tries: 25, interval: 200 }))
+
+      const modalText = () => cdp.eval(`document.querySelector('dialog.modal[open]')?.innerText || ''`)
+      const copyDisabled = () => cdp.eval(`[...document.querySelectorAll('dialog.modal[open] .modal__foot button')].find((b) => b.textContent.includes('复制报价'))?.disabled`)
+      const sumText = () => cdp.eval(`document.querySelector('dialog.modal[open] .sumline')?.innerText.replace(/\\s+/g, ' ') || ''`)
+      const pickRow = (name) => cdp.eval(`(() => {
+        const row = [...document.querySelectorAll('dialog.modal[open] .pickrow')].find((r) => r.innerText.includes(${JSON.stringify(name)}))
+        if (!row) return false
+        row.querySelector('.pickrow__main').click()
+        return true
+      })()`)
+
+      ok('没勾之前「复制报价」是灰的', (await copyDisabled()) === true)
+      ok('合计一开始是 ¥0', (await sumText()).includes('¥0'), await sumText())
+
+      ok('勾上带阶梯价的服务项', await pickRow('UI阶梯服务'))
+      await sleep(250)
+      ok('勾 1 层时按第一档 ¥30 算', (await sumText()).includes('¥30'), await sumText())
+      ok('勾上之后「复制报价」可以点了', (await copyDisabled()) === false)
+
+      // 数量改成 8 → 命中第二档（6-12 层 25 元/层）→ 200
+      ok('把阶梯服务那一行的数量改成 8', (await fillRowQty(cdp, 'UI阶梯服务', '8')) === '8')
+      await sleep(300)
+      ok('改成 8 层自动套第二档，合计 ¥200', (await sumText()).includes('¥200'), await sumText())
+      ok('行内提示写清了单价', (await modalText()).includes('单价 ¥25'), (await modalText()).replace(/\s+/g, ' ').slice(0, 200))
+
+      // 再加一个固定价 12 的服务项 → 212
+      ok('再勾一个固定价服务项', await pickRow('UI服务项'))
+      await sleep(300)
+      ok('两项合计 ¥212', (await sumText()).includes('¥212'), await sumText())
+      ok('合计旁边显示已选几项', (await sumText()).includes('已选 2 项'), await sumText())
+
+      await cdp.eval(`[...document.querySelectorAll('dialog.modal[open] .modal__foot button')].find((b) => b.textContent.includes('关闭')).click()`)
+      ok('关掉之后弹窗没了', await waitFor(cdp, `!document.querySelector('dialog.modal[open]')`, { tries: 25, interval: 200 }))
       ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
     }
 

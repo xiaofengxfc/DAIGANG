@@ -104,6 +104,26 @@ export function TagsInput({ value, onChange, placeholder = '用逗号分隔，�
   )
 }
 
+/**
+ * 勾选框。
+ *
+ * 注意这里**不渲染 .hint**：旧引擎对 check 字段走的是 bare 分支
+ * （makeField 里 `if (bare) return h('div.field.field--full', control)`），
+ * 提示文字会被直接丢掉。迁移时保持一致，免得顺手改了样子；
+ * 但作者写的说明不该消失，所以挂到 label 的 title 上——鼠标停一下能看到，
+ * 又不占版面、不影响和新旧表单的几何对比。
+ */
+export function CheckField({ label, hint, checked, onChange, id }) {
+  return (
+    <div className="field field--full">
+      <label className="inline" htmlFor={id} style={{ cursor: 'pointer' }} title={hint || undefined}>
+        <input id={id} className="chk" type="checkbox" checked={Boolean(checked)} onChange={(event) => onChange(event.target.checked)} />
+        <span>{label}</span>
+      </label>
+    </div>
+  )
+}
+
 /** 图片上传：读成 data URL 传给 /api/uploads，拿回来的地址直接当 img src */
 export function ImageField({ label = '图片', value, onChange, prefix = 'img', hint = '', size = 56, shape = 'square', placeholder = '无' }) {
   const fileRef = useRef(null)

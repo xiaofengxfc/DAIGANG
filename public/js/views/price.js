@@ -9,6 +9,7 @@
    ============================================================ */
 
 import { api, PRICE_TYPE_LABEL } from '../../../client/lib/api.js'
+import { unitOf as unitOfShared, unitPriceOf } from '../../../shared/pricing.js'
 import { h, icon, fmtMoney, fmtQty, debounce, fmtDate, mount, copyText } from '../dom.js'
 import { gameForm } from './games.js'
 import { renderPriceCard, canvasToBlob, downloadBlob } from '../pricecard.js'
@@ -31,27 +32,16 @@ import {
 const PRICE_TYPES = Object.entries(PRICE_TYPE_LABEL).map(([value, label]) => ({ value, label }))
 
 function unitOf(s) {
-  return s.unit_label || { fixed: '单', daily: '天', per_time: '次', per_unit: '个', package: '套' }[s.price_type] || '单'
+  return unitOfShared(s)
 }
 
 /**
- * 按数量找命中那一档的单价，找不到就退到「起量最大且不超过」那档，再不行用基准价。
- * 规则跟下单台（pricing.mjs）一样 —— 这里算出来多少，开单就是多少。
+ * 按数量找命中那一档的单价。
+ * 规则本体在 shared/pricing.js —— 和下单台（src/pricing.mjs）是同一份实现，
+ * 这里算出多少，开单就是多少。
  */
 function tierUnitPrice(s, qty) {
-  const tiers = (s.tiers || []).filter(Boolean)
-  if (tiers.length) {
-    for (const t of tiers) {
-      const lo = Number(t.min_qty) || 0
-      const hi = t.max_qty === null || t.max_qty === undefined || t.max_qty === '' ? Infinity : Number(t.max_qty)
-      if (qty >= lo && qty <= hi) return Number(t.unit_price) || 0
-    }
-    const sorted = [...tiers].sort((a, b) => (Number(a.min_qty) || 0) - (Number(b.min_qty) || 0))
-    let pick = null
-    for (const t of sorted) if (qty >= (Number(t.min_qty) || 0)) pick = t
-    if (pick) return Number(pick.unit_price) || 0
-  }
-  return Number(s.base_price) || 0
+  return unitPriceOf(s, qty)
 }
 
 /**

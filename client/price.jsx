@@ -1,14 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Archive, ArchiveRestore, ChevronDown, ChevronRight, Copy, Edit3, Eye, FolderPlus, Gamepad2, Layers3, Plus, Search, SlidersHorizontal, Trash2 } from 'lucide-react'
-import { api, PRICE_TYPE_LABEL, PRICE_TYPE_UNIT_LABEL } from './lib/api.js'
+import { api, PRICE_TYPE_LABEL } from './lib/api.js'
 import { fmtMoney, fmtQty } from './lib/formatters.js'
 import { toast, toastErr } from './lib/legacy-ui.js'
 import { confirmDelete } from './app/confirm.jsx'
-import { categoryForm, openExporter, serviceForm, servicePeek, sumDialog } from './lib/legacy-features.js'
+import { openCategoryForm } from './category-form.jsx'
+import { openPriceSum } from './price-sum.jsx'
+import { openExporter, serviceForm, servicePeek } from './lib/legacy-features.js'
+import { unitOf as unitOfShared } from '../shared/pricing.js'
 
 const iconProps = (size = 15) => ({ size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true })
 
-const unitOf = (service) => service.unit_label || PRICE_TYPE_UNIT_LABEL[service.price_type] || '单'
+const unitOf = (service) => unitOfShared(service)
 
 function priceRange(services) {
   const values = services.map((service) => Number(service.base_price)).filter(Number.isFinite)
@@ -159,8 +162,8 @@ export default function PricePage({ route, navigate, onNewGame, onNewCategory, o
   }
   const groups = [...groupMap.values()]
 
-  const createCategory = async (gameId = '') => { try { if (await categoryForm({}, data.games || [], gameId && gameId !== 'generic' ? gameId : null)) await onReload() } catch (err) { toastErr(err) } }
-  const editCategory = async (category) => { try { if (await categoryForm(category, data.games || [])) await onReload() } catch (err) { toastErr(err) } }
+  const createCategory = async (gameId = '') => { try { if (await openCategoryForm({}, data.games || [], gameId && gameId !== 'generic' ? gameId : null)) await onReload() } catch (err) { toastErr(err) } }
+  const editCategory = async (category) => { try { if (await openCategoryForm(category, data.games || [])) await onReload() } catch (err) { toastErr(err) } }
   const newService = async (category) => {
     if (!category?.id) {
       toast('先建一个大类，服务项要挂在大类下面', 'err')
@@ -193,7 +196,7 @@ export default function PricePage({ route, navigate, onNewGame, onNewCategory, o
       <header className="price-page__head"><div><span className="refactor-eyebrow">业务目录 / 价格工作区</span><h2>价格表</h2><p>{data.games.length} 个游戏 · {data.categories.length} 个大类 · {data.categories.reduce((sum, category) => sum + (category.services || []).length, 0) + data.loose.length} 个服务项</p></div><div className="price-page__head-actions"><button className="refactor-button" type="button" onClick={() => openExporter(null, { games: data.games || [] })}><Copy {...iconProps(15)} />导出</button><button className="refactor-button" type="button" onClick={onNewGame}><Gamepad2 {...iconProps(15)} />新建价格表</button><button className="refactor-button" type="button" onClick={() => createCategory(query.game)}><FolderPlus {...iconProps(15)} />新建大类</button><button className="refactor-button refactor-button--primary" type="button" onClick={quickAddService}><Plus {...iconProps(15)} />添加服务</button></div></header>
       <section className="price-toolbar"><div className="price-games"><button className={`price-game${!query.game ? ' is-active' : ''}`} type="button" onClick={() => update({ game: '' })}>全部价格表</button>{data.games.map((game) => <button key={game.id} className={`price-game${query.game === String(game.id) ? ' is-active' : ''}`} type="button" onClick={() => update({ game: String(game.id) })}>{game.name}</button>)}<button className={`price-game${query.game === 'generic' ? ' is-active' : ''}`} type="button" onClick={() => update({ game: 'generic' })}>通用</button></div><div className="price-toolbar__spacer" /><div className="price-status" role="group" aria-label="价格状态"><button className={query.status === 'active' ? 'is-active' : ''} type="button" onClick={() => update({ status: 'active' })}>在架</button><button className={query.status === 'archived' ? 'is-active' : ''} type="button" onClick={() => update({ status: 'archived' })}>已归档</button><button className={query.status === 'all' ? 'is-active' : ''} type="button" onClick={() => update({ status: 'all' })}>全部</button></div><label className="price-search"><Search {...iconProps(15)} /><input type="search" value={search} placeholder="搜大类、服务或说明" onChange={(event) => { const value = event.target.value; setSearch(value); window.clearTimeout(window.__priceTimer); window.__priceTimer = window.setTimeout(() => update({ q: value.trim() }), 260) }} /></label></section>
       {error ? <div className="refactor-alert" role="alert">{error}</div> : null}
-      <section className="price-groups">{book === null ? <div className="refactor-loading"><span /><span /><span /></div> : groups.length ? groups.map((group) => <GroupWorkspace key={group.key || 'generic'} group={group} query={query} onNewCategory={createCategory} onService={newService} onEditCategory={editCategory} onSum={(cat) => sumDialog(cat, cat.services || [])} onToggleCategory={toggleCategory} onDeleteCategory={deleteCategory} onEditService={editService} onPeekService={peekService} onAdvancedService={peekService} onToggleService={toggleService} onDeleteService={deleteService} />) : <div className="price-empty"><Layers3 {...iconProps(24)} /><b>{query.q ? '没有找到匹配的价格' : '还没有价格表'}</b><span>{query.q ? '换个关键词试试。' : '先新建游戏，再建立大类和服务项。'}</span><button className="refactor-button refactor-button--primary" type="button" onClick={onNewGame}><Plus {...iconProps(15)} />新建价格表</button></div>}</section>
+      <section className="price-groups">{book === null ? <div className="refactor-loading"><span /><span /><span /></div> : groups.length ? groups.map((group) => <GroupWorkspace key={group.key || 'generic'} group={group} query={query} onNewCategory={createCategory} onService={newService} onEditCategory={editCategory} onSum={(cat) => openPriceSum(cat, cat.services || [])} onToggleCategory={toggleCategory} onDeleteCategory={deleteCategory} onEditService={editService} onPeekService={peekService} onAdvancedService={peekService} onToggleService={toggleService} onDeleteService={deleteService} />) : <div className="price-empty"><Layers3 {...iconProps(24)} /><b>{query.q ? '没有找到匹配的价格' : '还没有价格表'}</b><span>{query.q ? '换个关键词试试。' : '先新建游戏，再建立大类和服务项。'}</span><button className="refactor-button refactor-button--primary" type="button" onClick={onNewGame}><Plus {...iconProps(15)} />新建价格表</button></div>}</section>
     </div>
   )
 }

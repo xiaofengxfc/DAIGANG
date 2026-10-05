@@ -48,22 +48,14 @@ export function loadOptions(serviceId) {
     .map(normalizeOption)
 }
 
-/** 按数量定价时，先找命中的阶梯，找不到就退到"起量最大且不超过"的那一档 */
-export function unitPriceFor(service, tierList, qty) {
-  const list = (tierList || []).filter(Boolean)
-  if (list.length) {
-    for (const t of list) {
-      const lo = num(t.min_qty, 0)
-      const hi = t.max_qty === null || t.max_qty === undefined || t.max_qty === '' ? Infinity : num(t.max_qty)
-      if (qty >= lo && qty <= hi) return { price: money(t.unit_price), tier: t }
-    }
-    const sorted = [...list].sort((a, b) => num(a.min_qty, 0) - num(b.min_qty, 0))
-    let pick = null
-    for (const t of sorted) if (qty >= num(t.min_qty, 0)) pick = t
-    if (pick) return { price: money(pick.unit_price), tier: pick }
-  }
-  return { price: money(service.base_price), tier: null }
-}
+/** 按数量定价时，先找命中的阶梯，找不到就退到"起量最大且不超过"的那一档。
+ *  规则本体在 shared/pricing.js：服务端、旧价格表页面、React 组合报价共用一份，
+ *  免得「前端显示多少、下单算多少」因为两份实现漂移而对不上。
+ *  注意：这里必须 import 再 export —— 光写 `export {} from` 不会建本地绑定，
+ *  下面 computeOrder 里那句 unitPriceFor 会直接 ReferenceError。 */
+import { unitPriceFor } from '../shared/pricing.js'
+
+export { unitPriceFor }
 
 export const defaultUnitLabel = (service) =>
   service.unit_label ||
