@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Archive, ArchiveRestore, ChevronDown, ChevronRight, Copy, Edit3, Eye, FolderPlus, Gamepad2, Layers3, Plus, Search, SlidersHorizontal, Trash2 } from 'lucide-react'
 import { api, PRICE_TYPE_LABEL, PRICE_TYPE_UNIT_LABEL } from './lib/api.js'
 import { fmtMoney, fmtQty } from './lib/formatters.js'
-import { confirmDelete, toast, toastErr } from './lib/legacy-ui.js'
+import { toast, toastErr } from './lib/legacy-ui.js'
+import { confirmDelete } from './app/confirm.jsx'
 import { categoryForm, openExporter, serviceForm, servicePeek, sumDialog } from './lib/legacy-features.js'
 
 const iconProps = (size = 15) => ({ size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true })

@@ -25,7 +25,7 @@ import {
   WalletCards,
 } from 'lucide-react'
 import { api } from './lib/api.js'
-import { ordersView, customerForm, customersView, priceView, categoryForm, gamesView, vaultView, financeView, quotesView, openQuoteComposer, settingsView, vaultgate } from './lib/legacy-features.js'
+import { ordersView, customersView, priceView, categoryForm, gamesView, vaultView, financeView, quotesView, openQuoteComposer, settingsView, vaultgate } from './lib/legacy-features.js'
 import DashboardPage from './dashboard.jsx'
 import OrdersPage from './orders.jsx'
 import CustomersPage from './customers.jsx'
@@ -39,6 +39,7 @@ import LegacyPage from './app/legacy-page.jsx'
 import ActionsSlot from './app/actions-slot.jsx'
 import OverlayHost from './app/overlay-host.jsx'
 import { openGameForm } from './game-form.jsx'
+import { openCustomerForm } from './customer-form.jsx'
 import { navigate as go, parseRoute } from './app/router.js'
 import './styles.css'
 
@@ -281,7 +282,7 @@ function Shell({ me, onLogout }) {
 
   const createCustomer = useCallback(async () => {
     try {
-      const saved = await customerForm()
+      const saved = await openCustomerForm()
       if (saved) {
         toast(`客户「${saved.name}」已建档`, 'ok')
         await refresh()

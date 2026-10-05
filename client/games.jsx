@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Archive, Gamepad2, Pencil, Plus, RefreshCw, Search, Trash2 } from 'lucide-react'
 import { api } from './lib/api.js'
 import { fmtDate } from './lib/formatters.js'
-import { confirmDelete, confirmModal, toast, toastErr } from './lib/legacy-ui.js'
+import { toast, toastErr } from './lib/legacy-ui.js'
+import { confirmDelete, confirmDialog } from './app/confirm.jsx'
 import { openGameForm } from './game-form.jsx'
 
 const iconProps = (size = 16) => ({ size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true })
@@ -94,7 +95,7 @@ export default function GamesPage({ route, navigate, onNew, onReload, reloadKey 
     try {
       if (game.status === 'active') {
         const usage = await api.get(`/api/games/${game.id}/usage`)
-        const ok = await confirmModal({ title: `归档「${game.name}」？`, message: `归档后它不再出现在新建服务项和开单选项里，但 ${usage.orders} 张老订单和 ${usage.credentials} 条登录凭证都会保留。`, confirmLabel: '归档' })
+        const ok = await confirmDialog({ title: `归档「${game.name}」？`, message: `归档后它不再出现在新建服务项和开单选项里，但 ${usage.orders} 张老订单和 ${usage.credentials} 条登录凭证都会保留。`, confirmLabel: '归档' })
         if (!ok) return
       }
       await api.patch(`/api/games/${game.id}`, { status: game.status === 'active' ? 'archived' : 'active' })

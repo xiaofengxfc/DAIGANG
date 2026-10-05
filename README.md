@@ -813,26 +813,38 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 游戏 → 客户 → 价格表 → 订单 → 财务 → 报价单 → 保险箱 → 设置
 ```
 
-已经搬完的：**游戏表单**（`client/game-form.jsx`）—— 第一个全 React 的表单。
-旧的那份 `public/js/views/games.js` 里的 `gameForm` 先留着：旧价格表页面
-（`price.js`）和 `/games/:id` 那条子路由还在用它，两边并存、互不影响，
-等价格表也搬完再删。
+已经搬完的：
 
-新表单照着这三块写：
+- **游戏表单**（`client/game-form.jsx`）—— 第一个全 React 的表单；
+- **客户表单**（`client/customer-form.jsx`）—— 字段和提示跟旧的一字不差；
+- **确认框**（`client/app/confirm.jsx`）—— 游戏、客户、价格表、财务、报价单这五个
+  React 页面原先弹的都是旧 DOM 对话框，现在换成 React 渲染的，调用方式
+  （`if (!await confirmDelete({...})) return`）一字未改。
+
+旧的那份 `gameForm` / `customerForm` 先留着：客户档案详情页（`/customers/:id`）、
+旧价格表页面（`price.js`）、旧开单器还在用它们。两套并存、互不影响，
+等那些页面也搬完再删。
+
+新表单照着这四块写：
 
 - `client/app/overlay-host.jsx` —— 让 React 浮层能被命令式打开：
   `const saved = await openGameForm()`，取消得到 `null`，调用方式和旧的
   `formDrawer` 完全一样，所以页面代码几乎不用改；
-- `client/app/drawer.jsx` —— 抽屉本体。刻意沿用旧类名（`dialog.drawer` /
-  `.drawer__head` / `.drawer__body` / `.drawer__foot`），因为
-  `client/styles.css` 直接 `@import` 了 `public/css/app.css`，样式能继承，
-  迁移期间新旧抽屉长得一模一样，不会出现视觉断层；
+- `client/app/drawer.jsx` / `client/app/modal.jsx` —— 抽屉和对话框本体。
+  刻意沿用旧类名（`dialog.drawer` / `.drawer__head` / `.drawer__foot` /
+  `dialog.modal` / `.modal__foot`），因为 `client/styles.css` 直接 `@import` 了
+  `public/css/app.css`，样式能继承，迁移期间新旧浮层长得一模一样，不会出现视觉断层；
 - `client/app/fields.jsx` —— 受控字段：文本、多行、下拉、逗号分隔（区服/标签）、
-  图片上传。同样沿用 `.field` / `.lbl` / `.inp` / `.ta` / `.sel` / `.err`。
+  图片上传。同样沿用 `.field` / `.lbl` / `.inp` / `.ta` / `.sel` / `.err`；
+- `client/app/confirm.jsx` —— 确认框（`confirmDialog` / `confirmDelete`）。
 
-`npm run test:ui` 里有一段专门盯这条缝：点「新建游戏」→ 空着提交要被校验拦住 →
-填好提交 → 抽屉自己关掉 → 列表刷新出新游戏 → 再问一次接口确认真落库了
-（连区服有没有被拆成数组都查）。
+**怎么确认「搬完长得一样」**：`npm run test:ui` 会把新旧两个表单在同一个浏览器里
+各开一次，量出抽屉宽度、字段顺序、半宽/整宽、控件类型、每个字段的宽度、页脚按钮，
+逐项对比（差 1px 以上就算不一致）。这比截图目测可靠 —— 结构和类名悄悄变了会当场红。
+
+`npm run test:ui` 里有两段专门盯这条缝：一段是「点开抽屉」（价格表看详情、订单记收款/
+记进度、报价单做单），一段是「填表提交」（新 React 表单 + 旧命令式表单各走一遍，
+从校验、提交、抽屉关闭一路查到列表刷新和接口落库）。
 
 ```
 server.mjs            服务入口：应用启动

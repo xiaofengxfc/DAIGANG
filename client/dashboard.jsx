@@ -2,7 +2,8 @@ import React from 'react'
 import { ArrowUpRight, Check, Clock3, CreditCard, ListTodo, Plus, WalletCards } from 'lucide-react'
 import { api, ORDER_STATUS_LABEL, PAY_KIND_LABEL, PAY_METHOD_LABEL, STATUS_TONE } from './lib/api.js'
 import { fmtDay, fmtDayFull, fmtMoney, todayStr } from './lib/formatters.js'
-import { confirmDelete, toast, toastErr } from './lib/legacy-ui.js'
+import { toast, toastErr } from './lib/legacy-ui.js'
+import { confirmDelete } from './app/confirm.jsx'
 import { paymentDrawer, progressDrawer } from './lib/legacy-features.js'
 
 const STATUS_LABEL = ORDER_STATUS_LABEL

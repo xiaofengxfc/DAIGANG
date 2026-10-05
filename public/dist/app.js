@@ -13850,7 +13850,7 @@ function confirmModal({ title, message, confirmLabel = "确定", tone = "primary
 	});
 }
 /** 删除前问一句，并按用量给出后果说明 */
-function confirmDelete({ title, message, confirmLabel = "删除" }) {
+function confirmDelete$1({ title, message, confirmLabel = "删除" }) {
 	return confirmModal({
 		title,
 		message,
@@ -16532,7 +16532,7 @@ async function renderDetail(ctx, id) {
 		type: "button",
 		title: "删除订单",
 		onclick: async () => {
-			if (!await confirmDelete({
+			if (!await confirmDelete$1({
 				title: "删除这张单？",
 				message: `订单 ${o.order_no} 及其进度、收款记录会一并消失，不能撤销。如果只是不做了，建议改成「已取消」。`
 			})) return;
@@ -16581,7 +16581,7 @@ async function renderDetail(ctx, id) {
 	}, icon("plus", 14), "记一条"))), h$1("div.panel__body", { style: { paddingTop: "0" } }, progressTimeline(o.progress, {
 		onEdit: (p) => editProgressDrawer(p, () => ctx.app.reload()),
 		onDelete: async (p) => {
-			if (!await confirmDelete({
+			if (!await confirmDelete$1({
 				title: "删掉这条进度？",
 				message: `${fmtDay$1(p.happened_on)}：${p.content.slice(0, 40)}`
 			})) return;
@@ -16613,7 +16613,7 @@ async function renderDetail(ctx, id) {
 		type: "button",
 		title: "删除这笔",
 		onclick: async () => {
-			if (!await confirmDelete({
+			if (!await confirmDelete$1({
 				title: "删掉这笔记录？",
 				message: `${PAY_KIND_LABEL[p.kind]} ¥${fmtMoney$1(p.amount)}（${p.paid_at}）`
 			})) return;
@@ -17173,7 +17173,7 @@ var games_default = {
 			onclick: async () => {
 				const usage = await api.get(`/api/games/${g.id}/usage`);
 				const used = usage.services + usage.categories + usage.orders + usage.credentials;
-				if (!await confirmDelete({
+				if (!await confirmDelete$1({
 					title: `彻底删除「${g.name}」？`,
 					message: used ? `底下还挂着 ${usage.categories} 个分类、${usage.services} 个服务项、${usage.orders} 张订单、${usage.credentials} 条登录凭证。删除会把这些关联都变成"未指定游戏"。如果只是想不再用它，请用「归档」。` : "这个游戏没有关联任何数据，可以安全删除。"
 				})) return;
@@ -17750,7 +17750,7 @@ function tierEditor(service, onDone) {
 		}, icon("edit", 14)), h$1("button.btn.btn--sm", {
 			type: "button",
 			onclick: async () => {
-				if (!await confirmDelete({
+				if (!await confirmDelete$1({
 					title: "删掉这一档？",
 					message: `第 ${fmtQty$1(t.min_qty)} 档`
 				})) return;
@@ -17892,7 +17892,7 @@ function optionEditor(service) {
 			}, icon("edit", 14)), h$1("button.btn.btn--sm", {
 				type: "button",
 				onclick: async () => {
-					if (!await confirmDelete({
+					if (!await confirmDelete$1({
 						title: "删掉这个增项？",
 						message: o.name
 					})) return;
@@ -19442,7 +19442,7 @@ var vault_default = {
 			}, icon("edit", 14)), h$1("button.btn.btn--sm.btn--danger", {
 				type: "button",
 				onclick: async () => {
-					if (!await confirmDelete({
+					if (!await confirmDelete$1({
 						title: "删掉这条凭证？",
 						message: `${c.customer_name || ""} · ${c.label || c.masked_hint}。删除会记入审计，且无法恢复。`
 					})) return;
@@ -20132,7 +20132,7 @@ var quotes_default = {
 						title: "删除",
 						onclick: async (e) => {
 							e.stopPropagation();
-							if (!await confirmDelete({
+							if (!await confirmDelete$1({
 								title: "删掉这张报价单？",
 								message: `${q.quote_no} · ¥${fmtMoney$1(q.total)}`
 							})) return;
@@ -20794,10 +20794,127 @@ var require_react_jsx_runtime_production = /* @__PURE__ */ __commonJSMin(((expor
 	exports.jsxs = jsxProd;
 }));
 //#endregion
-//#region client/dashboard.jsx
+//#region client/app/modal.jsx
 var import_jsx_runtime = (/* @__PURE__ */ __commonJSMin(((exports, module) => {
 	module.exports = require_react_jsx_runtime_production();
 })))();
+function Modal({ title, wide = false, footer = null, onClose, children }) {
+	const ref = (0, import_react.useRef)(null);
+	const closeRef = (0, import_react.useRef)(onClose);
+	closeRef.current = onClose;
+	(0, import_react.useEffect)(() => {
+		const node = ref.current;
+		if (!node) return void 0;
+		const onCancel = (event) => {
+			event.preventDefault();
+			if (closeRef.current) closeRef.current();
+		};
+		const onClick = (event) => {
+			if (event.target === node && closeRef.current) closeRef.current();
+		};
+		node.addEventListener("cancel", onCancel);
+		node.addEventListener("click", onClick);
+		document.body.classList.add("is-locked");
+		if (!node.open) node.showModal();
+		return () => {
+			node.removeEventListener("cancel", onCancel);
+			node.removeEventListener("click", onClick);
+			document.body.classList.remove("is-locked");
+			if (node.open) node.close();
+		};
+	}, []);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("dialog", {
+		className: `modal${wide ? " modal--wide" : ""}`,
+		ref,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "modal__body",
+			children: [title ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+				className: "modal__title",
+				children: title
+			}) : null, children]
+		}), footer ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "modal__foot",
+			children: footer
+		}) : null]
+	});
+}
+//#endregion
+//#region client/app/overlay-host.jsx
+var current = null;
+var listeners = /* @__PURE__ */ new Set();
+function publish() {
+	for (const listener of listeners) listener(current);
+}
+/**
+* 打开一个浮层，返回 Promise。
+* render 收到一个 close(值) 函数：调它就卸载浮层并 resolve(值)。
+*/
+function openOverlay(render) {
+	if (current) current.settle(null);
+	return new Promise((resolve) => {
+		const entry = {
+			render,
+			settle(value) {
+				if (current === entry) {
+					current = null;
+					publish();
+				}
+				resolve(value);
+			}
+		};
+		current = entry;
+		publish();
+	});
+}
+function OverlayHost() {
+	const [overlay, setOverlay] = (0, import_react.useState)(current);
+	(0, import_react.useEffect)(() => {
+		listeners.add(setOverlay);
+		setOverlay(current);
+		return () => {
+			listeners.delete(setOverlay);
+		};
+	}, []);
+	if (!overlay) return null;
+	return overlay.render(overlay.settle);
+}
+//#endregion
+//#region client/app/confirm.jsx
+function confirmDialog({ title, message, confirmLabel = "确定", cancelLabel = "取消", tone = "primary", extra = null }) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Modal, {
+		title,
+		onClose: () => close(false),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			className: "btn",
+			type: "button",
+			onClick: () => close(false),
+			children: cancelLabel
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			className: `btn${tone === "primary" ? " btn--primary" : tone === "danger" ? " btn--danger" : ""}`,
+			type: "button",
+			onClick: () => close(true),
+			children: confirmLabel
+		})] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "stack stack--tight",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "muted",
+				children: message
+			}), extra]
+		})
+	}));
+}
+/** 删除前问一句。危险动作，按钮用朱砂色。 */
+function confirmDelete({ title, message, confirmLabel = "删除" }) {
+	return confirmDialog({
+		title,
+		message,
+		confirmLabel,
+		tone: "danger"
+	});
+}
+//#endregion
+//#region client/dashboard.jsx
 var STATUS_LABEL$1 = ORDER_STATUS_LABEL;
 var iconProps$8 = (size = 16) => ({
 	size,
@@ -22123,48 +22240,8 @@ function ImageField({ label = "图片", value, onChange, prefix = "img", hint = 
 	});
 }
 //#endregion
-//#region client/app/overlay-host.jsx
-var current = null;
-var listeners = /* @__PURE__ */ new Set();
-function publish() {
-	for (const listener of listeners) listener(current);
-}
-/**
-* 打开一个浮层，返回 Promise。
-* render 收到一个 close(值) 函数：调它就卸载浮层并 resolve(值)。
-*/
-function openOverlay(render) {
-	if (current) current.settle(null);
-	return new Promise((resolve) => {
-		const entry = {
-			render,
-			settle(value) {
-				if (current === entry) {
-					current = null;
-					publish();
-				}
-				resolve(value);
-			}
-		};
-		current = entry;
-		publish();
-	});
-}
-function OverlayHost() {
-	const [overlay, setOverlay] = (0, import_react.useState)(current);
-	(0, import_react.useEffect)(() => {
-		listeners.add(setOverlay);
-		setOverlay(current);
-		return () => {
-			listeners.delete(setOverlay);
-		};
-	}, []);
-	if (!overlay) return null;
-	return overlay.render(overlay.settle);
-}
-//#endregion
 //#region client/game-form.jsx
-var FORM_ID = "game-form";
+var FORM_ID$1 = "game-form";
 function openGameForm(values = {}) {
 	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GameForm, {
 		values,
@@ -22231,13 +22308,13 @@ function GameForm({ values, close }) {
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 				className: "btn btn--primary",
 				type: "submit",
-				form: FORM_ID,
+				form: FORM_ID$1,
 				disabled: busy,
 				children: busy ? "保存中…" : "保存"
 			})
 		] }),
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
-			id: FORM_ID,
+			id: FORM_ID$1,
 			noValidate: true,
 			onSubmit: submit,
 			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -22542,7 +22619,7 @@ function GamesPage({ route, navigate, onNew, onReload, reloadKey }) {
 		try {
 			if (game.status === "active") {
 				const usage = await api.get(`/api/games/${game.id}/usage`);
-				if (!await confirmModal({
+				if (!await confirmDialog({
 					title: `归档「${game.name}」？`,
 					message: `归档后它不再出现在新建服务项和开单选项里，但 ${usage.orders} 张老订单和 ${usage.credentials} 条登录凭证都会保留。`,
 					confirmLabel: "归档"
@@ -25212,6 +25289,198 @@ function ActionsSlot({ nodes }) {
 	});
 }
 //#endregion
+//#region client/customer-form.jsx
+var SOURCES = [
+	"微信",
+	"QQ群",
+	"朋友介绍",
+	"闲鱼",
+	"贴吧",
+	"回头客",
+	"其他"
+];
+var FORM_ID = "customer-form";
+function openCustomerForm(values = {}, { title } = {}) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CustomerForm, {
+		values,
+		title: title || (values.id ? "改客户资料" : "新客户"),
+		close
+	}));
+}
+function CustomerForm({ values, title, close }) {
+	const [form, setForm] = (0, import_react.useState)(() => ({
+		avatar: values.avatar || "",
+		name: values.name || "",
+		phone: values.phone || "",
+		wechat: values.wechat || "",
+		qq: values.qq || "",
+		source: values.source || "微信",
+		tags: Array.isArray(values.tags) ? values.tags : [],
+		note: values.note || ""
+	}));
+	const [errors, setErrors] = (0, import_react.useState)({});
+	const [serverError, setServerError] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const set = (key) => (value) => setForm((current) => ({
+		...current,
+		[key]: value
+	}));
+	async function submit(event) {
+		event.preventDefault();
+		const next = {};
+		if (!String(form.name).trim()) next.name = "请填写昵称";
+		setErrors(next);
+		if (Object.keys(next).length) {
+			document.getElementById("customer-name")?.focus();
+			return;
+		}
+		setBusy(true);
+		setServerError("");
+		try {
+			const payload = {
+				...form,
+				name: String(form.name).trim()
+			};
+			close(values.id ? await api.patch(`/api/customers/${values.id}`, payload) : await api.post("/api/customers", payload));
+		} catch (err) {
+			setServerError(err && err.message ? err.message : "保存失败");
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title,
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "取消"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: 1 } }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "submit",
+				form: FORM_ID,
+				disabled: busy,
+				children: busy ? "保存中…" : "保存"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: FORM_ID,
+			noValidate: true,
+			onSubmit: submit,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "formgrid",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ImageField, {
+							label: "头像",
+							value: form.avatar,
+							onChange: set("avatar"),
+							prefix: "customer",
+							shape: "circle",
+							size: 60,
+							hint: "选填。会显示在客户列表和订单列表上，客户多了好认。"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "昵称",
+							required: true,
+							htmlFor: "customer-name",
+							error: errors.name,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "customer-name",
+								name: "name",
+								value: form.name,
+								onChange: set("name"),
+								"aria-invalid": errors.name ? "true" : void 0,
+								placeholder: "客户怎么称呼"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "手机号",
+							half: true,
+							htmlFor: "customer-phone",
+							hint: "用作客户标识，方便搜索",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "customer-phone",
+								name: "phone",
+								value: form.phone,
+								onChange: set("phone")
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "微信",
+							half: true,
+							htmlFor: "customer-wechat",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "customer-wechat",
+								name: "wechat",
+								value: form.wechat,
+								onChange: set("wechat")
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "QQ",
+							half: true,
+							htmlFor: "customer-qq",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "customer-qq",
+								name: "qq",
+								value: form.qq,
+								onChange: set("qq")
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "来源",
+							half: true,
+							htmlFor: "customer-source",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+								id: "customer-source",
+								name: "source",
+								value: form.source,
+								onChange: set("source"),
+								options: SOURCES.map((value) => ({
+									value,
+									label: value
+								}))
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "标签",
+							htmlFor: "customer-tags",
+							hint: "例如：爽快、老客户、要发票",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TagsInput, {
+								id: "customer-tags",
+								name: "tags",
+								value: form.tags,
+								onChange: set("tags")
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "备注",
+							htmlFor: "customer-note",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
+								id: "customer-note",
+								name: "note",
+								rows: 3,
+								value: form.note,
+								onChange: set("note"),
+								placeholder: "作息、沟通习惯、忌讳…"
+							})
+						})
+					]
+				}), serverError ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note note--alert",
+					children: serverError
+				}) : null]
+			})
+		})
+	});
+}
+//#endregion
 //#region client/app/router.js
 function parseRoute(hash = window.location.hash) {
 	const [path, queryString] = String(hash || "#/").replace(/^#/, "").split("?");
@@ -25620,7 +25889,7 @@ function Shell({ me, onLogout }) {
 	}, []);
 	const createCustomer = (0, import_react.useCallback)(async () => {
 		try {
-			const saved = await customerForm();
+			const saved = await openCustomerForm();
 			if (saved) {
 				toast(`客户「${saved.name}」已建档`, "ok");
 				await refresh();

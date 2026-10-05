@@ -21,6 +21,7 @@ import { findBrowser, launchBrowser, sleep, waitFor } from './lib/cdp.mjs'
 const PASSWORD = 'ui-smoke-pass-8888'
 const VAULT_PASSWORD = 'ui-smoke-vault-8888'
 const NEW_GAME = 'UI新建游戏'
+const NEW_CUSTOMER = 'UI新客户'
 const PROGRESS_TEXT = '清完今日委托，深渊打到第 7 层'
 const SHOTS = process.argv.includes('--shots')
 const SHOT_DIR = path.resolve('shots/ui-smoke')
@@ -92,7 +93,7 @@ async function seed(base) {
   }, cookie)
   if (order.status !== 200) throw new Error(`建单失败：HTTP ${order.status} ${JSON.stringify(order.body)}`)
 
-  return { cookie, orderNo: order.body.order_no, game: 'UI冒烟游戏', customer: 'UI客户', service: 'UI服务项' }
+  return { cookie, orderNo: order.body.order_no, customerId: customer.body.id, game: 'UI冒烟游戏', customer: 'UI客户', service: 'UI服务项' }
 }
 
 /* ---------------- 页面检查 ---------------- */
@@ -146,6 +147,28 @@ function clickTopAction(cdp, text) {
     btn.click()
     return true
   })()`)
+}
+
+/**
+ * 把「新 React 表单」和「旧命令式表单」并排比一遍。
+ * 迁移最怕的是结构悄悄变了（少个字段、宽度不对、页脚按钮换了），
+ * 这些东西肉眼不一定当场看得出来，量出来比最实在。
+ */
+function compareForms(ok, legacy, fresh, { prefix = '', checkTitle = true } = {}) {
+  ok(`${prefix}两边都量到了`, Boolean(legacy) && Boolean(fresh))
+  if (!legacy || !fresh) return
+  if (checkTitle) ok(`${prefix}标题一致`, legacy.title === fresh.title, `${legacy.title} / ${fresh.title}`)
+  ok(`${prefix}抽屉宽窄一致（wide=${fresh.wide}）`, legacy.wide === fresh.wide, `${legacy.wide} / ${fresh.wide}`)
+  const legacyLabels = legacy.fields.map((f) => f.label)
+  const freshLabels = fresh.fields.map((f) => f.label)
+  ok(`${prefix}字段数量和顺序一致`, JSON.stringify(legacyLabels) === JSON.stringify(freshLabels), `旧 ${legacyLabels.join('/')} 新 ${freshLabels.join('/')}`)
+  ok(`${prefix}半宽 / 整宽布局一致`, JSON.stringify(legacy.fields.map((f) => f.half)) === JSON.stringify(fresh.fields.map((f) => f.half)))
+  ok(`${prefix}控件类型一致`, JSON.stringify(legacy.fields.map((f) => f.control)) === JSON.stringify(fresh.fields.map((f) => f.control)), `旧 ${legacy.fields.map((f) => f.control).join('/')} 新 ${fresh.fields.map((f) => f.control).join('/')}`)
+  ok(`${prefix}提示文字都在`, JSON.stringify(legacy.fields.map((f) => f.hint)) === JSON.stringify(fresh.fields.map((f) => f.hint)))
+  ok(`${prefix}抽屉宽度一致`, Math.abs(legacy.drawer.w - fresh.drawer.w) <= 1, `${legacy.drawer.w} / ${fresh.drawer.w}`)
+  const widthDiff = legacy.fields.map((f, i) => Math.abs(f.box.w - fresh.fields[i].box.w)).filter((d) => d > 1)
+  ok(`${prefix}每个字段的宽度一致`, widthDiff.length === 0, `有 ${widthDiff.length} 个字段宽度不同：${JSON.stringify(widthDiff)}`)
+  ok(`${prefix}页脚按钮一致`, JSON.stringify(legacy.foot) === JSON.stringify(fresh.foot), `旧 ${legacy.foot.join('/')} 新 ${fresh.foot.join('/')}`)
 }
 
 /**
@@ -332,7 +355,7 @@ async function main() {
     }
 
     /* ---- 新旧表单长得一样吗（几何对比） ---- */
-    section('新旧表单对比 · 结构一致')
+    section('新旧表单对比 · 游戏表单')
     {
       // 旧的游戏表单还能从 /games/:id（旧视图接管的那条子路由）打开，
       // 正好拿来和新表单并排量一遍。
@@ -353,21 +376,95 @@ async function main() {
       await cdp.eval(`document.querySelector(${JSON.stringify(OPEN_DRAWER)}).close()`)
       await sleep(300)
 
-      ok('两边都量到了', Boolean(legacy) && Boolean(fresh))
-      if (legacy && fresh) {
-        ok('标题一致', legacy.title === fresh.title, `${legacy.title} / ${fresh.title}`)
-        ok('都是宽抽屉', legacy.wide === fresh.wide && fresh.wide)
-        const legacyLabels = legacy.fields.map((f) => f.label)
-        const freshLabels = fresh.fields.map((f) => f.label)
-        ok('字段数量和顺序一致', JSON.stringify(legacyLabels) === JSON.stringify(freshLabels), `旧 ${legacyLabels.join('/')} 新 ${freshLabels.join('/')}`)
-        ok('半宽 / 整宽布局一致', JSON.stringify(legacy.fields.map((f) => f.half)) === JSON.stringify(fresh.fields.map((f) => f.half)))
-        ok('控件类型一致', JSON.stringify(legacy.fields.map((f) => f.control)) === JSON.stringify(fresh.fields.map((f) => f.control)), `旧 ${legacy.fields.map((f) => f.control).join('/')} 新 ${fresh.fields.map((f) => f.control).join('/')}`)
-        ok('提示文字都在', JSON.stringify(legacy.fields.map((f) => f.hint)) === JSON.stringify(fresh.fields.map((f) => f.hint)))
-        ok('抽屉宽度一致', Math.abs(legacy.drawer.w - fresh.drawer.w) <= 1, `${legacy.drawer.w} / ${fresh.drawer.w}`)
-        const widthDiff = legacy.fields.map((f, i) => Math.abs(f.box.w - fresh.fields[i].box.w)).filter((d) => d > 1)
-        ok('每个字段的宽度一致', widthDiff.length === 0, `有 ${widthDiff.length} 个字段宽度不同：${JSON.stringify(widthDiff)}`)
-        ok('页脚按钮一致', JSON.stringify(legacy.foot) === JSON.stringify(fresh.foot), `旧 ${legacy.foot.join('/')} 新 ${fresh.foot.join('/')}`)
-      }
+      compareForms(ok, legacy, fresh)
+    }
+
+    /* ---- 客户表单：几何对比 + 填表提交 ---- */
+    section('客户表单 · 新旧对比与提交')
+    {
+      const before = cdp.errors.length
+
+      // 旧的客户表单在客户档案详情页（/customers/:id，还是旧视图）的「改资料」里
+      await gotoHash(cdp, `/customers/${fixture.customerId}`)
+      const legacyReady = await waitFor(cdp, `[...document.querySelectorAll('.react-topbar__tools button')].some((b) => b.textContent.includes('改资料'))`, { tries: 30, interval: 200 })
+      ok('客户档案页有「改资料」', legacyReady)
+      await clickTopAction(cdp, '改资料')
+      ok('旧客户表单打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
+      const legacy = await measureForm(cdp)
+      await cdp.eval(`document.querySelector(${JSON.stringify(OPEN_DRAWER)}).close()`)
+      await sleep(300)
+
+      await gotoHash(cdp, '/customers')
+      await clickTopAction(cdp, '新建客户')
+      ok('React 客户表单打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
+      const fresh = await measureForm(cdp)
+      // 标题本来就不同（「改客户资料」对「新客户」），其余结构必须一致
+      compareForms(ok, legacy, fresh, { prefix: '客户表单：', checkTitle: false })
+
+      // 空昵称提交要被拦住
+      await cdp.eval(`document.querySelector(${JSON.stringify(SUBMIT)}).click()`)
+      await sleep(300)
+      const errText = await cdp.eval(`document.querySelector(${JSON.stringify(`${OPEN_DRAWER} .err:not([hidden])`)})?.textContent || ''`)
+      ok('空昵称被校验拦住', errText.includes('请填写昵称'), errText)
+      ok('被拦住时抽屉不关', await cdp.eval(`Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`))
+
+      await fillField(cdp, `${OPEN_DRAWER} #customer-name`, NEW_CUSTOMER)
+      await fillField(cdp, `${OPEN_DRAWER} #customer-phone`, '13900000002')
+      await fillField(cdp, `${OPEN_DRAWER} #customer-wechat`, 'ui_smoke_wx')
+      await fillField(cdp, `${OPEN_DRAWER} #customer-tags`, '爽快, 老客户')
+      await fillField(cdp, `${OPEN_DRAWER} #customer-source`, '闲鱼')
+      await cdp.eval(`document.querySelector(${JSON.stringify(SUBMIT)}).click()`)
+
+      ok('保存后抽屉自己关掉', await waitFor(cdp, `!document.querySelector(${JSON.stringify(OPEN_DRAWER)})`, { tries: 40, interval: 200 }))
+      const listed = await waitFor(cdp, `(document.querySelector('.customers-list')?.innerText || '').includes(${JSON.stringify(NEW_CUSTOMER)})`, { tries: 40, interval: 200 })
+      ok('列表里出现了新客户（保存后自动刷新）', listed, await cdp.eval(`document.querySelector('.customers-list')?.innerText || ''`))
+
+      const fetched = await api(app.base, 'GET', `/api/customers?q=${encodeURIComponent(NEW_CUSTOMER)}`, undefined, fixture.cookie)
+      const row = (fetched.body.items || [])[0]
+      ok('接口里确实落了这位客户', Boolean(row) && row.name === NEW_CUSTOMER, row)
+      ok('标签按逗号拆成了数组', JSON.stringify(row && row.tags) === JSON.stringify(['爽快', '老客户']), row && row.tags)
+      ok('来源存的是下拉里选的那项', Boolean(row) && row.source === '闲鱼', row && row.source)
+      ok('微信也存进去了', Boolean(row) && row.wechat === 'ui_smoke_wx', row && row.wechat)
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+    }
+
+    /* ---- React 确认框（含取消路径） ---- */
+    section('确认框 · 归档游戏')
+    {
+      const before = cdp.errors.length
+      const clickArchive = () => cdp.eval(`(() => {
+        const row = [...document.querySelectorAll('.games-row')].find((r) => r.innerText.includes(${JSON.stringify(NEW_GAME)}))
+        if (!row) return false
+        row.querySelector('button[title="归档游戏"]').click()
+        return true
+      })()`)
+      const rowText = () => cdp.eval(`([...document.querySelectorAll('.games-row')].find((r) => r.innerText.includes(${JSON.stringify(NEW_GAME)})) || {}).innerText || ''`)
+
+      await gotoHash(cdp, '/games')
+      ok('找到要归档的那一行', await waitFor(cdp, `[...document.querySelectorAll('.games-row')].some((r) => r.innerText.includes(${JSON.stringify(NEW_GAME)}))`, { tries: 30, interval: 200 }))
+
+      await clickArchive()
+      ok('确认框弹出来了（React 的 dialog.modal）', await waitFor(cdp, `Boolean(document.querySelector('dialog.modal[open]'))`, { tries: 25, interval: 200 }))
+      const modalTitle = await cdp.eval(`document.querySelector('dialog.modal[open] .modal__title')?.textContent || ''`)
+      ok('确认框标题带上了游戏名', modalTitle.includes(NEW_GAME) && modalTitle.includes('归档'), modalTitle)
+
+      // 先点取消：什么都不该发生
+      await cdp.eval(`[...document.querySelectorAll('dialog.modal[open] .modal__foot button')].find((b) => b.textContent.includes('取消')).click()`)
+      ok('取消后确认框关掉', await waitFor(cdp, `!document.querySelector('dialog.modal[open]')`, { tries: 25, interval: 200 }))
+      await sleep(400)
+      ok('取消之后游戏还是上架状态', !(await rowText()).includes('已归档'), await rowText())
+
+      // 再点一次，这回确认
+      await clickArchive()
+      await waitFor(cdp, `Boolean(document.querySelector('dialog.modal[open]'))`, { tries: 25, interval: 200 })
+      await cdp.eval(`[...document.querySelectorAll('dialog.modal[open] .modal__foot button')].find((b) => b.textContent.trim() === '归档').click()`)
+      ok('确认后确认框关掉', await waitFor(cdp, `!document.querySelector('dialog.modal[open]')`, { tries: 25, interval: 200 }))
+      const archived = await waitFor(cdp, `([...document.querySelectorAll('.games-row')].find((r) => r.innerText.includes(${JSON.stringify(NEW_GAME)})) || {}).innerText?.includes('已归档')`, { tries: 40, interval: 200 })
+      ok('列表里那行变成已归档', archived, await rowText())
+
+      const fetched = await api(app.base, 'GET', `/api/games?q=${encodeURIComponent(NEW_GAME)}`, undefined, fixture.cookie)
+      ok('接口里状态也变成 archived 了', (fetched.body.items || [])[0]?.status === 'archived', (fetched.body.items || [])[0]?.status)
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
     }
 
     /* ---- 填表提交：旧的命令式表单（记进度） ---- */
