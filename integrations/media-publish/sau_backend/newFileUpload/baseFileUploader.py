@@ -110,6 +110,10 @@ class BaseFileUploader(object):
         self.thumbnail_button_selectors = self.config["selectors"]["thumbnail_button"]
         # 封面完成确认选择器
         self.thumbnail_finish_selectors = self.config["selectors"]["thumbnail_finish"]
+        # 自定义封面的上传/关闭入口。默认情况下不配置（大多数平台用系统推荐的自动封面）。
+        # 原版引用这两个属性但从未赋值，这里给空列表兜底，避免"启用自定义封面"时直接 AttributeError。
+        self.thumbnail_upload_selectors = self.config["selectors"].get("thumbnail_upload", ['input[type="file"]'])
+        self.thumbnail_close_selectors = self.config["selectors"].get("thumbnail_close", [])
         # 内容声明选择器（B站投稿要求选择创作声明）
         self.content_declaration_selectors = self.config["selectors"].get("content_declaration", [])
         self.content_declaration_trigger_selectors = self.config["selectors"].get("content_declaration_trigger", [])
@@ -142,6 +146,9 @@ class BaseFileUploader(object):
         self.schedule_supported = self.config["features"]["schedule"]
         # 视频/图文发布状态
         self.publish_status = False
+        # 发布按钮是否已被切实点击。用于区分"点击发布后页面关闭（=已提交）"与
+        # "页面在确认前异常关闭（=发布未发出）"，避免把前者误判为失败。
+        self.publish_submitted = False
         self.publish_response_events = []
         self._xiaohongshu_button_debugged = False
         #按钮等待可见超时时间
@@ -1081,25 +1088,45 @@ class BaseFileUploader(object):
         """
         设置视频封面
         """
+        # 绝大多数平台默认使用系统自动生成的封面，自定义封面上传依赖各平台页面的弹窗结构，
+        # 因此这里对每一步都做空值保护：找不到对应按钮或文件输入时不阻断后续流程。
         if self.thumbnail_path:
-            self.logger.info(f"  [-] 将点击封面选择按钮: {await self.find_button(self.thumbnail_button_selectors).text_content()}")
-            await self.find_button(self.thumbnail_button_selectors).click()
-            self.logger.info(f"  [-] 将点击封面上传按钮: {await self.find_button(self.thumbnail_upload_selectors).text_content()}")
-            await self.find_button(self.thumbnail_upload_selectors).set_input_files(self.thumbnail_path)
-            await page.wait_for_timeout(2000)  # 等待2秒
-            self.logger.info(f"  [-] 将点击封面确认按钮: {await self.find_button(self.thumbnail_finish_selectors).text_content()}")
-            await self.find_button(self.thumbnail_finish_selectors).click()
-            self.logger.info(f"  [-] 将点击封面关闭按钮: {await self.find_button(self.thumbnail_close_selectors).text_content()}")
-            await self.find_button(self.thumbnail_close_selectors).click()
-            await page.wait_for_timeout(2000)  # 等待2秒
+            thumbnail_button = await self.find_button(self.thumbnail_button_selectors)
+            if thumbnail_button:
+                self.logger.info("  [-] 将点击封面选择按钮")
+                await thumbnail_button.click()
+            else:
+                self.logger.warning("  [-] 未找到封面选择按钮，跳过自定义封面上传")
+            await page.wait_for_timeout(self.wait_timeout_500ms)
+
+            upload_input = await self.find_file_input(self.thumbnail_upload_selectors, timeout=15000)
+            if upload_input:
+                await upload_input.set_input_files(self.thumbnail_path)
+                self.logger.info(f"  [-] 已上传自定义封面: {self.thumbnail_path}")
+            else:
+                self.logger.warning("  [-] 未找到封面上传控件，跳过")
+            await page.wait_for_timeout(2000)
+
+            thumbnail_finish = await self.find_button(self.thumbnail_finish_selectors)
+            if thumbnail_finish:
+                await thumbnail_finish.click()
+                self.logger.info("  [-] 已点击封面确认按钮")
+            await page.wait_for_timeout(2000)
+
+            thumbnail_close = await self.find_button(self.thumbnail_close_selectors)
+            if thumbnail_close:
+                await thumbnail_close.click()
+                self.logger.info("  [-] 已点击封面关闭按钮")
+            await page.wait_for_timeout(2000)
         else:
+            # 未提供自定义封面：点击封面入口并确认，让平台使用系统推荐的自动封面。
             self.logger.info("  [-] 将点击封面选择按钮")
             thumbnail_button = await self.find_button(self.thumbnail_button_selectors)
             if thumbnail_button:
                 await thumbnail_button.click()
             await page.wait_for_timeout(2000)  # 等待2秒
             self.logger.info("  [-] 将点击封面确认按钮")
-            thumbnail_finish =await self.find_button(self.thumbnail_finish_selectors)
+            thumbnail_finish = await self.find_button(self.thumbnail_finish_selectors)
             if thumbnail_finish:
                 await thumbnail_finish.click()
             await page.wait_for_timeout(2000)  # 等待2秒
@@ -1201,6 +1228,7 @@ class BaseFileUploader(object):
                         # 发布按钮可能会立即触发页面跳转。禁止 click 等待导航，
                         # 让后面的确认逻辑独立判断提交结果，避免“已点击但被判失败”。
                         await publish_button.click(no_wait_after=True, timeout=10000)
+                        self.publish_submitted = True
                     except Exception as exc:
                         click_error = exc
                         self.logger.warning(f"{self.platform_name}发布按钮点击后页面发生变化: {exc}")
@@ -1264,6 +1292,10 @@ class BaseFileUploader(object):
         while asyncio.get_running_loop().time() < deadline:
             try:
                 if page.is_closed():
+                    if self.publish_submitted and self.platform_name != "xiaohongshu":
+                        # 发布按钮已被切实点击，随后页面关闭/跳离创作页，视为已提交成功。
+                        self.logger.info(f"{self.platform_name}发布按钮已点击且页面已关闭，判定为已提交")
+                        return True
                     self.logger.warning(f"{self.platform_name}发布页面已关闭，无法读取发布结果")
                     return False
                 current_url = page.url
