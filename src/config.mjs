@@ -130,6 +130,8 @@ export const MEDIA_PYTHON = String(process.env.XFC_MEDIA_PYTHON || '')
 export const MEDIA_EXECUTOR_PORT = Math.max(1024, Number(process.env.XFC_MEDIA_EXECUTOR_PORT || 5409))
 export const MEDIA_EXECUTOR_AUTO_START = process.env.XFC_MEDIA_EXECUTOR_AUTOSTART !== '0'
 export const MEDIA_EXECUTOR_TIMEOUT_MS = Math.max(60_000, Number(process.env.XFC_MEDIA_EXECUTOR_TIMEOUT_MS || 30 * 60 * 1000))
+// 定时发布调度器的轮询间隔。0 或负值 = 关闭自动调度（仍可手动在发布记录里点「发布」）。
+export const MEDIA_SCHEDULER_INTERVAL_MS = Math.max(0, Number(process.env.XFC_MEDIA_SCHEDULER_INTERVAL_MS || 30_000))
 
 /**
  * 截图识别的上传上限，单独一条。

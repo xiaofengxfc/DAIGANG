@@ -7,6 +7,19 @@ import { mediaDependencyStatus, startMediaDependencyInstall, mediaDependencyInst
 import { get, post, patch, del, postRaw } from '../http.mjs'
 import { bad, notFound, int, clampStr, parseJSON, stringifyJSON, fail } from '../util.mjs'
 
+// 重命名素材时根据新扩展名推断 mime_type，保证执行器能按图文/视频正确分类。
+const MIME_BY_EXT = {
+  '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif', '.webp': 'image/webp', '.bmp': 'image/bmp',
+  '.svg': 'image/svg+xml', '.ico': 'image/x-icon',
+  '.mp4': 'video/mp4', '.mov': 'video/quicktime', '.webm': 'video/webm',
+  '.mkv': 'video/x-matroska', '.avi': 'video/x-msvideo', '.m4v': 'video/x-m4v',
+  '.flv': 'video/x-flv', '.wmv': 'video/x-ms-wmv', '.ogv': 'video/ogg',
+  '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.ogg': 'audio/ogg',
+  '.txt': 'text/plain', '.md': 'text/markdown', '.json': 'application/json',
+  '.csv': 'text/csv', '.pdf': 'application/pdf',
+}
+
 const PLATFORMS = [
   { key: 'xiaohongshu', name: '小红书', kind: '图文 / 视频' },
   { key: 'wechat_channels', name: '视频号', kind: '视频' },
@@ -75,7 +88,11 @@ async function dispatchTask(id) {
   if (['success', 'cancelled'].includes(row.status)) return { ok: false, available: true, status: row.status, message: '这个任务当前不能再次发布' }
   if (row.status === 'publishing') return { ok: false, available: true, status: row.status, message: '这个任务正在发布，请等待当前执行完成' }
   const now = stamp()
-  db.prepare('UPDATE media_tasks SET status = ?, error_msg = ?, updated_at = ? WHERE id = ?').run('publishing', '', now, id)
+  const claimed = db.prepare("UPDATE media_tasks SET status = 'publishing', error_msg = '', updated_at = ? WHERE id = ? AND status IN ('queued', 'scheduled')").run(now, id)
+  if (claimed.changes !== 1) {
+    const latest = db.prepare('SELECT status FROM media_tasks WHERE id = ?').get(id)
+    return { ok: false, available: true, status: latest?.status || row.status, message: '这个任务正在被处理或状态已变化，请刷新后查看' }
+  }
   try {
     const accountIds = listJSON(row.account_ids)
     const materialIds = listJSON(row.material_ids)
@@ -121,6 +138,25 @@ async function dispatchTask(id) {
     db.prepare('UPDATE media_tasks SET status = ?, error_msg = ?, updated_at = ? WHERE id = ?').run('failed', clampStr(err.message, 500), stamp(), id)
     return { ok: false, available: true, status: 'failed', message: err.message }
   }
+}
+
+/**
+ * 定时调度器：把已到发布时间的 scheduled 任务派发给执行器。
+ * 由 app.mjs 的轮询定时器周期调用。未配置执行器时任务继续保留在队列。
+ */
+export async function dispatchDueScheduledTasks() {
+  const nowIso = new Date().toISOString()
+  const due = db.prepare("SELECT id FROM media_tasks WHERE status = 'scheduled' AND publish_at IS NOT NULL AND publish_at <= ?").all(nowIso)
+  let dispatched = 0
+  for (const row of due) {
+    try {
+      await dispatchTask(row.id)
+      dispatched += 1
+    } catch (err) {
+      console.error(`[media-scheduler] 任务 ${row.id} 派发失败：`, err?.message || err)
+    }
+  }
+  return { due: due.length, dispatched }
 }
 
 export function register() {
@@ -266,13 +302,20 @@ export function register() {
 
     const oldAbsolute = path.resolve(UPLOAD_DIR, row.file_path)
     if (!fs.existsSync(oldAbsolute)) bad('素材文件不存在', 'missing_file')
-    const extension = path.extname(row.file_path).toLowerCase()
-    const typedExtension = path.extname(requested)
-    const baseName = typedExtension.toLowerCase() === extension
-      ? path.basename(requested, typedExtension).trim()
-      : requested
+
+    // 用户输入的名字可以带或不带扩展名：
+    //  - 带合法扩展名 → 磁盘文件跟随新扩展，并据此重算 mime_type（修名字即可把 .bin 等修回正确类型）。
+    //  - 不带扩展名   → 保留原磁盘扩展名。
+    const oldExtension = path.extname(row.file_path).toLowerCase()
+    const typedExt = path.extname(requested).toLowerCase()
+    const hasTypedExt = /^\.[a-z0-9]+$/.test(typedExt)
+    const baseName = hasTypedExt ? path.basename(requested, path.extname(requested)).trim() : requested.trim()
     if (!baseName) bad('请填写素材名称', 'missing_filename')
-    const storedName = `${baseName}${extension}`
+    if (baseName === '.' || baseName === '..') bad('素材名称不合法', 'bad_filename')
+    const storedName = `${baseName}${hasTypedExt ? typedExt : oldExtension}`
+    const newMime = hasTypedExt
+      ? MIME_BY_EXT[typedExt] || row.mime_type
+      : row.mime_type
     const nextRelative = path.join(path.dirname(row.file_path), storedName)
     const nextAbsolute = path.resolve(UPLOAD_DIR, nextRelative)
     if (nextAbsolute !== oldAbsolute && fs.existsSync(nextAbsolute)) bad('同名素材已经存在', 'filename_exists')
@@ -280,13 +323,13 @@ export function register() {
     if (nextAbsolute !== oldAbsolute) {
       fs.renameSync(oldAbsolute, nextAbsolute)
       try {
-        db.prepare('UPDATE media_materials SET filename = ?, file_path = ?, updated_at = ? WHERE id = ?').run(requested, nextRelative, stamp(), id)
+        db.prepare('UPDATE media_materials SET filename = ?, file_path = ?, mime_type = ?, updated_at = ? WHERE id = ?').run(requested, nextRelative, newMime, stamp(), id)
       } catch (error) {
         try { fs.renameSync(nextAbsolute, oldAbsolute) } catch {}
         throw error
       }
     } else {
-      db.prepare('UPDATE media_materials SET filename = ?, updated_at = ? WHERE id = ?').run(requested, stamp(), id)
+      db.prepare('UPDATE media_materials SET filename = ?, mime_type = ?, updated_at = ? WHERE id = ?').run(requested, newMime, stamp(), id)
     }
     return materialRow(db.prepare('SELECT * FROM media_materials WHERE id = ?').get(id))
   })

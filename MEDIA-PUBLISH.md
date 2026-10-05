@@ -43,3 +43,10 @@ Node 会向 `POST {XFC_MEDIA_EXECUTOR_URL}/tasks` 发送以下 JSON：
 执行器返回 JSON 时可以携带 `status`（`success` / `failed` / `publishing`）和任意结果字段，结果会写回发布记录。目标仓库原有的账号 Cookie、浏览器登录态和 Playwright 依赖仍由执行器管理，不写入本项目的普通业务表。
 
 支持的平台标识：`xiaohongshu`、`wechat_channels`、`douyin`、`kuaishou`、`tiktok`、`instagram`、`facebook`、`bilibili`、`baijiahao`。
+
+## 定时发布
+
+创建任务时若「定时发布」填了未来时间，任务会以 `scheduled` 状态进入队列。Node 内置一个轮询调度器，默认每 30 秒检查一次，把已到发布时间的 `scheduled` 任务自动派发给执行器（行为等同在「发布记录」里点「发布」）。
+
+- 未配置执行器时，到期任务会保留在 `scheduled` 队列，配置执行器后由下一轮调度补发。
+- 轮询间隔可用 `XFC_MEDIA_SCHEDULER_INTERVAL_MS` 调整（毫秒）；设为 `0` 关闭自动调度，仍可在「发布记录」手动点「发布」。

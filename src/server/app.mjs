@@ -28,6 +28,8 @@ import { readSession, purgeExpiredSessions, isSetUp } from '../auth.mjs'
 import { lock, status as vaultStatus } from '../vault.mjs'
 import { registerAll } from '../routes/index.mjs'
 import { stopMediaExecutor } from '../media-deps.mjs'
+import { dispatchDueScheduledTasks } from '../routes/media.mjs'
+import { MEDIA_SCHEDULER_INTERVAL_MS } from '../config.mjs'
 
 const PUBLIC_PATHS = new Set(['/api/auth/me', '/api/auth/login', '/api/setup', '/api/health'])
 const QUIET_PATHS = new Set(['/api/dashboard', '/api/auth/me', '/api/vault/status', '/api/health'])
@@ -185,9 +187,28 @@ export function createApplication() {
   const timer = setInterval(purgeExpiredSessions, 60 * 60 * 1000)
   timer.unref()
 
+  // 定时发布调度：到点自动把 scheduled 任务派发给执行器。调度器自身不会阻塞/堆积。
+  let schedulerRunning = false
+  const scheduler = MEDIA_SCHEDULER_INTERVAL_MS > 0
+    ? setInterval(async () => {
+        if (schedulerRunning) return
+        schedulerRunning = true
+        try {
+          const r = await dispatchDueScheduledTasks()
+          if (r.due > 0) console.log(`[media-scheduler] 已到期任务 ${r.due} 个，成功派发 ${r.dispatched} 个`)
+        } catch (err) {
+          console.error('[media-scheduler] 调度出错：', err?.message || err)
+        } finally {
+          schedulerRunning = false
+        }
+      }, MEDIA_SCHEDULER_INTERVAL_MS)
+    : null
+  if (scheduler) scheduler.unref()
+
   function shutdown(signal = 'SIGTERM') {
     console.log(`\n收到 ${signal}，正在关闭…`)
     clearInterval(timer)
+    if (scheduler) clearInterval(scheduler)
     stopMediaExecutor()
     lock('shutdown')
     server.close(() => {
