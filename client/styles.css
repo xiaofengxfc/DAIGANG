@@ -3,22 +3,19 @@
 @import '../public/css/app.css';
 
 :root {
-  --refactor-accent: #6258d9;
-  --refactor-accent-strong: #5046bf;
-  --refactor-accent-soft: rgba(98, 88, 217, 0.12);
-  --refactor-sidebar: #161820;
-  --refactor-sidebar-line: rgba(255, 255, 255, 0.08);
-  --refactor-topbar: color-mix(in srgb, var(--surface) 92%, transparent);
-  --refactor-focus: 0 0 0 3px rgba(98, 88, 217, 0.2);
-}
-
-:root[data-theme='dark'] {
-  --refactor-sidebar: #101116;
-  --refactor-topbar: color-mix(in srgb, var(--surface) 88%, transparent);
+  /* 强调色直接引用 tokens 里的唯一强调色 —— 不再维护第二套靛蓝 */
+  --refactor-accent: var(--cinnabar-solid);
+  --refactor-accent-strong: var(--cinnabar-strong);
+  --refactor-accent-soft: var(--cinnabar-bg);
+  /* 侧栏/顶栏现在是玻璃，颜色由 --glass 决定，这里只留一个兜底 */
+  --refactor-sidebar: transparent;
+  --refactor-sidebar-line: var(--line);
+  --refactor-topbar: transparent;
+  --refactor-focus: 0 0 0 3px var(--cinnabar-bg);
 }
 
 body {
-  background: var(--bg);
+  background: transparent;
 }
 
 button,
@@ -2979,3 +2976,514 @@ button.react-side-row {
   .price-category__head > p { display: none; }
   .price-category__actions { flex-wrap: wrap; justify-content: flex-end; }
 }
+
+/* ============================================================
+   ============================================================
+
+   白玻璃覆盖层（React 外壳与页面）
+
+   上面是旧外观，这一段是现在生效的。放在文件最后靠层叠顺序生效，
+   不跟旧规则抢优先级，也不删旧代码。
+
+   三条纪律：
+   1. 侧栏和顶栏是玻璃，不是色块 —— 它们的颜色来自背后那层柔光；
+   2. 描边几乎不出现，分组靠留白和玻璃之间的高度差；
+   3. 动效只表达状态：页面进场、悬停、按下，不做常驻动画。
+
+   ============================================================
+   ============================================================ */
+
+/* ---------- 外壳：画布透明，让柔光透上来 ---------- */
+
+.react-shell {
+  background: transparent;
+}
+
+/* ---------- 左侧导航轨：一整块竖玻璃 ---------- */
+
+.react-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  background: var(--glass);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  border-right: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.react-sidebar__brand {
+  border-bottom-color: var(--line);
+}
+
+.react-sidebar__brand b {
+  min-width: 0;
+  color: var(--ink);
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.react-sidebar__brand small {
+  color: var(--ink-3);
+}
+
+/* 分组：一条极淡的分隔线，而不是三个小标题 —— 侧栏要安静 */
+.react-sidebar__nav {
+  padding: 14px 10px;
+}
+
+.react-navgroup + .react-navgroup {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.refactor-navitem,
+.react-sidebar__button {
+  min-height: 36px;
+  border-radius: 10px;
+  color: var(--ink-2);
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+.refactor-navitem:hover,
+.react-sidebar__button:hover {
+  background: var(--glass);
+  color: var(--ink);
+}
+
+.refactor-navitem.is-active {
+  border-color: transparent;
+  background: var(--glass-strong);
+  color: var(--ink);
+  box-shadow: var(--shadow-glass), var(--shadow-hi);
+}
+
+.refactor-navitem.is-active svg {
+  color: var(--cinnabar);
+}
+
+/* 角标：不再是一个亮色药丸，退成一个小数字 */
+.refactor-navitem b {
+  background: var(--glass-soft);
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+}
+
+.refactor-navitem.is-active b {
+  background: var(--cinnabar-bg);
+  border-color: transparent;
+  color: var(--cinnabar);
+}
+
+.react-sidebar__footer {
+  border-top-color: var(--line);
+  gap: 6px;
+}
+
+.react-quick-action {
+  min-height: 38px;
+  border-color: transparent;
+  border-radius: 11px;
+  background: var(--cinnabar-solid);
+  color: var(--on-cinnabar);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12), 0 10px 22px -12px var(--cinnabar-solid);
+  transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+
+.react-quick-action:hover {
+  background: var(--cinnabar-solid-hover);
+}
+
+.react-quick-action:active {
+  transform: scale(0.98);
+}
+
+/* 主题 / 退出：两个图标并排，别再各占一行 */
+.react-sidebar__row {
+  display: flex;
+  gap: 6px;
+}
+
+.react-sidebar__row .react-sidebar__button {
+  flex: 1;
+  min-width: 0;
+  justify-content: center;
+  padding: 0 8px;
+  background: var(--glass-soft);
+}
+
+.react-sidebar__row .react-sidebar__button:hover {
+  background: var(--glass);
+}
+
+/* ---------- 顶栏：一条横向玻璃 ---------- */
+
+.react-topbar {
+  gap: 16px;
+  padding: 0 24px;
+  background: var(--glass);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  border-bottom: 1px solid var(--line);
+}
+
+.react-topbar__title h1 {
+  margin-top: 0;
+  font-size: 18px;
+}
+
+.refactor-search {
+  border-color: transparent;
+  background: var(--glass-inset);
+  box-shadow: var(--shadow-hi);
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease),
+    background var(--t-fast) var(--ease);
+}
+
+.refactor-search:focus-within {
+  border-color: var(--cinnabar);
+  background: var(--glass-strong);
+  box-shadow: 0 0 0 3px var(--cinnabar-bg);
+}
+
+.refactor-search__results {
+  border-color: transparent;
+  background: var(--glass-strong);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-sat));
+  box-shadow: var(--shadow-pop), var(--shadow-hi);
+  animation: rise-in var(--t-base) var(--ease-out) both;
+}
+
+.refactor-search__results button:hover {
+  background: var(--glass-soft);
+}
+
+.react-icon-button {
+  border-radius: 10px;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease),
+    transform var(--t-fast) var(--ease);
+}
+
+.react-icon-button:hover {
+  border-color: transparent;
+  background: var(--glass);
+  color: var(--ink);
+}
+
+.react-icon-button:active {
+  transform: scale(0.94);
+}
+
+/* ---------- 主内容：进场时轻轻上浮一下 ---------- */
+
+.react-main {
+  background: transparent;
+}
+
+.react-main__inner {
+  padding: 30px 34px 80px;
+}
+
+/* 每次换页（组件重新挂载）走一次，不做常驻动画 */
+.react-main__inner > * {
+  animation: rise-in var(--t-slow) var(--ease-out) both;
+}
+
+/* ---------- 手机底部标签：一块浮起来的玻璃 ---------- */
+
+.react-mobile-tabs {
+  background: var(--glass-strong);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-sat));
+  border-top: 1px solid var(--line);
+}
+
+.react-mobile-tabs .refactor-navitem {
+  color: var(--ink-3);
+}
+
+.react-mobile-tabs .refactor-navitem.is-active {
+  background: transparent;
+  box-shadow: none;
+  color: var(--cinnabar);
+}
+
+.react-mobile-tabs .refactor-navitem.is-active svg {
+  color: var(--cinnabar);
+}
+
+/* ---------- 登录 / 初始化：去掉网格底纹，换成一块玻璃 ---------- */
+
+.refactor-gate {
+  background: transparent;
+}
+
+.refactor-gate__panel {
+  background: var(--glass-strong);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.8)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.8)) saturate(var(--glass-sat));
+  border-color: transparent;
+  border-radius: 20px;
+  box-shadow: var(--shadow-pop), var(--shadow-hi);
+  animation: rise-in var(--t-slow) var(--ease-out) both;
+}
+
+.refactor-brand__mark {
+  border-radius: 11px;
+  background: var(--cinnabar-solid);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.14), 0 10px 22px -12px var(--cinnabar-solid);
+}
+
+.refactor-input {
+  border-color: transparent;
+  background: var(--glass-inset);
+  box-shadow: var(--shadow-hi);
+}
+
+.refactor-input:focus {
+  border-color: var(--cinnabar);
+  background: var(--glass-strong);
+  box-shadow: 0 0 0 3px var(--cinnabar-bg);
+}
+
+.refactor-button {
+  border-color: transparent;
+  background: var(--glass);
+  box-shadow: var(--shadow-hi);
+  transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease),
+    box-shadow var(--t-fast) var(--ease);
+}
+
+.refactor-button:hover:not(:disabled) {
+  background: var(--glass-strong);
+}
+
+.refactor-button:active:not(:disabled) {
+  transform: scale(0.975);
+}
+
+.refactor-button--primary {
+  border-color: transparent;
+  background: var(--cinnabar-solid);
+  color: var(--on-cinnabar);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12), 0 8px 20px -12px var(--cinnabar-solid);
+}
+
+.refactor-button--primary:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--cinnabar-solid-hover);
+}
+
+.refactor-alert {
+  border-color: transparent;
+  background: var(--oxblood-bg);
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-sat));
+}
+
+/* ---------- 面板类：全部换成玻璃板 ---------- */
+
+.react-ledger,
+.react-dashboard-panel,
+.react-dashboard-empty,
+.react-panel-empty,
+.orders-panel,
+.customers-panel,
+.games-panel,
+.finance-panel,
+.finance-ledger,
+.quotes-panel,
+.price-group,
+.price-category,
+.price-workspace,
+.media-panel,
+.media-summary > div,
+.media-dependency-card,
+.vault-page > .panel,
+.settings-page > .panel {
+  background: var(--glass);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  border-color: transparent;
+  box-shadow: var(--shadow-glass), var(--shadow-hi);
+}
+
+/* 总览抬头是主角：一块更厚的玻璃，去掉原来那道彩色顶线 */
+.react-ledger {
+  background: var(--glass-strong);
+  border-top-color: transparent;
+  border-radius: var(--r-card);
+}
+
+.react-ledger__head,
+.react-dashboard-panel__head {
+  border-bottom-color: var(--line);
+}
+
+.react-ledger__cell:hover:not(:disabled) {
+  background: var(--glass-soft);
+}
+
+/* 抬头里的数字：状态色只染数字本身，不铺底 */
+.react-ledger__cell.is-alert b,
+.react-ledger__cell.is-due b {
+  color: var(--amber-ink);
+}
+
+.react-ledger__cell.is-due b {
+  color: var(--cinnabar);
+}
+
+/* 列表行：悬停时露一层薄玻璃，不做位移 */
+.react-order-row,
+.react-side-row,
+.customers-row,
+.games-row,
+.quotes-row,
+.finance-table button,
+.price-service,
+.price-directory__item,
+.media-material-row,
+.media-account-row,
+.media-task-row {
+  transition: background var(--t-fast) var(--ease);
+}
+
+.react-order-row:hover,
+.react-order-row:focus-visible,
+.react-side-row:hover,
+.customers-row:hover,
+.games-row:hover,
+.quotes-row:hover,
+.finance-table button:hover,
+.price-service:hover,
+.price-directory__item:hover,
+.media-material-option:hover {
+  background: var(--glass-soft);
+}
+
+/* ---------- 页面抬头：统一节奏，去掉多余的描边 ---------- */
+
+.orders-page__head h2,
+.customers-page__head h2,
+.games-page__head h2,
+.finance-page__head h2,
+.quotes-page__head h2,
+.price-page__head h2,
+.vault-page__head h2,
+.settings-page__head h2,
+.customer-detail__head h1 {
+  font-size: 23px;
+  letter-spacing: -0.025em;
+}
+
+/* ---------- 工具条里的搜索框与筛选片：统一成浅玻璃 ---------- */
+
+.orders-search,
+.customers-search,
+.games-search,
+.quotes-search,
+.price-search,
+.finance-date-picker input {
+  border-color: transparent;
+  background: var(--glass-inset);
+  box-shadow: var(--shadow-hi);
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+
+.orders-search:focus-within,
+.customers-search:focus-within,
+.games-search:focus-within,
+.quotes-search:focus-within,
+.price-search:focus-within {
+  border-color: var(--cinnabar);
+  box-shadow: 0 0 0 3px var(--cinnabar-bg);
+}
+
+.orders-search kbd,
+.customers-search kbd,
+.games-search kbd,
+.orders-chip,
+.price-tag,
+.customers-tag,
+.games-tag {
+  border-color: var(--line);
+  background: var(--glass-soft);
+}
+
+.finance-ranges button:hover,
+.finance-ranges button.is-active,
+.price-game:hover,
+.price-game.is-active,
+.price-status button:hover,
+.price-status button.is-active {
+  border-color: transparent;
+  background: var(--glass);
+  box-shadow: var(--shadow-hi);
+}
+
+.finance-ranges button.is-active,
+.price-game.is-active,
+.price-status button.is-active {
+  background: var(--glass-strong);
+}
+
+/* 价格表目录：嵌在玻璃里的一层浅底，去掉右侧硬线 */
+.price-directory {
+  border-right-color: var(--line);
+  background: var(--glass-soft);
+}
+
+.price-service__labels,
+.price-category__head,
+.orders-table-head,
+.customers-table-head,
+.games-table-head,
+.quotes-table-head {
+  border-bottom-color: var(--line);
+  background: transparent;
+}
+
+/* 订单/客户/游戏列表的表头：吸顶必须实心，否则滚动时透出字 */
+.orders-table-head,
+.customers-table-head,
+.games-table-head,
+.quotes-table-head {
+  background: var(--surface-solid);
+}
+
+/* ---------- 状态标签：只留色和字，不要色块 ---------- */
+
+.orders-tag,
+.customers-tag,
+.games-tag,
+.price-tag,
+.orders-due em,
+.react-status,
+.finance-status {
+  transition: background var(--t-fast) var(--ease);
+}
+
+.orders-tag--jade,
+.orders-tag--amber,
+.customers-tag,
+.games-tag {
+  border-color: transparent;
+}
+
+/* ---------- 抽屉 / 对话框里的 React 版本 ---------- */
+
+.react-drawer,
+.react-modal {
+  background: var(--glass-strong);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.8)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.8)) saturate(var(--glass-sat));
+}
+
+/* ============================================================
+   白玻璃覆盖层 · 结束
+   ============================================================ */

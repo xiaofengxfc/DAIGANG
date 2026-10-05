@@ -1,6 +1,11 @@
 /* ============================================================
-   夜班帐桌 · 外壳与组件
-   结构由账簿横栏线承担；数字一律右对齐、等宽。
+   白玻璃运营台 · 外壳与组件
+
+   上面是「夜班帐桌」的旧皮（石墨底 + 靛蓝 + 栏线分层），保留不动；
+   文件末尾那一段「白玻璃覆盖层」是现在生效的外观：
+   画布是白底柔光，层次由毛玻璃承担，栏线退到几乎看不见。
+
+   数字仍然一律右对齐、等宽 —— 这条不变。
    ============================================================ */
 
 /* ---------- 启动遮罩 ---------- */
@@ -3321,8 +3326,378 @@ img.avatar--lg {
     padding: 0;
   }
 
+  html,
   body {
     background: #fff;
     color: #000;
   }
 }
+
+/* ============================================================
+   ============================================================
+
+   白玻璃覆盖层
+
+   上面全部保留原样，这一层负责把外观换掉。放在文件最后，靠层叠
+   顺序生效，不跟旧规则抢优先级，也不删旧代码——回退只需删掉这一段。
+
+   三件事：
+   1. 层次由毛玻璃承担，描边退到几乎看不见；
+   2. 颜色收敛成「中性白 + 单一靛蓝」，状态色只留小圆点和小标签；
+   3. 动效克制：只表达状态（悬停浮起、浮层进出、按下回缩）。
+
+   ============================================================
+   ============================================================ */
+
+/* ---------- 画布 ---------- */
+
+/* 柔光层是 body::before（见 tokens.css），所以这里必须是透明的，
+   否则会把光斑盖住，毛玻璃也就没有东西可透了。 */
+.boot,
+.gate {
+  background: transparent;
+}
+
+.boot {
+  gap: var(--sp-5);
+}
+
+.boot__mark {
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.14), 0 16px 36px -18px var(--cinnabar-solid);
+  animation: boot-pulse 2.4s var(--ease) infinite;
+}
+
+@keyframes boot-pulse {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.03);
+  }
+}
+
+/* ---------- 左侧导航轨：整块竖玻璃 ---------- */
+
+.rail {
+  background: var(--glass);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  border-right: 1px solid var(--line);
+}
+
+.rail__brand {
+  border-bottom: 1px solid var(--line);
+}
+
+.rail__mark {
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.16), 0 10px 22px -12px var(--cinnabar-solid);
+}
+
+.rail__foot {
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- 顶栏：一条横向玻璃，去掉硬分割线 ---------- */
+
+.topbar {
+  background: var(--glass);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  border-bottom: 1px solid var(--line);
+}
+
+.search__box {
+  border-color: transparent;
+  background: var(--glass-inset);
+  box-shadow: var(--shadow-hi);
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease),
+    background var(--t-fast) var(--ease);
+}
+
+.search__box:focus-within {
+  border-color: var(--cinnabar);
+  background: var(--glass-strong);
+}
+
+.search__pop {
+  background: var(--glass-strong);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-sat));
+  border-color: var(--line);
+  box-shadow: var(--shadow-pop), var(--shadow-hi);
+  animation: rise-in var(--t-base) var(--ease-out) both;
+}
+
+.search__hit {
+  transition: background var(--t-fast) var(--ease);
+}
+
+/* ---------- 主内容 ---------- */
+
+.main {
+  background: transparent;
+}
+
+/* ---------- 手机底部标签：浮起来的一块玻璃 ---------- */
+
+.tabs {
+  background: var(--glass-strong);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-sat));
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- 玻璃面板：把「描边卡片」换成「玻璃板」 ---------- */
+
+.panel,
+.ledger,
+.sheet,
+.quote-sheet,
+.picker,
+.gate__card,
+.install,
+.empty,
+.item--more,
+.report-preview {
+  background: var(--glass);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  border-color: transparent;
+  box-shadow: var(--shadow-glass), var(--shadow-hi);
+}
+
+/* 账簿抬头：原来那道 2px 靛蓝顶线去掉，改用一块更厚的玻璃。
+   它是第一屏的主角，靠体量而不是靠一条彩色线被认出来。 */
+.ledger {
+  background: var(--glass-strong);
+  border-top-color: transparent;
+  border-radius: var(--r-card);
+}
+
+.ledger__head {
+  background: var(--glass-soft);
+  border-bottom-color: var(--line);
+}
+
+.gate__card {
+  background: var(--glass-strong);
+  border-top-color: transparent;
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-pop), var(--shadow-hi);
+}
+
+.panel__foot,
+.modal__foot,
+.drawer__head,
+.drawer__foot {
+  background: var(--glass-soft);
+  border-color: var(--line);
+}
+
+/* 面板内的一层薄底：表头、代码块、嵌在玻璃里的分区 */
+.panel__body--flush + .panel__foot {
+  border-top-color: var(--line);
+}
+
+/* ---------- 浮层：抽屉、对话框、吐司 ---------- */
+
+.drawer {
+  background: var(--glass-strong);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.8)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.8)) saturate(var(--glass-sat));
+  box-shadow: var(--shadow-drawer);
+}
+
+.drawer::backdrop,
+.modal::backdrop {
+  background: var(--veil);
+}
+
+.modal {
+  background: var(--glass-strong);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.8)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.8)) saturate(var(--glass-sat));
+  border-color: transparent;
+  box-shadow: var(--shadow-pop), var(--shadow-hi);
+}
+
+.toast {
+  background: var(--glass-strong);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-sat));
+  border-color: transparent;
+  box-shadow: var(--shadow-pop), var(--shadow-hi);
+}
+
+/* 状态色只染文字和那道细记号，不再整块铺色 —— 整块铺色就是"花"的来源 */
+.toast--err,
+.toast--ok {
+  border-color: transparent;
+}
+
+.stalebar {
+  background: var(--glass-strong);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-sat));
+  color: var(--ink);
+  border: 1px solid var(--cinnabar-line);
+  box-shadow: var(--shadow-pop), var(--shadow-hi);
+}
+
+.stalebar__ico {
+  background: var(--cinnabar-solid);
+  color: var(--on-cinnabar);
+}
+
+/* ---------- 表格：去掉外框，只留极淡的行线 ---------- */
+
+.tblwrap {
+  border-radius: 0;
+}
+
+.tbl th {
+  background: var(--surface-solid);
+  border-bottom-color: var(--line);
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+.tbl td {
+  border-bottom-color: var(--line);
+}
+
+.tbl tbody tr {
+  transition: background var(--t-fast) var(--ease);
+}
+
+.tbl tbody tr:hover {
+  background: var(--glass-soft);
+}
+
+.tbl tfoot td {
+  background: var(--surface-solid);
+  border-top: 1px solid var(--line-strong);
+}
+
+/* 可点整行的表格：悬停时给一点点位移，表示"这一行能进去" */
+.tbl tbody tr[data-clickable='1']:hover {
+  background: var(--glass);
+}
+
+/* ---------- 列表项 ---------- */
+
+.item {
+  border-bottom-color: var(--line);
+  transition: background var(--t-fast) var(--ease), padding-left var(--t-fast) var(--ease);
+}
+
+.item:hover {
+  background: var(--glass-soft);
+}
+
+.avatar {
+  background: var(--glass);
+  border-color: transparent;
+  box-shadow: var(--shadow-hi);
+}
+
+/* ---------- 状态灯与标记：只留一个点，去掉色块 ---------- */
+
+.lamp::before {
+  width: 6px;
+  height: 6px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.tag {
+  height: 21px;
+  padding: 0 8px;
+  background: var(--glass);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  box-shadow: none;
+}
+
+.tag--jade,
+.tag--amber,
+.tag--slate,
+.tag--oxblood,
+.tag--cinnabar {
+  border-color: transparent;
+}
+
+.tag--outline {
+  background: transparent;
+  border-color: var(--line-strong);
+}
+
+/* ---------- 提示条：不描边，靠底色和文字色区分 ---------- */
+
+.note {
+  background: var(--glass);
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-sat));
+  border-color: transparent;
+  box-shadow: var(--shadow-hi);
+}
+
+.note--warn,
+.note--alert,
+.note--ok {
+  border-color: transparent;
+}
+
+/* ---------- 分段控件与筛选片 ---------- */
+
+.seg {
+  background: var(--glass);
+  border-color: transparent;
+  box-shadow: var(--shadow-hi);
+}
+
+.seg__btn {
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+.seg__btn[aria-pressed='true'] {
+  background: var(--glass-strong);
+  box-shadow: var(--shadow-hi);
+}
+
+.filterchip {
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease),
+    border-color var(--t-fast) var(--ease);
+}
+
+/* ---------- 状态轨与交付日期 ---------- */
+
+.track__step--now::before {
+  box-shadow: 0 0 0 3px var(--cinnabar-bg);
+}
+
+/* ---------- 分节标题：去掉那条"区块线"，用留白分组 ---------- */
+
+.sechead {
+  border-bottom-color: var(--line);
+}
+
+/* ---------- 空态 ---------- */
+
+.empty {
+  box-shadow: var(--shadow-glass);
+}
+
+/* ---------- 骨架屏：跟着玻璃调子走 ---------- */
+
+.skel {
+  background: linear-gradient(90deg, var(--glass-soft), var(--glass), var(--glass-soft));
+  background-size: 200% 100%;
+}
+
+/* ============================================================
+   白玻璃覆盖层 · 结束
+   ============================================================ */

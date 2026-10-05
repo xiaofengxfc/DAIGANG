@@ -1,58 +1,96 @@
 /* ============================================================
-   运营台 · 现代中性色板
-   深色是默认工作台，浅色是白天和手机用的第二主题。
-   颜色使用中性石墨 + 靛蓝品牌色，状态色只承担语义，不做装饰。
+   运营台 · 白玻璃设计系统
+
+   一条规则管住全部颜色：**中性白 + 单一强调色（靛蓝）**。
+   状态色（琥珀 / 翠玉 / 石青 / 绛红）只在状态灯和极小的标签上出现，
+   不做整块底色、不做卡片描边——这样页面读起来是白的，不是花的。
+
+   层次由「玻璃」承担，不由描边承担：
+   画布（柔光）→ 玻璃面板（backdrop-filter）→ 玻璃内的高光顶边。
+   所以这一版里 --line 刻意很淡，很多地方直接用留白代替分隔线。
+
+   浅色是默认工作台；深色是同一套玻璃在暗处的版本。
    ============================================================ */
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* —— 石墨层次 —— */
-  --bg: #0b0d10;
-  --surface: #111418;
-  --surface-2: #171b21;
-  --surface-3: #20262e;
-  --surface-inset: #0e1115;
+  /* —— 画布与柔光：毛玻璃必须有东西可透，纯白背景上玻璃是看不见的 —— */
+  --bg: #eef1f7;
+  --glow-a: rgba(99, 102, 241, 0.26);
+  --glow-b: rgba(56, 189, 248, 0.22);
+  --glow-c: rgba(244, 114, 182, 0.16);
+  --glow-d: rgba(45, 212, 191, 0.18);
 
-  /* —— 结构线 —— */
-  --line: #252b34;
-  --line-strong: #343c48;
+  /* —— 玻璃层 ——
+     glass-soft  最轻，给工具条 / 表头
+     glass       常规面板
+     glass-strong 需要压住底下内容的（抽屉、弹窗、顶栏）
+     glass-inset 嵌在玻璃里的输入框、代码块 */
+  --glass: rgba(255, 255, 255, 0.6);
+  --glass-strong: rgba(255, 255, 255, 0.78);
+  --glass-soft: rgba(255, 255, 255, 0.4);
+  --glass-inset: rgba(255, 255, 255, 0.66);
+  --glass-hi: rgba(255, 255, 255, 0.92);
+  --glass-blur: 20px;
+  --glass-blur-sm: 12px;
+  --glass-sat: 165%;
+
+  /* 旧变量名全部保留：surface 系列就是玻璃层的别名，改动只在这一处 */
+  --surface: var(--glass-strong);
+  --surface-2: var(--glass);
+  --surface-3: var(--glass-soft);
+  --surface-inset: var(--glass-inset);
+
+  /* 少数几个必须实心的位置：吸顶表头、滚动区上方的浮起元素。
+     玻璃放在滚动内容上方会透出字，这些地方不能用透明色。 */
+  --surface-solid: #f8fafd;
+  --surface-solid-2: #eef2f8;
+
+  /* 浮层背后的压暗层 */
+  --veil: rgba(16, 24, 40, 0.34);
+
+  /* —— 结构线：刻意很淡，绝大多数分组靠留白 —— */
+  --line: rgba(16, 24, 40, 0.07);
+  --line-strong: rgba(16, 24, 40, 0.13);
 
   /* —— 文本 —— */
-  --ink: #f3f5f7;
-  --ink-2: #a7b0bc;
-  --ink-3: #737e8b;
-  --ink-inverse: #0b0d10;
+  --ink: #10141c;
+  --ink-2: #5a6472;
+  --ink-3: #8d97a6;
+  --ink-inverse: #ffffff;
 
-  /* —— 靛蓝品牌色：保留 cinnabar 变量名，兼容现有组件 —— */
-  --cinnabar: #8b83ff;
-  --cinnabar-strong: #756de8;
-  --cinnabar-solid: #655bd1;
-  --cinnabar-solid-hover: #7168e0;
-  --cinnabar-bg: rgba(139, 131, 255, 0.14);
-  --cinnabar-line: rgba(139, 131, 255, 0.42);
+  /* —— 靛蓝：唯一强调色。保留 cinnabar 变量名，兼容现有组件 —— */
+  --cinnabar: #5b5bd6;
+  --cinnabar-strong: #4a49c2;
+  --cinnabar-solid: #5b5bd6;
+  --cinnabar-solid-hover: #6a6ae0;
+  --cinnabar-bg: rgba(91, 91, 214, 0.1);
+  --cinnabar-line: rgba(91, 91, 214, 0.28);
   --on-cinnabar: #ffffff;
 
-  /* —— 状态语义 —— */
-  --jade: #3fa77e;
-  --jade-ink: #67d2a4;
-  --jade-bg: rgba(63, 167, 126, 0.15);
+  /* —— 状态语义：只给状态灯和小标签用 —— */
+  --jade: #1f9d6b;
+  --jade-ink: #157a52;
+  --jade-bg: rgba(31, 157, 107, 0.1);
 
-  --amber: #c38a2d;
-  --amber-ink: #e4b35b;
-  --amber-bg: rgba(195, 138, 45, 0.15);
+  --amber: #b8791a;
+  --amber-ink: #96610f;
+  --amber-bg: rgba(184, 121, 26, 0.1);
 
-  --slate: #5c8fc1;
-  --slate-ink: #8db9e3;
-  --slate-bg: rgba(92, 143, 193, 0.15);
+  --slate: #3f7fbd;
+  --slate-ink: #2f6499;
+  --slate-bg: rgba(63, 127, 189, 0.1);
 
-  --oxblood: #b6546a;
-  --oxblood-ink: #e58a9d;
-  --oxblood-bg: rgba(182, 84, 106, 0.16);
+  --oxblood: #c05070;
+  --oxblood-ink: #a13656;
+  --oxblood-bg: rgba(192, 80, 112, 0.1);
 
-  /* —— 阴影：一次声明，配合栏线用，不做幽灵卡 —— */
-  --shadow-pop: 0 1px 2px rgba(0, 0, 0, 0.34), 0 12px 32px -12px rgba(0, 0, 0, 0.62);
-  --shadow-drawer: -1px 0 0 var(--line), -18px 0 48px -24px rgba(0, 0, 0, 0.72);
+  /* —— 阴影：玻璃靠「一层很淡的落地影 + 顶边高光」浮起来 —— */
+  --shadow-glass: 0 1px 1px rgba(16, 24, 40, 0.03), 0 8px 24px -14px rgba(16, 24, 40, 0.16);
+  --shadow-pop: 0 2px 6px rgba(16, 24, 40, 0.06), 0 22px 48px -22px rgba(16, 24, 40, 0.28);
+  --shadow-drawer: -1px 0 0 var(--line), -28px 0 64px -34px rgba(16, 24, 40, 0.32);
+  --shadow-hi: inset 0 1px 0 var(--glass-hi);
 
   /* —— 字体 —— */
   --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
@@ -79,17 +117,18 @@
   --sp-7: 48px;
 
   /* —— 形状 —— */
-  --r-card: 14px;
-  --r-ctl: 9px;
+  --r-card: 16px;
+  --r-ctl: 10px;
   --r-pill: 999px;
 
   /* —— 骨架尺寸 —— */
-  --rail-w: 232px;
-  --topbar-h: 56px;
-  --tabs-h: 58px;
+  --rail-w: 236px;
+  --topbar-h: 60px;
+  --tabs-h: 60px;
 
-  /* —— 运动 —— */
+  /* —— 运动：克制。只表达状态，不做整页编排 —— */
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --t-fast: 140ms;
   --t-base: 200ms;
   --t-slow: 260ms;
@@ -103,98 +142,94 @@
 }
 
 /* ============================================================
-   浅色：白天在户外用手机，纸面翻过来
+   深色：同一套玻璃，换到暗处。
+   柔光留一点、压暗，玻璃变成「深色磨砂」，强调色提亮一档。
    ============================================================ */
 
-:root[data-theme='light'] {
-  color-scheme: light;
+:root[data-theme='dark'] {
+  color-scheme: dark;
 
-  --bg: #f7f8fa;
-  --surface: #ffffff;
-  --surface-2: #f1f3f6;
-  --surface-3: #e7ebf0;
-  --surface-inset: #f8fafc;
+  --bg: #0a0c12;
+  --glow-a: rgba(99, 102, 241, 0.34);
+  --glow-b: rgba(56, 189, 248, 0.24);
+  --glow-c: rgba(244, 114, 182, 0.18);
+  --glow-d: rgba(45, 212, 191, 0.18);
 
-  --line: #e2e7ed;
-  --line-strong: #cbd3de;
+  --glass: rgba(30, 35, 48, 0.6);
+  --glass-strong: rgba(26, 30, 42, 0.78);
+  --glass-soft: rgba(38, 44, 60, 0.42);
+  --glass-inset: rgba(16, 19, 27, 0.5);
+  --glass-hi: rgba(255, 255, 255, 0.07);
 
-  --ink: #20242b;
-  --ink-2: #5f6b7a;
-  --ink-3: #7f8a98;
-  --ink-inverse: #ffffff;
+  --surface-solid: #14181f;
+  --surface-solid-2: #1b202a;
 
-  --cinnabar: #5c54c7;
-  --cinnabar-strong: #4d46b1;
-  --cinnabar-solid: #5c54c7;
-  --cinnabar-solid-hover: #4f48b8;
-  --cinnabar-bg: rgba(92, 84, 199, 0.1);
-  --cinnabar-line: rgba(92, 84, 199, 0.3);
+  --veil: rgba(0, 0, 0, 0.58);
+
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.15);
+
+  --ink: #eef1f6;
+  --ink-2: #a3adbd;
+  --ink-3: #737e90;
+  --ink-inverse: #0a0c12;
+
+  --cinnabar: #8f8cf5;
+  --cinnabar-strong: #7a77ee;
+  --cinnabar-solid: #6360d8;
+  --cinnabar-solid-hover: #726fe4;
+  --cinnabar-bg: rgba(143, 140, 245, 0.14);
+  --cinnabar-line: rgba(143, 140, 245, 0.32);
   --on-cinnabar: #ffffff;
 
-  --jade: #26835f;
-  --jade-ink: #196b4c;
-  --jade-bg: rgba(38, 131, 95, 0.1);
+  --jade: #35b681;
+  --jade-ink: #5fd0a2;
+  --jade-bg: rgba(53, 182, 129, 0.14);
 
-  --amber: #a16d13;
-  --amber-ink: #82550c;
-  --amber-bg: rgba(161, 109, 19, 0.1);
+  --amber: #c9932f;
+  --amber-ink: #e0b25c;
+  --amber-bg: rgba(201, 147, 47, 0.14);
 
-  --slate: #3a76ad;
-  --slate-ink: #2c6093;
-  --slate-bg: rgba(58, 118, 173, 0.1);
+  --slate: #4f92cf;
+  --slate-ink: #85b8e4;
+  --slate-bg: rgba(79, 146, 207, 0.14);
 
-  --oxblood: #a83f59;
-  --oxblood-ink: #8d3047;
-  --oxblood-bg: rgba(168, 63, 89, 0.1);
+  --oxblood: #cc6383;
+  --oxblood-ink: #e794ac;
+  --oxblood-bg: rgba(204, 99, 131, 0.14);
 
-  --shadow-pop: 0 1px 2px rgba(31, 43, 58, 0.08), 0 12px 28px -14px rgba(31, 43, 58, 0.18);
-  --shadow-drawer: -1px 0 0 var(--line), -18px 0 44px -26px rgba(31, 43, 58, 0.24);
+  --shadow-glass: 0 1px 1px rgba(0, 0, 0, 0.2), 0 8px 26px -14px rgba(0, 0, 0, 0.6);
+  --shadow-pop: 0 2px 8px rgba(0, 0, 0, 0.3), 0 24px 52px -22px rgba(0, 0, 0, 0.7);
+  --shadow-drawer: -1px 0 0 var(--line), -28px 0 64px -30px rgba(0, 0, 0, 0.8);
 }
 
-/* 用户没手动选过主题时，跟随系统 */
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme]) {
-    color-scheme: light;
+/* ============================================================
+   柔光画布
+   固定在视口上的一层极淡光斑。它是毛玻璃唯一的「透出物」，
+   所以必须 fixed 且不参与布局；滚动时光斑不动，玻璃层滑过它。
+   ============================================================ */
 
-    --bg: #f7f8fa;
-    --surface: #ffffff;
-    --surface-2: #f1f3f6;
-    --surface-3: #e7ebf0;
-    --surface-inset: #f8fafc;
+.glow-canvas,
+body::before {
+  content: '';
+  position: fixed;
+  inset: -20vmax;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38vmax 38vmax at 12% 8%, var(--glow-a), transparent 62%),
+    radial-gradient(34vmax 34vmax at 88% 4%, var(--glow-b), transparent 60%),
+    radial-gradient(40vmax 40vmax at 78% 92%, var(--glow-c), transparent 64%),
+    radial-gradient(32vmax 32vmax at 22% 88%, var(--glow-d), transparent 62%);
+  filter: blur(12px);
+  animation: glow-drift 34s var(--ease) infinite alternate;
+}
 
-    --line: #e2e7ed;
-    --line-strong: #cbd3de;
-
-    --ink: #20242b;
-    --ink-2: #5f6b7a;
-    --ink-3: #7f8a98;
-    --ink-inverse: #ffffff;
-
-    --cinnabar: #5c54c7;
-    --cinnabar-strong: #4d46b1;
-    --cinnabar-solid: #5c54c7;
-    --cinnabar-solid-hover: #4f48b8;
-    --cinnabar-bg: rgba(92, 84, 199, 0.1);
-    --cinnabar-line: rgba(92, 84, 199, 0.3);
-    --on-cinnabar: #ffffff;
-
-    --jade: #26835f;
-    --jade-ink: #196b4c;
-    --jade-bg: rgba(38, 131, 95, 0.1);
-
-    --amber: #a16d13;
-    --amber-ink: #82550c;
-    --amber-bg: rgba(161, 109, 19, 0.1);
-
-    --slate: #3a76ad;
-    --slate-ink: #2c6093;
-    --slate-bg: rgba(58, 118, 173, 0.1);
-
-    --oxblood: #a83f59;
-    --oxblood-ink: #8d3047;
-    --oxblood-bg: rgba(168, 63, 89, 0.1);
-
-    --shadow-pop: 0 1px 2px rgba(31, 43, 58, 0.08), 0 12px 28px -14px rgba(31, 43, 58, 0.18);
-    --shadow-drawer: -1px 0 0 var(--line), -18px 0 44px -26px rgba(31, 43, 58, 0.24);
+@keyframes glow-drift {
+  from {
+    transform: translate3d(-1.5%, -1%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(1.5%, 1.5%, 0) scale(1.06);
   }
 }

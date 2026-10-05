@@ -65,6 +65,25 @@ const NAV = [
 
 const NAV_BY_SEG = new Map(NAV.map((item) => [item.seg, item]))
 
+/* 主题：浅色（白玻璃）是默认，深色是同一套玻璃在暗处的版本。
+   模块加载时就写一次 data-theme —— 否则登录页会先用默认色渲染一遍，
+   登录成功进 Shell 才切过去，中间闪一下。 */
+const THEME_KEY = 'xfc.theme'
+
+function readTheme() {
+  try {
+    return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light'
+  } catch {
+    return 'light'
+  }
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme)
+}
+
+applyTheme(readTheme())
+
 function iconProps(size = 17) {
   return { size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true }
 }
@@ -251,7 +270,7 @@ function NavItem({ item, active, count, onClick }) {
 
 function Shell({ me, onLogout }) {
   const [route, setRoute] = useState(parseRoute())
-  const [theme, setTheme] = useState(() => localStorage.getItem('xfc.theme') || 'dark')
+  const [theme, setTheme] = useState(readTheme)
   const [counts, setCounts] = useState({})
   const [dashboard, setDashboard] = useState(null)
   const [settings, setSettings] = useState(me.settings || {})
@@ -264,8 +283,12 @@ function Shell({ me, onLogout }) {
   }, [])
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('xfc.theme', theme)
+    applyTheme(theme)
+    try {
+      localStorage.setItem(THEME_KEY, theme)
+    } catch {
+      /* 隐私模式下写不进去就算了，主题当次会话仍然生效 */
+    }
   }, [theme])
 
   const refresh = useCallback(async () => {
@@ -326,33 +349,31 @@ function Shell({ me, onLogout }) {
       <aside className="react-sidebar">
         <div className="react-sidebar__brand">
           <span className="refactor-brand__mark">代</span>
-          <span>
-            <b>{settings.business_name || '代肝运营台'}</b>
-            <small>本机私有工作台</small>
-          </span>
+          <b>{settings.business_name || '代肝运营台'}</b>
         </div>
+        {/* 分组靠一条极淡的分隔线表达，不再写三个小标题 —— 侧栏要安静 */}
         <nav className="react-sidebar__nav" aria-label="主导航">
-          {groups.map((group) => (
-            <section key={group}>
-              <h2>{group}</h2>
+          {groups.map((group, index) => (
+            <div className="react-navgroup" key={group} data-first={index === 0 ? '1' : undefined}>
               {NAV.filter((item) => item.group === group).map((item) => (
                 <NavItem key={item.seg} item={item} active={current.seg === item.seg} count={counts} onClick={() => go(item.seg ? `/${item.seg}` : '/')} />
               ))}
-            </section>
+            </div>
           ))}
         </nav>
         <div className="react-sidebar__footer">
           <button className="react-quick-action" type="button" onClick={() => go('/orders/new')}><Plus {...iconProps(16)} />开新单</button>
-          <button className="react-sidebar__button" type="button" onClick={toggleTheme}>{theme === 'light' ? <Moon {...iconProps(16)} /> : <Sun {...iconProps(16)} />} {theme === 'light' ? '深色模式' : '浅色模式'}</button>
-          <button className="react-sidebar__button" type="button" onClick={onLogout}><LogOut {...iconProps(16)} />退出登录</button>
+          <div className="react-sidebar__row">
+            <button className="react-sidebar__button" type="button" title={theme === 'light' ? '切换到深色模式' : '切换到浅色模式'} aria-label={theme === 'light' ? '切换到深色模式' : '切换到浅色模式'} onClick={toggleTheme}>{theme === 'light' ? <Moon {...iconProps(16)} /> : <Sun {...iconProps(16)} />}</button>
+            <button className="react-sidebar__button" type="button" title="退出登录" aria-label="退出登录" onClick={onLogout}><LogOut {...iconProps(16)} /></button>
+          </div>
         </div>
       </aside>
       <header className="react-topbar">
-        <div className="react-topbar__title"><span className="refactor-eyebrow">工作台</span><h1>{current.label}</h1></div>
+        <div className="react-topbar__title"><h1>{current.label}</h1></div>
         <SearchBox onNavigate={go} />
         <div className="react-topbar__tools">
-          <span className="react-online"><i />本机运行</span>
-          <button className="react-icon-button" type="button" title="刷新数据" onClick={refresh}><RefreshCw {...iconProps(17)} /></button>
+          <button className="react-icon-button" type="button" title="刷新数据" aria-label="刷新数据" onClick={refresh}><RefreshCw {...iconProps(17)} /></button>
           {current.seg === 'customers' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createCustomer}><Plus {...iconProps(15)} />新建客户</button> : current.seg === 'games' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createGame}><Plus {...iconProps(15)} />新建游戏</button> : current.seg === 'price' && !route.sub ? null : current.seg === 'quotes' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createQuote}><Plus {...iconProps(15)} />做报价单</button> : current.seg === 'finance' && !route.sub ? null : current.seg === 'media' && !route.sub ? null : current.seg === 'settings' && !route.sub ? null : <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={() => go('/orders/new')}><Plus {...iconProps(15)} />开新单</button>}
         </div>
       </header>

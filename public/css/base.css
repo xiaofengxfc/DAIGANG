@@ -1,6 +1,10 @@
 /* ============================================================
-   基础层：重置、排版、原生控件重绘
+   基础层：重置、排版、玻璃控件
    一个字体家族 + 一个等宽（只给数字、单号、账号用）
+
+   这一版的两个约定：
+   1. 控件的默认态是「一块浅玻璃」，靠内高光而不是描边立起来。
+   2. 所有过渡都走 --ease / --t-*，并且尊重 prefers-reduced-motion。
    ============================================================ */
 
 *,
@@ -21,11 +25,14 @@ body {
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* 底色放在 html 上：body 保持透明，柔光层（body::before, z-index:-1）
+     才能落在底色之上、内容之下。 */
+  background: var(--bg);
 }
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: transparent;
   color: var(--ink);
   font-family: var(--font-ui);
   font-size: var(--fs-base);
@@ -113,13 +120,31 @@ hr {
 :focus-visible {
   outline: 2px solid var(--cinnabar);
   outline-offset: 2px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 /* 保留原生滚动行为，只告诉浏览器配色 */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--line-strong) transparent;
+}
+
+/* ---------- 玻璃基元 ---------- */
+
+/* 能被别处复用的两种玻璃。组件里直接写 backdrop-filter 也行，
+   但走这两个类能保证模糊半径和饱和度的调子是统一的。 */
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  box-shadow: var(--shadow-glass), var(--shadow-hi);
+}
+
+.glass--strong {
+  background: var(--glass-strong);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-sat));
+  box-shadow: var(--shadow-pop), var(--shadow-hi);
 }
 
 /* ---------- 数字与单号：等宽 + 表格数字 ---------- */
@@ -200,7 +225,7 @@ input[type='month'] {
   border: 0;
 }
 
-/* ---------- 按钮 ---------- */
+/* ---------- 按钮：一块浅玻璃，按下时轻微回缩 ---------- */
 
 .btn {
   display: inline-flex;
@@ -209,26 +234,30 @@ input[type='month'] {
   gap: 6px;
   height: 34px;
   padding: 0 var(--sp-3);
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--line);
   border-radius: var(--r-ctl);
-  background: var(--surface-2);
+  background: var(--glass);
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-sat));
   color: var(--ink);
   font-size: var(--fs-base);
   font-weight: 500;
   line-height: 1;
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: var(--shadow-hi);
   transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
-    color var(--t-fast) var(--ease);
+    color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease),
+    box-shadow var(--t-fast) var(--ease);
 }
 
 .btn:hover:not(:disabled) {
-  background: var(--surface-3);
+  background: var(--glass-strong);
+  border-color: var(--line-strong);
 }
 
 .btn:active:not(:disabled) {
-  background: var(--surface-3);
-  border-color: var(--ink-3);
+  transform: scale(0.975);
 }
 
 .btn:disabled,
@@ -239,39 +268,41 @@ input[type='month'] {
 
 .btn--primary {
   background: var(--cinnabar-solid);
-  border-color: var(--cinnabar-solid);
+  border-color: transparent;
   color: var(--on-cinnabar);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12), 0 8px 20px -12px var(--cinnabar-solid);
 }
 
 .btn--primary:hover:not(:disabled) {
   background: var(--cinnabar-solid-hover);
-  border-color: var(--cinnabar-solid-hover);
+  border-color: transparent;
 }
 
 .btn--primary:active:not(:disabled) {
   background: var(--cinnabar-strong);
-  border-color: var(--cinnabar-strong);
 }
 
 .btn--quiet {
   background: transparent;
   border-color: transparent;
+  box-shadow: none;
   color: var(--ink-2);
 }
 
 .btn--quiet:hover:not(:disabled) {
-  background: var(--surface-2);
+  background: var(--glass);
   color: var(--ink);
 }
 
 .btn--danger {
-  border-color: var(--oxblood);
+  border-color: transparent;
   color: var(--oxblood-ink);
-  background: transparent;
+  background: var(--oxblood-bg);
+  box-shadow: none;
 }
 
 .btn--danger:hover:not(:disabled) {
-  background: var(--oxblood-bg);
+  background: color-mix(in srgb, var(--oxblood) 18%, transparent);
 }
 
 .btn--sm {
@@ -315,7 +346,7 @@ input[type='month'] {
   }
 }
 
-/* ---------- 表单控件 ---------- */
+/* ---------- 表单控件：浅玻璃 + 聚焦时一圈强调色晕 ---------- */
 
 .inp,
 .sel,
@@ -323,12 +354,13 @@ input[type='month'] {
   width: 100%;
   min-height: 34px;
   padding: 6px 10px;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--line);
   border-radius: var(--r-ctl);
-  background: var(--surface-inset);
+  background: var(--glass-inset);
   color: var(--ink);
-  font-size: var(--fs-base);
-  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+  box-shadow: var(--shadow-hi);
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease),
+    background var(--t-fast) var(--ease);
 }
 
 .inp::placeholder,
@@ -339,7 +371,7 @@ input[type='month'] {
 .inp:hover:not(:disabled),
 .sel:hover:not(:disabled),
 .ta:hover:not(:disabled) {
-  border-color: var(--ink-3);
+  border-color: var(--line-strong);
 }
 
 .inp:focus,
@@ -347,6 +379,7 @@ input[type='month'] {
 .ta:focus {
   outline: none;
   border-color: var(--cinnabar);
+  background: var(--glass-strong);
   box-shadow: 0 0 0 3px var(--cinnabar-bg);
 }
 
@@ -394,19 +427,24 @@ input[type='month'] {
   flex: none;
   border: 1px solid var(--line-strong);
   border-radius: 5px;
-  background: var(--surface-inset);
+  background: var(--glass-inset);
   cursor: pointer;
   position: relative;
-  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
+    transform var(--t-fast) var(--ease);
 }
 
 .chk:hover {
   border-color: var(--ink-3);
 }
 
+.chk:active {
+  transform: scale(0.92);
+}
+
 .chk:checked {
   background: var(--cinnabar-solid);
-  border-color: var(--cinnabar-solid);
+  border-color: transparent;
 }
 
 .chk:checked::after {
@@ -419,7 +457,7 @@ input[type='month'] {
 
 .chk:indeterminate {
   background: var(--cinnabar-solid);
-  border-color: var(--cinnabar-solid);
+  border-color: transparent;
 }
 
 .chk:indeterminate::after {
@@ -440,7 +478,7 @@ input[type='month'] {
   flex: none;
   border-radius: var(--r-pill);
   border: 1px solid var(--line-strong);
-  background: var(--surface-3);
+  background: var(--glass-soft);
   position: relative;
   cursor: pointer;
   transition: background var(--t-base) var(--ease), border-color var(--t-base) var(--ease);
@@ -454,13 +492,14 @@ input[type='month'] {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: var(--ink-2);
-  transition: transform var(--t-base) var(--ease), background var(--t-base) var(--ease);
+  background: var(--ink-3);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.2);
+  transition: transform var(--t-base) var(--ease-out), background var(--t-base) var(--ease);
 }
 
 .sw:checked {
   background: var(--cinnabar-solid);
-  border-color: var(--cinnabar-solid);
+  border-color: transparent;
 }
 
 .sw:checked::after {
@@ -516,5 +555,40 @@ input[type='month'] {
 @media (max-width: 560px) {
   .row-2 {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   动效：只表达状态。系统设了「减弱动态」就全部关掉。
+   ============================================================ */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }
