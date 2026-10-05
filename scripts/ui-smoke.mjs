@@ -23,6 +23,7 @@ const VAULT_PASSWORD = 'ui-smoke-vault-8888'
 const NEW_GAME = 'UI新建游戏'
 const NEW_CUSTOMER = 'UI新客户'
 const NEW_CATEGORY = 'UI新大类'
+const DOOMED_CUSTOMER = 'UI待删客户'
 const PROGRESS_TEXT = '清完今日委托，深渊打到第 7 层'
 const DETAIL_TEXT = '详情页记的一条：把本周的活动清完了'
 const SHOTS = process.argv.includes('--shots')
@@ -1573,7 +1574,7 @@ async function main() {
       ok('接口里也存下了', savedSettings.body.contact === '微信 ui-smoke', savedSettings.body.contact)
       ok('招牌名没被改坏', savedSettings.body.business_name === 'UI冒烟小铺', savedSettings.body.business_name)
 
-      // 改登录密码：只看形状，不动真密码（改了后面就没法登录了）
+      // 改登录密码：形状 + 服务端错误行（不真改 —— 改了后面就没法登录了）
       await clickInMain(cdp, '改密码')
       ok('改密码表单打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 30, interval: 200 }))
       checkFormShape(ok, await measureForm(cdp), {
@@ -1583,8 +1584,44 @@ async function main() {
         controls: ['INPUT', 'INPUT', 'INPUT'],
         foot: ['取消', '改密码'],
       }, '改密码：')
+      ok('先说清了别的设备会退出', (await cdp.eval(`(${TOP_DRAWER})?.innerText || ''`)).includes('其他设备上的登录会全部退出'))
+      await fillTopField(cdp, '#settings-password-current', 'definitely-not-the-password')
+      await fillTopField(cdp, '#settings-password-next', 'ui-smoke-next-8888')
+      await fillTopField(cdp, '#settings-password-confirm', 'ui-smoke-next-8888')
+      await submitTopDrawer(cdp)
+      ok('当前密码不对时显示服务端报错', await waitFor(cdp, `Boolean(${TOP_DRAWER}?.querySelector('.note--alert'))`, { tries: 40, interval: 200 }), await cdp.eval(`(${TOP_DRAWER})?.querySelector('.note--alert')?.textContent || ''`))
+      ok('报错时抽屉不关', (await drawerCount(cdp)) === 1)
       await clickTopDrawer(cdp, '取消')
       ok('取消后关掉', await waitFor(cdp, `${drawerCountText} === 0`, { tries: 25, interval: 200 }))
+
+      // 改保险箱密码：形状 + 那句警告（同样不真改）
+      await cdp.eval(`(() => {
+        const row = [...document.querySelectorAll('.settings-page .itemlist > *')].find((r) => r.innerText.includes('保险箱密码'))
+        const btn = [...row.querySelectorAll('button')].find((b) => b.textContent.includes('改密码'))
+        btn.click()
+      })()`)
+      ok('改保险箱密码表单打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 30, interval: 200 }), await drawerCount(cdp))
+      checkFormShape(ok, await measureForm(cdp), {
+        title: '改保险箱密码',
+        wide: false,
+        fields: ['当前保险箱密码｜整', '新保险箱密码｜整'],
+        controls: ['INPUT', 'INPUT'],
+        foot: ['取消', '改密码'],
+      }, '改保险箱密码：')
+      const vaultWarn = await cdp.eval(`(${TOP_DRAWER})?.querySelector('.note--warn')?.textContent || ''`)
+      ok('先提醒了要重新加密一遍', vaultWarn.includes('重新加密') && vaultWarn.includes('备份'), vaultWarn.slice(0, 160))
+      ok('新密码那句提示还在', (await cdp.eval(`(${TOP_DRAWER})?.innerText || ''`)).includes('至少 8 位，不能纯数字'))
+      await clickTopDrawer(cdp, '取消')
+      ok('改保险箱密码取消后关掉', await waitFor(cdp, `${drawerCountText} === 0`, { tries: 25, interval: 200 }))
+
+      // 屏幕识别：这台机器上有没有引擎都行，面板得给出说法，别是空白
+      const ocrText = await cdp.eval(`(() => {
+        const panel = [...document.querySelectorAll('.settings-page .panel')].find((p) => p.innerText.includes('屏幕识别'))
+        return panel ? panel.innerText.replace(/\\s+/g, ' ') : ''
+      })()`)
+      ok('屏幕识别面板有说法（引擎状态 / 降级说明）', ocrText.includes('当前引擎') || ocrText.includes('还没有可用的 OCR') || ocrText.includes('拿不到识别状态'), ocrText.slice(0, 220))
+      ok('屏幕识别里有「重新检测」', ocrText.includes('重新检测'), ocrText.slice(0, 220))
+      ok('图标模板那行把数量写出来了', ocrText.includes('图标模板') && ocrText.includes('共'), ocrText.slice(0, 260))
 
       // 保险箱那行：这会儿是解开的（前面刚在保险箱里解过）
       ok('保险箱那行写着已解开', (await cdp.eval(`document.querySelector('.settings-page')?.innerText || ''`)).includes('已解开'), await cdp.eval(`document.querySelector('.settings-page')?.innerText?.replace(/\\s+/g, ' ')?.slice(0, 400) || ''`))
@@ -1604,6 +1641,53 @@ async function main() {
       ok('取消后什么都没清', await waitFor(cdp, `${modalCountText} === 0`, { tries: 25, interval: 200 }))
       const stillThere = await api(app.base, 'GET', '/api/backup/counts', undefined, fixture.cookie)
       ok('数据还在', Number(stillThere.body.orders) > 0, JSON.stringify(stillThere.body))
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+    }
+
+    /* ---- 客户档案：真归档 + 真删除 ---- */
+    section('客户档案 · 归档与彻底删除')
+    {
+      const before = cdp.errors.length
+
+      // 1) 名下什么都没有的客户：只给「彻底删除」，删掉就真没了
+      const created = await api(app.base, 'POST', '/api/customers', { name: DOOMED_CUSTOMER, phone: '13900000009' }, fixture.cookie)
+      ok('建了一个一次性客户', Boolean(created.body && created.body.id), JSON.stringify(created.body).slice(0, 140))
+      const doomedId = created.body && created.body.id
+      await gotoHash(cdp, `/customers/${doomedId}`)
+      ok('一次性客户的档案页打开了', await waitFor(cdp, `(document.querySelector('.customer-detail')?.innerText || '').includes(${JSON.stringify(DOOMED_CUSTOMER)})`, { tries: 40, interval: 200 }), await cdp.eval(`document.querySelector('.customer-detail')?.innerText?.replace(/\\s+/g, ' ')?.slice(0, 120) || ''`))
+      await cdp.eval(`[...document.querySelectorAll('.customer-detail__actions button')].find((b) => b.title === '归档或彻底删除这位客户')?.click()`)
+      ok('确认框打开了', await waitFor(cdp, `${modalCountText} === 1`, { tries: 30, interval: 200 }), await modalCount(cdp))
+      const emptyChoice = await cdp.eval(`(${TOP_MODAL})?.innerText?.replace(/\\s+/g, ' ') || ''`)
+      ok('名下没东西时不提「归档」这一项', !emptyChoice.includes('归档客户'), emptyChoice.slice(0, 220))
+      ok('直说删了不影响别的数据', emptyChoice.includes('不影响任何其它数据'), emptyChoice.slice(0, 220))
+      await clickModalButton(cdp, '彻底删除')
+      ok('删完回到客户列表', await waitFor(cdp, `/^#\\/customers(\\?|$)/.test(location.hash)`, { tries: 40, interval: 200 }), await cdp.eval('location.hash'))
+      const goneCustomer = await api(app.base, 'GET', `/api/customers/${doomedId}`, undefined, fixture.cookie)
+      ok('这位客户真的没了（硬删）', goneCustomer.status === 404, goneCustomer.status)
+      ok('列表里也没留下', !(await cdp.eval(`document.querySelector('.customers-page')?.innerText || ''`)).includes(DOOMED_CUSTOMER))
+
+      // 2) 名下有订单的客户：给「归档客户」，归档是软的 —— 数据原地不动
+      await gotoHash(cdp, `/customers/${fixture.customerId}`)
+      ok('有订单那位档案页打开了', await waitFor(cdp, `(document.querySelector('.customer-detail')?.innerText || '').includes(${JSON.stringify(fixture.customer)})`, { tries: 40, interval: 200 }))
+      await cdp.eval(`[...document.querySelectorAll('.customer-detail__actions button')].find((b) => b.title === '归档或彻底删除这位客户')?.click()`)
+      ok('有订单那位也弹了确认框', await waitFor(cdp, `${modalCountText} === 1`, { tries: 30, interval: 200 }))
+      const busyChoice = await cdp.eval(`(${TOP_MODAL})?.innerText?.replace(/\\s+/g, ' ') || ''`)
+      ok('名下有订单时给的是「归档客户」', busyChoice.includes('归档客户'), busyChoice.slice(0, 240))
+      ok('说了订单凭证原地不动', busyChoice.includes('原地不动'), busyChoice.slice(0, 240))
+      await clickModalButton(cdp, '归档客户')
+      ok('归档后回到客户列表', await waitFor(cdp, `/^#\\/customers(\\?|$)/.test(location.hash)`, { tries: 40, interval: 200 }), await cdp.eval('location.hash'))
+      const archived = await api(app.base, 'GET', `/api/customers/${fixture.customerId}`, undefined, fixture.cookie)
+      ok('接口里状态变成 archived', archived.body.status === 'archived', archived.body.status)
+      const orderKept = await api(app.base, 'GET', `/api/orders/${fixture.orderId}`, undefined, fixture.cookie)
+      ok('订单没被连坐', orderKept.status === 200 && orderKept.body.order_no === fixture.orderNo, `${orderKept.status} / ${orderKept.body && orderKept.body.order_no}`)
+
+      // 收尾：还原成在册，别把种下去的数据留成半截
+      const back = await api(app.base, 'PATCH', `/api/customers/${fixture.customerId}`, { status: 'active' }, fixture.cookie)
+      ok('归档能还原（接口层）', back.body.status === 'active', back.body.status)
+      // 列表页这时还挂着归档那一刻的数据，绕一圈回来才会重新取
+      await gotoHash(cdp, '/orders')
+      await gotoHash(cdp, '/customers')
+      ok('还原后列表里又有这位客户', await waitFor(cdp, `(document.querySelector('.customers-page')?.innerText || '').includes(${JSON.stringify(fixture.customer)})`, { tries: 40, interval: 200 }), await cdp.eval(`document.querySelector('.customers-page')?.innerText?.replace(/\\s+/g, ' ')?.slice(0, 200) || ''`))
       ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
     }
 
