@@ -796,9 +796,43 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 
 - **本地优先**：后端保持 `node:http` + `node:sqlite` + `node:crypto`，前端构建依赖锁在 `package-lock.json`。
 - 前端入口是 React 19 + Vite 8；旧业务视图通过适配器逐页接入，新组件统一使用 Lucide React 图标。
+- 前端正在从「React 壳 + 旧命令式视图」往单栈收敛，迁移方式和现状见下面「界面是怎么从旧栈搬到 React 的」。
 - 密码用 scrypt 哈希；会话是 HttpOnly + SameSite=Lax 的 Cookie，有效期 14 天。
 - 数据库开了 WAL 和外键约束；迁移按 `PRAGMA user_version` 顺序前进，只增不改。
 - 附 `PRODUCT.md` 和 `DESIGN.md`：前者是产品定义，后者是视觉与交互的规则书。
+
+### 界面是怎么从旧栈搬到 React 的
+
+壳层（导航、主题、路由、顶栏、侧边栏）已经是 React，列表页也一页页搬过来了，
+但**表单和抽屉**还在旧模块里（`public/js/ui.js` 那套命令式的 `formDrawer` /
+`drawer` / `modal`）。缝就在这里：React 页面直接 `import` 旧模块的函数来开抽屉。
+
+按依赖从叶子往根搬，一次搬一页，**那一页的表单要一起搬**，否则还是半吊子：
+
+```
+游戏 → 客户 → 价格表 → 订单 → 财务 → 报价单 → 保险箱 → 设置
+```
+
+已经搬完的：**游戏表单**（`client/game-form.jsx`）—— 第一个全 React 的表单。
+旧的那份 `public/js/views/games.js` 里的 `gameForm` 先留着：旧价格表页面
+（`price.js`）和 `/games/:id` 那条子路由还在用它，两边并存、互不影响，
+等价格表也搬完再删。
+
+新表单照着这三块写：
+
+- `client/app/overlay-host.jsx` —— 让 React 浮层能被命令式打开：
+  `const saved = await openGameForm()`，取消得到 `null`，调用方式和旧的
+  `formDrawer` 完全一样，所以页面代码几乎不用改；
+- `client/app/drawer.jsx` —— 抽屉本体。刻意沿用旧类名（`dialog.drawer` /
+  `.drawer__head` / `.drawer__body` / `.drawer__foot`），因为
+  `client/styles.css` 直接 `@import` 了 `public/css/app.css`，样式能继承，
+  迁移期间新旧抽屉长得一模一样，不会出现视觉断层；
+- `client/app/fields.jsx` —— 受控字段：文本、多行、下拉、逗号分隔（区服/标签）、
+  图片上传。同样沿用 `.field` / `.lbl` / `.inp` / `.ta` / `.sel` / `.err`。
+
+`npm run test:ui` 里有一段专门盯这条缝：点「新建游戏」→ 空着提交要被校验拦住 →
+填好提交 → 抽屉自己关掉 → 列表刷新出新游戏 → 再问一次接口确认真落库了
+（连区服有没有被拆成数组都查）。
 
 ```
 server.mjs            服务入口：应用启动
@@ -820,7 +854,11 @@ src/
   imgmatch.mjs        PNG 解码 / 老的模板匹配（新逻辑已迁到 vision.mjs）
   routes/             各模块接口
   server/app.mjs      应用工厂、鉴权、静态资源和生命周期
-client/               React 壳层、页面、共享客户端工具和过渡适配器
+client/
+  main.jsx            React 壳层：导航、主题、路由、顶栏动作
+  app/                壳层零件：路由、浮层宿主（overlay-host）、抽屉与字段原语、旧视图适配器
+  lib/                共享客户端工具（api、格式化）与旧模块适配器（legacy-ui / legacy-features）
+  *.jsx               各业务页面（订单、客户、价格表、游戏、财务、报价单、自媒体…）
 public/               构建产物、旧业务模块与静态资源
 scripts/             运维与自检：check（语法）、smoke（接口冒烟）、smoke-run（自起实例）、
                      ui-smoke（界面冒烟）、shot（截图）、lib/（测试实例与 CDP 客户端）

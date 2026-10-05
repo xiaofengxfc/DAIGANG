@@ -3,7 +3,7 @@ import { Archive, Gamepad2, Pencil, Plus, RefreshCw, Search, Trash2 } from 'luci
 import { api } from './lib/api.js'
 import { fmtDate } from './lib/formatters.js'
 import { confirmDelete, confirmModal, toast, toastErr } from './lib/legacy-ui.js'
-import { gameForm } from './lib/legacy-features.js'
+import { openGameForm } from './game-form.jsx'
 
 const iconProps = (size = 16) => ({ size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true })
 
@@ -83,7 +83,7 @@ export default function GamesPage({ route, navigate, onNew, onReload, reloadKey 
 
   const edit = async (game) => {
     try {
-      const saved = await gameForm(game)
+      const saved = await openGameForm(game)
       if (saved) await onReload()
     } catch (err) {
       toastErr(err)

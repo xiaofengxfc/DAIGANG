@@ -25,7 +25,7 @@ import {
   WalletCards,
 } from 'lucide-react'
 import { api } from './lib/api.js'
-import { ordersView, customerForm, customersView, priceView, categoryForm, gamesView, gameForm, vaultView, financeView, quotesView, openQuoteComposer, settingsView, vaultgate } from './lib/legacy-features.js'
+import { ordersView, customerForm, customersView, priceView, categoryForm, gamesView, vaultView, financeView, quotesView, openQuoteComposer, settingsView, vaultgate } from './lib/legacy-features.js'
 import DashboardPage from './dashboard.jsx'
 import OrdersPage from './orders.jsx'
 import CustomersPage from './customers.jsx'
@@ -37,6 +37,8 @@ import MediaPage from './media.jsx'
 import { toast, toastErr } from './lib/legacy-ui.js'
 import LegacyPage from './app/legacy-page.jsx'
 import ActionsSlot from './app/actions-slot.jsx'
+import OverlayHost from './app/overlay-host.jsx'
+import { openGameForm } from './game-form.jsx'
 import { navigate as go, parseRoute } from './app/router.js'
 import './styles.css'
 
@@ -291,7 +293,7 @@ function Shell({ me, onLogout }) {
 
   const createGame = useCallback(async () => {
     try {
-      const saved = await gameForm()
+      const saved = await openGameForm()
       if (saved) await refresh()
     } catch (err) {
       toastErr(err)
@@ -368,6 +370,8 @@ function Shell({ me, onLogout }) {
         {NAV.filter((item) => ['', 'orders', 'customers', 'price'].includes(item.seg)).map((item) => <NavItem key={item.seg} item={item} active={current.seg === item.seg} count={counts} onClick={() => go(item.seg ? `/${item.seg}` : '/')} />)}
         <button className="refactor-navitem" type="button" onClick={() => go('/settings')}><MoreHorizontal {...iconProps(18)} /><span>更多</span></button>
       </nav>
+      {/* React 浮层（新式抽屉/对话框）挂在这里；旧 ui.js 的 dialog 仍然自己往 body 上挂 */}
+      <OverlayHost />
     </div>
   )
 }

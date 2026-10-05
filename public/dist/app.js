@@ -21870,6 +21870,507 @@ function CustomersPage({ route, navigate, onNew, reloadKey }) {
 	});
 }
 //#endregion
+//#region client/app/drawer.jsx
+function Drawer({ title, subtitle, wide = false, footer = null, onClose, children }) {
+	const ref = (0, import_react.useRef)(null);
+	const closeRef = (0, import_react.useRef)(onClose);
+	closeRef.current = onClose;
+	(0, import_react.useEffect)(() => {
+		const node = ref.current;
+		if (!node) return void 0;
+		const onCancel = (event) => {
+			event.preventDefault();
+			if (closeRef.current) closeRef.current();
+		};
+		const onClick = (event) => {
+			if (event.target === node && closeRef.current) closeRef.current();
+		};
+		node.addEventListener("cancel", onCancel);
+		node.addEventListener("click", onClick);
+		document.body.classList.add("is-locked");
+		if (!node.open) node.showModal();
+		return () => {
+			node.removeEventListener("cancel", onCancel);
+			node.removeEventListener("click", onClick);
+			document.body.classList.remove("is-locked");
+			if (node.open) node.close();
+		};
+	}, []);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("dialog", {
+		className: `drawer${wide ? " drawer--wide" : ""}`,
+		ref,
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "drawer__head",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					style: {
+						minWidth: 0,
+						flex: 1
+					},
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "drawer__title",
+						children: title
+					}), subtitle ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "sm dim",
+						children: subtitle
+					}) : null]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+					className: "btn btn--icon btn--quiet",
+					type: "button",
+					"aria-label": "关闭",
+					onClick: onClose,
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, {
+						size: 16,
+						strokeWidth: 1.8,
+						"aria-hidden": "true"
+					})
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "drawer__body",
+				children
+			}),
+			footer ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "drawer__foot",
+				children: footer
+			}) : null
+		]
+	});
+}
+//#endregion
+//#region client/app/fields.jsx
+/** 字段外壳：标签 + 控件 + 提示 + 错误位，和旧 fieldShell 结构一致 */
+function Field$1({ label, hint, error, required = false, half = false, htmlFor, children }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: `field${half ? "" : " field--full"}${error ? " is-bad" : ""}`,
+		children: [
+			label ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+				className: "lbl",
+				htmlFor,
+				children: [label, required ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "req",
+					children: "*"
+				}) : null]
+			}) : null,
+			children,
+			hint ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "hint",
+				children: hint
+			}) : null,
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "err",
+				hidden: !error,
+				children: error || ""
+			})
+		]
+	});
+}
+function TextInput({ value, onChange, numeric = false, maxLength = 300, ...rest }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+		...rest,
+		className: `inp${numeric ? " inp--fig" : ""}`,
+		type: "text",
+		inputMode: numeric ? "decimal" : void 0,
+		autoComplete: "off",
+		maxLength,
+		value: value ?? "",
+		onChange: (event) => onChange(event.target.value)
+	});
+}
+function TextArea({ value, onChange, rows = 3, maxLength = 4e3, ...rest }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("textarea", {
+		...rest,
+		className: "ta",
+		rows,
+		maxLength,
+		autoComplete: "off",
+		value: value ?? "",
+		onChange: (event) => onChange(event.target.value)
+	});
+}
+function SelectInput({ value, onChange, options = [], ...rest }) {
+	const wanted = value === null || value === void 0 ? "" : String(value);
+	const known = options.some((option) => String(option.value) === wanted);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
+		...rest,
+		className: "sel",
+		value: wanted,
+		onChange: (event) => onChange(event.target.value),
+		children: [known ? null : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+			value: wanted,
+			children: wanted ? `（原值：${wanted}）` : "（未指定）"
+		}), options.map((option) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+			value: String(option.value),
+			children: option.label
+		}, String(option.value)))]
+	});
+}
+var splitTags = (text) => String(text).split(/[,，\n]/).map((item) => item.trim()).filter(Boolean);
+/** 逗号分隔的多个值（区服、标签…）。对外是数组，对内保留用户正在敲的原文 */
+function TagsInput({ value, onChange, placeholder = "用逗号分隔，例如：爽快, 老客户", ...rest }) {
+	const [text, setText] = (0, import_react.useState)(() => Array.isArray(value) ? value.join(", ") : value || "");
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+		...rest,
+		className: "inp",
+		type: "text",
+		autoComplete: "off",
+		placeholder,
+		value: text,
+		onChange: (event) => {
+			setText(event.target.value);
+			onChange(splitTags(event.target.value));
+		}
+	});
+}
+/** 图片上传：读成 data URL 传给 /api/uploads，拿回来的地址直接当 img src */
+function ImageField({ label = "图片", value, onChange, prefix = "img", hint = "", size = 56, shape = "square", placeholder = "无" }) {
+	const fileRef = (0, import_react.useRef)(null);
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	async function pick(event) {
+		const file = event.target.files && event.target.files[0];
+		if (!file) return;
+		if (file.size > 1572864) {
+			toast("图片请压到 1.5MB 以内", "err", 3600);
+			return;
+		}
+		setBusy(true);
+		try {
+			const dataUrl = await new Promise((resolve, reject) => {
+				const reader = new FileReader();
+				reader.onload = () => resolve(reader.result);
+				reader.onerror = () => reject(/* @__PURE__ */ new Error("读不了这个文件"));
+				reader.readAsDataURL(file);
+			});
+			onChange((await api.post("/api/uploads", {
+				data_url: dataUrl,
+				prefix
+			})).url);
+			toast("图片已上传", "ok");
+		} catch (err) {
+			toast(err && err.message ? err.message : "上传失败", "err", 4200);
+		} finally {
+			setBusy(false);
+			event.target.value = "";
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "field field--full",
+		children: [
+			label ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+				className: "lbl",
+				children: label
+			}) : null,
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "cluster",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					style: {
+						width: `${size}px`,
+						height: `${size}px`,
+						borderRadius: shape === "circle" ? "50%" : "12px",
+						border: "1px solid var(--line-strong)",
+						background: "var(--surface-inset)",
+						overflow: "hidden",
+						display: "grid",
+						placeContent: "center",
+						flex: "none"
+					},
+					children: value ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+						src: value,
+						alt: label,
+						style: {
+							width: "100%",
+							height: "100%",
+							objectFit: "cover"
+						}
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "dim tiny",
+						children: placeholder
+					})
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "stack stack--tight",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "cluster",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							className: "btn btn--sm",
+							type: "button",
+							"data-loading": busy ? "1" : void 0,
+							onClick: () => fileRef.current && fileRef.current.click(),
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Upload, {
+								size: 14,
+								strokeWidth: 1.8,
+								"aria-hidden": "true"
+							}), "选一张图"]
+						}), value ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							className: "btn btn--sm btn--quiet",
+							type: "button",
+							onClick: () => onChange(""),
+							children: "去掉"
+						}) : null]
+					}), hint ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "hint",
+						children: hint
+					}) : null]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+				ref: fileRef,
+				type: "file",
+				accept: "image/png,image/jpeg,image/webp,image/gif,image/svg+xml",
+				style: { display: "none" },
+				onChange: pick
+			})
+		]
+	});
+}
+//#endregion
+//#region client/app/overlay-host.jsx
+var current = null;
+var listeners = /* @__PURE__ */ new Set();
+function publish() {
+	for (const listener of listeners) listener(current);
+}
+/**
+* 打开一个浮层，返回 Promise。
+* render 收到一个 close(值) 函数：调它就卸载浮层并 resolve(值)。
+*/
+function openOverlay(render) {
+	if (current) current.settle(null);
+	return new Promise((resolve) => {
+		const entry = {
+			render,
+			settle(value) {
+				if (current === entry) {
+					current = null;
+					publish();
+				}
+				resolve(value);
+			}
+		};
+		current = entry;
+		publish();
+	});
+}
+function OverlayHost() {
+	const [overlay, setOverlay] = (0, import_react.useState)(current);
+	(0, import_react.useEffect)(() => {
+		listeners.add(setOverlay);
+		setOverlay(current);
+		return () => {
+			listeners.delete(setOverlay);
+		};
+	}, []);
+	if (!overlay) return null;
+	return overlay.render(overlay.settle);
+}
+//#endregion
+//#region client/game-form.jsx
+var FORM_ID = "game-form";
+function openGameForm(values = {}) {
+	return openOverlay((close) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GameForm, {
+		values,
+		close
+	}));
+}
+function GameForm({ values, close }) {
+	const [form, setForm] = (0, import_react.useState)(() => ({
+		name: values.name || "",
+		short_name: values.short_name || "",
+		icon: values.icon || "",
+		servers: Array.isArray(values.servers) ? values.servers : [],
+		currency: values.currency || "",
+		notice: values.notice || "",
+		status: values.status || "active",
+		sort_order: values.sort_order === null || values.sort_order === void 0 ? "" : String(values.sort_order),
+		note: values.note || ""
+	}));
+	const [errors, setErrors] = (0, import_react.useState)({});
+	const [serverError, setServerError] = (0, import_react.useState)("");
+	const [busy, setBusy] = (0, import_react.useState)(false);
+	const set = (key) => (value) => setForm((current) => ({
+		...current,
+		[key]: value
+	}));
+	async function submit(event) {
+		event.preventDefault();
+		const next = {};
+		if (!String(form.name).trim()) next.name = "请填写游戏名";
+		if (form.sort_order !== "" && !Number.isFinite(Number(form.sort_order))) next.sort_order = "请填数字";
+		setErrors(next);
+		if (Object.keys(next).length) {
+			document.getElementById(`game-${Object.keys(next)[0]}`)?.focus();
+			return;
+		}
+		setBusy(true);
+		setServerError("");
+		try {
+			const payload = {
+				...form,
+				name: String(form.name).trim()
+			};
+			const saved = values.id ? await api.patch(`/api/games/${values.id}`, payload) : await api.post("/api/games", payload);
+			toast("游戏已保存", "ok");
+			close(saved);
+		} catch (err) {
+			setServerError(err && err.message ? err.message : "保存失败");
+		} finally {
+			setBusy(false);
+		}
+	}
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Drawer, {
+		title: values.id ? "改游戏" : "新建游戏",
+		wide: true,
+		onClose: () => close(null),
+		footer: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn",
+				type: "button",
+				onClick: () => close(null),
+				children: "取消"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { flex: 1 } }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "btn btn--primary",
+				type: "submit",
+				form: FORM_ID,
+				disabled: busy,
+				children: busy ? "保存中…" : "保存"
+			})
+		] }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("form", {
+			id: FORM_ID,
+			noValidate: true,
+			onSubmit: submit,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "stack",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "formgrid",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "游戏名",
+							required: true,
+							half: true,
+							htmlFor: "game-name",
+							error: errors.name,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "game-name",
+								name: "name",
+								value: form.name,
+								onChange: set("name"),
+								"aria-invalid": errors.name ? "true" : void 0,
+								placeholder: "例：原神 / 崩坏：星穹铁道"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "简称",
+							half: true,
+							htmlFor: "game-short-name",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "game-short-name",
+								name: "short_name",
+								value: form.short_name,
+								onChange: set("short_name"),
+								placeholder: "例：YS / 崩铁"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ImageField, {
+							label: "图标",
+							value: form.icon,
+							onChange: set("icon"),
+							prefix: "game",
+							hint: "选填。会显示在游戏列表和报价单上。"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "区服列表",
+							htmlFor: "game-servers",
+							hint: "逗号分隔。例：天空岛, 世界树, 亚服。开单时可以直接选。",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TagsInput, {
+								id: "game-servers",
+								name: "servers",
+								value: form.servers,
+								onChange: set("servers")
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "货币名称",
+							half: true,
+							htmlFor: "game-currency",
+							hint: "这个游戏里客户最认的那种货币叫什么。填了之后，服务项上就能写「这个套餐给多少」。",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "game-currency",
+								name: "currency",
+								value: form.currency,
+								onChange: set("currency"),
+								placeholder: "例：原石 / 星声 / 纠缠之缘"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "顶部提示",
+							htmlFor: "game-notice",
+							hint: "只给客户看的一句话。可以做多行，一行一件事。导出价格表时，它会显示在图片 / Word 的最上方 —— 抬头下面、第一个大类上面，不带任何标题。和「备注」分开：备注是你自己记账用的，不会出现在导出里。",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
+								id: "game-notice",
+								name: "notice",
+								rows: 3,
+								maxLength: 600,
+								value: form.notice,
+								onChange: set("notice"),
+								placeholder: "例：本价格表自 9 月 20 日起执行；包月客户送一次活动代打。"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "状态",
+							half: true,
+							htmlFor: "game-status",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectInput, {
+								id: "game-status",
+								name: "status",
+								value: form.status,
+								onChange: set("status"),
+								options: [{
+									value: "active",
+									label: "上架"
+								}, {
+									value: "archived",
+									label: "归档（不再出现在新单里）"
+								}]
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "排序",
+							half: true,
+							htmlFor: "game-sort-order",
+							error: errors.sort_order,
+							hint: "数字小的排前面",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								id: "game-sort-order",
+								name: "sort_order",
+								numeric: true,
+								value: form.sort_order,
+								onChange: set("sort_order"),
+								"aria-invalid": errors.sort_order ? "true" : void 0
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field$1, {
+							label: "备注",
+							htmlFor: "game-note",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
+								id: "game-note",
+								name: "note",
+								rows: 2,
+								value: form.note,
+								onChange: set("note")
+							})
+						})
+					]
+				}), serverError ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "note note--alert",
+					children: serverError
+				}) : null]
+			})
+		})
+	});
+}
+//#endregion
 //#region client/games.jsx
 var iconProps$5 = (size = 16) => ({
 	size,
@@ -22032,7 +22533,7 @@ function GamesPage({ route, navigate, onNew, onReload, reloadKey }) {
 	};
 	const edit = async (game) => {
 		try {
-			if (await gameForm(game)) await onReload();
+			if (await openGameForm(game)) await onReload();
 		} catch (err) {
 			toastErr(err);
 		}
@@ -25130,7 +25631,7 @@ function Shell({ me, onLogout }) {
 	}, [refresh]);
 	const createGame = (0, import_react.useCallback)(async () => {
 		try {
-			if (await gameForm()) await refresh();
+			if (await openGameForm()) await refresh();
 		} catch (err) {
 			toastErr(err);
 		}
@@ -25340,7 +25841,8 @@ function Shell({ me, onLogout }) {
 					onClick: () => navigate("/settings"),
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Ellipsis, { ...iconProps(18) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "更多" })]
 				})]
-			})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(OverlayHost, {})
 		]
 	});
 }

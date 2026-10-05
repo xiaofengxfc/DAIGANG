@@ -20,6 +20,8 @@ import { findBrowser, launchBrowser, sleep, waitFor } from './lib/cdp.mjs'
 
 const PASSWORD = 'ui-smoke-pass-8888'
 const VAULT_PASSWORD = 'ui-smoke-vault-8888'
+const NEW_GAME = 'UI新建游戏'
+const PROGRESS_TEXT = '清完今日委托，深渊打到第 7 层'
 const SHOTS = process.argv.includes('--shots')
 const SHOT_DIR = path.resolve('shots/ui-smoke')
 const KEEP = process.env.XFC_SMOKE_KEEP === '1'
@@ -111,6 +113,70 @@ const ROUTES = [
 async function gotoHash(cdp, hash) {
   await cdp.eval(`location.hash = ${JSON.stringify('#' + hash)}`)
   await sleep(400)
+}
+
+/**
+ * 往输入框里塞值。
+ * 直接 `el.value = x` 对 React 受控组件无效——React 内部记着上一次的值，
+ * 看见没变化就不触发 onChange。必须走原型上的原生 setter，再补一个 input 事件，
+ * React 的 value tracker 才会认（对旧表单同样有效，旧表单是提交时才读 DOM）。
+ */
+async function fillField(cdp, selector, value) {
+  return cdp.eval(`(() => {
+    const el = document.querySelector(${JSON.stringify(selector)})
+    if (!el) return 'missing'
+    const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype
+      : el.tagName === 'SELECT' ? HTMLSelectElement.prototype
+      : HTMLInputElement.prototype
+    Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, ${JSON.stringify(value)})
+    el.dispatchEvent(new Event('input', { bubbles: true }))
+    el.dispatchEvent(new Event('change', { bubbles: true }))
+    return el.value
+  })()`)
+}
+
+const OPEN_DRAWER = 'dialog.drawer[open]'
+const SUBMIT = `${OPEN_DRAWER} .drawer__foot button[type="submit"]`
+
+/** 点顶栏里带这段文字的动作按钮（旧视图的动作按钮类名和 React 的不一样，按文字找最稳） */
+function clickTopAction(cdp, text) {
+  return cdp.eval(`(() => {
+    const btn = [...document.querySelectorAll('.react-topbar__tools button')].find((b) => b.textContent.includes(${JSON.stringify(text)}))
+    if (!btn) return false
+    btn.click()
+    return true
+  })()`)
+}
+
+/**
+ * 量一个抽屉表单的结构和几何。
+ * 用来把「新 React 表单」和「旧命令式表单」放在一起比 —— 迁移最怕的是
+ * 结构变了（少个字段、宽度不对、页脚按钮换了），肉眼不一定当场看得出来。
+ */
+function measureForm(cdp, root = OPEN_DRAWER) {
+  return cdp.eval(`(() => {
+    const dlg = document.querySelector(${JSON.stringify(root)})
+    if (!dlg) return null
+    const box = (el) => {
+      const r = el.getBoundingClientRect()
+      return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height) }
+    }
+    const grid = dlg.querySelector('.formgrid')
+    return {
+      drawer: box(dlg),
+      wide: dlg.classList.contains('drawer--wide'),
+      title: (dlg.querySelector('.drawer__title') || {}).textContent || '',
+      grid: grid ? box(grid) : null,
+      fields: [...dlg.querySelectorAll('.field')].map((f) => ({
+        label: ((f.querySelector('.lbl') || {}).textContent || '').replace('*', '').trim(),
+        half: !f.classList.contains('field--full'),
+        hint: Boolean(f.querySelector('.hint')),
+        control: (f.querySelector('input,textarea,select') || {}).tagName || 'custom',
+        box: box(f),
+      })),
+      foot: [...dlg.querySelectorAll('.drawer__foot button')].map((b) => b.textContent.trim()),
+    }
+  })()`)
 }
 
 async function checkRoute(cdp, route, index) {
@@ -229,6 +295,96 @@ async function main() {
       click: '.refactor-top-action',
       expect: 'dialog[open]',
     })
+
+    /* ---- 填表提交：新的 React 表单（游戏） ---- */
+    section('填表提交 · 新的 React 表单（新建游戏）')
+    {
+      const before = cdp.errors.length
+      await gotoHash(cdp, '/games')
+      ok('游戏页有「新建游戏」顶部按钮', await waitFor(cdp, `Boolean(document.querySelector('.refactor-top-action'))`, { tries: 30, interval: 200 }))
+      await cdp.eval(`document.querySelector('.refactor-top-action').click()`)
+      ok('React 抽屉打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
+      const title = await cdp.eval(`document.querySelector('.drawer__title')?.textContent || ''`)
+      ok('抽屉标题是「新建游戏」', title.includes('新建游戏'), title)
+
+      // 空着直接提交：应当被校验拦住，抽屉不能关
+      await cdp.eval(`document.querySelector(${JSON.stringify(SUBMIT)}).click()`)
+      await sleep(300)
+      const errText = await cdp.eval(`document.querySelector(${JSON.stringify(`${OPEN_DRAWER} .err:not([hidden])`)})?.textContent || ''`)
+      ok('空游戏名被校验拦住', errText.includes('请填写游戏名'), errText)
+      ok('被拦住时抽屉不关', await cdp.eval(`Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`))
+
+      await fillField(cdp, `${OPEN_DRAWER} #game-name`, NEW_GAME)
+      await fillField(cdp, `${OPEN_DRAWER} #game-servers`, '官服, 国际服')
+      await fillField(cdp, `${OPEN_DRAWER} #game-currency`, '星声')
+      await cdp.eval(`document.querySelector(${JSON.stringify(SUBMIT)}).click()`)
+
+      ok('保存后抽屉自己关掉', await waitFor(cdp, `!document.querySelector(${JSON.stringify(OPEN_DRAWER)})`, { tries: 40, interval: 200 }))
+      const listed = await waitFor(cdp, `(document.querySelector('.games-list')?.innerText || '').includes(${JSON.stringify(NEW_GAME)})`, { tries: 40, interval: 200 })
+      ok('列表里出现了新游戏（保存后自动刷新）', listed, await cdp.eval(`document.querySelector('.games-list')?.innerText || ''`))
+
+      const fetched = await api(app.base, 'GET', `/api/games?q=${encodeURIComponent(NEW_GAME)}`, undefined, fixture.cookie)
+      const row = (fetched.body.items || [])[0]
+      ok('接口里确实落了这条游戏', Boolean(row) && row.name === NEW_GAME, row)
+      ok('区服按逗号拆成了数组', JSON.stringify(row && row.servers) === JSON.stringify(['官服', '国际服']), row && row.servers)
+      ok('货币名称也存进去了', Boolean(row) && row.currency === '星声', row && row.currency)
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+    }
+
+    /* ---- 新旧表单长得一样吗（几何对比） ---- */
+    section('新旧表单对比 · 结构一致')
+    {
+      // 旧的游戏表单还能从 /games/:id（旧视图接管的那条子路由）打开，
+      // 正好拿来和新表单并排量一遍。
+      await gotoHash(cdp, '/games/1')
+      const legacyBtn = await waitFor(cdp, `[...document.querySelectorAll('.react-topbar__tools button')].some((b) => b.textContent.includes('新建游戏'))`, { tries: 30, interval: 200 })
+      ok('旧视图那条路由上有「新建游戏」', legacyBtn)
+      await clickTopAction(cdp, '新建游戏')
+      const legacyOpened = await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 })
+      ok('旧表单抽屉打开了', legacyOpened)
+      const legacy = await measureForm(cdp)
+      await cdp.eval(`document.querySelector(${JSON.stringify(OPEN_DRAWER)}).close()`)
+      await sleep(300)
+
+      await gotoHash(cdp, '/games')
+      await clickTopAction(cdp, '新建游戏')
+      await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 })
+      const fresh = await measureForm(cdp)
+      await cdp.eval(`document.querySelector(${JSON.stringify(OPEN_DRAWER)}).close()`)
+      await sleep(300)
+
+      ok('两边都量到了', Boolean(legacy) && Boolean(fresh))
+      if (legacy && fresh) {
+        ok('标题一致', legacy.title === fresh.title, `${legacy.title} / ${fresh.title}`)
+        ok('都是宽抽屉', legacy.wide === fresh.wide && fresh.wide)
+        const legacyLabels = legacy.fields.map((f) => f.label)
+        const freshLabels = fresh.fields.map((f) => f.label)
+        ok('字段数量和顺序一致', JSON.stringify(legacyLabels) === JSON.stringify(freshLabels), `旧 ${legacyLabels.join('/')} 新 ${freshLabels.join('/')}`)
+        ok('半宽 / 整宽布局一致', JSON.stringify(legacy.fields.map((f) => f.half)) === JSON.stringify(fresh.fields.map((f) => f.half)))
+        ok('控件类型一致', JSON.stringify(legacy.fields.map((f) => f.control)) === JSON.stringify(fresh.fields.map((f) => f.control)), `旧 ${legacy.fields.map((f) => f.control).join('/')} 新 ${fresh.fields.map((f) => f.control).join('/')}`)
+        ok('提示文字都在', JSON.stringify(legacy.fields.map((f) => f.hint)) === JSON.stringify(fresh.fields.map((f) => f.hint)))
+        ok('抽屉宽度一致', Math.abs(legacy.drawer.w - fresh.drawer.w) <= 1, `${legacy.drawer.w} / ${fresh.drawer.w}`)
+        const widthDiff = legacy.fields.map((f, i) => Math.abs(f.box.w - fresh.fields[i].box.w)).filter((d) => d > 1)
+        ok('每个字段的宽度一致', widthDiff.length === 0, `有 ${widthDiff.length} 个字段宽度不同：${JSON.stringify(widthDiff)}`)
+        ok('页脚按钮一致', JSON.stringify(legacy.foot) === JSON.stringify(fresh.foot), `旧 ${legacy.foot.join('/')} 新 ${fresh.foot.join('/')}`)
+      }
+    }
+
+    /* ---- 填表提交：旧的命令式表单（记进度） ---- */
+    section('填表提交 · 旧的命令式表单（记进度）')
+    {
+      const before = cdp.errors.length
+      await gotoHash(cdp, '/orders')
+      ok('订单行一开始是「还没记」', await waitFor(cdp, `(document.querySelector('.orders-row__progress')?.innerText || '').includes('还没记')`, { tries: 30, interval: 200 }))
+      await cdp.eval(`document.querySelector('button[title="记进度"]').click()`)
+      ok('旧抽屉打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
+      await fillField(cdp, `${OPEN_DRAWER} textarea[name="content"]`, PROGRESS_TEXT)
+      await cdp.eval(`document.querySelector(${JSON.stringify(SUBMIT)}).click()`)
+      ok('提交后抽屉关闭', await waitFor(cdp, `!document.querySelector(${JSON.stringify(OPEN_DRAWER)})`, { tries: 40, interval: 200 }))
+      const shown = await waitFor(cdp, `(document.querySelector('.orders-row__progress')?.innerText || '').includes('1 条')`, { tries: 40, interval: 200 })
+      ok('列表里进度变成「1 条」（旧表单提交后列表刷新了）', shown, await cdp.eval(`document.querySelector('.orders-row__progress')?.innerText || ''`))
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+    }
 
     section('收尾')
     ok('全程没有页面报错', cdp.errors.length === 0, cdp.errors.slice(0, 3))

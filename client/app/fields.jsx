@@ -1,0 +1,190 @@
+import React, { useRef, useState } from 'react'
+import { Upload } from 'lucide-react'
+import { api } from '../lib/api.js'
+import { toast } from '../lib/legacy-ui.js'
+
+/* ============================================================
+   表单字段（React 版）
+   ============================================================
+
+   和 drawer.jsx 一样，类名沿用旧 ui.js 那套（.field / .lbl / .inp / .ta /
+   .sel / .hint / .err / .field--full），样式直接从 app.css 继承。
+
+   旧引擎是「声明式字段数组 + 自己读 DOM」，这里是真受控组件：
+   值在 React state 里，校验在提交时做，错误显示在同一个位置（.err）。
+   ============================================================ */
+
+/** 字段外壳：标签 + 控件 + 提示 + 错误位，和旧 fieldShell 结构一致 */
+export function Field({ label, hint, error, required = false, half = false, htmlFor, children }) {
+  return (
+    <div className={`field${half ? '' : ' field--full'}${error ? ' is-bad' : ''}`}>
+      {label ? (
+        <label className="lbl" htmlFor={htmlFor}>
+          {label}
+          {required ? <span className="req">*</span> : null}
+        </label>
+      ) : null}
+      {children}
+      {hint ? <div className="hint">{hint}</div> : null}
+      <div className="err" hidden={!error}>
+        {error || ''}
+      </div>
+    </div>
+  )
+}
+
+export function TextInput({ value, onChange, numeric = false, maxLength = 300, ...rest }) {
+  return (
+    <input
+      {...rest}
+      className={`inp${numeric ? ' inp--fig' : ''}`}
+      type="text"
+      inputMode={numeric ? 'decimal' : undefined}
+      autoComplete="off"
+      maxLength={maxLength}
+      value={value ?? ''}
+      onChange={(event) => onChange(event.target.value)}
+    />
+  )
+}
+
+export function TextArea({ value, onChange, rows = 3, maxLength = 4000, ...rest }) {
+  return (
+    <textarea
+      {...rest}
+      className="ta"
+      rows={rows}
+      maxLength={maxLength}
+      autoComplete="off"
+      value={value ?? ''}
+      onChange={(event) => onChange(event.target.value)}
+    />
+  )
+}
+
+export function SelectInput({ value, onChange, options = [], ...rest }) {
+  const wanted = value === null || value === undefined ? '' : String(value)
+  const known = options.some((option) => String(option.value) === wanted)
+  return (
+    <select {...rest} className="sel" value={wanted} onChange={(event) => onChange(event.target.value)}>
+      {/* 原值不在选项里（记录被归档、分类被删）时补一个占位项并选中它。
+          不补的话浏览器会默认选第一项，一保存就把这条记录的外键悄悄改掉了。 */}
+      {known ? null : <option value={wanted}>{wanted ? `（原值：${wanted}）` : '（未指定）'}</option>}
+      {options.map((option) => (
+        <option key={String(option.value)} value={String(option.value)}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  )
+}
+
+const splitTags = (text) =>
+  String(text)
+    .split(/[,，\n]/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+
+/** 逗号分隔的多个值（区服、标签…）。对外是数组，对内保留用户正在敲的原文 */
+export function TagsInput({ value, onChange, placeholder = '用逗号分隔，例如：爽快, 老客户', ...rest }) {
+  const [text, setText] = useState(() => (Array.isArray(value) ? value.join(', ') : value || ''))
+  return (
+    <input
+      {...rest}
+      className="inp"
+      type="text"
+      autoComplete="off"
+      placeholder={placeholder}
+      value={text}
+      onChange={(event) => {
+        setText(event.target.value)
+        onChange(splitTags(event.target.value))
+      }}
+    />
+  )
+}
+
+/** 图片上传：读成 data URL 传给 /api/uploads，拿回来的地址直接当 img src */
+export function ImageField({ label = '图片', value, onChange, prefix = 'img', hint = '', size = 56, shape = 'square', placeholder = '无' }) {
+  const fileRef = useRef(null)
+  const [busy, setBusy] = useState(false)
+
+  async function pick(event) {
+    const file = event.target.files && event.target.files[0]
+    if (!file) return
+    if (file.size > 1.5 * 1024 * 1024) {
+      toast('图片请压到 1.5MB 以内', 'err', 3600)
+      return
+    }
+    setBusy(true)
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result)
+        reader.onerror = () => reject(new Error('读不了这个文件'))
+        reader.readAsDataURL(file)
+      })
+      const result = await api.post('/api/uploads', { data_url: dataUrl, prefix })
+      onChange(result.url)
+      toast('图片已上传', 'ok')
+    } catch (err) {
+      toast(err && err.message ? err.message : '上传失败', 'err', 4200)
+    } finally {
+      setBusy(false)
+      event.target.value = ''
+    }
+  }
+
+  return (
+    <div className="field field--full">
+      {label ? <label className="lbl">{label}</label> : null}
+      <div className="cluster">
+        <div
+          style={{
+            width: `${size}px`,
+            height: `${size}px`,
+            borderRadius: shape === 'circle' ? '50%' : '12px',
+            border: '1px solid var(--line-strong)',
+            background: 'var(--surface-inset)',
+            overflow: 'hidden',
+            display: 'grid',
+            placeContent: 'center',
+            flex: 'none',
+          }}
+        >
+          {value ? (
+            <img src={value} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <span className="dim tiny">{placeholder}</span>
+          )}
+        </div>
+        <div className="stack stack--tight">
+          <div className="cluster">
+            <button
+              className="btn btn--sm"
+              type="button"
+              data-loading={busy ? '1' : undefined}
+              onClick={() => fileRef.current && fileRef.current.click()}
+            >
+              <Upload size={14} strokeWidth={1.8} aria-hidden="true" />
+              选一张图
+            </button>
+            {value ? (
+              <button className="btn btn--sm btn--quiet" type="button" onClick={() => onChange('')}>
+                去掉
+              </button>
+            ) : null}
+          </div>
+          {hint ? <div className="hint">{hint}</div> : null}
+        </div>
+      </div>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+        style={{ display: 'none' }}
+        onChange={pick}
+      />
+    </div>
+  )
+}
