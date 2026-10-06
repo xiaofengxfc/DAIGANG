@@ -26,6 +26,7 @@ import os from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { DATA_DIR } from './config.mjs'
 import { probeVisionHealth, visionBackendStatus, visionOcr } from './vision-python.mjs'
+import { scratchFile } from './util.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 // resolve 一下把 '..' 消掉：powershell -File 拿到带 '..' 的路径会直接失败
@@ -177,8 +178,9 @@ export function textLines(words) {
 function windowsOCR(imagePath, { lang = 'zh-Hans-CN', timeoutMs = 30000 } = {}) {
   return new Promise((resolve) => {
     const stamp = `${process.pid}-${Date.now()}`
-    const outPath = path.join(os.tmpdir(), `xfc-ocr-${stamp}.tsv`)
-    const logPath = path.join(os.tmpdir(), `xfc-ocr-${stamp}.log`)
+    // 这两份只被 PowerShell（.NET）读写，中文路径无所谓 —— 用 project 档
+    const outPath = scratchFile(`xfc-ocr-${stamp}`, '.tsv')
+    const logPath = scratchFile(`xfc-ocr-${stamp}`, '.log')
     let outFd = null
     let logFd = null
     try {
@@ -606,7 +608,10 @@ function consoleOCR(id, bin, imagePath, opts) {
   let asciiCopy = ''
   if (cli && cli.asciiPath && /[^\x20-\x7e]/.test(path.resolve(imagePath))) {
     try {
-      asciiCopy = path.join(os.tmpdir(), `xfc-ascii-${id}-${process.pid}-${Date.now()}.png`)
+      // 这张副本是**给外部 exe 读**的，所以走 ascii 档：优先系统临时目录，写不进去
+      // 就退到项目旁边的纯 ASCII 联接（见 util.mjs 的 asciiAliasDir）—— 这样
+      // %TEMP% 不可写时 exe 引擎也还能活。
+      asciiCopy = scratchFile(`xfc-ascii-${id}-${process.pid}-${Date.now()}`, '.png', { mode: 'ascii' })
       fs.copyFileSync(imagePath, asciiCopy)
       usePath = asciiCopy
     } catch {
@@ -628,9 +633,11 @@ function consoleOCRRun(id, bin, imagePath, { timeoutMs = 60000 } = {}) {
   return new Promise((resolve) => {
     const cli = CONSOLE_CLI[id] || CONSOLE_CLI.paddleocr
     const stamp = `${process.pid}-${Date.now()}`
-    const outPath = path.join(os.tmpdir(), `xfc-${id}-${stamp}.json`)
-    const stdoutPath = path.join(os.tmpdir(), `xfc-${id}-${stamp}.stdout`)
-    const logPath = path.join(os.tmpdir(), `xfc-${id}-${stamp}.log`)
+    // 这三个都是**外部 exe 自己读写**的（结果 JSON、stdout 重定向、日志），
+    // 所以必须走 ascii 档：exe 不认中文路径。
+    const outPath = scratchFile(`xfc-${id}-${stamp}`, '.json', { mode: 'ascii' })
+    const stdoutPath = scratchFile(`xfc-${id}-${stamp}`, '.stdout', { mode: 'ascii' })
+    const logPath = scratchFile(`xfc-${id}-${stamp}`, '.log', { mode: 'ascii' })
     const cleanup = [outPath, stdoutPath, logPath]
     let fd = null
     const finish = (r) => {
@@ -743,7 +750,7 @@ function tesseractTSVToWords(tsv) {
 
 function tesseractOCR(bin, imagePath, { timeoutMs = 30000 } = {}) {
   return new Promise((resolve) => {
-    const outPath = path.join(os.tmpdir(), `xfc-tess-${process.pid}-${Date.now()}.tsv`)
+    const outPath = scratchFile(`xfc-tess-${process.pid}-${Date.now()}`, '.tsv', { mode: 'ascii' })
     const logPath = `${outPath}.log`
     let logFd = null
     try {

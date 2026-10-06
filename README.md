@@ -775,18 +775,29 @@ Python 那边每帧慢 ~200ms（热态整帧 1100ms vs 898ms），但多了置�
 往 `%TEMP%` 写一个 2×2 的 PNG 直接被拒（`EPERM`），「自检一下」整个接口 500 ——
 而原因跟识别本身毫无关系。
 
-所以临时文件的落点统一走 `src/util.mjs` 的 `scratchFile()`，两档偏好、互相兜底：
+所以临时文件的落点统一走 `src/util.mjs` 的 `scratchFile()`，**两档偏好、三档兜底**：
 
-| 偏好 | 先放 | 写不进就退到 | 谁在用 |
-| --- | --- | --- | --- |
-| `project`（默认） | `data/tmp` | 系统临时目录 | 只被我们自己读的（Python 侧解图走 `np.fromfile`，中文路径没问题） |
-| `ascii` | 系统临时目录（纯 ASCII） | `data/tmp` | **要给外部 exe 读的**：实测 `RapidOCR-json` 读中文路径直接 `code:300 JSON dump failed`，所以优先 ASCII |
+| 偏好 | ① 先放 | ② 写不进就退 | ③ 还不行才退 | 谁在用 |
+| --- | --- | --- | --- | --- |
+| `project`（默认） | `data/tmp` | 系统临时目录 | —— | 只被我们自己读的（Python 侧解图走 `np.fromfile`，中文路径没问题） |
+| `ascii` | 系统临时目录（纯 ASCII） | **项目旁边的纯 ASCII 联接** `..\xfc-tmp` | `data/tmp` | **要给外部 exe 读写**的 |
 
-这里有个必须知道的取舍：**外部 exe 引擎要求「纯 ASCII 且可写」的落点**。
-项目目录的名字带中文，Windows 的 8.3 短名也**不会**把中文变成 ASCII
-（实测本项目短名是 `D:\GITHUB~1\代肝价~1`）。所以 `%TEMP%` 一旦不可写，
-RapidOCR-json / PaddleOCR-json / Tesseract 这几条路就**彻底没戏**，只有 Python 后端能活
-（它读图用的是 `np.fromfile + cv2.imdecode`，中文路径无所谓）。
+#### 那个 `xfc-tmp` 联接是什么
+
+外部 exe 读不了中文路径（实测同一个 exe、同一张图：ASCII 路径 `code:100` 正常，
+项目路径 `code:300 JSON dump failed`），而项目目录本身就叫「代肝价格查询」，
+Windows 的 8.3 短名也**不帮忙**（实测本项目短名是 `D:\GITHUB~1\代肝价~1`，中文原样保留）。
+唯一的出路是让**路径前缀**变英文：程序会在项目**外面**建一个英文名的目录联接
+（junction）指回 `data/tmp`，于是 `D:\github_xm\xfc-tmp\xxx.png` 就是纯 ASCII 的。
+
+- 放在项目外面：只有前缀算数；放同一个盘：联接不能跨卷；
+- 用 junction 而不是 symlink：junction 是 Windows 上唯一**普通用户就能建**的类型；
+- **懒建**：只在系统临时目录真的写不进去时才建，正常情况下你看不到它；
+- 建不出来（父目录也带中文 / 盘不支持 / 没权限）就退到 `data/tmp` ——
+  那时只有 Python 后端能用。
+
+实测：把 `TEMP` 指到一个不存在的盘，**旧引擎链（RapidOCR-json 那个 exe）照样 22/22**，
+和正常环境一致 —— 这条路在加联接之前是走不通的。
 
 同一个根因还会咬到**所有现场编译 C# 的 PowerShell 脚本**，而且多数是**静默**的
 （`Add-Type -TypeDefinition` 要临时目录，`Add-Type -AssemblyName` 不要）：

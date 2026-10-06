@@ -2,7 +2,7 @@ import crypto from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { DATA_DIR } from './config.mjs'
+import { DATA_DIR, ROOT } from './config.mjs'
 
 export class HttpError extends Error {
   constructor(status, message, code) {
@@ -41,16 +41,47 @@ function writable(dir) {
 }
 
 /**
+ * 项目**旁边**的纯 ASCII 别名目录（Windows 目录联接），指向 data/tmp。
+ *
+ * 为什么非要有这么个东西：外部 exe（RapidOCR-json / PaddleOCR-json / Tesseract）
+ * 读不了中文路径 —— 实测同一个 exe、同一张图，ASCII 路径 `code:100` 正常，
+ * 项目路径 `code:300 JSON dump failed`。而项目目录本身就叫「代肝价格查询」，
+ * 8.3 短名也不帮忙（实测本项目短名是 `D:\GITHUB~1\代肝价~1`，中文原样保留）。
+ *
+ * 唯一的出路是让**路径前缀**变英文：在项目外面建一个英文名的联接指回 data/tmp。
+ * 放在项目外是因为前缀才算数；放在同一个盘是因为联接不能跨卷；
+ * 用 'junction' 是因为它是 Windows 上唯一**普通用户就能建**的类型
+ * （symlink 要管理员或开发者模式）。
+ *
+ * 建不出来、父目录也带中文、或者建好了写不进去 —— 一律返回空串，让调用方退到
+ * data/tmp（那时只有 Python 后端能用，因为它读图走 np.fromfile，中文路径无所谓）。
+ */
+function asciiAliasDir() {
+  const alias = path.join(path.dirname(ROOT), 'xfc-tmp')
+  if (/[^\x20-\x7e]/.test(alias)) return ''
+  const target = path.join(DATA_DIR, 'tmp')
+  try {
+    fs.mkdirSync(target, { recursive: true })
+  } catch {
+    return ''
+  }
+  try {
+    if (!fs.existsSync(alias)) fs.symlinkSync(target, alias, 'junction')
+  } catch {
+    /* 已经存在、没权限、盘不支持联接 —— 都靠下面的可写性检查兜底 */
+  }
+  return writable(alias) ? alias : ''
+}
+
+/**
  * 临时文件放哪儿。两种偏好，都会互相兜底：
  *
  *   mode='project'（默认）—— 先 data/tmp，写不进再退系统临时目录。
  *     给「只被我们自己读」的临时文件用（Python 侧解图走 np.fromfile，中文路径没问题）。
  *
- *   mode='ascii' —— 先系统临时目录（纯 ASCII），写不进再退 data/tmp。
- *     给**外部 exe** 读的临时文件用：实测 RapidOCR-json 读不了中文路径
- *     （src/ocr.mjs 里那个 asciiCopy 就是为这件事存在的），所以优先 ASCII。
- *     %TEMP% 万一写不进去，退到项目目录至少 Python 那条路还能用 ——
- *     那种情况下反正 exe 那条路本来也跑不起来。
+ *   mode='ascii' —— 先系统临时目录（纯 ASCII）；写不进就退到项目旁边的 ASCII 联接
+ *     （见 asciiAliasDir，这样外部 exe 也还能用）；再不行才退 data/tmp。
+ *     给**外部 exe** 读写的临时文件用。
  *
  * 为什么要这么绕：**别以为 os.tmpdir() 一定写得进去**。这是实测过的真实故障
  * （用户机器上）：往 %TEMP% 写一个 2×2 的 PNG 直接被拒（EPERM），
@@ -61,9 +92,14 @@ function writable(dir) {
 export function scratchDir({ mode = 'project' } = {}) {
   const project = path.join(DATA_DIR, 'tmp')
   const system = os.tmpdir()
-  const order = mode === 'ascii' ? [system, project] : [project, system]
-  for (const dir of order) if (writable(dir)) return dir
-  return order[0]
+  if (mode === 'ascii') {
+    if (writable(system)) return system
+    const alias = asciiAliasDir()
+    if (alias) return alias
+    return writable(project) ? project : system
+  }
+  if (writable(project)) return project
+  return writable(system) ? system : project
 }
 
 /**

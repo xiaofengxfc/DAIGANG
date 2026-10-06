@@ -20,11 +20,11 @@
    ============================================================ */
 
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 import { spawn, spawnSync } from 'node:child_process'
 import { ROOT } from './config.mjs'
 import { CONSOLE_OCR, CONSOLE_CLI, probeEngines, probeEnginesStatus, ocrEngines, rememberEngineBin, recordedEngineBin } from './ocr.mjs'
+import { scratchFile } from './util.mjs'
 
 const TOOLS_DIR = path.join(ROOT, 'tools', 'ocr')
 const TMP_DIR = path.join(TOOLS_DIR, '.tmp')
@@ -626,7 +626,8 @@ export async function engineHealth(engineId) {
     // 一张 2×2 的纯色 PNG：够让引擎把「模型加载 → 检测 → 识别」整条路走一遍
     fs.writeFileSync(tmp, TINY_PNG)
     if (/[^\x20-\x7e]/.test(tmp)) {
-      asciiCopy = path.join(os.tmpdir(), `xfc-health-${engineId}-${process.pid}-${Date.now()}.png`)
+      // 给外部 exe 读的副本，走 ascii 档（见 util.mjs 的 scratchFile）
+      asciiCopy = scratchFile(`xfc-health-${engineId}-${process.pid}-${Date.now()}`, '.png', { mode: 'ascii' })
       fs.copyFileSync(tmp, asciiCopy)
       usePath = asciiCopy
     }

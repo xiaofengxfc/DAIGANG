@@ -4,7 +4,7 @@ import path from 'node:path'
 import { db, setSetting, stamp, nextSerialNo } from '../db.mjs'
 import { get, post, patch, del, saveDataURL, setBodyLimit } from '../http.mjs'
 import { UPLOAD_DIR, needsRestart, ROOT, MAX_OCR_IMAGE_BYTES } from '../config.mjs'
-import { bad, notFound, fail, int, num, money, clampStr, nowISO, localDate, localMonth, bizDate, parseJSON } from '../util.mjs'
+import { bad, notFound, fail, int, num, money, clampStr, nowISO, localDate, localMonth, bizDate, parseJSON, scratchFile } from '../util.mjs'
 import { ocrImage, extractResources, probeEnginesStatus, ensureEnginesProbed, ocrEngines } from '../ocr.mjs'
 import { ensureVisionStarted, probeVisionHealth, resetVisionBlock, stopVisionSidecar, visionBackendStatus, visionHealthCheck, visionLogTail, visionOcrCrop } from '../vision-python.mjs'
 import { startVisionDependencyInstall, visionDependencyInstallStatus, visionDependencyStatus } from '../vision-deps.mjs'
@@ -436,7 +436,8 @@ export function register() {
     if (!st.available) fail(400, '这台机器上没有可用的 OCR（Windows 自带引擎或本地 OCR 程序，二者有一即可）', 'no_ocr')
     const { name, buf } = saveDataURL(ctx.body.data_url, 'ocr', { maxBytes: MAX_OCR_IMAGE_BYTES })
     const ext = /\.(jpe?g|webp)$/i.test(name) ? path.extname(name) : '.png'
-    const tmp = path.join(os.tmpdir(), `xfc-ocr-src-${process.pid}-${Date.now()}${ext}`)
+    // 这张图要喂给 OCR 引擎（可能是外部 exe），所以走 ascii 档
+    const tmp = scratchFile(`xfc-ocr-src-${process.pid}-${Date.now()}`, ext, { mode: 'ascii' })
     fs.writeFileSync(tmp, buf)
     try {
       const r = await recognizeImageFile(tmp, { lang: clampStr(ctx.body.lang, 20) || 'zh-Hans-CN' })
@@ -655,7 +656,8 @@ export function register() {
     }
     const region = { x: boxNum(box.x, 0), y: boxNum(box.y, 0), w: Math.max(8, boxNum(box.w, 120)), h: Math.max(8, boxNum(box.h, 60)) }
     const { name, buf } = saveDataURL(ctx.body.data_url, 'icon', { maxBytes: MAX_OCR_IMAGE_BYTES })
-    const tmp = path.join(os.tmpdir(), `xfc-icon-src-${process.pid}-${Date.now()}.png`)
+    // 这张图只被我们自己的解码器读，中文路径无所谓 —— project 档
+    const tmp = scratchFile(`xfc-icon-src-${process.pid}-${Date.now()}`, '.png')
     fs.writeFileSync(tmp, buf)
     try {
       let img
