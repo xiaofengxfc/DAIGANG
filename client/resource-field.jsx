@@ -3,6 +3,7 @@ import { Eye, RefreshCw } from 'lucide-react'
 import { api } from './lib/api.js'
 import { fmtQty } from './lib/formatters.js'
 import { RES_KEYS, buildResources, deltaText, parseResources } from '../shared/resources.js'
+import { profileForGame, profileKeys } from '../shared/game-profiles.js'
 import { toast, toastErr } from './app/toast-store.js'
 
 /* ============================================================
@@ -14,6 +15,11 @@ import { toast, toastErr } from './app/toast-store.js'
    「做之前」和「做之后」两排，中间自动算「本次消耗」。
    两边都能点「识别画面」（看屏幕）或「识别截图」（选一张图）。
 
+   **记哪几个资源、按哪个键打开哪个界面，由订单上选的游戏决定**
+   （父组件把 order.game_name 传进来）。鸣潮记三个、异环记五个，
+   「体力」在两边都记，但图标是两张不同的图 —— 这些全在
+   shared/game-profiles.js 里，这里只负责渲染。
+
    交给父组件的值是两行文本（resources_before / resources_after），
    和旧版 collect() 塞进去的完全一样 —— 后端存的还是同一格式。
    ============================================================ */
@@ -21,14 +27,17 @@ import { toast, toastErr } from './app/toast-store.js'
 const tinyStyle = { marginTop: '2px', opacity: '.85' }
 const tinyTopStyle = { marginTop: '4px', opacity: '.85' }
 const amberStyle = { marginTop: '2px' }
-const SCREEN_STAGES = [
-  { id: 'bag', title: '背包', key: 'B', resources: ['贝币', '星声'], openDelay: 1100 },
-  { id: 'map', title: '地图', key: 'M', resources: ['体力'], openDelay: 1400 },
-]
 const MAX_SCREEN_FRAMES = 8
 
-export default function ResourceField({ before = '', after = '', beforeFrom = '', onChange }) {
-  const [sides, setSides] = useState(() => ({ before: parseResources(before), after: parseResources(after) }))
+export default function ResourceField({ before = '', after = '', beforeFrom = '', game = '', onChange }) {
+  // 订单上选的游戏 → 这张表：记哪几个资源、按什么键打开哪些界面
+  const profile = profileForGame(game)
+  const keys = profileKeys(profile)
+  const stages = profile.stages || []
+  const gameName = (profile.names && profile.names[0]) || profile.id
+  // 解析和拼回都用**并集**（RES_KEYS）：万一历史文本里带着别的游戏的资源名，
+  // 它会落到「其他」框里原样留着，不会因为换了游戏就悄悄丢字。
+  const [sides, setSides] = useState(() => ({ before: parseResources(before, RES_KEYS), after: parseResources(after, RES_KEYS) }))
   const [notes, setNotes] = useState({ before: null, after: null })
   const [busy, setBusy] = useState({ before: '', after: '' })
   const [ocrOk, setOcrOk] = useState(null)
@@ -42,8 +51,8 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
   onChangeRef.current = onChange
 
   const values = {
-    resources_before: buildResources(sides.before, sides.before.other),
-    resources_after: buildResources(sides.after, sides.after.other),
+    resources_before: buildResources(sides.before, sides.before.other, RES_KEYS),
+    resources_after: buildResources(sides.after, sides.after.other, RES_KEYS),
   }
 
   // 值一变就报给父组件（旧版是提交时 collect，这里随时同步，提交结果一样）
@@ -80,7 +89,7 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
   const fill = (side, got) => {
     setSides((prev) => {
       const next = { ...prev[side] }
-      for (const key of RES_KEYS) {
+      for (const key of keys) {
         if (got[key] === undefined || got[key] === null) continue
         next[key] = String(got[key])
       }
@@ -102,9 +111,9 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
         reader.onerror = () => reject(new Error('读不了这个文件'))
         reader.readAsDataURL(file)
       })
-      const result = await api.post('/api/ocr', { data_url: dataUrl })
+      const result = await api.post('/api/ocr', { data_url: dataUrl, game: gameName })
       const got = result.resources || {}
-      const found = RES_KEYS.filter((key) => got[key] !== undefined && got[key] !== null)
+      const found = keys.filter((key) => got[key] !== undefined && got[key] !== null)
       fill(side, got)
 
       // 认出来的原文也摊开给用户核对 —— 认错的时候一眼能看出来
@@ -120,7 +129,7 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
         ...prev,
         [side]: (
           <>
-            <strong>{found.length ? `认出 ${found.length} 项，请核对一下再保存` : '这三个资源一个都没认出来，可以手动填'}</strong>
+            <strong>{found.length ? `认出 ${found.length} 项，请核对一下再保存` : `${keys.length} 个资源一个都没认出来，可以手动填`}</strong>
             {result.warning ? <div className="tiny" style={tinyStyle}>{result.warning}</div> : null}
             {result.engine ? (
               <div className="tiny" style={tinyStyle}>
@@ -144,8 +153,10 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
   }
 
   /**
-   * 自动流程：激活鸣潮 → B 读背包货币 → ESC → M 读体力 → ESC。
-   * 每个值需识别到两次才会采纳；单页最多扫八帧，仍缺值就返回游戏并停止。
+   * 自动流程：激活游戏窗口 → 按 profile 里第一段的键读一遍 → ESC →
+   * 第二段的键再读一遍 → ESC。每个值需识别到两次才会采纳；
+   * 单页最多扫八帧，仍缺值就返回游戏并停止。
+   * 具体是 B 背包 / M 地图，还是别的键，看订单上那个游戏的 profile。
    */
   async function watchScreen(side) {
     if (watchers.current.before || watchers.current.after) return
@@ -173,7 +184,7 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
     // backError 只是没把浏览器切到前台（数据已经认全了，纯便利问题，不该降级结果）。
     let escError = ''
     let backError = ''
-    let progressHint = '正在切回鸣潮…'
+    let progressHint = `正在切回${gameName}…`
 
     const paintProgress = (stage, extra = progressHint) => {
       const have = stage.resources.filter((key) => got[key] !== undefined)
@@ -194,16 +205,16 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
       }))
     }
 
-    paintProgress(SCREEN_STAGES[0])
+    paintProgress(stages[0])
     try {
       const focus = await api.post('/api/ocr/screen/focus')
-      if (!focus || !focus.ok) throw new Error((focus && focus.error) || '没有切换到鸣潮窗口')
+      if (!focus || !focus.ok) throw new Error((focus && focus.error) || `没有切换到${gameName}窗口`)
       focused = true
-      progressHint = `已切回鸣潮${focus.title ? `（${focus.title}）` : ''}，准备打开背包…`
+      progressHint = `已切回${gameName}${focus.title ? `（${focus.title}）` : ''}，准备打开${stages[0].title}…`
       // Give the restored game window a moment to repaint before capturing it.
       await new Promise((resolve) => setTimeout(resolve, 500))
 
-      for (const stage of SCREEN_STAGES) {
+      for (const stage of stages) {
         if (token.stop) break
         const session = `${sessionBase}-${stage.id}`
         sessions.push(session)
@@ -218,7 +229,7 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
         await new Promise((resolve) => setTimeout(resolve, stage.openDelay))
 
         for (let attempt = 0; attempt < MAX_SCREEN_FRAMES && !token.stop; attempt++) {
-          const result = await api.post('/api/ocr/screen', { session, min_votes: 2 })
+          const result = await api.post('/api/ocr/screen', { session, min_votes: 2, game: gameName })
           if (result.engine) engine = result.engine
           if (Array.isArray(result.hits)) {
             for (const hit of result.hits) {
@@ -291,12 +302,12 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
     }
 
     if (token.stop) return
-    const count = RES_KEYS.filter((key) => got[key] !== undefined).length
+    const count = keys.filter((key) => got[key] !== undefined).length
     const small = Object.keys(smallText)
-    const complete = count === RES_KEYS.length && !stoppedReason && !escError
+    const complete = count === keys.length && !stoppedReason && !escError
     const summary = stoppedReason
       ? `${stoppedReason}${returnedToGame ? ' 已按 ESC 返回游戏。' : ''}`
-      : (complete ? '三项都识别到了，请核对后再保存。' : `已识别 ${count}/3 项。`)
+      : (complete ? `${keys.length} 项都识别到了，请核对后再保存。` : `已识别 ${count}/${keys.length} 项。`)
     setNotes((prev) => ({
       ...prev,
       [side]: (
@@ -313,13 +324,13 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
             <div className="tiny tone-amber" style={amberStyle}>{`${Object.keys(layoutFallback).join('、')} 是按数字格式补出的，请对照游戏核验。`}</div>
           ) : null}
           <div className="tiny" style={tinyTopStyle}>
-            {complete ? '背包和地图各自识别两次一致后才会填入。' : '只会填写复核一致的数值；未识别字段保持原样。'}
+            {complete ? `${stages.map((s) => s.title).join('和')}各自识别两次一致后才会填入。` : '只会填写复核一致的数值；未识别字段保持原样。'}
           </div>
         </>
       ),
     }))
-    if (complete) toast('贝币、星声和体力已识别，请核对', 'ok', 4200)
-    else toast(escError || stoppedReason || `已识别 ${count}/3 项`, 'err', escError ? 5200 : 4200)
+    if (complete) toast(`${keys.join('、')}已识别，请核对`, 'ok', 4200)
+    else toast(escError || stoppedReason || `已识别 ${count}/${keys.length} 项`, 'err', escError ? 5200 : 4200)
   }
 
   function buildSide(side, label, isFirst) {
@@ -332,7 +343,7 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
           <button
             className="btn btn--sm btn--primary"
             type="button"
-            title="切回鸣潮后自动按 B 识别背包，再按 M 识别体力"
+            title={`切回${gameName}后自动按 ${stages.map((s) => `${s.key} 识别${s.title}`).join('，再按 ')}`}
             data-loading={busy[side] === 'watch' ? '1' : undefined}
             onClick={() => watchScreen(side)}
           >
@@ -342,7 +353,7 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
           <button
             className="btn btn--sm"
             type="button"
-            title="选一张游戏截图，自动认星声 / 体力 / 贝币"
+            title={`选一张游戏截图，自动认 ${keys.join(' / ')}`}
             data-loading={busy[side] === 'shot' ? '1' : undefined}
             onClick={() => fileRefOf(side).current?.click()}
           >
@@ -351,7 +362,7 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
           </button>
         </div>
         <div className="cluster" style={{ gap: '6px', flexWrap: 'wrap' }}>
-          {RES_KEYS.map((key) => (
+          {keys.map((key) => (
             <label className="inline" key={key} style={{ gap: '4px' }}>
               <span className="dim tiny">{key}</span>
               <input

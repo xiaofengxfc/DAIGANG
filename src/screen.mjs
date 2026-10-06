@@ -30,6 +30,7 @@ import { fileURLToPath } from 'node:url'
 import { scratchFile } from './util.mjs'
 import { ocrImage, parseNumber, ocrStatus } from './ocr.mjs'
 import { activeGameWindow } from './game-window.mjs'
+import { profileForGame, profileKeys, DEFAULT_PROFILE } from '../shared/game-profiles.js'
 import { decodePNG, crop, encodePNG, resize } from './imgmatch.mjs'
 import { buildIntegral, compileTemplate, findIcon, findIconTop, pickStableCandidate, resampleBilinear, sweepScales, groupNumberBlocks, subImage } from './vision.mjs'
 
@@ -38,16 +39,34 @@ const GRAB_PS1 = path.resolve(HERE, '..', 'scripts', 'grab.ps1')
 const ICON_DIR = path.resolve(HERE, '..', 'public', 'resource-icons')
 
 /* ============================================================
-   资源表：每种资源 = 一个图标模板 + 几个别名
-   名字对得上 ocr.mjs 的 RESOURCE_ALIASES 和前端 orderbits.js 的 RES_KEYS
+   资源表：**按游戏来**（表在 shared/game-profiles.js）
+   ============================================================
+
+   以前这里是写死的三个资源（星声 / 体力 / 贝币）加一个图标宽度比例，
+   换个游戏就得改识别代码，而且改一处漏一处。现在每个游戏一份 profile：
+   认哪几个资源、图标模板叫什么文件、拿哪个当锚点、图标占画面多宽，全在表里。
+
+   识别流程本身不认识「鸣潮」「异环」这几个字 —— 它只认 profile。
+   哪个游戏由**订单上选的游戏**决定（game_name），一路传到 recognizeScreenOnce。
    ============================================================ */
 
-export const RESOURCE_ICONS = [
-  // anchor:true 的那个先用来定标（挑「内部对比最强、最好认」的当锚点）
-  { key: '星声', file: 'xingsheng', aliases: ['星声', '星聲'], anchor: true },
-  { key: '体力', file: 'tili', aliases: ['结晶波片', '结晶', '波片', '体力', '存储体力'] },
-  { key: '贝币', file: 'beibi', aliases: ['贝币', '貝幣', '贝壳币'] },
-]
+/** 默认游戏（鸣潮）的资源表。老调用方还在用它 */
+export const RESOURCE_ICONS = DEFAULT_PROFILE.resources
+
+/** 默认游戏的资源名（老名字留着，routes 里还在用） */
+export const SCREEN_RESOURCES = profileKeys(DEFAULT_PROFILE)
+
+/** 某个游戏要认的资源名 */
+export function screenResourcesFor(game) {
+  return profileKeys(profileForGame(game))
+}
+
+/** 某个游戏里，这个资源用哪个模板文件（不带 .png） */
+export function templateFileFor(game, key) {
+  const p = profileForGame(game)
+  const hit = (p.resources || []).find((r) => r.key === key)
+  return hit ? hit.file : ''
+}
 
 /**
  * 锚点最少要多少分才拿它去定标。
@@ -93,10 +112,6 @@ function pruneCalibrations() {
   for (const [k, v] of calibrations) if (now - v.at > CALIB_TTL) calibrations.delete(k)
 }
 
-/** 兼容老代码：只关心名字的地方还在用这两个 */
-export const SCREEN_RESOURCES = RESOURCE_ICONS.map((r) => r.key)
-const TEMPLATE_FILE = Object.fromEntries(RESOURCE_ICONS.map((r) => [r.key, r.file]))
-
 /** 认到多少分才算数。实测真样本在 0.88~0.94（NCC 口径），0.62 是留了余量又不放水的位置 */
 export const MIN_SCORE = 0.62
 
@@ -104,12 +119,14 @@ export const MIN_SCORE = 0.62
 export const TOP_BAND_RATIO = 0.14
 
 /**
- * 顶栏图标宽度占画面宽度的比例，实测值。
- * 同一张截图缩到 1152×720 ~ 3840×2400 十种分辨率量出来的：
- * 图标宽 / 画面宽 = 0.0344，一直是这个数；换成「图标宽 / 画面高」在 16:10 与 21:9
- * 之间会差 43%。游戏 UI 是按横向分辨率缩放的，所以宽度才是不变量。
+ * 顶栏图标宽度占画面宽度的比例 —— **每个游戏不一样，所以从 profile 取**。
+ * 鸣潮：同一张截图缩到 1152×720 ~ 3840×2400 十种分辨率量出来都是 0.0344；
+ * 异环：2559×1599 实测 0.0225 —— 只有鸣潮的 65%，
+ * 用同一个比例去扫，档位整个偏掉，图标一个都找不到。
+ * 换成「图标宽 / 画面高」两个游戏都会散架（16:10 与 21:9 差 43%）：
+ * 游戏 UI 是按横向分辨率缩放的，所以宽度才是不变量。
  */
-const ICON_W_RATIO = 0.0344
+const ICON_W_RATIO = DEFAULT_PROFILE.iconWidthRatio
 
 /**
  * 搜索图里图标的目标像素宽度。太小（20px 上下）时贝币那种内部偏平的图标
@@ -124,22 +141,28 @@ export const TOP_BAND = 150
    图标模板：加载 + 从截图现场抠一个（新版才有的「自学习」）
    ============================================================ */
 
-let tplCache = null
+/** 每个游戏一份模板缓存（模板文件按游戏区分，见 game-profiles.js 的 file 字段） */
+const tplCaches = new Map()
 
 /**
- * 载入图标模板。两个来源，按优先级：
+ * 载入某个游戏的图标模板。两个来源，按优先级：
  *   1. `data/resource-icons/<名字>.png` —— 用户自己抠的，最贴合他的游戏版本；
  *   2. `public/resource-icons/<名字>.png` —— 随程序带的默认模板。
  * 都没有就跳过这个资源（识别不了总比认错好）。
+ *
+ * 两个游戏的模板靠**文件名**区分（异环的带 nte- 前缀），所以查找逻辑一行没改：
+ * 异环的「体力」是另一张卡（nte-tili.png），和鸣潮的 tili.png 互不干扰。
  */
-export function loadTemplates({ force = false } = {}) {
-  if (tplCache && !force) return tplCache
+export function loadTemplates({ force = false, profile = DEFAULT_PROFILE } = {}) {
+  const p = profile || DEFAULT_PROFILE
+  const cached = tplCaches.get(p.id)
+  if (cached && !force) return cached
   const dirs = [
     path.resolve(HERE, '..', 'data', 'resource-icons'),
     ICON_DIR,
   ]
   const refs = []
-  for (const r of RESOURCE_ICONS) {
+  for (const r of p.resources || []) {
     for (const dir of dirs) {
       const file = path.join(dir, `${r.file}.png`)
       try {
@@ -147,6 +170,9 @@ export function loadTemplates({ force = false } = {}) {
         refs.push({
           key: r.key,
           anchor: Boolean(r.anchor),
+          // 允许认到 0 的资源：异环的都市活力会显示 0/700，那个 0 是真值，
+          // 而默认把 0 当噪声（界面上到处是 0，很容易配错）。
+          allowZero: Boolean(r.allowZero),
           aliases: r.aliases || [r.key],
           file,
           from: dir.includes(`${path.sep}data${path.sep}`) ? 'custom' : 'bundled',
@@ -159,17 +185,19 @@ export function loadTemplates({ force = false } = {}) {
       }
     }
   }
-  tplCache = refs
+  tplCaches.set(p.id, refs)
   return refs
 }
 
-/** 供 /api/ocr/status 用：这台机器手上到底有几个图标模板 */
-export function templateStatus() {
-  const refs = loadTemplates()
+/** 供 /api/ocr/status 用：这台机器手上到底有几个图标模板（按游戏分开报） */
+export function templateStatus(game) {
+  const p = profileForGame(game)
+  const refs = loadTemplates({ profile: p })
   return {
+    game: p.id,
     count: refs.length,
     items: refs.map((r) => ({ key: r.key, from: r.from, w: r.img.width, h: r.img.height, hasMask: r.tpl.hasMask })),
-    missing: RESOURCE_ICONS.filter((r) => !refs.some((x) => x.key === r.key)).map((r) => r.key),
+    missing: (p.resources || []).filter((r) => !refs.some((x) => x.key === r.key)).map((r) => r.key),
   }
 }
 
@@ -226,14 +254,16 @@ export function extractIconTemplate(img, box) {
    ============================================================ */
 
 /** 在一个数字块列表里，找图标右边那块 */
-function pickNumberBlock(blocks, icon, tplImg, scale, { gapRatio = 4.5 } = {}) {
+function pickNumberBlock(blocks, icon, tplImg, scale, { gapRatio = 4.5, allowZero = false } = {}) {
   const right = icon.x + tplImg.width * scale
   const iconCy = icon.y + (tplImg.height * scale) / 2
   const iconH = tplImg.height * scale
   let best = null
   for (const b of blocks) {
-    const num = parseNumber(b.text)
-    if (num === null || num <= 0) continue
+    const num = parseNumber(b.text, { allowZero })
+    // 默认不要 0：界面里到处是 0，认到 0 基本等于认错了。
+    // 但异环的都市活力会真的显示 0/700 —— 那个资源的 allowZero 打开时才收 0。
+    if (num === null || (!allowZero && num <= 0)) continue
     // 必须在图标右边（允许 2px 误差），不能离得太远
     const dx = b.x - right
     if (dx < -2 || dx > iconH * gapRatio) continue
@@ -333,11 +363,15 @@ function ocrLayoutFallback(blocks, existing, img) {
  */
 export function recognizeFrame(img, words, {
   minScore = MIN_SCORE,
-  refs = loadTemplates(),
+  profile = DEFAULT_PROFILE,
+  refs = null,
   topBandRatio = TOP_BAND_RATIO,
   timeBudgetMs = 1500,
   timings = null,
 } = {}) {
+  // profile 收对象也收游戏名：调用方（路由/自检）两种都能传
+  const p = profile && profile.resources ? profile : profileForGame(profile)
+  const iconRefs = refs || loadTemplates({ profile: p })
   const t0 = Date.now()
   const mark = (k) => {
     if (timings) timings[k] = (timings[k] || 0) + (Date.now() - t0)
@@ -360,7 +394,7 @@ export function recognizeFrame(img, words, {
   // 之前按高度估，在 2560×1080 / 1920×822 这种超宽比下档位整个偏掉，
   // 锚点定不出来，数字就读错（实测那两种比例全错）。
   // 游戏 UI 是按横向分辨率缩放的，所以宽度才是那个不变量。
-  const expectedIconW = Math.max(8, img.width * ICON_W_RATIO)
+  const expectedIconW = Math.max(8, img.width * (p.iconWidthRatio || ICON_W_RATIO))
   // 不同页面的 HUD 不一定按同一个轴缩放：武器页图标接近 80px，地图页
   // 同一套资源可能只有 45px。放宽搜索档位，避免模板尺寸正确却完全错过。
   const scalesFor = (tplImg) => sweepScales((expectedIconW / tplImg.width) * 1.1, 2.35, 11)
@@ -395,11 +429,13 @@ export function recognizeFrame(img, words, {
      要是上一次在同一分辨率下已经定过标（用户连着点「识别画面」就是这种情况），
      直接用上次的锚点：同一台机器同一个窗口，位置不会跳。
      这一条把「第一次贵、之后每帧几十毫秒」变成常态。 */
-  const calibKey = `${img.width}x${img.height}`
+  // 定标缓存按「游戏 + 分辨率」存。两个游戏的图标大小差一倍（0.0344 vs 0.0225），
+  // 共用一份定标会把异环的图标按鸣潮的尺度去复核，直接找不到。
+  const calibKey = `${p.id}:${img.width}x${img.height}`
   const cached = calibrations.get(calibKey)
   // 这一帧认到的图标位置，收尾时写回缓存（每个 key 单独记，下帧直接复查）
   const calibIcons = cached && cached.icons ? { ...cached.icons } : {}
-  const anchorPriority = [...refs].sort((a, b) => (b.anchor ? 1 : 0) - (a.anchor ? 1 : 0) || (b.img?.width || 0) - (a.img?.width || 0))
+  const anchorPriority = [...iconRefs].sort((a, b) => (b.anchor ? 1 : 0) - (a.anchor ? 1 : 0) || (b.img?.width || 0) - (a.img?.width || 0))
   const quick = anchorPriority[0]
   let anchor = null
   let anchorR = null
@@ -428,7 +464,7 @@ export function recognizeFrame(img, words, {
         w: Math.min(img.width, hit.x + aw * 6.5) - Math.max(0, hit.x - aw * 6.5),
         h: bandH,
       }
-      for (const other of refs) {
+      for (const other of iconRefs) {
         if (!other.img || other === quick) continue
         const found = findIconTop(img, other.img, { region: near, baseScale: hit.scale, scaleFactor: 1.3, scaleSteps: 7, work, coarseStep: 3, minScore, timeBudgetMs: Math.min(budget() || 500, 500) }, 1)
         const best = pickStableCandidate(found, { margin: 0.92, minScore })
@@ -467,7 +503,7 @@ export function recognizeFrame(img, words, {
   /* ---- 第二遍：锚点定标 → 其余图标只在锚点那一簇里找（几档细尺度） ---- */
   const MAX_CLUSTER = 15 // 单位：锚点图标的宽度（顶栏资源都在这个范围内）
   const hits = []
-  for (const r of refs) {
+  for (const r of iconRefs) {
     if (!r.img) continue
     // 时间上限只在**没定出锚点**时生效：那种情况说明这张图和模板差得远
     // （比如给了一张地图截图），三个图标各扫一遍全条带又慢又没意义。
@@ -524,7 +560,7 @@ export function recognizeFrame(img, words, {
       continue
     }
     calibIcons[r.key] = { x: hit.x, y: hit.y, scale: hit.scale }
-    const picked = pickNumberBlock(blocks, hit, r.img, hit.scale)
+    const picked = pickNumberBlock(blocks, hit, r.img, hit.scale, { allowZero: r.allowZero })
     // 字太小就标出来让人多看一眼 —— 但只对 Windows 自带 OCR 标：
     // 它在字高 ≤22px 时会读错位数，PP-OCR 系的引擎不会（见 SMALL_DIGIT_H 的注释）。
     const engineId = ocrStatus().engine
@@ -550,7 +586,12 @@ export function recognizeFrame(img, words, {
 
   // 模板完全没有覆盖到的 HUD 皮肤仍可能有可靠的 OCR 数字格式。
   // 只在对应资源尚未命中时补入，模板命中始终优先。
-  const fallback = ocrLayoutFallback(blocks, hits, img)
+  //
+  // **只对写明 layoutFallback 的游戏跑**（现在只有鸣潮）：那套启发式是按鸣潮顶栏
+  // 写的（「当前/上限 且上限 100~300」= 体力、「≥6 位长整数」= 贝币、剩下的短数字
+  // 推成星声）。异环的数字长得完全不一样（方斯 4,116,889 也是长整数），
+  // 拿同一套去套只会凭空编出几个看着挺像的值 —— 那比认不出来更糟。
+  const fallback = p.layoutFallback ? ocrLayoutFallback(blocks, hits, img) : []
   for (const rec of fallback) {
     if (!hits.some((h) => h.key === rec.key)) {
       hits.push(rec)
@@ -711,7 +752,8 @@ async function ocrBand(img, bandH, { lang = 'zh-Hans-CN' } = {}) {
  * 但明说「这张图只能看字、认不了图标数字」，让人换 PNG 重截，
  * 而不是丢一个看不懂的解码异常给用户。
  */
-export async function recognizeImageFile(filePath, { lang = 'zh-Hans-CN', minScore = MIN_SCORE } = {}) {
+export async function recognizeImageFile(filePath, { lang = 'zh-Hans-CN', minScore = MIN_SCORE, game = '' } = {}) {
+  const profile = profileForGame(game)
   const buf = fs.readFileSync(filePath)
   let img = null
   let decodeError = ''
@@ -740,9 +782,10 @@ export async function recognizeImageFile(filePath, { lang = 'zh-Hans-CN', minSco
   const bandH = Math.max(48, Math.round(img.height * TOP_BAND_RATIO))
   const ocr = await ocrBand(img, bandH, { lang })
   if (!ocr.ok) return { ok: false, error: ocr.error }
-  const r = recognizeFrame(img, ocr.words, { minScore })
+  const r = recognizeFrame(img, ocr.words, { minScore, profile })
   return {
     ok: true,
+    game: profile.id,
     resources: Object.fromEntries(r.hits.map((h) => [h.key, h.value])),
     hits: r.hits,
     seen: r.seen,
@@ -813,11 +856,14 @@ function tally(session, frame, minVotes) {
  */
 export async function recognizeScreenOnce({
   id = 'default',
+  game = '',
   minVotes = 2,
   minScore = MIN_SCORE,
   lang = 'zh-Hans-CN',
   timeBudgetMs = 0,
 } = {}) {
+  // 认哪个游戏由调用方给（前端传的是**订单上选的游戏**）
+  const profile = profileForGame(game)
   pruneSessions()
   // 截图落点：优先系统临时目录（纯 ASCII），写不进去再退 data/tmp。
   // 这一步要是写不了，整个识别就没法开始 —— 所以它必须有退路。
@@ -836,16 +882,17 @@ export async function recognizeScreenOnce({
     const ocr = await ocrBand(img, bandH, { lang })
     if (!ocr.ok) return { ok: false, error: ocr.error }
     // 单帧最多花 1.5 秒：认不出来就该老实返回，让前端接着看下一帧
-    const frame = recognizeFrame(img, ocr.words, { minScore, timeBudgetMs: 1500 })
+    const frame = recognizeFrame(img, ocr.words, { minScore, timeBudgetMs: 1500, profile })
     let session = sessions.get(id)
     if (!session) {
-      session = { votes: new Map(), frames: 0, touched: Date.now() }
+      session = { votes: new Map(), frames: 0, touched: Date.now(), game: profile.id }
       sessions.set(id, session)
     }
     session.touched = Date.now()
     const { agreed, pending } = tally(session, frame, Math.max(1, minVotes))
     return {
       ok: true,
+      game: profile.id,
       resources: Object.fromEntries(Object.entries(agreed).map(([k, v]) => [k, v.value])),
       agreed,
       pending,
@@ -875,7 +922,7 @@ export function screenAvailable() {
 }
 
 /* 导出给老调用方（imgmatch 的 crop/resize 还在别处用） */
-export { crop, resize, encodePNG, subImage, buildIntegral, findIcon, TEMPLATE_FILE }
+export { crop, resize, encodePNG, subImage, buildIntegral, findIcon }
 
 /**
  * 只 OCR 顶栏那条带（导出是为了能单独测「OCR 在这台机器上认不认得出」，

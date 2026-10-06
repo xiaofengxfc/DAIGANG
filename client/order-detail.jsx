@@ -256,7 +256,7 @@ export default function OrderDetailPage({ route, navigate, onReload, reloadKey }
                 />
               </div>
               <div className="panel__body" style={{ paddingTop: '0' }}>
-                <ProgressTimeline list={order.progress} onEdit={(progress) => openEditProgressForm(progress, reload)} onDelete={removeProgress} />
+                <ProgressTimeline list={order.progress} onEdit={(progress) => openEditProgressForm(progress, reload, order.game_name)} onDelete={removeProgress} />
               </div>
             </section>
           </div>

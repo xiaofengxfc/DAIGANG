@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react'
+import React, { useState } from 'react'
 import { api } from './lib/api.js'
 import { todayStr } from './lib/formatters.js'
 import { lastResourcesAfter } from '../shared/resources.js'
@@ -41,8 +41,12 @@ export async function openProgressForm(order, onDone) {
   )
 }
 
-export function openEditProgressForm(progress, onDone) {
-  return openOverlay((close) => <EditProgressForm progress={progress} onDone={onDone} close={close} />, `progress-edit-${progress.id}`)
+/**
+ * 改一条已记的进度。`game` 是这张单的游戏名 —— 用来决定资源字段显示哪几个
+ * （异环比鸣潮多记甲硬币 / 方斯 / 环石 / 都市活力），不传就按默认那份来。
+ */
+export function openEditProgressForm(progress, onDone, game = '') {
+  return openOverlay((close) => <EditProgressForm progress={progress} game={game} onDone={onDone} close={close} />, `progress-edit-${progress.id}`)
 }
 
 function ProgressForm({ order, carried, onDone, close }) {
@@ -114,6 +118,7 @@ function ProgressForm({ order, carried, onDone, close }) {
             <ResourceField
               before={carried || ''}
               beforeFrom={carried ? '上一条的「做之后」' : ''}
+              game={order.game_name}
               onChange={setResources}
             />
 
@@ -145,7 +150,7 @@ function ProgressForm({ order, carried, onDone, close }) {
   )
 }
 
-function EditProgressForm({ progress, onDone, close }) {
+function EditProgressForm({ progress, game = '', onDone, close }) {
   const [form, setForm] = useState({
     happened_on: progress.happened_on || '',
     content: progress.content || '',
@@ -220,6 +225,7 @@ function EditProgressForm({ progress, onDone, close }) {
             <ResourceField
               before={progress.resources_before || ''}
               after={progress.resources_after || ''}
+              game={game}
               onChange={setResources}
             />
 

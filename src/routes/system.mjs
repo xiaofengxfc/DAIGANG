@@ -9,7 +9,8 @@ import { ocrImage, extractResources, probeEnginesStatus, ensureEnginesProbed, oc
 import { ensureVisionStarted, probeVisionHealth, resetVisionBlock, stopVisionSidecar, visionBackendStatus, visionHealthCheck, visionLogTail, visionOcrCrop } from '../vision-python.mjs'
 import { startVisionDependencyInstall, visionDependencyInstallStatus, visionDependencyStatus } from '../vision-deps.mjs'
 import { installOptions, installEngine, installStatus, extractorStatus, releasePage, INSTALL_SPECS, engineHealth, cleanupTmp } from '../ocr-install.mjs'
-import { recognizeScreenOnce, recognizeImageFile, resetVotes, screenAvailable, templateStatus, loadTemplates, extractIconTemplate, TEMPLATE_FILE, SCREEN_RESOURCES, MIN_SCORE } from '../screen.mjs'
+import { recognizeScreenOnce, recognizeImageFile, resetVotes, screenAvailable, templateStatus, loadTemplates, extractIconTemplate, screenResourcesFor, templateFileFor, SCREEN_RESOURCES, MIN_SCORE } from '../screen.mjs'
+import { profileForGame } from '../../shared/game-profiles.js'
 import { focusGameWindow, returnToPreviousWindow, sendGameKey } from '../game-window.mjs'
 import { decodePNG, encodePNG } from '../imgmatch.mjs'
 import { isSetUp, setPassword, verifyPassword, createSession, destroySession, destroyAllSessions, actorName, assertNotThrottled, noteFailure, clearFailures } from '../auth.mjs'
@@ -425,7 +426,9 @@ export function register() {
   })
 
   /**
-   * 认截图：把游戏截图里的资源数字抠出来（星声 / 体力 / 贝币）。
+   * 认截图：把游戏截图里的资源数字抠出来。
+   * **认哪几个资源由 `game` 决定**（前端传的是订单上选的游戏）：
+   * 鸣潮是星声/体力/贝币，异环是甲硬币/方斯/环石/都市活力/体力。
    * 顺序是「先找图标（不认坐标、不认分辨率）→ 再由图标推出数字块 → 配 OCR 文本」。
    * 引擎会自动挑这台机器上最好的那个（Umi-OCR → RapidOCR → Windows 自带）。
    * 认出来的只是「猜」，前端会让人核对后再填，不直接写库。
@@ -434,15 +437,17 @@ export function register() {
     // 识别前先把引擎状态探一次：不然 Umi-OCR 明明开着也轮不到它（见 /api/ocr/status 的注释）
     const st = await ensureEnginesProbed()
     if (!st.available) fail(400, '这台机器上没有可用的 OCR（Windows 自带引擎或本地 OCR 程序，二者有一即可）', 'no_ocr')
+    const game = clampStr(ctx.body.game, 40)
     const { name, buf } = saveDataURL(ctx.body.data_url, 'ocr', { maxBytes: MAX_OCR_IMAGE_BYTES })
     const ext = /\.(jpe?g|webp)$/i.test(name) ? path.extname(name) : '.png'
     // 这张图要喂给 OCR 引擎（可能是外部 exe），所以走 ascii 档
     const tmp = scratchFile(`xfc-ocr-src-${process.pid}-${Date.now()}`, ext, { mode: 'ascii' })
     fs.writeFileSync(tmp, buf)
     try {
-      const r = await recognizeImageFile(tmp, { lang: clampStr(ctx.body.lang, 20) || 'zh-Hans-CN' })
+      const r = await recognizeImageFile(tmp, { lang: clampStr(ctx.body.lang, 20) || 'zh-Hans-CN', game })
       if (!r.ok) fail(400, r.error || '识别失败', 'ocr_failed')
       return {
+        game: r.game,
         resources: r.resources,
         hits: r.hits,
         seen: r.seen,
@@ -454,7 +459,7 @@ export function register() {
         engine: r.engine,
         ms: r.ms,
         word_count: (r.candidates || []).length,
-        template: templateStatus(),
+        template: templateStatus(game),
       }
     } finally {
       try {
@@ -484,7 +489,9 @@ export function register() {
     // 等用户真点「识别画面」的时候就已经热了。没装依赖就什么都不做，
     // 状态页会告诉他去哪儿装。
     if (!st.backend?.online && st.backend?.deps_ready !== false) void ensureVisionStarted().catch(() => {})
-    return { ...st, screen: process.platform === 'win32', templates: templateStatus(), resources: SCREEN_RESOURCES, min_score: MIN_SCORE }
+    // 资源表跟着 `?game=` 走：前端要按订单的游戏显示该记哪几个
+    const game = clampStr(ctx.query.game, 40)
+    return { ...st, screen: process.platform === 'win32', templates: templateStatus(game), resources: screenResourcesFor(game), min_score: MIN_SCORE }
   })
 
   /** 用户点击「识别画面」后，把鸣潮窗口切到前台；后续截屏会裁取这个窗口。 */
@@ -523,13 +530,16 @@ export function register() {
     // 同上：看屏幕之前先探一次，别让首选引擎白白闲置
     const st = await ensureEnginesProbed()
     if (!st.available) fail(400, '这台机器上用不了屏幕识别（需要有可用的 OCR）', 'no_screen')
+    const game = clampStr(ctx.body.game, 40)
     const r = await recognizeScreenOnce({
       id: clampStr(ctx.body.session, 40) || 'default',
+      game,
       minVotes: Math.max(1, Math.min(6, int(ctx.body.min_votes, 2) || 2)),
       minScore: num(ctx.body.min_score, MIN_SCORE) || MIN_SCORE,
     })
     if (!r.ok) fail(400, r.error || '识别失败', 'screen_failed')
     return {
+      game: r.game,
       resources: r.resources,
       agreed: r.agreed,
       pending: r.pending,
@@ -540,7 +550,7 @@ export function register() {
       size: r.size,
       engine: r.engine,
       ms: r.ms,
-      want: SCREEN_RESOURCES,
+      want: screenResourcesFor(game),
       min_votes: Math.max(1, Math.min(6, int(ctx.body.min_votes, 2) || 2)),
     }
   })
@@ -653,13 +663,19 @@ export function register() {
    * 图标模板：列出现用的、上传一个自己抠的。
    * 换了游戏版本、图标美术变了，用户可以自己截一张顶栏图上传，
    * 程序在给定的小矩形里现场抠出图标本体存成模板（存 data/resource-icons，不动程序自带的）。
+   * **`game` 决定给哪一套模板**：两个游戏的「体力」是两张不同的图，不带游戏会存错地方。
    */
-  get('/api/ocr/icons', () => ({ templates: templateStatus(), resources: SCREEN_RESOURCES }))
+  get('/api/ocr/icons', (ctx) => {
+    const game = clampStr(ctx.query.game, 40)
+    return { game: profileForGame(game).id, templates: templateStatus(game), resources: screenResourcesFor(game) }
+  })
 
   post('/api/ocr/icons', (ctx) => {
+    const game = clampStr(ctx.body.game, 40)
+    const keys = screenResourcesFor(game)
     const key = clampStr(ctx.body.key, 20)
-    const file = TEMPLATE_FILE[key]
-    if (!file || !SCREEN_RESOURCES.includes(key)) fail(400, `只支持这几种资源：${SCREEN_RESOURCES.join(' / ')}`, 'bad_key')
+    const file = templateFileFor(game, key)
+    if (!file || !keys.includes(key)) fail(400, `只支持这几种资源：${keys.join(' / ')}`, 'bad_key')
     const box = ctx.body.box || {}
     const boxNum = (v, d) => {
       const n = Number(v)
@@ -686,8 +702,8 @@ export function register() {
       fs.mkdirSync(dir, { recursive: true })
       const out = path.join(dir, `${file}.png`)
       fs.writeFileSync(out, encodePNG(picked.img))
-      loadTemplates({ force: true })
-      return { ok: true, key, file: out, box: picked.box, size: [picked.img.width, picked.img.height], from: name, templates: templateStatus() }
+      loadTemplates({ force: true, profile: profileForGame(game) })
+      return { ok: true, key, game: profileForGame(game).id, file: out, box: picked.box, size: [picked.img.width, picked.img.height], from: name, templates: templateStatus(game) }
     } finally {
       try {
         fs.unlinkSync(tmp)

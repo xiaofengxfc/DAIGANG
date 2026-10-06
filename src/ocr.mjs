@@ -57,8 +57,11 @@ function normalizeDigits(s) {
  *
  * 认不准就返回 null，**绝不硬凑**：与其把认糊的「L23生567」当成 123567
  * 填进去（看着挺像那么回事，其实是错的），不如留空让用户自己填。
+ *
+ * allowZero：默认 0 也算「认不准」（界面上到处是 0，收下它基本等于认错了）。
+ * 只有少数资源 0 是真值 —— 异环的都市活力会显示 0/700，那个 0 得记下来。
  */
-export function parseNumber(raw) {
+export function parseNumber(raw, { allowZero = false } = {}) {
   let s = normalizeDigits(raw)
   // 「240 / 240」这种「当前/上限」只取前面的当前值
   if (s.includes('/')) s = s.split('/')[0]
@@ -79,7 +82,7 @@ export function parseNumber(raw) {
   s = s.replace(/,/g, '')
   if (!/^\d+(\.\d+)?$/.test(s)) return null
   const n = Number(s)
-  if (!Number.isFinite(n) || n <= 0) return null
+  if (!Number.isFinite(n) || (n <= 0 && !allowZero)) return null
   return Math.round(n * mult)
 }
 
