@@ -21,6 +21,11 @@ import { toast, toastErr } from './app/toast-store.js'
 const tinyStyle = { marginTop: '2px', opacity: '.85' }
 const tinyTopStyle = { marginTop: '4px', opacity: '.85' }
 const amberStyle = { marginTop: '2px' }
+const SCREEN_STAGES = [
+  { id: 'bag', title: '背包', key: 'B', resources: ['贝币', '星声'], openDelay: 1100 },
+  { id: 'map', title: '地图', key: 'M', resources: ['体力'], openDelay: 1400 },
+]
+const MAX_SCREEN_FRAMES = 8
 
 export default function ResourceField({ before = '', after = '', beforeFrom = '', onChange }) {
   const [sides, setSides] = useState(() => ({ before: parseResources(before), after: parseResources(after) }))
@@ -54,7 +59,9 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
         if (alive) setOcrOk(Boolean(status && status.available))
       })
       .catch(() => {
-        if (alive) setOcrOk(false)
+        // Keep the state unknown when the status request itself fails. The
+        // screen endpoint will return the actual engine/capture error on click.
+        if (alive) setOcrOk(null)
       })
     return () => {
       alive = false
@@ -137,12 +144,11 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
   }
 
   /**
-   * 识别画面：切到游戏，程序每不到一秒截一次屏。
-   * 每个数字要**认到两次以上**才采纳（服务端按 session 累计票数），
-   * 所以填进框里的不是「认了一次」的结果，是复核过的。
+   * 自动流程：激活鸣潮 → B 读背包货币 → ESC → M 读体力 → ESC。
+   * 每个值需识别到两次才会采纳；单页最多扫八帧，仍缺值就返回游戏并停止。
    */
   async function watchScreen(side) {
-    if (watchers.current[side]) return
+    if (watchers.current.before || watchers.current.after) return
     if (ocrOk === false) {
       toast('这台机器上用不了屏幕识别：装一个本地 OCR（设置页有指引），或者用 Windows 自带的那个', 'err', 4200)
       return
@@ -151,106 +157,153 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
     watchers.current[side] = token
     setBusy((prev) => ({ ...prev, [side]: 'watch' }))
 
-    const session = `w${Date.now()}-${++sessionSeq.current}`
+    const sessionBase = `w${Date.now()}-${++sessionSeq.current}`
+    const sessions = []
     const got = {}
     const pending = {}
     const seenIcons = []
     const smallText = {}
     const layoutFallback = {}
     let engine = ''
-    const deadline = Date.now() + 90000
+    let pageOpen = false
+    let returnedToGame = false
+    let stoppedReason = ''
+    let returnError = ''
+    let progressHint = '正在切回鸣潮…'
 
-    const paintProgress = (extra) => {
-      const have = RES_KEYS.filter((key) => got[key] !== undefined)
+    const paintProgress = (stage, extra = progressHint) => {
+      const have = stage.resources.filter((key) => got[key] !== undefined)
       setNotes((prev) => ({
         ...prev,
         [side]: (
           <>
-            <strong>{`正在看屏幕… 已认到 ${have.length}/${RES_KEYS.length}${have.length ? `（${have.join('、')}）` : ''}`}</strong>
+            <strong>{`${stage.title}识别中：${have.length}/${stage.resources.length}${have.length ? `（${have.join('、')}）` : ''}`}</strong>
             {engine ? <div className="tiny" style={tinyTopStyle}>{`引擎：${engine}${seenIcons.length ? ` · 图标：${seenIcons.join('、')}` : ''}`}</div> : null}
             {Object.keys(pending).length ? (
               <div className="tiny" style={tinyStyle}>
                 {'正在复核：' + Object.entries(pending).map(([key, p]) => `${key} ${p.votes}/${p.need}`).join(' · ')}
               </div>
             ) : null}
-            <div className="tiny" style={tinyTopStyle}>{extra || '切到游戏，停在能看到这几个资源的界面；每个数字要认到两次才采纳。'}</div>
+            <div className="tiny" style={tinyTopStyle}>{extra}</div>
           </>
         ),
       }))
     }
 
-    paintProgress()
+    paintProgress(SCREEN_STAGES[0])
     try {
-      while (!token.stop && Date.now() < deadline && RES_KEYS.some((key) => got[key] === undefined)) {
-        let result = null
-        try {
-          result = await api.post('/api/ocr/screen', { session, min_votes: 2 })
-        } catch {
-          // 单次失败（比如切窗口时截到黑屏）不算结束，接着看
-          await new Promise((resolve) => setTimeout(resolve, 1000))
-          continue
-        }
-        if (token.stop) break
-        if (result.engine) engine = result.engine
-        if (Array.isArray(result.hits)) {
-          for (const hit of result.hits) {
-            const label = `${hit.key}(分${hit.score}${hit.source === 'ocr-layout' ? '·格式兜底' : hit.warn ? '·字太小' : ''})`
-            if (!seenIcons.includes(label)) seenIcons.push(label)
-          }
-          // 字太小的读法单独记一句，收尾时一起提醒
-          for (const hit of result.hits) {
-            if (hit.source === 'ocr-layout') layoutFallback[hit.key] = hit.warn || '按数字格式识别'
-            else if (hit.warn) smallText[hit.key] = true
-          }
-        }
-        for (const [key, value] of Object.entries(result.agreed || {})) {
-          got[key] = value.value
-          delete pending[key]
-        }
-        for (const [key, value] of Object.entries(result.pending || {})) pending[key] = value
-        fill(side, got)
-        paintProgress()
-        if (RES_KEYS.every((key) => got[key] !== undefined)) break
-        await new Promise((resolve) => setTimeout(resolve, 850))
-      }
-      if (token.stop) return
+      const focus = await api.post('/api/ocr/screen/focus')
+      if (!focus || !focus.ok) throw new Error((focus && focus.error) || '没有切换到鸣潮窗口')
+      progressHint = `已切回鸣潮${focus.title ? `（${focus.title}）` : ''}，准备打开背包…`
+      // Give the restored game window a moment to repaint before capturing it.
+      await new Promise((resolve) => setTimeout(resolve, 500))
 
-      const count = RES_KEYS.filter((key) => got[key] !== undefined).length
-      const missing = RES_KEYS.filter((key) => got[key] === undefined)
-      const small = Object.keys(smallText)
-      setNotes((prev) => ({
-        ...prev,
-        [side]: (
-          <>
-            <strong>{count === RES_KEYS.length ? '三个都认到了，核对一下再保存' : `认到 ${count} 个${missing.length ? `，${missing.join('、')} 没认到` : ''}`}</strong>
-            {small.length ? (
-              <div className="tiny tone-amber" style={amberStyle}>
-                {`${small.join('、')} 这几个字太小（顶栏文字不到 21px），自带 OCR 有时会读错位数 —— 这 ${small.length} 个请对着游戏核一遍。想要更准就装一个本地 OCR 引擎（设置页有指引）。`}
-              </div>
-            ) : null}
-            {Object.keys(layoutFallback).length ? (
-              <div className="tiny tone-amber" style={amberStyle}>{`${Object.keys(layoutFallback).join('、')} 是按数字格式补出的，请对照截图核对。`}</div>
-            ) : null}
-            <div className="tiny" style={tinyTopStyle}>
-              {count === RES_KEYS.length ? '每个数字都认到两次以上才填进来的。' : '认不出来就先留空自己填 —— 认不准的时候它不会硬凑一个数字。'}
-            </div>
-          </>
-        ),
-      }))
-      toast(
-        count === RES_KEYS.length ? (small.length ? '认到了，但有几个字太小，请核对' : '三个都认到了') : `认到 ${count} 个`,
-        count ? 'ok' : 'err',
-        small.length ? 5200 : 3600
-      )
+      for (const stage of SCREEN_STAGES) {
+        if (token.stop) break
+        const session = `${sessionBase}-${stage.id}`
+        sessions.push(session)
+        progressHint = `正在按 ${stage.key} 打开${stage.title}…`
+        paintProgress(stage)
+        const opened = await api.post('/api/ocr/screen/key', { key: stage.key })
+        if (!opened || !opened.ok) throw new Error((opened && opened.error) || `没有打开${stage.title}`)
+        pageOpen = true
+        returnedToGame = false
+        progressHint = `已打开${stage.title}，等待画面稳定…`
+        paintProgress(stage)
+        await new Promise((resolve) => setTimeout(resolve, stage.openDelay))
+
+        for (let attempt = 0; attempt < MAX_SCREEN_FRAMES && !token.stop; attempt++) {
+          const result = await api.post('/api/ocr/screen', { session, min_votes: 2 })
+          if (result.engine) engine = result.engine
+          if (Array.isArray(result.hits)) {
+            for (const hit of result.hits) {
+              const label = `${hit.key}(分${hit.score}${hit.source === 'ocr-layout' ? '·格式兜底' : hit.warn ? '·字太小' : ''})`
+              if (!seenIcons.includes(label)) seenIcons.push(label)
+              if (hit.source === 'ocr-layout') layoutFallback[hit.key] = hit.warn || '按数字格式识别'
+              else if (hit.warn) smallText[hit.key] = true
+            }
+          }
+          for (const [key, value] of Object.entries(result.agreed || {})) {
+            if (stage.resources.includes(key)) got[key] = value.value
+            delete pending[key]
+          }
+          for (const [key, value] of Object.entries(result.pending || {})) {
+            if (stage.resources.includes(key)) pending[key] = value
+          }
+          fill(side, got)
+          const missing = stage.resources.filter((key) => got[key] === undefined)
+          progressHint = `${stage.title}画面扫描 ${attempt + 1}/${MAX_SCREEN_FRAMES} 次${missing.length ? `，还差${missing.join('、')}` : ''}`
+          paintProgress(stage)
+          if (!missing.length) break
+          if (attempt + 1 < MAX_SCREEN_FRAMES) await new Promise((resolve) => setTimeout(resolve, 850))
+        }
+
+        if (token.stop) break
+        const missing = stage.resources.filter((key) => got[key] === undefined)
+        if (missing.length) {
+          stoppedReason = `${stage.title}连续识别 ${MAX_SCREEN_FRAMES} 帧后仍缺少：${missing.join('、')}。流程已停止。`
+          break
+        }
+
+        // ESC after each successful page, and the finally block handles every failure path.
+        await api.post('/api/ocr/screen/key', { key: 'ESC' })
+        pageOpen = false
+        returnedToGame = true
+        await new Promise((resolve) => setTimeout(resolve, 500))
+      }
+    } catch (err) {
+      stoppedReason = err.message || '屏幕识别流程失败。'
     } finally {
+      if (pageOpen) {
+        try {
+          await api.post('/api/ocr/screen/key', { key: 'ESC' })
+          pageOpen = false
+          returnedToGame = true
+          await new Promise((resolve) => setTimeout(resolve, 450))
+        } catch (err) {
+          returnError = `未能自动按 ESC 返回游戏：${err.message || '按键发送失败'}`
+        }
+      }
       watchers.current[side] = null
       setBusy((prev) => ({ ...prev, [side]: '' }))
-      try {
-        await api.post('/api/ocr/screen/reset', { session })
-      } catch {
-        /* 清不掉就算了，服务端也会自己过期 */
+      for (const session of sessions) {
+        try {
+          await api.post('/api/ocr/screen/reset', { session })
+        } catch {
+          /* 清不掉就算了，服务端也会自己过期 */
+        }
       }
     }
+
+    if (token.stop) return
+    const count = RES_KEYS.filter((key) => got[key] !== undefined).length
+    const small = Object.keys(smallText)
+    const complete = count === RES_KEYS.length && !stoppedReason && !returnError
+    const summary = stoppedReason
+      ? `${stoppedReason}${returnedToGame ? ' 已按 ESC 返回游戏。' : ''}`
+      : (complete ? '三项都识别到了，请核对后再保存。' : `已识别 ${count}/3 项。`)
+    setNotes((prev) => ({
+      ...prev,
+      [side]: (
+        <>
+          <strong>{summary}</strong>
+          {returnError ? <div className="tiny tone-amber" style={amberStyle}>{returnError}</div> : null}
+          {small.length ? (
+            <div className="tiny tone-amber" style={amberStyle}>
+              {`${small.join('、')} 字太小，自带 OCR 可能读错位数，请对照游戏核验。`}
+            </div>
+          ) : null}
+          {Object.keys(layoutFallback).length ? (
+            <div className="tiny tone-amber" style={amberStyle}>{`${Object.keys(layoutFallback).join('、')} 是按数字格式补出的，请对照游戏核验。`}</div>
+          ) : null}
+          <div className="tiny" style={tinyTopStyle}>
+            {complete ? '背包和地图各自识别两次一致后才会填入。' : '只会填写复核一致的数值；未识别字段保持原样。'}
+          </div>
+        </>
+      ),
+    }))
+    if (complete) toast('贝币、星声和体力已识别，请核对', 'ok', 4200)
+    else toast(returnError || stoppedReason || `已识别 ${count}/3 项`, 'err', returnError ? 5200 : 4200)
   }
 
   function buildSide(side, label, isFirst) {
@@ -263,7 +316,7 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
           <button
             className="btn btn--sm btn--primary"
             type="button"
-            title="切到游戏，程序会一直看着屏幕，三个都认到就自动停"
+            title="切回鸣潮后自动按 B 识别背包，再按 M 识别体力"
             data-loading={busy[side] === 'watch' ? '1' : undefined}
             onClick={() => watchScreen(side)}
           >

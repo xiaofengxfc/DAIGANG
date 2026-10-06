@@ -29,6 +29,7 @@ import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { ocrImage, parseNumber, ocrStatus } from './ocr.mjs'
+import { activeGameWindow } from './game-window.mjs'
 import { decodePNG, crop, encodePNG, resize } from './imgmatch.mjs'
 import { buildIntegral, compileTemplate, findIcon, findIconTop, pickStableCandidate, resampleBilinear, sweepScales, groupNumberBlocks, subImage } from './vision.mjs'
 
@@ -609,7 +610,10 @@ export function grabScreen(outPath, { timeoutMs = 15000 } = {}) {
     let child
     try {
       // 注意不能用 stdio:'ignore'：powershell 拿到空句柄会 0xC0000142 直接退出
-      child = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', GRAB_PS1, '-Out', path.resolve(outPath)], {
+      const args = ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', GRAB_PS1, '-Out', path.resolve(outPath)]
+      const gameWindow = activeGameWindow()
+      if (gameWindow?.hwnd) args.push('-WindowHandle', gameWindow.hwnd)
+      child = spawn('powershell.exe', args, {
         stdio: ['ignore', stdFd, logFd],
         windowsHide: true,
       })

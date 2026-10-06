@@ -8,6 +8,7 @@ import { bad, notFound, fail, int, num, money, clampStr, nowISO, localDate, loca
 import { ocrImage, extractResources, probeEnginesStatus, ensureEnginesProbed, ocrEngines } from '../ocr.mjs'
 import { installOptions, installEngine, installStatus, extractorStatus, releasePage, INSTALL_SPECS, engineHealth, cleanupTmp } from '../ocr-install.mjs'
 import { recognizeScreenOnce, recognizeImageFile, resetVotes, screenAvailable, templateStatus, loadTemplates, extractIconTemplate, TEMPLATE_FILE, SCREEN_RESOURCES, MIN_SCORE } from '../screen.mjs'
+import { focusGameWindow, sendGameKey } from '../game-window.mjs'
 import { decodePNG, encodePNG } from '../imgmatch.mjs'
 import { isSetUp, setPassword, verifyPassword, createSession, destroySession, destroyAllSessions, actorName, assertNotThrottled, noteFailure, clearFailures } from '../auth.mjs'
 import { lock, status as vaultStatus, isConfigured, configure, auditLog } from '../vault.mjs'
@@ -477,6 +478,22 @@ export function register() {
     // 轮不到 Umi-OCR。ensureEnginesProbed 带 TTL 缓存，不会每次都白等。
     const st = probe ? await probeEnginesStatus({ force: true }) : await ensureEnginesProbed()
     return { ...st, screen: process.platform === 'win32', templates: templateStatus(), resources: SCREEN_RESOURCES, min_score: MIN_SCORE }
+  })
+
+  /** 用户点击「识别画面」后，把鸣潮窗口切到前台；后续截屏会裁取这个窗口。 */
+  post('/api/ocr/screen/focus', async () => {
+    const r = await focusGameWindow()
+    if (!r.ok) fail(400, r.error || '没有切换到游戏窗口', 'game_focus_failed')
+    return r
+  })
+
+  /** 流程只用 B / M 打开对应界面，再用 ESC 返回；后端也限制为这三个按键。 */
+  post('/api/ocr/screen/key', async (ctx) => {
+    const key = clampStr(ctx.body.key, 4).toUpperCase()
+    if (!['B', 'M', 'ESC'].includes(key)) fail(400, '只允许发送 B、M 或 ESC。', 'bad_game_key')
+    const r = await sendGameKey(key)
+    if (!r.ok) fail(400, r.error || '没有向鸣潮发送按键', 'game_key_failed')
+    return r
   })
 
   /**

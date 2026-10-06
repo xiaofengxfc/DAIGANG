@@ -1,7 +1,8 @@
-# Grab the primary screen into a PNG. ASCII-only (see ocr.ps1 for why).
+# Grab a specified game window, or the primary screen, into a PNG.
+# ASCII-only (see ocr.ps1 for why).
 #   powershell -File grab.ps1 -Out "shot.png"
 #
-# DPI: this script MUST become DPI aware *before* it asks for the screen size.
+# DPI: this script MUST become DPI aware *before* it reads the window bounds.
 #
 # Why: a DPI-unaware process gets a virtualized screen size from Windows. On a
 # 2560x1600 screen at 150% scaling that is 1707x1067, and CopyFromScreen then
@@ -14,7 +15,8 @@
 # for "whole screen scaled down"), aware -> 2560x1600.
 param(
   [Parameter(Mandatory = $true)][string]$Out,
-  [int]$MaxWidth = 0
+  [int]$MaxWidth = 0,
+  [long]$WindowHandle = 0
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
@@ -26,9 +28,11 @@ $dpiSig = @'
 using System;
 using System.Runtime.InteropServices;
 public static class ScreenDpi {
+  [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
   [DllImport("user32.dll", SetLastError = true)] public static extern bool SetProcessDpiAwarenessContext(IntPtr ctx);
   [DllImport("shcore.dll")] public static extern int SetProcessDpiAwareness(int value);
   [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
+  [DllImport("user32.dll", SetLastError = true)] public static extern bool GetWindowRect(IntPtr hwnd, out RECT rect);
 }
 '@
 $dpiAware = 'no'
@@ -49,14 +53,31 @@ try {
   $dpiAware = 'failed'
 }
 
-$bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
-$w = $bounds.Width
-$h = $bounds.Height
+$x = 0
+$y = 0
+if ($WindowHandle -gt 0) {
+  $rect = [ScreenDpi+RECT]::new()
+  $hwnd = [IntPtr]::new([Int64]$WindowHandle)
+  if (-not [ScreenDpi]::GetWindowRect($hwnd, [ref]$rect)) {
+    throw 'Failed to read game window bounds (the window may have closed)'
+  }
+  $x = $rect.Left
+  $y = $rect.Top
+  $w = $rect.Right - $rect.Left
+  $h = $rect.Bottom - $rect.Top
+  if ($w -lt 1 -or $h -lt 1) { throw 'Game window has no visible capture area' }
+} else {
+  $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+  $x = $bounds.X
+  $y = $bounds.Y
+  $w = $bounds.Width
+  $h = $bounds.Height
+}
 
 $bmp = New-Object System.Drawing.Bitmap($w, $h, [System.Drawing.Imaging.PixelFormat]::Format24bppRgb)
 $g = [System.Drawing.Graphics]::FromImage($bmp)
 try {
-  $g.CopyFromScreen($bounds.X, $bounds.Y, 0, 0, (New-Object System.Drawing.Size($bounds.Width, $bounds.Height)))
+  $g.CopyFromScreen($x, $y, 0, 0, (New-Object System.Drawing.Size($w, $h)))
 } finally {
   $g.Dispose()
 }
