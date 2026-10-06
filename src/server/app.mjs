@@ -28,6 +28,7 @@ import { readSession, purgeExpiredSessions, isSetUp } from '../auth.mjs'
 import { lock, status as vaultStatus } from '../vault.mjs'
 import { registerAll } from '../routes/index.mjs'
 import { stopMediaExecutor } from '../media-deps.mjs'
+import { stopVisionSidecar, ensureVisionStarted } from '../vision-python.mjs'
 import { dispatchDueScheduledTasks } from '../routes/media.mjs'
 import { ensureEnginesProbed } from '../ocr.mjs'
 import { MEDIA_SCHEDULER_INTERVAL_MS } from '../config.mjs'
@@ -44,6 +45,19 @@ function initialize() {
   // 顺手探一次引擎（不阻塞启动）。Umi-OCR 分最高，但「在不在」只有真发过请求
   // 才知道；不先探一次的话，冷启动后它一律显示「未安装」，识别也轮不到它。
   void ensureEnginesProbed().catch(() => {})
+  /**
+   * Python 视觉后端：后台起进程 + 预热（载模型 0.8s + 预热 ~5s）。
+   * 现在付掉这笔钱，用户点「识别画面」的第一帧就是热的。
+   *
+   * 为什么要 setTimeout 推到下一个 tick：这个函数在 listen() 之前跑，
+   * 而探测依赖是 spawnSync（导入 onnxruntime + cv2 要一秒上下）——
+   * 同步跑会把「服务器开始监听」拖后一秒。推到下一个 tick 就没这问题。
+   * 没装 Python / 没装依赖时它会直接返回，识别走旧引擎链，不耽误事。
+   */
+  const visionTimer = setTimeout(() => {
+    void ensureVisionStarted().catch(() => {})
+  }, 0)
+  visionTimer.unref?.()
 }
 
 function clientIP(req) {
@@ -214,6 +228,9 @@ export function createApplication() {
     clearInterval(timer)
     if (scheduler) clearInterval(scheduler)
     stopMediaExecutor()
+    // Python 视觉进程是我们自己起的子进程，退出时要一起收掉
+    // （不然它会一直挂在后台占着 5410 端口和 200MB 内存）
+    stopVisionSidecar()
     lock('shutdown')
     server.close(() => {
       try {

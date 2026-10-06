@@ -530,6 +530,7 @@ npm run check                     # 闸门：语法自检 + 接口冒烟 + 构�
 npm run check:full                # 上面这些 + 界面冒烟，全量
 node scripts/check.mjs            # 只做语法自检：.mjs / .js 走 node --check，.jsx 走 rolldown
 node scripts/vision-selftest.mjs  # 屏幕识别自检：先核对截屏是不是整屏，再拿真截图测十一种分辨率的准确率
+node scripts/vision-parity.mjs    # 屏幕识别后端对照：旧引擎链 vs Python 后端，逐档比结果和耗时
 node scripts/inspect.mjs          # 只读查看库里有什么（游戏/大类/服务项/订单…），不改任何东西
 node scripts/reset-password.mjs   # 忘了登录密码时用：清掉密码，下次启动回到初始化引导
 node scripts/reset-password.mjs 我的新密码    # 或者直接设一个新密码（≥6 位）
@@ -689,49 +690,84 @@ npm run test:ui -- --shots    # 顺手把每个页面截一张图存到 shots/ui
 让你对着游戏看一眼，而不是悄悄填个错的进去。
 想在这种分辨率下也认准，就得装下面说的本地 OCR 引擎（PP-OCR 系对这种小字强得多）。
 
-第一次认某个分辨率约 1 秒（要找锚点定标），同一个窗口之后每帧 60~130ms。
+耗时（2560×1600 那台机器实测，两个后端都量过）：
+
+| | 冷（第一次点，要整条带找锚点定标） | 热（同一分辨率再认一帧） |
+| --- | --- | --- |
+| 装 RapidOCR-json | ~2.7s | ~0.9s |
+| 用 Python 视觉后端 | ~3.0s | ~1.1s |
+
+这一帧里**大头是图标匹配（冷 2.8s / 热 0.4s），OCR 只占 ~0.6s** ——
+所以想再快，方向不是换 OCR，而是别每帧都重新找图标（跨帧记住标定 + 只认那几个数字块）。
 
 > 改动识别相关代码（`src/vision.mjs` / `src/screen.mjs` / `src/ocr.mjs` /
-> `scripts/grab.ps1`）之后，跑一下 `node scripts/vision-selftest.mjs` ——
+> `integrations/screen-vision/` / `scripts/grab.ps1`）之后，跑一下
+> `node scripts/vision-selftest.mjs` ——
 > 它先真截一次屏核对「截到的是不是整屏」（显示缩放变了、截屏脚本退回 DPI 不感知，
 > 都会在这里当场报出来），再拿 `shots/samples/` 里的真截图把这十一种分辨率过一遍，
-> 能立刻看出哪一档退化了。
+> 能立刻看出哪一档退化了。要比较两个后端就再加一步 `node scripts/vision-parity.mjs`。
 > 没有样例图它会自己跳过，不会让 `node scripts/check.mjs` 失败。
 
 ### 想认得更全，装一个本地 OCR 引擎（推荐，能一键装）
 
 不装也能用（走 Windows 自带的 OCR），但**装了差距很大**：同一批截图，
-自带 OCR 在超宽分辨率下会把 `2174` 读成 `21`，换上 RapidOCR-json 之后
+自带 OCR 在超宽分辨率下会把 `2174` 读成 `21`，换上 PP-OCR 系的引擎之后
 **十一种分辨率全对**（22/22，含 2560×1080 / 1920×822 / 3440×1440 这些超宽比例）。
 
-**怎么装：设置 → 屏幕识别 → 安装选项 → 点「自动安装」。**
-它会自己从 GitHub 官方 Release 下载、解压到 `tools\ocr\`、然后自动切过去用，
-界面上有下载进度和日志（70MB 的包看网络，可能要几分钟）。装完点「自检一下」
-可以确认它真的跑得起来 —— 它是**真认一张小图**，缺运行库、CPU 不支持 AVX、
-杀软拦了这些都会当场现原形。Umi-OCR 是手动装的，「自检一下」查的是它的本地
-HTTP 服务在不在，没开服务会直接告诉你该怎么开。
+**怎么装：设置 → 屏幕识别 → 「Python 视觉后端」→ 点「一键安装依赖」。**
+它会建一个项目内的 `data/vision-venv`（不动你系统里的 Python），装 RapidOCR + ONNX Runtime，
+约 200MB，装完程序重启会自己起（也可以当场点「启动」）。模型**复用**仓库里已有的
+`tools/ocr/rapidocr/models/`，不额外下载。界面上有进度、步骤和日志，
+点「自检一下」是**真认一张图 + 真认一个数字块**，装错版本、缺 DLL 都会当场现原形。
 
-网络卡住也不会一直转圈：**45 秒没收到数据**就会停下来，告诉你「多半是 GitHub
-连不上，挂个代理重试，或者照下载页手动装」；总时长也封了 30 分钟。
+装完回到 **设置 → 屏幕识别 → 重新检测**，它会告诉你现在用的是哪个。
+六个引擎全都没有才会告诉你「用不了」，不会因为缺一个就罢工。
 
 | 顺序 | 引擎 | 能不能一键装 | 说明 |
 | --- | --- | --- | --- |
-| 1 | **Umi-OCR** | ✋ 要手动 | <https://github.com/hiroi-sora/Umi-OCR> 官方包是自解压 exe，装完还要在它自己的设置里打开「HTTP 服务」（默认端口 1224）—— 最后一步得你点，所以这里只给下载页 |
-| 2 | **PaddleOCR-json** | ✅ 能 | 约 88MB 包 / 展开 250MB，**要 CPU 支持 AVX**（老机器可能跑不起来） |
-| 3 | **RapidOCR-json** | ✅ 能 | 约 70MB 包 / 展开 95MB，**不需要 AVX** —— 最省事的一个，推荐先装这个 |
-| 4 | **Tesseract** | 自己装 | <https://github.com/UB-Mannheim/tesseract> 安装时勾上 `chi_sim` 中文语言包 |
-| 5 | **Windows 自带 OCR** | 不用装 | 兜底，永远在 |
+| 1 | **Python 视觉后端** | ✅ 能（推荐） | RapidOCR + ONNX Runtime，跑在项目内 `data/vision-venv` 里，长驻进程（127.0.0.1:5410）。有置信度，还能只认一个小数字块（13ms）。见 `integrations/screen-vision/README.md` |
+| 2 | **Umi-OCR** | ✋ 要手动 | <https://github.com/hiroi-sora/Umi-OCR> 官方包是自解压 exe，装完还要在它自己的设置里打开「HTTP 服务」（默认端口 1224）—— 最后一步得你点，所以这里只给下载页 |
+| 3 | **PaddleOCR-json** | ✅ 能 | 约 88MB 包 / 展开 250MB，**要 CPU 支持 AVX**（老机器可能跑不起来） |
+| 4 | **RapidOCR-json** | ✅ 能 | 约 70MB 包 / 展开 95MB，**不需要 AVX** —— 不用 Python 的话，装这个最省事 |
+| 5 | **Tesseract** | 自己装 | <https://github.com/UB-Mannheim/tesseract> 安装时勾上 `chi_sim` 中文语言包 |
+| 6 | **Windows 自带 OCR** | 不用装 | 兜底，永远在 |
 
 自动安装需要这台机器上有**能解 .7z 的解压器**（7-Zip / NanaZip 之类）。
 设置页会先探测并告诉你有没有；没有的话它会说清楚，并给出下载页让你手动解压到
 `tools\ocr\`。想装到别处也行 —— 每个引擎都支持用环境变量指路径
 （`RAPIDOCR_JSON_BIN` / `PADDLEOCR_JSON_BIN` / `TESSERACT_BIN`）。
 
-装完回到 **设置 → 屏幕识别 → 重新检测**，它会告诉你现在用的是哪个。
-五个全都没有才会告诉你「用不了」，不会因为缺一个就罢工。
-
 > 引擎都是**本机跑**的，截图不出这台电脑，和凭证保险箱一个立场。
 > 装到 `tools/` 里的东西不进版本库（.gitignore 里排除了），换机器重新点一次就行。
+
+#### 换后端这件事有对照脚本，别凭感觉
+
+```bash
+node scripts/vision-parity.mjs          # 旧引擎链 vs Python 后端，11 档并排列出来
+node scripts/vision-parity.mjs --quick  # 只跑两档，看个大概
+```
+
+它把两个后端各跑一遍同一份自检，逐档比结果和耗时，**有哪一档退化了当场就能看见**。
+实测（2560×1600 那台机器）：两个后端都是 **22/22**，数字完全一致；
+Python 那边每帧慢 ~200ms（热态整帧 1100ms vs 898ms），但多了置信度和那条 13ms 的
+数字块识别 —— 后者才是把这一帧从 600ms 压下去的关键（下一步的事）。
+
+> 引擎的「认字」这一层是可插拔的：`src/ocr.mjs` 里那个 `ocrImage()` 就是接缝。
+> 强制用某一个引擎跑自检（排查问题时很有用）：
+> `set XFC_OCR_ENGINE=python && node scripts/vision-selftest.mjs`，
+> 或者 `node scripts/vision-selftest.mjs --backend=python`。
+
+视觉后端这几个旋钮在需要时才用（默认值都能跑）：
+
+| 环境变量 | 默认 | 什么时候用 |
+| --- | --- | --- |
+| `XFC_VISION_PYTHON` | 空 | 不想用项目内的 venv，指一个自己的 Python 解释器 |
+| `XFC_VISION_PORT` | `5410` | 端口撞了（比如上次强杀留下的进程占着） |
+| `XFC_VISION_AUTOSTART` | `1` | 设 `0` 就不自动起，只在设置页手动点「启动」 |
+| `XFC_VISION_URL` | 空 | 后端跑在别处（另一台机器/容器），填 `http://host:port`，Node 就不再自己起进程 |
+| `XFC_VISION_TOKEN` | 每次随机 | 配合上面那个：外部后端的令牌 |
+| `XFC_VISION_MODELS` | 空 | 模型放别处时指路径 |
+| `XFC_OCR_ENGINE` | 空 | 强制只用某一个引擎（自检/排查用） |
 
 ### 图标变了怎么办（换了游戏版本）
 
@@ -744,7 +780,7 @@ HTTP 服务在不在，没开服务会直接告诉你该怎么开。
 
 | 接口 | 作用 |
 | --- | --- |
-| `GET /api/ocr/status` | 五个引擎各自的状态、许可证、安装指引 + 现有图标模板；`?probe=1` 真的去探一次 Umi-OCR |
+| `GET /api/ocr/status` | 六个引擎各自的状态、许可证、安装指引 + 现有图标模板 + Python 后端的快照；`?probe=1` 真的去探一次 Umi-OCR 和视觉后端 |
 | `POST /api/ocr` | 认一张截图（`data_url` base64，最大 12MB） |
 | `POST /api/ocr/screen` | 认当前屏幕并投票，同一 `session` 连续调用会累计票数 |
 | `POST /api/ocr/screen/reset` | 清掉这次投票记录 |
@@ -753,6 +789,12 @@ HTTP 服务在不在，没开服务会直接告诉你该怎么开。
 | `POST /api/ocr/install` | 开始一键安装（后台跑，立刻返回 job id） |
 | `GET /api/ocr/install/status?job=` | 查安装进度（百分比 + 日志） |
 | `POST /api/ocr/install/health` | 环境自检：真跑一张小图确认引擎能用 |
+| `GET /api/ocr/backend` | Python 视觉后端的完整状态：解释器、venv、依赖版本、模型、耗时、日志尾部；`?probe=1` 强制重探依赖 |
+| `POST /api/ocr/backend/install` | 一键装依赖（建 venv + pip，后台跑，返回 job id） |
+| `GET /api/ocr/backend/install/status?job=` | 查装依赖的进度（步骤 + 进度 + 日志） |
+| `POST /api/ocr/backend/start` | 手动启动视觉进程（正常启动时程序会自己起） |
+| `POST /api/ocr/backend/stop` | 停掉视觉进程（识别会退回旧引擎链） |
+| `POST /api/ocr/backend/health` | 自检：真认一张样例图 + 真认一个数字块（rec-only 那条路） |
 
 ### 技术上的取舍（几句话）
 
@@ -792,11 +834,13 @@ HTTP 服务在不在，没开服务会直接告诉你该怎么开。
 公司/学校网络常常禁止设备之间互访，那种网络下手机连不上是正常的。
 
 **屏幕识别认不出来 / 认错了？**
-按这三步看：
+按这几步看：
 
 1. **先去 设置 → 屏幕识别 看它用的是哪个引擎。** 只有「Windows 自带 OCR」的话，
-   在「安装选项」里点一下 **RapidOCR-json 的「自动安装」**（约 70MB，不需要 AVX）——
+   在「Python 视觉后端」里点 **「一键安装依赖」**（约 200MB，需要这台机器上有 Python 3）——
    实测装完之后十一种分辨率全对，而自带 OCR 在超宽分辨率下会把 `2174` 读成 `21`。
+   不想装 Python 也行：在「安装选项」里装 **RapidOCR-json**（约 70MB，不需要 AVX），
+   结果一样（两个后端对照过，都是 22/22）。
 2. **看提示里有没有「字太小，务必核对」。** 有这句说明当前是自带 OCR 且顶栏文字
    不到 26px 高（超宽分辨率下常见），对着游戏核一遍；装了上面那个引擎就不会再提示。
 3. **换了游戏大版本、图标重画了？** 设置 → 屏幕识别 → 自备一个图标模板，
@@ -804,8 +848,15 @@ HTTP 服务在不在，没开服务会直接告诉你该怎么开。
 4. **一个数字都认不出来（连「没配上数字的」都没有）？** 那是截屏这一层的问题，
    不是识别的阈值问题：跑 `node scripts/vision-selftest.mjs`，第一条「截屏自检」
    会直接告诉你截到的是不是整屏（显示器缩放不是 100% 时最容易踩这个）。
+5. **「Python 视觉后端」那张卡说「起来了但没就绪」/「依赖没装」？** 点「看日志」，
+   它自己的 stderr 就在里面（载模型失败、缺 DLL、模型没找齐都会写在那儿）。
+   点「自检一下」会真认一张图 —— 通过就说明能用，不用管状态字。
+6. **说「5410 端口上已经有一个视觉进程，但 token 对不上」？** 那是上次程序被强杀时
+   留下的 python.exe 还占着端口。正常情况下它会跟着主程序一起退（主程序一死，
+   管道断开它就自己退出）；真留下了就在任务管理器里结束那个 python.exe。
 
-想自己确认「换分辨率还认不认得出」，跑 `node scripts/vision-selftest.mjs`。
+想自己确认「换分辨率还认不认得出」，跑 `node scripts/vision-selftest.mjs`；
+想比较两个后端，跑 `node scripts/vision-parity.mjs`。
 
 **忘了登录密码？**
 关掉启动窗口，然后：
@@ -873,8 +924,8 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
   `public/js/vaultgate.js` 里的 `vaultState` + `syncVault` + 监听器，设置页和
   保险箱页看到的是同一个真相；
 - **设置整页**（`client/settings.jsx`）—— 店铺信息、改登录密码、改保险箱密码、
-  屏幕识别（引擎列表 + 自动安装 + 进度轮询）、自备图标模板、导出/导入备份、
-  清空数据，连同四个抽屉表单一起搬；
+  屏幕识别（引擎列表 + Python 视觉后端那张卡 + 自动安装 + 进度轮询）、自备图标模板、
+  导出/导入备份、清空数据，连同四个抽屉表单一起搬；
 - **客户档案详情**（`client/customer-detail.jsx`）—— 客户名下的订单（在做/已结束
   各自封顶 + 「还有 N 张」）、收款流水、联系方式、账目、凭证脱敏列表，以及
   「归档 / 彻底删除」那个三选一（旧 `choiceDialog` 的 React 版）。
@@ -929,9 +980,11 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 订单详情记完收款要能对上 `已收`、删完要剩几笔，保险箱锁着的时候明文一个字都不能出现在
 列表里，客户档案上点一张单要能进订单详情，乱敲地址要落到兜底页。
 
-屏幕识别（OCR）这块只能测到「这台机器上没有引擎」时的样子：面板得给出引擎状态或者
-降级说明，不能是一片空白。装了引擎之后的自动安装、自检、自备图标模板那几条路，
-得在有引擎的机器上才验得了。
+屏幕识别（OCR）这块测得到的是「状态能取到、契约不破」：后端快照在不在、引擎链顺序对不对、
+依赖清单文件在位不在位、自检要么通过要么给得出能照做的原因（测试实例的 venv 在临时数据目录里，
+所以多半走的是「给原因」那条路），以及装依赖/自检那几条路不会 500。
+「装了引擎之后真的认得出」这件事得在装了引擎的机器上验 —— 用
+`node scripts/vision-selftest.mjs` 和 `node scripts/vision-parity.mjs`。
 
 ```
 server.mjs            服务入口：应用启动
@@ -949,11 +1002,16 @@ src/
   pricing.mjs         计价引擎（报价单和订单共用同一套）
   vision.mjs          屏幕识别的眼睛：积分图 NCC、多尺度搜索、数字块合并
   screen.mjs          界面识别：图标当锚点定标、跨帧投票、图标模板
-  ocr.mjs             五种 OCR 引擎的探测链、命令行适配、记录文件
+  ocr.mjs             六种 OCR 引擎的探测链、命令行适配、记录文件（含 Python 后端的接缝）
   ocr-install.mjs     引擎自动安装：下载 Release → 解压 → 落位 → 重新探测
+  vision-python.mjs   Python 视觉后端的生命周期：起进程、探活、重启、日志、退出时收掉
+  vision-deps.mjs     视觉后端的依赖：探解释器、建 venv、pip 安装（后台任务 + 进度）
   imgmatch.mjs        PNG 解码 / 老的模板匹配（新逻辑已迁到 vision.mjs）
   routes/             各模块接口
   server/app.mjs      应用工厂、鉴权、静态资源和生命周期
+integrations/
+  screen-vision/      Python 视觉后端：server.py（本地 HTTP）+ ocr_engine.py（模型与推理）
+                      + requirements.txt + README.md（实测记录都在这儿）
 client/
   main.jsx            React 壳层：导航、主题、路由、顶栏动作
   app/                壳层零件：路由、浮层宿主（overlay-host）、抽屉与字段原语、
@@ -964,7 +1022,8 @@ shared/
   order-calc.js       订单口径的纯函数（阶梯单价、日体、可得、进度、收款）
 public/               静态资源 + 三个仍被 React 调用的画图/状态模块（dist 不进版本库）
 scripts/             运维与自检：check（语法）、smoke（接口冒烟）、smoke-run（自起实例）、
-                     ui-smoke（界面冒烟）、shot（截图）、vision-selftest（识别+截屏自检）、
+                     ui-smoke（界面冒烟）、shot（截图）、vision-selftest（识别+截屏自检，
+                     支持 --backend）、vision-parity（两个后端并排对照）、
                      grab.ps1（截屏，先做 DPI 感知）、screen-info.ps1（真实显示模式，
                      用来核对截屏是不是整屏）、ocr.ps1（Windows 自带 OCR）、lib/（测试实例与 CDP 客户端）
 hooks/pre-commit     提交前闸门：语法自检 + 接口冒烟（git config core.hooksPath hooks 启用）

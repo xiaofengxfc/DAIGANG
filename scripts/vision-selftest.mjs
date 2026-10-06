@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    屏幕识别自检：用 shots/samples/ 里的真截图验证「换分辨率还认不认得出」。
 
    为什么要有这个脚本：识别这块的分数和画面物理尺寸、宽高比都有关系，
@@ -14,6 +14,12 @@
      node scripts/vision-selftest.mjs              # 全部
      node scripts/vision-selftest.mjs --quick      # 只跑两个分辨率
      node scripts/vision-selftest.mjs --json       # 输出 JSON（给别的脚本用）
+     node scripts/vision-selftest.mjs --backend=python   # 只跑 Python 视觉后端
+     node scripts/vision-selftest.mjs --backend=node     # 只跑旧的引擎链
+
+   `--backend` 是把 XFC_OCR_ENGINE 设成那一个引擎（见 src/ocr.mjs 的 ocrImage），
+   用来做「同一个后端在不同机器/版本上的对照」。scripts/vision-parity.mjs
+   就是拿它把两个后端各跑一遍再逐档比的。
    ============================================================ */
 
 import fs from 'node:fs'
@@ -24,13 +30,42 @@ import { fileURLToPath } from 'node:url'
 import { decodePNG } from '../src/imgmatch.mjs'
 import { resampleBilinear } from '../src/vision.mjs'
 import { recognizeFrame, recognizeImageFile, ocrTopBand, templateStatus, loadTemplates, grabScreen } from '../src/screen.mjs'
-import { ensureEnginesProbed } from '../src/ocr.mjs'
+import { ensureEnginesProbed, ocrEngines } from '../src/ocr.mjs'
+import { ensureVisionStarted } from '../src/vision-python.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const SAMPLE = path.join(ROOT, 'shots', 'samples', 'weapon-list.png')
-const args = new Set(process.argv.slice(2))
+const argv = process.argv.slice(2)
+const args = new Set(argv)
 const QUICK = args.has('--quick')
 const AS_JSON = args.has('--json')
+const BACKEND = (argv.find((a) => a.startsWith('--backend=')) || '').split('=')[1] || ''
+
+/**
+ * --backend=python → 强制走 Python 视觉后端（并先把 sidecar 拉起来）；
+ * --backend=node   → 强制走旧引擎链里最强的那个（RapidOCR-json 优先，没有就用系统自带）。
+ * 两者都靠 XFC_OCR_ENGINE 生效，所以 ocrImage 那一条路只认一个引擎，
+ * 不会「说是 python 其实偷偷用了 rapidocr」。
+ */
+if (BACKEND === 'python') {
+  process.env.XFC_OCR_ENGINE = 'python'
+  const started = await ensureVisionStarted()
+  if (!started.ok) {
+    console.error(`Python 视觉后端起不来，没法按 --backend=python 自检：${started.error}`)
+    console.error('（先在设置页点「一键安装依赖」，或者去掉 --backend 跑默认那条路）')
+    process.exit(1)
+  }
+} else if (BACKEND === 'node') {
+  const engines = ocrEngines().engines
+  const pick = ['rapidocr', 'paddleocr', 'windows'].find((id) => engines.find((e) => e.id === id)?.available)
+  if (!pick) {
+    console.error('这台机器上旧引擎链里一个可用的都没有，没法按 --backend=node 自检')
+    process.exit(1)
+  }
+  process.env.XFC_OCR_ENGINE = pick
+} else if (BACKEND) {
+  process.env.XFC_OCR_ENGINE = BACKEND
+}
 
 /** 期望值：游戏顶栏那张图里星声 2174、贝币 2508319 */
 const EXPECT = { 星声: 2174, 贝币: 2508319 }
@@ -153,6 +188,18 @@ for (const [W, H, opt] of SIZES) {
   const ocr = await ocrTopBand(img, bandH)
   const frame = ocr.ok ? recognizeFrame(img, ocr.words) : { hits: [], seen: [], anchor: null }
   const ms = Date.now() - t0
+  /**
+   * 再来一遍，记「热态」耗时。
+   *
+   * 为什么要两遍：第一遍是冷启动 —— 锚点没定过标（要整条带扫一遍所有尺度），
+   * OCR 也可能撞上新形状。实测冷 2.8s / 热 1.1s，差两倍多。
+   * 用户点一次「识别画面」会连认好几帧，所以**热态那个数才是他日常感受到的速度**，
+   * 而冷态那个数是「第一次点要等多久」。两个都报，别只报好看的那个。
+   */
+  const t1 = Date.now()
+  const ocr2 = await ocrTopBand(img, bandH)
+  const frame2 = ocr2.ok ? recognizeFrame(img, ocr2.words) : { hits: [], seen: [], anchor: null }
+  const msWarm = Date.now() - t1
   const got = Object.fromEntries(frame.hits.map((h) => [h.key, h.value]))
   const smallText = frame.hits.filter((h) => h.warn).map((h) => h.key)
   const wrong = Object.keys(EXPECT).filter((k) => got[k] !== EXPECT[k])
@@ -164,7 +211,10 @@ for (const [W, H, opt] of SIZES) {
     wrong,
     small_text: smallText,
     band_scale: ocr.band_scale,
+    ocr_ms: ocr.ms,
     ms,
+    ms_warm: msWarm,
+    warm_got: Object.fromEntries(frame2.hits.map((h) => [h.key, h.value])),
   }
   rows.push(row)
   if (row.ultrawide) {
@@ -193,22 +243,23 @@ try {
 const wideSilent = rows.filter((r) => r.silent_wrong && r.silent_wrong.length).flatMap((r) => r.silent_wrong)
 
 if (AS_JSON) {
-  console.log(JSON.stringify({ templates: tpl, engines: { engine: st.engine, name: st.engine_name }, rows, pass, total, widePass, wideTotal, entry }, null, 2))
+  console.log(JSON.stringify({ templates: tpl, engines: { engine: st.engine, name: st.engine_name }, backend: BACKEND || 'auto', forced_engine: process.env.XFC_OCR_ENGINE || '', rows, pass, total, widePass, wideTotal, entry }, null, 2))
   process.exit(pass === total && !entry.error && !captureFailure ? 0 : 1)
 }
 
-console.log(`引擎：${st.engine_name || st.engine}    图标模板：${tpl.items.map((i) => `${i.key}(${i.w}×${i.h},${i.from})`).join(' ')}`)
+console.log(`引擎：${st.engine_name || st.engine}${BACKEND ? `（--backend=${BACKEND} 强制：${process.env.XFC_OCR_ENGINE}）` : ''}    图标模板：${tpl.items.map((i) => `${i.key}(${i.w}×${i.h},${i.from})`).join(' ')}`)
 console.log('')
-console.log('分辨率        锚点                结果                              带缩放  耗时')
+console.log('分辨率        锚点                结果                              带缩放  冷态     热态')
 for (const r of rows) {
   const cells = Object.keys(EXPECT).map((k) => `${k}=${r.got[k] ?? '—'}${r.got[k] === EXPECT[k] ? '' : ' ✗'}`)
   const tag = r.ultrawide ? ' (超宽)' : ''
   const note = r.small_text.length ? `  [字太小:${r.small_text.join(',')}]` : ''
   console.log(
-    `${(r.size + tag).padEnd(14)}${(r.anchor || '无锚点').padEnd(19)} ${cells.join('  ').padEnd(34)} ${String(r.band_scale ?? '-').padStart(5)}x ${String(r.ms).padStart(5)}ms${note}`
+    `${(r.size + tag).padEnd(14)}${(r.anchor || '无锚点').padEnd(19)} ${cells.join('  ').padEnd(34)} ${String(r.band_scale ?? '-').padStart(5)}x ${String(r.ms).padStart(6)}ms ${String(r.ms_warm).padStart(6)}ms${note}`
   )
 }
 console.log('')
+console.log('（冷态＝第一次点「识别画面」要等多久；热态＝同一分辨率再认一帧要多久。识别一屏会连认好几帧。）')
 console.log(`常规比例准确率：${pass}/${total}`)
 if (wideTotal) {
   console.log(`超宽比例（游戏 UI 按高度缩，自带 OCR 有上限）：${widePass}/${wideTotal}`)

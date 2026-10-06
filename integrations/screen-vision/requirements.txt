@@ -1,0 +1,25 @@
+# Python 视觉后端（屏幕识别）的依赖。
+#
+# 装哪儿：设置 → 屏幕识别 → Python 视觉后端 → 「一键安装依赖」，
+# 它会建 data/vision-venv 这个项目内虚拟环境再装到这里列的东西，
+# 不动你系统里的 Python。也可以自己来：
+#   python -m venv data\vision-venv
+#   data\vision-venv\Scripts\python.exe -m pip install -r integrations\screen-vision\requirements.txt
+#
+# 为什么是 RapidOCR(ONNX) 而不是 PaddlePaddle：
+#   · 用的是同一套 PP-OCR 模型（本仓 tools/ocr/rapidocr/models 里已经有现成的 onnx）；
+#   · onnxruntime 的 wheel 小得多，Python 3.13/3.14 上也有；
+#   · 不需要 AVX 也能跑，老机器不至于直接罢工。
+#
+# 注意：rapidocr 3.x 不把 onnxruntime 写进必装依赖（它支持多种后端），
+# 所以这里必须显式列出来，漏了就是「装完了但一跑就 ImportError」。
+
+rapidocr>=3.9,<4
+onnxruntime>=1.20,<2
+
+# 下面这几个 rapidocr 自己也会拉，但显式写出来是为了两件事：
+#   1. 版本下限说清楚（numpy 2 的 API、opencv 的 matchTemplate 口径）；
+#   2. 万一以后 rapidocr 改了依赖树，这里不会悄悄少东西。
+numpy>=2.0
+opencv-python>=4.10
+pillow>=10

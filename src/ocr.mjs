@@ -1,7 +1,11 @@
-﻿/* ============================================================
-   OCR：读游戏截图里的文字和数字，三种引擎按能力从高到低排。
+/* ============================================================
+   OCR：读游戏截图里的文字和数字，五种引擎按能力从高到低排。
 
-   为什么要三种（这是「识别率要足够高」的落点）：
+   为什么要这么多（这是「识别率要足够高」的落点）：
+     0. **Python 视觉后端**（integrations/screen-vision，RapidOCR + ONNX Runtime）
+        —— 跑在项目内的 data/vision-venv 里，长驻进程 + 本地 HTTP。
+        同一套 PP-OCR 模型，但有置信度、能对小字做「裁出来放大再认」。
+        没有它照样能用，链条往下走。
      1. **Umi-OCR**（github.com/hiroi-sora/Umi-OCR, MIT）—— PaddleOCR 内核，
         完全离线，自带一个本地 HTTP 服务（默认 127.0.0.1:1224）。
         它返回的每一项都带 `score` 置信度和四角坐标 `box`，
@@ -11,7 +15,7 @@
         没装 Umi-OCR 但装了这个就用它。
      3. **Windows.Media.Ocr**（系统自带，scripts/ocr.ps1）—— 什么外部程序都没有
         时的兜底。不装任何东西，纯本机，但拿不到置信度。
-   三级都是「本机跑、图不出这台电脑」，和凭证保险箱一个立场。
+   几级都是「本机跑、图不出这台电脑」，和凭证保险箱一个立场。
    探测结果是缓存的，但可以 force 重探（用户刚装完引擎能立刻生效）。
    ============================================================ */
 
@@ -21,6 +25,7 @@ import path from 'node:path'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { DATA_DIR } from './config.mjs'
+import { probeVisionHealth, visionBackendStatus, visionOcr } from './vision-python.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 // resolve 一下把 '..' 消掉：powershell -File 拿到带 '..' 的路径会直接失败
@@ -807,8 +812,8 @@ let engineCache = null
 
 /**
  * 探测这台机器上能用的 OCR 引擎。
- * 除 Umi-OCR 要发请求（异步的 probeEngines）之外都是查文件，同步就能出结果。
- * 结果缓存；force=true 重探（用户刚装完引擎时用）。
+ * 除了 Python 视觉后端和 Umi-OCR 要发请求（异步的 probeEngines）之外都是查文件，
+ * 同步就能出结果。结果缓存；force=true 重探（用户刚装完引擎时用）。
  */
 export function ocrEngines({ force = false } = {}) {
   if (engineCache && !force) return engineCache
@@ -817,8 +822,38 @@ export function ocrEngines({ force = false } = {}) {
   const paddleBin = findConsoleOcr(CONSOLE_OCR.paddleocr)
   const rapidBin = findConsoleOcr(CONSOLE_OCR.rapidocr)
   const tessBin = findTesseract()
+  // Python 视觉进程的在线状态：同步读缓存（真探活是 probeEngines 的事）
+  const vision = visionBackendStatus()
 
   const engines = [
+    /**
+     * 0. **Python 视觉后端**（RapidOCR / ONNX，跑在项目内的 data/vision-venv）
+     *
+     * 排在最高的位置，理由不是「新」，是实测：
+     *   · 同一批截图，它能一次读出 `2174` / `2508319`（PP-OCRv4 det+rec）；
+     *   · 超宽分辨率那三档（2560×1080 / 1920×822 / 3440×1440）里，
+     *     数字块单独裁出来放大 3 倍走识别分支（rec-only）也能全对，
+     *     而 Windows 自带 OCR 在这几档会把 `2174` 读成 `21`；
+     *   · 带置信度（每词一个 score），旧引擎链里只有 Umi-OCR 有这个。
+     *
+     * 它**不是必需**的：没装 Python / 没装依赖 / 进程崩了，链条就往下一路走，
+     * 屏幕识别照样能用。这一条是「可以更好」，不是「没它不行」。
+     */
+    {
+      id: 'python',
+      name: 'Python 视觉后端（RapidOCR-ONNX）',
+      available: Boolean(vision.online),
+      url: vision.url,
+      license: 'Apache-2.0（RapidOCR）· MIT（ONNX Runtime 的上游）',
+      install: '设置 → 屏幕识别 → Python 视觉后端 → 点「一键安装依赖」（装在 data/vision-venv，不动你系统里的 Python）',
+      note: vision.online
+        ? `本地视觉进程在线（${vision.url}，载模型 ${vision.load_ms ?? '-'}ms，上次识别 ${vision.last_ms ?? '-'}ms）`
+        : vision.deps_ready === false
+          ? '依赖没装：设置页点「一键安装依赖」（约 200MB，装在项目内的 data/vision-venv）'
+          : vision.error || '没启动：设置页点「启动」，或者重启程序（会自己起）',
+      score: 5,
+      backend: true,
+    },
     {
       id: 'umi',
       name: 'Umi-OCR',
@@ -879,12 +914,19 @@ export function ocrEngines({ force = false } = {}) {
     tessBin: tessBin || null,
     umiOnline: Boolean(prev.umiOnline),
     umiPort: prev.umiPort || UMI_PORTS[0],
+    visionOnline: Boolean(vision.online),
+    vision,
     checkedAt: Date.now(),
   }
   return engineCache
 }
 
-/** 异步探一次 Umi-OCR（真的发请求），结果并回缓存 */
+/**
+ * 异步探一次「只有真发请求才知道在不在」的那两个引擎：
+ *   · Umi-OCR —— 探它的本地 HTTP 服务（get_options 当心跳）；
+ *   · Python 视觉后端 —— 探它的 /health（要求 warm，只有进程活着但模型没载完不算）。
+ * 结果并回缓存。
+ */
 export async function probeEngines({ force = false, timeoutMs = 1200 } = {}) {
   if (force) engineCache = null
   ocrEngines({ force })
@@ -904,6 +946,29 @@ export async function probeEngines({ force = false, timeoutMs = 1200 } = {}) {
   engineCache.engines = engineCache.engines.map((e) =>
     e.id === 'umi' ? { ...e, available: online, port: engineCache.umiPort, note: online ? `本地服务在线（127.0.0.1:${engineCache.umiPort}）` : e.note } : e
   )
+
+  // Python 视觉进程：连接被拒是立刻返回的，所以这条不会拖慢探测
+  let vision = { ok: false, error: '' }
+  try {
+    vision = await probeVisionHealth({ timeoutMs: Math.min(Math.max(timeoutMs, 800), 2000), force: true })
+  } catch (err) {
+    vision = { ok: false, error: err.message }
+  }
+  engineCache.visionOnline = Boolean(vision.ok)
+  engineCache.vision = visionBackendStatus()
+  engineCache.engines = engineCache.engines.map((e) =>
+    e.id === 'python'
+      ? {
+          ...e,
+          available: Boolean(vision.ok),
+          url: engineCache.vision.url,
+          note: vision.ok
+            ? `本地视觉进程在线（${engineCache.vision.url}，载模型 ${vision.payload?.load_ms ?? '-'}ms，上次识别 ${vision.payload?.last_ms ?? '-'}ms）`
+            : vision.error || e.note,
+        }
+      : e
+  )
+
   engineCache.preferred = engineCache.engines.filter((e) => e.available).sort((a, b) => b.score - a.score)[0]?.id || null
   return engineCache
 }
@@ -968,6 +1033,8 @@ export function ocrStatus() {
     paddle_bin: st.paddleBin || '',
     rapid_bin: st.rapidBin || '',
     tess_bin: st.tessBin || '',
+    // Python 视觉后端的快照（同步、不触发探测；要真探活走 /api/ocr/backend）
+    backend: st.vision || visionBackendStatus(),
     platform: process.platform,
   }
 }
@@ -981,22 +1048,38 @@ export function ocrStatus() {
  */
 export async function ocrImage(imagePath, { lang = 'zh-Hans-CN', timeoutMs = 30000, engine = null } = {}) {
   const st = ocrEngines()
-  const chain = engine
-    ? [engine]
-    : ['umi', 'paddleocr', 'rapidocr', 'tesseract', 'windows'].filter((id) => st.engines.find((e) => e.id === id)?.available)
+  /**
+   * 强制指定引擎：参数优先，其次看环境变量 XFC_OCR_ENGINE。
+   *
+   * 环境变量这条是给自检/对照脚本用的（`vision-selftest.mjs --backend=python`
+   * 就是把它设成 python）—— 要比较「同一个后端」在两台机器/两个版本上的表现，
+   * 就不能让它每次按分数自动挑。排查问题时也好用：
+   *   set XFC_OCR_ENGINE=python && node scripts/vision-selftest.mjs
+   */
+  const forced = engine || String(process.env.XFC_OCR_ENGINE || '').trim() || null
+  const chain = forced
+    ? [forced]
+    : ['python', 'umi', 'paddleocr', 'rapidocr', 'tesseract', 'windows'].filter((id) => st.engines.find((e) => e.id === id)?.available)
   if (!chain.length) return { ok: false, error: '这台机器上没有可用的 OCR（装一个本地引擎，或者用 Windows 自带的那个）', tried: [] }
   const tried = []
   for (const id of chain) {
     let r
-    if (id === 'umi') r = await umiOCR(imagePath, { timeoutMs: Math.min(timeoutMs, 20000), port: st.umiPort })
+    if (id === 'python') {
+      // Python 视觉后端：返回的是 {ok, engine, words, ms}，行分组在本地补
+      // （不在 vision-python.mjs 里做，免得那两个模块循环 import）
+      const v = await visionOcr(imagePath, { timeoutMs })
+      r = v.ok ? { ...v, lines: textLines(v.words) } : v
+    } else if (id === 'umi') r = await umiOCR(imagePath, { timeoutMs: Math.min(timeoutMs, 20000), port: st.umiPort })
     else if (id === 'paddleocr') r = await consoleOCR('paddleocr', st.paddleBin, imagePath, { timeoutMs })
     else if (id === 'rapidocr') r = await consoleOCR('rapidocr', st.rapidBin, imagePath, { timeoutMs })
     else if (id === 'tesseract') r = await tesseractOCR(st.tessBin, imagePath, { timeoutMs })
     else r = await windowsOCR(imagePath, { lang, timeoutMs })
     tried.push({ engine: id, ok: r.ok, error: r.error })
     if (r.ok) return { ...r, tried }
-    // 这次挂了（用户关了 Umi-OCR / 把 exe 挪走了）→ 从链里摘掉，别每次都白等一个超时
-    if (engine) continue
+    // 这次挂了（用户关了 Umi-OCR / 把 exe 挪走了 / sidecar 崩了）→ 从链里摘掉，
+    // 别每次都白等一个超时
+    if (forced) continue
+    if (id === 'python') engineCache.visionOnline = false
     if (id === 'umi') engineCache.umiOnline = false
     if (id === 'paddleocr' && /起不了/.test(String(r.error))) engineCache.paddleBin = null
     if (id === 'rapidocr' && /起不了/.test(String(r.error))) engineCache.rapidBin = null

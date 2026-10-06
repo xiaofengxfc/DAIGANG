@@ -1623,6 +1623,17 @@ async function main() {
       ok('屏幕识别里有「重新检测」', ocrText.includes('重新检测'), ocrText.slice(0, 220))
       ok('图标模板那行把数量写出来了', ocrText.includes('图标模板') && ocrText.includes('共'), ocrText.slice(0, 260))
 
+      // Python 视觉后端那张卡：测试实例的 venv 在临时数据目录里，所以它多半
+      // 走「依赖没装」那一支 —— 无论如何卡得画出来，按钮得在，别是空白。
+      const pyCard = await cdp.eval(`(() => {
+        const card = [...document.querySelectorAll('.settings-page .install')].find((c) => c.innerText.includes('Python 视觉后端'))
+        return card ? card.innerText.replace(/\\s+/g, ' ') : ''
+      })()`)
+      ok('Python 后端那张卡画出来了', pyCard.includes('Python 视觉后端') && pyCard.includes('RapidOCR'), pyCard.slice(0, 200))
+      ok('后端卡给出了状态（在线/没启动/依赖没装）', /在线|起来了但没就绪|已装好，没启动|依赖没装/.test(pyCard), pyCard.slice(0, 200))
+      ok('后端卡上有可操作的按钮', /一键安装依赖|启动|自检一下|重新查/.test(pyCard), pyCard.slice(0, 240))
+      ok('后端卡说明了它排在最前面且能降级', pyCard.includes('识别链最前面') && pyCard.includes('自动退回'), pyCard.slice(-260))
+
       // 保险箱那行：这会儿是解开的（前面刚在保险箱里解过）
       ok('保险箱那行写着已解开', (await cdp.eval(`document.querySelector('.settings-page')?.innerText || ''`)).includes('已解开'), await cdp.eval(`document.querySelector('.settings-page')?.innerText?.replace(/\\s+/g, ' ')?.slice(0, 400) || ''`))
 

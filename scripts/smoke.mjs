@@ -898,6 +898,31 @@ export async function run() {
   r = await api('POST', `/api/credentials/${credId}/reveal`, { action: 'view' })
   ok('改密后旧密文仍能解开', r.body.secret?.password === 'SuperSecret123', r.body.secret)
 
+  /* ---------- Python 视觉后端（屏幕识别那一层） ---------- */
+  section('屏幕识别 · Python 视觉后端')
+  r = await api('GET', '/api/ocr/status')
+  ok('OCR 状态里带后端快照', r.status === 200 && r.body.backend && typeof r.body.backend === 'object', Object.keys(r.body || {}))
+  ok('后端快照说得出它排第几', r.body.engines?.[0]?.id === 'python', (r.body.engines || []).map((e) => e.id))
+  ok('后端快照带 url 和 venv 路径', Boolean(r.body.backend.url) && Boolean(r.body.backend.venv?.path), r.body.backend)
+
+  r = await api('GET', '/api/ocr/backend')
+  ok('后端详情能拿到', r.status === 200 && Boolean(r.body.deps), r.body)
+  ok('依赖清单文件在位', r.body.deps?.requirements?.exists === true, r.body.deps?.requirements)
+  ok('给了手动安装命令', (r.body.deps?.install?.commands || []).length >= 1, r.body.deps?.install)
+  ok('日志接口可用', r.body.log_tail && Array.isArray(r.body.log_tail.lines), r.body.log_tail)
+
+  r = await api('GET', '/api/ocr/backend/install/status', undefined)
+  ok('不存在的安装任务被识别', r.body.status === 'missing', r.body)
+
+  // 自检：这台机器上装了依赖就必须通过；没装就得给一句能照做的失败原因，
+  // 不能是 500。测试实例的 venv 在临时数据目录里，所以两种都算过。
+  r = await api('POST', '/api/ocr/backend/health')
+  ok('自检要么通过、要么说清楚为什么不行', r.status === 200 || (r.status === 400 && Boolean(r.body.code)), r.body)
+  if (r.status === 200) ok('自检报告了每一步', Array.isArray(r.body.steps) && r.body.steps.length >= 3, r.body.steps)
+
+  r = await api('POST', '/api/ocr/backend/stop')
+  ok('停后端不报错（没在跑也算停好了）', r.status === 200, r.body)
+
   /* ---------- 退出与登录 ---------- */
   section('退出与重新登录')
   r = await api('POST', '/api/auth/logout')

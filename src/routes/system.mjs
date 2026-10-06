@@ -6,6 +6,8 @@ import { get, post, patch, del, saveDataURL, setBodyLimit } from '../http.mjs'
 import { UPLOAD_DIR, needsRestart, ROOT, MAX_OCR_IMAGE_BYTES } from '../config.mjs'
 import { bad, notFound, fail, int, num, money, clampStr, nowISO, localDate, localMonth, bizDate, parseJSON } from '../util.mjs'
 import { ocrImage, extractResources, probeEnginesStatus, ensureEnginesProbed, ocrEngines } from '../ocr.mjs'
+import { ensureVisionStarted, probeVisionHealth, resetVisionBlock, stopVisionSidecar, visionBackendStatus, visionHealthCheck, visionLogTail, visionOcrCrop } from '../vision-python.mjs'
+import { startVisionDependencyInstall, visionDependencyInstallStatus, visionDependencyStatus } from '../vision-deps.mjs'
 import { installOptions, installEngine, installStatus, extractorStatus, releasePage, INSTALL_SPECS, engineHealth, cleanupTmp } from '../ocr-install.mjs'
 import { recognizeScreenOnce, recognizeImageFile, resetVotes, screenAvailable, templateStatus, loadTemplates, extractIconTemplate, TEMPLATE_FILE, SCREEN_RESOURCES, MIN_SCORE } from '../screen.mjs'
 import { focusGameWindow, sendGameKey } from '../game-window.mjs'
@@ -477,6 +479,10 @@ export function register() {
     // 下半截「安装选项」（真探过）说「已装好」，同一屏上打架；识别也永远
     // 轮不到 Umi-OCR。ensureEnginesProbed 带 TTL 缓存，不会每次都白等。
     const st = probe ? await probeEnginesStatus({ force: true }) : await ensureEnginesProbed()
+    // 顺手把 Python 视觉进程拉起来（不 await）：它在后台载模型 + 预热要 5 秒左右，
+    // 等用户真点「识别画面」的时候就已经热了。没装依赖就什么都不做，
+    // 状态页会告诉他去哪儿装。
+    if (!st.backend?.online && st.backend?.deps_ready !== false) void ensureVisionStarted().catch(() => {})
     return { ...st, screen: process.platform === 'win32', templates: templateStatus(), resources: SCREEN_RESOURCES, min_score: MIN_SCORE }
   })
 
@@ -571,6 +577,65 @@ export function register() {
 
   /** 清掉一次「看屏幕」的投票记录（换了一张单、或者用户点了重来） */
   post('/api/ocr/screen/reset', (ctx) => resetVotes(clampStr(ctx.body.session, 40) || 'default'))
+
+  /* ============================================================
+     Python 视觉后端（屏幕识别的 OCR 那一层）
+     ============================================================
+
+     它是**可选**的一层：装了更好（有置信度、能对小字裁出来放大再认），
+     没装/起不来就往旧引擎链退（RapidOCR-json → Windows 自带 OCR），
+     屏幕识别照样能用。所以这一组接口全是「查看状态 / 装 / 起 / 停 / 自检」，
+     没有一个会挡住识别。
+     ============================================================ */
+
+  /**
+   * 后端的完整状态：依赖、进程、模型、日志尾部。
+   * `?probe=1` 强制重新探测依赖（用户刚点完「一键安装」时用）。
+   */
+  get('/api/ocr/backend', async (ctx) => {
+    const probe = String(ctx.query.probe || '') === '1'
+    const deps = visionDependencyStatus({ force: probe })
+    const health = await probeVisionHealth({ timeoutMs: 2500, force: true })
+    return {
+      ...visionBackendStatus(),
+      deps,
+      install: deps.install,
+      health: health.ok ? health.payload : null,
+      health_error: health.ok ? '' : health.error,
+      log_tail: visionLogTail(40),
+      engines: ocrEngines().engines,
+    }
+  })
+
+  /**
+   * 一键装依赖：建 data/vision-venv → pip install -r requirements.txt。
+   * 后台跑，立刻返回 job id（前端轮询进度）。
+   */
+  post('/api/ocr/backend/install', () => {
+    const r = startVisionDependencyInstall()
+    if (!r.ok) fail(400, r.error || '开始安装失败', r.code || 'install_failed')
+    return r
+  })
+
+  get('/api/ocr/backend/install/status', (ctx) => visionDependencyInstallStatus(clampStr(ctx.query.job, 60)))
+
+  /** 手动启动（正常情况下程序启动时就会自己起，这里给「起不来再试一次」用） */
+  post('/api/ocr/backend/start', async () => {
+    resetVisionBlock()
+    // force：用户明确点了「启动」，那就无视 XFC_VISION_AUTOSTART=0
+    const r = await ensureVisionStarted({ force: true })
+    if (!r.ok) fail(400, r.error || '启动失败', 'vision_start_failed')
+    return { ok: true, ...visionBackendStatus() }
+  })
+
+  post('/api/ocr/backend/stop', () => stopVisionSidecar())
+
+  /** 自检：真认一张图 + 数字块 rec-only，不看「进程活着」就当能用 */
+  post('/api/ocr/backend/health', async () => {
+    const r = await visionHealthCheck()
+    if (!r.ok) fail(400, r.error || '自检没通过', 'vision_health_failed')
+    return r
+  })
 
   /**
    * 图标模板：列出现用的、上传一个自己抠的。

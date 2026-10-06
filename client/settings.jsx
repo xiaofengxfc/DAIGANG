@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { Check, Download, Edit3, RefreshCw, Upload } from 'lucide-react'
+import { Check, Download, Edit3, Play, RefreshCw, Square, Upload } from 'lucide-react'
 import { api } from './lib/api.js'
 import { fmtDateTime } from './lib/formatters.js'
 import { toast, toastErr } from './app/toast-store.js'
@@ -32,7 +32,7 @@ import { downloadBlob } from '../public/js/pricecard.js'
 const iconProps = (size = 14) => ({ size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true })
 
 /** 引擎排序：越靠前越优先。和后端 src/ocr.mjs 的探测链同一个顺序 */
-const OCR_ENGINE_ORDER = ['umi', 'paddleocr', 'rapidocr', 'tesseract', 'windows']
+const OCR_ENGINE_ORDER = ['python', 'umi', 'paddleocr', 'rapidocr', 'tesseract', 'windows']
 
 const SHOP_FORM_ID = 'settings-shop-form'
 const PASSWORD_FORM_ID = 'settings-password-form'
@@ -404,7 +404,9 @@ function OcrPanel({ st, onProbe, onRefreshDone }) {
         {engines.map((eng) => <EngineRow key={eng.id} eng={eng} preferred={st.engine} />)}
       </div>
       <div className="panel__body" style={{ paddingTop: '0' }}>
-        <div className="note">识别用到的东西全部在这台电脑上跑，截图不出本机。按顺序试：Umi-OCR（装了并打开 HTTP 服务最好用）→ PaddleOCR-json / RapidOCR-json（解压到 tools\ocr\ 或设环境变量）→ Tesseract → Windows 自带。装了哪个用哪个，没装就往下退，不会因为缺一个就用不了。</div>
+        {/* Python 后端那张卡：装/起/停/自检都在这儿（它排第一，所以放在列表正下方） */}
+        <PythonBackendSection onChanged={onRefreshDone} />
+        <div className="note" style={{ marginTop: 'var(--sp-4)' }}>识别用到的东西全部在这台电脑上跑，截图不出本机。按顺序试：Python 视觉后端（装了最好用）→ Umi-OCR（装了并打开 HTTP 服务）→ PaddleOCR-json / RapidOCR-json（解压到 tools\ocr\ 或设环境变量）→ Tesseract → Windows 自带。装了哪个用哪个，没装就往下退，不会因为缺一个就用不了。</div>
         <div style={{ marginTop: 'var(--sp-3)' }}>
           <div className="tbl__meta">{`图标模板（认出「哪个图标是星声/体力/贝币」靠它们）：共 ${tpl.items.length} 个`}</div>
           <div className="cluster" style={{ marginTop: '4px', flexWrap: 'wrap' }}>
@@ -436,6 +438,238 @@ function EngineRow({ eng, preferred }) {
         </div>
         <div className="tbl__meta" style={{ marginTop: '2px' }}>{eng.available ? eng.note || '已就绪' : eng.note || ''}</div>
         {!eng.available && eng.install ? <div className="tbl__meta" style={{ marginTop: '2px', opacity: '.75' }}>{`怎么装：${eng.install}`}</div> : null}
+      </div>
+    </div>
+  )
+}
+
+/* ============================================================
+   Python 视觉后端：屏幕识别里「认字」那一层
+   ------------------------------------------------------------
+   它是**可选**的：装了就用（有置信度、能对小字裁出来放大再认），
+   没装/起不来就往旧引擎链退，识别照样能用。
+   所以这张卡的立场是「把状态摊开 + 一键装」，不是「必须装」。
+   接口都在 src/routes/system.mjs 的 /api/ocr/backend*，逻辑在 src/vision-python.mjs。
+   ============================================================ */
+
+function PythonBackendSection({ onChanged }) {
+  const [data, setData] = useState(null)
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [installing, setInstalling] = useState(false)
+  const [job, setJob] = useState(null)
+  const [acting, setActing] = useState('')
+  const [note, setNote] = useState({ text: '', tone: '' })
+  const [openLog, setOpenLog] = useState(false)
+
+  // 卸载就收摊：和安装卡一个套路，别往卸载掉的组件里写状态
+  const alive = useRef(true)
+  const sleepers = useRef(new Map())
+  useEffect(() => {
+    alive.current = true
+    const pending = sleepers.current
+    return () => {
+      alive.current = false
+      for (const [id, resolve] of pending) {
+        window.clearTimeout(id)
+        resolve()
+      }
+      pending.clear()
+    }
+  }, [])
+
+  const load = useCallback(async (probe = false) => {
+    setBusy(true)
+    try {
+      const r = await api.get('/api/ocr/backend', probe ? { probe: 1 } : undefined)
+      if (!alive.current) return
+      setData(r)
+      setError('')
+    } catch (err) {
+      if (!alive.current) return
+      setData(null)
+      setError((err && err.message) || String(err))
+    } finally {
+      if (alive.current) setBusy(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  const sleep = (ms) => new Promise((resolve) => {
+    const id = window.setTimeout(() => {
+      sleepers.current.delete(id)
+      resolve()
+    }, ms)
+    sleepers.current.set(id, resolve)
+  })
+
+  /** 装依赖是后台任务（建 venv + pip 下载几百 MB），轮询进度 */
+  async function watchInstall(jobId) {
+    for (;;) {
+      if (!alive.current) return null
+      let r
+      try {
+        r = await api.get('/api/ocr/backend/install/status', { job: jobId })
+      } catch (err) {
+        if (alive.current) setNote({ text: `查进度失败：${(err && err.message) || err}`, tone: 'amber' })
+        return null
+      }
+      if (!alive.current) return null
+      const j = r.job || r
+      setJob(j)
+      if (j.status === 'success' || j.status === 'failed' || j.status === 'missing') return j
+      await sleep(1200)
+    }
+  }
+
+  async function install() {
+    setInstalling(true)
+    setJob(null)
+    setNote({ text: '正在建 data/vision-venv 并安装依赖（约 200MB，第一次要几分钟）…', tone: '' })
+    try {
+      const r = await api.post('/api/ocr/backend/install', {})
+      const last = await watchInstall(r.job)
+      if (!alive.current) return
+      if (last && last.status === 'success') {
+        setNote({ text: '装好了 —— 下面「启动」一下就能用（程序重启后也会自己起）', tone: 'jade' })
+        toast('Python 视觉后端依赖装好了', 'ok', 5000)
+      } else if (last) {
+        setNote({ text: `装失败：${last.error || '看下面的日志'}`, tone: 'amber' })
+      }
+      await load(true)
+      onChanged?.()
+    } catch (err) {
+      if (alive.current) setNote({ text: (err && err.message) || String(err), tone: 'amber' })
+    } finally {
+      if (alive.current) setInstalling(false)
+    }
+  }
+
+  async function act(kind) {
+    setActing(kind)
+    setNote({ text: '', tone: '' })
+    try {
+      if (kind === 'start') {
+        const r = await api.post('/api/ocr/backend/start', {})
+        if (alive.current) setNote({ text: r.online ? `起来了：${r.url}（载模型 ${r.load_ms}ms / 预热 ${r.warm_ms}ms）` : '进程起来了但还没就绪，稍等再看', tone: r.online ? 'jade' : '' })
+      } else if (kind === 'stop') {
+        await api.post('/api/ocr/backend/stop', {})
+        if (alive.current) setNote({ text: '已经停了 —— 识别会自动退回旧引擎链，功能不受影响', tone: '' })
+      } else if (kind === 'health') {
+        const r = await api.post('/api/ocr/backend/health', {})
+        if (alive.current) {
+          setJob({ status: 'success', steps: r.steps, log: [] })
+          setNote({ text: `自检通过（${r.ms ? `${r.ms}ms` : '认图正常'}）`, tone: 'jade' })
+        }
+      }
+      await load(kind !== 'stop')
+      onChanged?.()
+    } catch (err) {
+      if (alive.current) setNote({ text: `没成：${(err && err.message) || err}`, tone: 'amber' })
+    } finally {
+      if (alive.current) setActing('')
+    }
+  }
+
+  if (error) {
+    return (
+      <div className="note note--alert" style={{ marginTop: 'var(--sp-4)' }}>{`拿不到 Python 视觉后端的状态：${error}`}</div>
+    )
+  }
+  if (!data) {
+    return <div className="tiny dim" style={{ marginTop: 'var(--sp-4)' }}>正在查 Python 视觉后端…</div>
+  }
+
+  const deps = data.deps || {}
+  const mods = (deps.deps && deps.deps.mods) || {}
+  const models = data.models || (data.health && data.health.models) || null
+  const logLines = (data.log_tail && data.log_tail.lines) || []
+  const jobSteps = job && job.steps ? job.steps : []
+  const depsReady = data.deps_ready === true
+  const online = Boolean(data.online && data.warm)
+
+  return (
+    <div className="install" style={{ marginTop: 'var(--sp-4)' }}>
+      <div className="install__head">
+        <span className="install__name">Python 视觉后端</span>
+        <span className={`tag ${online ? 'tag--jade' : depsReady ? 'tag--amber' : 'tag--muted'}`}>
+          {online ? '在线' : data.running ? '起来了但没就绪' : depsReady ? '已装好，没启动' : '依赖没装'}
+        </span>
+        <span className="tiny dim">RapidOCR + ONNX Runtime</span>
+        <div style={{ flex: '1' }} />
+        <button className="btn btn--sm btn--quiet" type="button" data-loading={busy ? '1' : undefined} onClick={() => load(true)}><RefreshCw {...iconProps(13)} />重新查</button>
+      </div>
+
+      {/* 状态：一行能看懂的结论 + 出错时的原因 */}
+      <div className="tbl__meta" style={{ marginTop: '2px' }}>
+        {online
+          ? `${data.url}　载模型 ${data.load_ms ?? '-'}ms / 预热 ${data.warm_ms ?? '-'}ms / 上次识别 ${data.last_ms ?? '-'}ms　PID ${data.pid || '-'}`
+          : data.error || data.blocked || '没在跑'}
+      </div>
+
+      {/* 解释器 / venv / 依赖版本 */}
+      <div className="cluster" style={{ marginTop: '6px', flexWrap: 'wrap', gap: '6px' }}>
+        <span className={`tag ${depsReady ? 'tag--muted' : 'tag--amber'}`}>
+          {deps.interpreter && deps.interpreter.bin ? `Python ${deps.interpreter.version || ''}：${deps.interpreter.bin}` : '没找到 Python 3'}
+        </span>
+        {deps.venv && deps.venv.exists ? <span className="tag tag--muted">{`venv：${deps.venv.path}`}</span> : null}
+        {Object.entries(mods).map(([k, v]) => <span key={k} className="tag tag--muted">{`${k} ${v}`}</span>)}
+      </div>
+
+      {models ? (
+        <div className="tbl__meta" style={{ marginTop: '4px' }}>
+          {models.ok
+            ? `模型：${models.dir}`
+            : `模型没找齐（缺 ${(models.missing || []).join('、') || '未知'}）—— 会自动去下（第一次慢一点）`}
+        </div>
+      ) : null}
+
+      {/* 按钮 */}
+      <div className="cluster" style={{ gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
+        {!depsReady ? (
+          <button className="btn btn--sm btn--primary" type="button" disabled={installing} data-loading={installing ? '1' : undefined} onClick={install}><Download {...iconProps(14)} />一键安装依赖</button>
+        ) : null}
+        {depsReady && !data.running ? (
+          <button className="btn btn--sm btn--primary" type="button" disabled={Boolean(acting)} data-loading={acting === 'start' ? '1' : undefined} onClick={() => act('start')}><Play {...iconProps(14)} />启动</button>
+        ) : null}
+        {depsReady ? (
+          <button className="btn btn--sm" type="button" disabled={Boolean(acting)} data-loading={acting === 'health' ? '1' : undefined} onClick={() => act('health')}><Check {...iconProps(14)} />自检一下</button>
+        ) : null}
+        {data.running ? (
+          <button className="btn btn--sm btn--quiet" type="button" disabled={Boolean(acting)} data-loading={acting === 'stop' ? '1' : undefined} onClick={() => act('stop')}><Square {...iconProps(14)} />停止</button>
+        ) : null}
+        <button className="btn btn--sm btn--quiet" type="button" onClick={() => setOpenLog((v) => !v)}>{openLog ? '收起日志' : '看日志'}</button>
+        {!depsReady && deps.install && deps.install.python_download ? (
+          <a className="btn btn--sm btn--quiet" href={deps.install.python_download} target="_blank" rel="noreferrer noopener">装 Python</a>
+        ) : null}
+      </div>
+
+      {/* 装依赖 / 自检的进度和步骤 */}
+      <div className="install__bar" hidden={!installing || !job}>
+        <div className="install__fill" style={{ width: `${(job && job.progress) || 4}%` }} />
+      </div>
+      {job && job.step && installing ? <div className="tiny dim">{`${job.step}${job.steps ? `（${(job.step_index || 0) + 1}/${job.steps.length}）` : ''}`}</div> : null}
+      {jobSteps.length ? (
+        <div className="tiny dim" style={{ marginTop: '4px' }}>
+          {jobSteps.map((s, i) => <div key={s}>{`${i < (job.step_index || 0) || job.status === 'success' ? '✓' : i === (job.step_index || 0) ? '·' : '　'} ${s}`}</div>)}
+        </div>
+      ) : null}
+      {job && job.log ? <div className="install__log">{job.log}</div> : null}
+      {note.text ? <div className={`tiny${note.tone ? ` tone-${note.tone}` : ' dim'}`}>{note.text}</div> : null}
+
+      {/* 日志尾部：起不来的时候，原因只在这里 */}
+      {openLog ? (
+        <div className="install__log" style={{ maxHeight: '220px' }}>
+          {logLines.length ? logLines.join('\n') : (data.log_tail && data.log_tail.error) || '还没有日志（没启动过）'}
+        </div>
+      ) : null}
+
+      <div className="tiny dim" style={{ marginTop: '4px' }}>
+        装的是同一个 PP-OCR 模型（复用 tools\ocr\rapidocr\models 里那几个 .onnx，不额外下载），跑在项目内的 data\vision-venv 里，不动你系统里的 Python。
+        它排在识别链最前面；它要是没起来，会自动退回下面的引擎，功能不受影响。
       </div>
     </div>
   )

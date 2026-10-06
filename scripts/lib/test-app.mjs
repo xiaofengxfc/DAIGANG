@@ -67,6 +67,11 @@ export async function startTestApp({ dataDir } = {}) {
   process.env.XFC_LOCAL = '1'
   process.env.XFC_MEDIA_EXECUTOR_AUTOSTART = '0' // 别让测试顺手拉起 Python 执行器
   process.env.XFC_MEDIA_SCHEDULER_INTERVAL_MS = '0' // 关掉定时发布轮询，测试里不需要
+  // 视觉后端也关掉自启、并且换一个端口：测试实例的数据目录是临时的，
+  // 里面的 venv 不存在，本来就起不来；但万一它退到系统 Python 上找到了依赖，
+  // 就会去抢 5410 —— 那台端口上很可能正跑着你自己那份实例的 sidecar。
+  process.env.XFC_VISION_AUTOSTART = '0'
+  process.env.XFC_VISION_PORT = '5419'
 
   const { createApplication } = await import('../../src/server/app.mjs')
   const { db } = await import('../../src/db.mjs')

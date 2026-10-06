@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -142,6 +143,54 @@ export const MEDIA_SCHEDULER_INTERVAL_MS = Math.max(0, Number(process.env.XFC_ME
  * 只放宽这一个接口，其它接口保持 8MB 不变。
  */
 export const MAX_OCR_IMAGE_BYTES = 12 * 1024 * 1024
+
+/* ============================================================
+   Python 视觉后端（屏幕识别的 OCR 那一层）
+   ============================================================
+
+   形态和媒体执行器（MEDIA_EXECUTOR_*）一样：一个只绑 127.0.0.1 的本地
+   Python 进程，Node 负责探测解释器、装依赖、自启、探活、退出时清理。
+
+   端口选 5410 是为了不和别人打架：8787 是主程序、5409 是媒体执行器、
+   1224 是 Umi-OCR。
+   ============================================================ */
+
+/** Python 视觉后端的源码目录（server.py + ocr_engine.py + requirements.txt） */
+export const VISION_PY_ROOT = path.join(ROOT, 'integrations', 'screen-vision')
+export const VISION_SERVER = path.join(VISION_PY_ROOT, 'server.py')
+export const VISION_REQUIREMENTS = path.join(VISION_PY_ROOT, 'requirements.txt')
+
+/**
+ * 依赖装在**项目内**的虚拟环境里，不动用户系统里的 Python。
+ * 放在 data/ 下面是因为 data/ 已经在 .gitignore 里（几百 MB 不该进版本库），
+ * 而且换台机器重新点一次「一键安装」就行 —— 和 tools/ 里那些 OCR 引擎一个立场。
+ */
+export const VISION_VENV = path.join(DATA_DIR, 'vision-venv')
+
+/** 指定解释器（留空就自动找：先找 venv，再找系统里的 python） */
+export const VISION_PYTHON = String(process.env.XFC_VISION_PYTHON || '')
+
+export const VISION_PORT = Math.max(1024, Number(process.env.XFC_VISION_PORT || 5410))
+export const VISION_AUTOSTART = process.env.XFC_VISION_AUTOSTART !== '0'
+/** 指向别处已经跑着的 sidecar 时用（那 token 就得自己对上） */
+export const VISION_URL = String(process.env.XFC_VISION_URL || '').replace(/\/+$/, '')
+
+/**
+ * 本地 sidecar 的鉴权 token。每次启动随机生成、经环境变量交给子进程 ——
+ * 同一台机器上的其它进程不该能随便驱动它（识别要读屏幕，这是个有隐私含义的能力）。
+ * 指向外部 VISION_URL 时用环境变量里给的那个。
+ */
+export const VISION_TOKEN = String(process.env.XFC_VISION_TOKEN || (VISION_URL ? '' : crypto.randomBytes(16).toString('hex')))
+
+/** 从 spawn 到 /health 报 warm 的等待上限：载模型 0.8s + 预热 3~5s，留足余量 */
+export const VISION_START_TIMEOUT_MS = Math.max(3000, Number(process.env.XFC_VISION_START_TIMEOUT_MS || 25000))
+/** 单次识别的等待上限（顶栏带实测 ~720ms，整图 ~1.8s） */
+export const VISION_OCR_TIMEOUT_MS = Math.max(5000, Number(process.env.XFC_VISION_OCR_TIMEOUT_MS || 60000))
+
+/** sidecar 的 stdout/stderr 落这里（载模型失败、onnxruntime 报错都在里面） */
+export const VISION_LOG = path.join(DATA_DIR, 'vision-sidecar.log')
+/** sidecar 的临时目录（和媒体执行器一样，别污染系统 TEMP） */
+export const VISION_TMP = path.join(DATA_DIR, 'vision-tmp')
 
 export { ORDER_STATUS, PRICE_TYPES }
 
