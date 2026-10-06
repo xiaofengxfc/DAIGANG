@@ -166,9 +166,13 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
     const layoutFallback = {}
     let engine = ''
     let pageOpen = false
+    let focused = false
     let returnedToGame = false
     let stoppedReason = ''
-    let returnError = ''
+    // 两件不同的「返回」：escError 是没按回游戏（游戏界面可能还开着，要人管），
+    // backError 只是没把浏览器切到前台（数据已经认全了，纯便利问题，不该降级结果）。
+    let escError = ''
+    let backError = ''
     let progressHint = '正在切回鸣潮…'
 
     const paintProgress = (stage, extra = progressHint) => {
@@ -194,6 +198,7 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
     try {
       const focus = await api.post('/api/ocr/screen/focus')
       if (!focus || !focus.ok) throw new Error((focus && focus.error) || '没有切换到鸣潮窗口')
+      focused = true
       progressHint = `已切回鸣潮${focus.title ? `（${focus.title}）` : ''}，准备打开背包…`
       // Give the restored game window a moment to repaint before capturing it.
       await new Promise((resolve) => setTimeout(resolve, 500))
@@ -261,7 +266,7 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
           returnedToGame = true
           await new Promise((resolve) => setTimeout(resolve, 450))
         } catch (err) {
-          returnError = `未能自动按 ESC 返回游戏：${err.message || '按键发送失败'}`
+          escError = `未能自动按 ESC 返回游戏：${err.message || '按键发送失败'}`
         }
       }
       watchers.current[side] = null
@@ -273,12 +278,22 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
           /* 清不掉就算了，服务端也会自己过期 */
         }
       }
+      // 数据已经认完（或已经报了错），把前台还给用户点「识别画面」的那个窗口，
+      // 省得每次都要手动 Alt+Tab 回来。失败只提示，不影响识别结果。
+      if (focused) {
+        try {
+          const back = await api.post('/api/ocr/screen/return')
+          if (back && back.ok === false) backError = `没能自动切回浏览器：${back.error || '未知原因'}`
+        } catch (err) {
+          backError = `没能自动切回浏览器：${err.message || '切回失败'}`
+        }
+      }
     }
 
     if (token.stop) return
     const count = RES_KEYS.filter((key) => got[key] !== undefined).length
     const small = Object.keys(smallText)
-    const complete = count === RES_KEYS.length && !stoppedReason && !returnError
+    const complete = count === RES_KEYS.length && !stoppedReason && !escError
     const summary = stoppedReason
       ? `${stoppedReason}${returnedToGame ? ' 已按 ESC 返回游戏。' : ''}`
       : (complete ? '三项都识别到了，请核对后再保存。' : `已识别 ${count}/3 项。`)
@@ -287,7 +302,8 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
       [side]: (
         <>
           <strong>{summary}</strong>
-          {returnError ? <div className="tiny tone-amber" style={amberStyle}>{returnError}</div> : null}
+          {escError ? <div className="tiny tone-amber" style={amberStyle}>{escError}</div> : null}
+          {backError ? <div className="tiny tone-amber" style={amberStyle}>{backError}</div> : null}
           {small.length ? (
             <div className="tiny tone-amber" style={amberStyle}>
               {`${small.join('、')} 字太小，自带 OCR 可能读错位数，请对照游戏核验。`}
@@ -303,7 +319,7 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
       ),
     }))
     if (complete) toast('贝币、星声和体力已识别，请核对', 'ok', 4200)
-    else toast(returnError || stoppedReason || `已识别 ${count}/3 项`, 'err', returnError ? 5200 : 4200)
+    else toast(escError || stoppedReason || `已识别 ${count}/3 项`, 'err', escError ? 5200 : 4200)
   }
 
   function buildSide(side, label, isFirst) {

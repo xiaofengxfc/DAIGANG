@@ -10,7 +10,7 @@ import { ensureVisionStarted, probeVisionHealth, resetVisionBlock, stopVisionSid
 import { startVisionDependencyInstall, visionDependencyInstallStatus, visionDependencyStatus } from '../vision-deps.mjs'
 import { installOptions, installEngine, installStatus, extractorStatus, releasePage, INSTALL_SPECS, engineHealth, cleanupTmp } from '../ocr-install.mjs'
 import { recognizeScreenOnce, recognizeImageFile, resetVotes, screenAvailable, templateStatus, loadTemplates, extractIconTemplate, TEMPLATE_FILE, SCREEN_RESOURCES, MIN_SCORE } from '../screen.mjs'
-import { focusGameWindow, sendGameKey } from '../game-window.mjs'
+import { focusGameWindow, returnToPreviousWindow, sendGameKey } from '../game-window.mjs'
 import { decodePNG, encodePNG } from '../imgmatch.mjs'
 import { isSetUp, setPassword, verifyPassword, createSession, destroySession, destroyAllSessions, actorName, assertNotThrottled, noteFailure, clearFailures } from '../auth.mjs'
 import { lock, status as vaultStatus, isConfigured, configure, auditLog } from '../vault.mjs'
@@ -500,6 +500,17 @@ export function register() {
     if (!['B', 'M', 'ESC'].includes(key)) fail(400, '只允许发送 B、M 或 ESC。', 'bad_game_key')
     const r = await sendGameKey(key)
     if (!r.ok) fail(400, r.error || '没有向鸣潮发送按键', 'game_key_failed')
+    return r
+  })
+
+  /**
+   * 认完之后把前台还给「切到游戏之前那个窗口」——也就是用户点「识别画面」的浏览器。
+   * 窗口句柄是 focus 那一步顺手记下来的，这里不需要任何参数；没有可返回的窗口时
+   * 直接 ok（不算失败），因为这不是流程的必要环节。
+   */
+  post('/api/ocr/screen/return', async () => {
+    const r = await returnToPreviousWindow()
+    if (!r.ok) fail(400, r.error || '没有切回原来的窗口', 'screen_return_failed')
     return r
   })
 

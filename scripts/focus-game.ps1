@@ -68,6 +68,13 @@ if (-not $candidates.Count) {
 
 $target = $candidates | Sort-Object Score -Descending | Select-Object -First 1
 $hwnd = [IntPtr]::new([Int64]$target.Hwnd)
+
+# Remember what was in front BEFORE we steal focus. That is the window the user
+# clicked "recognize" in -- their browser -- and the reading flow hands it back
+# when it is done (see activate-window.ps1). Doing it this way beats guessing at
+# browser titles: it works for any browser, and it is literally "go back".
+$previous = [GameWindowFocus]::GetForegroundWindow()
+
 [void][GameWindowFocus]::ShowWindowAsync($hwnd, 9) # SW_RESTORE
 [void][GameWindowFocus]::SetForegroundWindow($hwnd)
 $foreground = [GameWindowFocus]::GetForegroundWindow()
@@ -103,10 +110,18 @@ if (-not $focused) {
   exit 3
 }
 
+# Only report a window worth going back to: zero means there was nothing in
+# front, and the game itself means we did not actually come from anywhere else.
+$previousHwnd = 0
+if ($previous -ne [IntPtr]::Zero -and $previous.ToInt64() -ne [Int64]$target.Hwnd) {
+  $previousHwnd = $previous.ToInt64()
+}
+
 [Console]::Out.WriteLine((@{
   ok = $true
   process = $target.Process
   processId = $target.ProcessId
   title = $target.Title
   hwnd = [string]$target.Hwnd
+  previous = [string]$previousHwnd
 } | ConvertTo-Json -Compress))

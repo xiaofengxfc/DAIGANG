@@ -923,6 +923,11 @@ export async function run() {
   r = await api('POST', '/api/ocr/backend/stop')
   ok('停后端不报错（没在跑也算停好了）', r.status === 200, r.body)
 
+  // 认完之后把前台还给浏览器那一步。没有可返回的窗口（还没识别过、或不在 Windows）
+  // 必须当成功返回：它是省一次 Alt+Tab 的便利步骤，不该让流程看起来失败。
+  r = await api('POST', '/api/ocr/screen/return')
+  ok('没有可返回的窗口时不算失败', r.status === 200 && r.body.ok === true, r.body)
+
   /* ---------- 退出与登录 ---------- */
   section('退出与重新登录')
   r = await api('POST', '/api/auth/logout')

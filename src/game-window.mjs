@@ -5,7 +5,11 @@ import { fileURLToPath } from 'node:url'
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const FOCUS_PS1 = path.resolve(HERE, '..', 'scripts', 'focus-game.ps1')
 const KEY_PS1 = path.resolve(HERE, '..', 'scripts', 'game-key.ps1')
+const ACTIVATE_PS1 = path.resolve(HERE, '..', 'scripts', 'activate-window.ps1')
 let activeWindow = null
+// The window that was in front before the game was focused -- in practice the
+// browser the user clicked "识别画面" in. Handed back when the reading is done.
+let previousWindow = null
 
 export function activeGameWindow() {
   return activeWindow ? { ...activeWindow } : null
@@ -76,6 +80,10 @@ export function focusGameWindow({ timeoutMs = 10000 } = {}) {
         return finish({ ok: false, error: knownErrors[result?.code] || stderr.trim() || '没有切换到游戏窗口。' })
       }
       activeWindow = { hwnd: String(result.hwnd), processId: Number(result.processId), process: result.process, title: result.title }
+      // "0" means there was nothing to come back to (the game was already in
+      // front), so the flow will not try to hand focus anywhere.
+      const previousHwnd = String(result.previous || '0')
+      previousWindow = previousHwnd && previousHwnd !== '0' ? { hwnd: previousHwnd } : null
       finish({ ...result, ok: true })
     })
   })
@@ -137,6 +145,71 @@ export function sendGameKey(key, { timeoutMs = 5000 } = {}) {
         return finish({ ok: false, error: knownErrors[result?.code] || stderr.trim() || '没有向鸣潮发送按键。' })
       }
       finish({ ok: true, key: normalized })
+    })
+  })
+}
+
+/**
+ * Hand the foreground back to whatever was in front before the game was focused
+ * -- in practice the browser the reading was started from, so nobody has to
+ * Alt+Tab back to see the result.
+ *
+ * Deliberately never a hard failure: by the time this runs the reading has
+ * already succeeded (or already reported its own error), so a refusal here is
+ * only worth a hint, never an exception.
+ */
+export function returnToPreviousWindow({ timeoutMs = 8000 } = {}) {
+  if (process.platform !== 'win32') {
+    return Promise.resolve({ ok: true, skipped: 'not_windows' })
+  }
+  const hwnd = previousWindow?.hwnd
+  if (!hwnd) {
+    return Promise.resolve({ ok: true, skipped: 'nothing_to_return_to' })
+  }
+
+  return new Promise((resolve) => {
+    let settled = false
+    let timer = null
+    let stdout = ''
+    let stderr = ''
+    const finish = (result) => {
+      if (settled) return
+      settled = true
+      if (timer) clearTimeout(timer)
+      resolve(result)
+    }
+
+    let child
+    try {
+      const args = ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', ACTIVATE_PS1, '-WindowHandle', hwnd]
+      child = spawn('powershell.exe', args, { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
+    } catch (err) {
+      return finish({ ok: false, error: `切回原窗口失败：${err.message}` })
+    }
+
+    timer = setTimeout(() => {
+      try { child.kill() } catch { /* process may have exited */ }
+      finish({ ok: false, error: '切回原窗口超时。' })
+    }, timeoutMs)
+    child.stdout.setEncoding('utf8')
+    child.stderr.setEncoding('utf8')
+    child.stdout.on('data', (chunk) => { stdout += chunk })
+    child.stderr.on('data', (chunk) => { stderr += chunk })
+    child.on('error', (err) => finish({ ok: false, error: `切回原窗口失败：${err.message}` }))
+    child.on('close', (code) => {
+      let result = null
+      try { result = JSON.parse(stdout.trim().replace(/^\uFEFF/, '')) } catch { /* report below */ }
+      if (code !== 0 || !result?.ok) {
+        const knownErrors = {
+          window_gone: '原来的窗口已经不在了（浏览器关掉了？），请手动切一下。',
+          activate_denied: 'Windows 没有允许切回原来的窗口，请手动切一下。',
+        }
+        return finish({ ok: false, code: result?.code, error: knownErrors[result?.code] || stderr.trim() || '没有切回原来的窗口。' })
+      }
+      // Spent: the handle may be stale by the next reading, and focus-game.ps1
+      // records a fresh one every time it runs anyway.
+      previousWindow = null
+      finish({ ok: true, hwnd: String(result.hwnd) })
     })
   })
 }
