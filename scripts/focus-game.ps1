@@ -49,7 +49,20 @@ foreach ($p in Get-Process -ErrorAction SilentlyContinue) {
 }
 
 if (-not $candidates.Count) {
-  [Console]::Out.WriteLine((@{ ok = $false; code = 'game_window_missing' } | ConvertTo-Json -Compress))
+  # Say WHY nothing turned up. A process running at LOW integrity cannot see a
+  # game that runs elevated -- Get-Process silently drops it -- and a plain
+  # "window not found" message sends people looking in the wrong place (measured:
+  # a repo directory carrying a "Low" mandatory label made the app low integrity,
+  # which hid the game entirely; the same label also broke %TEMP% writes and
+  # Add-Type). whoami reports the SID, which is language-independent.
+  $integrity = 'unknown'
+  try {
+    $groups = (whoami /groups) 2>$null
+    if ($groups -match 'S-1-16-12288') { $integrity = 'high' }
+    elseif ($groups -match 'S-1-16-8192') { $integrity = 'medium' }
+    elseif ($groups -match 'S-1-16-4096') { $integrity = 'low' }
+  } catch { }
+  [Console]::Out.WriteLine((@{ ok = $false; code = 'game_window_missing'; integrity = $integrity } | ConvertTo-Json -Compress))
   exit 2
 }
 

@@ -769,11 +769,64 @@ Python 那边每帧慢 ~200ms（热态整帧 1100ms vs 898ms），但多了置�
 | `XFC_VISION_MODELS` | 空 | 模型放别处时指路径 |
 | `XFC_OCR_ENGINE` | 空 | 强制只用某一个引擎（自检/排查用） |
 
+#### 先把根因说清楚：目录的「完整性标签」会让程序整个降级
+
+上面那些症状（`%TEMP%` 写不进去、`Add-Type` 报「拒绝访问」或
+「A required privilege is not held by the client」、**「没有找到鸣潮游戏窗口」**）
+在实测的那台机器上是**同一个根因**：
+
+```powershell
+icacls "D:\...\代肝价格查询"
+#   Mandatory Label\Low Mandatory Level:(OI)(CI)(NW)      <-- 就是这一行
+```
+
+**Windows 的规则：进程的完整性级别 = min(父进程的级别, 可执行文件的标签级别)。**
+这个项目目录被打上了 **Low 完整性标签**（带 `(OI)(CI)` 继承，所以目录里每个文件
+都继承了 `(I) Low`），于是：
+
+| 后果 | 表现 |
+| --- | --- |
+| 进程以 **Low** 运行 | 见下三行 |
+| Low 写不进 Medium 的 `%TEMP%`（no-write-up） | 最初的 `EPERM: operation not permitted, open '...\Temp\xfc-....png'` |
+| Low 环境里 `csc.exe` 起不来 / 编译被拦 | `Add-Type : 拒绝访问`，以及 `A required privilege is not held by the client` |
+| **Low 看不见以管理员（High）身份运行的游戏** | `Get-Process` **静默丢掉**游戏进程 → 一个候选都没有 → 「没有找到鸣潮游戏窗口」 |
+
+最后一条最容易骗人：**程序不是找不到窗口，是它根本看不见那个进程。**
+`focus-game.ps1` 现在会自己查一遍完整性级别，报错时直接说清楚：
+
+```
+{"ok":false,"code":"game_window_missing","integrity":"low"}
+```
+
+界面上就会显示「本程序正以『低完整性』运行，看不到游戏进程……」，而不是让人去
+反复确认游戏到底开没开。
+
+**怎么修**（在**管理员**窗口里执行，两条命令，顺序不能反）：
+
+```powershell
+# 1. 把整棵树的 Low 换成 Medium —— 恢复 %TEMP% 写入和 C# 编译
+icacls "D:\github_xm\代肝价格查询" /setintegritylevel (OI)(CI)Medium
+# 2. 再把启动器单独标成 High —— 这一步之后进程才和游戏同级，才能激活它的窗口
+icacls "D:\github_xm\代肝价格查询\DaiganLauncher.exe" /setintegritylevel High
+```
+
+然后**重启程序**（进程的级别在启动时就定死了，改标签不会影响已经在跑的进程）。
+
+为什么要分两步：标签是**上限**而不是下限 —— 只做第 1 步的话进程变成 Medium，
+写 `%TEMP%`、编译 C# 都正常了，但**还是激活不了管理员权限的游戏窗口**
+（这正是「非管理员脚本唤不醒管理员窗口」那个老问题）。把 exe 标成 High 之后，
+`min(父进程 High, 文件 High) = High`，和游戏同级。反过来从普通权限启动它，
+`min(Medium, High) = Medium`，**不会越权提权** —— 这个方向是安全的。
+
+> 第 1 步用 `Medium` 而不是「去掉标签」是因为 `icacls` 没有「删除标签」这个开关；
+> 用 `SetNamedSecurityInfo` 把 SACL 置空可以真正去掉，但那要先启用
+> `SeSecurityPrivilege`，不值得为一次修故障上这么重的手段。
+
 #### 临时文件为什么不放系统临时目录
 
-**因为 `%TEMP%` 不一定写得进去。** 这是踩过的真实故障：程序在一个受限环境里跑时，
-往 `%TEMP%` 写一个 2×2 的 PNG 直接被拒（`EPERM`），「自检一下」整个接口 500 ——
-而原因跟识别本身毫无关系。
+**因为 `%TEMP%` 不一定写得进去**（原因见上一节）。这是踩过的真实故障：程序在一个
+受限环境里跑时，往 `%TEMP%` 写一个 2×2 的 PNG 直接被拒（`EPERM`），
+「自检一下」整个接口 500 —— 而原因跟识别本身毫无关系。
 
 所以临时文件的落点统一走 `src/util.mjs` 的 `scratchFile()`，**两档偏好、三档兜底**：
 

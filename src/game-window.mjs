@@ -52,6 +52,23 @@ export function focusGameWindow({ timeoutMs = 10000 } = {}) {
       let result = null
       try { result = JSON.parse(stdout.trim().replace(/^\uFEFF/, '')) } catch { /* report below */ }
       if (code !== 0 || !result?.ok) {
+        // A low-integrity process cannot see an elevated game at all (measured:
+        // Get-Process silently drops it), and that is NOT "the game is not
+        // running" -- saying so sends people chasing the wrong thing. The usual
+        // cause is a "Low" mandatory label on the program's own directory, which
+        // also explains %TEMP% write failures and Add-Type errors on the same
+        // machine. See the README section on integrity labels.
+        if (result?.code === 'game_window_missing' && result.integrity === 'low') {
+          const root = path.resolve(HERE, '..')
+          return finish({
+            ok: false,
+            code: 'game_window_missing',
+            integrity: 'low',
+            error: '本程序正以「低完整性」运行，看不到游戏进程（游戏是以管理员身份运行的）。'
+              + `多半是程序目录被打上了 Low 完整性标签，在管理员窗口里执行：icacls "${root}" /setintegritylevel (OI)(CI)Medium`
+              + `，再执行 icacls "${path.join(root, 'DaiganLauncher.exe')}" /setintegritylevel High，然后重启本程序。`,
+          })
+        }
         const knownErrors = {
           game_window_missing: '没有找到鸣潮游戏窗口。请先启动游戏；如果进程名称不同，可设置 XFC_GAME_PROCESS。',
           focus_denied: 'Windows 没有允许切换到鸣潮窗口。请先手动切到游戏一次，再点击识别。',
