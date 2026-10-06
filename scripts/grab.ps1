@@ -20,35 +20,27 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-# Add-Type below compiles C# on the fly, and that compile needs a writable temp
-# directory. When the temp directory is not writable the compile throws, the DPI
-# block fails, and the damage is silent: the screenshot comes out at the wrong
-# scale (measured: a 2560x1600 screen captured as 1707x1067) and every
-# recognition after that is wrong. Fall back to the directory this screenshot is
-# about to be written into -- the caller picked it and just proved it writable.
-# See lib/ensure-tmp.ps1 for the whole story and the other scripts that need it.
-. "$PSScriptRoot\lib\ensure-tmp.ps1"
-[void](Ensure-WritableTemp -FallbackDir (Split-Path -Parent $Out))
+# The DPI block below needs Win32 calls, which come from lib/XfcWin32.dll. This
+# used to compile the C# inline with Add-Type -TypeDefinition; when that compile
+# fails the DPI block fails and the damage is SILENT -- the screenshot comes out
+# at the wrong scale (measured: a 2560x1600 screen captured as 1707x1067) and
+# every recognition after that is wrong. The compile can be blocked outright on
+# some machines, so load a prebuilt assembly instead: no csc.exe, no temp
+# directory, nothing to fail. See lib/win32.ps1.
+. "$PSScriptRoot\lib\win32.ps1"
+# Swallow a load failure here and let the block below report dpi=failed, exactly
+# as a failed Add-Type used to: the caller prints the dpi value but does not act
+# on it, so the loud signal is that string showing up in the capture line.
+try { [void](Import-XfcWin32 -TempFallback (Split-Path -Parent $Out)) } catch { }
 
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName System.Windows.Forms
 
 # Per-monitor-v2 (Win10 1703+) -> per-monitor (Win8.1+) -> system aware (Vista+).
 # Old systems may not have the newer entry points; fall back and keep going.
-$dpiSig = @'
-using System;
-using System.Runtime.InteropServices;
-public static class ScreenDpi {
-  [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
-  [DllImport("user32.dll", SetLastError = true)] public static extern bool SetProcessDpiAwarenessContext(IntPtr ctx);
-  [DllImport("shcore.dll")] public static extern int SetProcessDpiAwareness(int value);
-  [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
-  [DllImport("user32.dll", SetLastError = true)] public static extern bool GetWindowRect(IntPtr hwnd, out RECT rect);
-}
-'@
 $dpiAware = 'no'
 try {
-  Add-Type -TypeDefinition $dpiSig -ErrorAction Stop
+  if (-not ('ScreenDpi' -as [type])) { throw 'ScreenDpi helper is not loaded' }
   $done = $false
   try { $done = [ScreenDpi]::SetProcessDpiAwarenessContext([IntPtr]::new(-4)) } catch { $done = $false }
   if ($done) { $dpiAware = 'per-monitor-v2' }

@@ -9,21 +9,10 @@ param(
 $ErrorActionPreference = 'Stop'
 try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false) } catch { }
 
-# Add-Type below compiles C# and needs a writable temp directory; without this
-# the script dies here instead of sending the key (see lib/ensure-tmp.ps1).
-. "$PSScriptRoot\lib\ensure-tmp.ps1"
-[void](Ensure-WritableTemp)
-
-$keySig = @'
-using System;
-using System.Runtime.InteropServices;
-public static class GameKeyInput {
-  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
-  [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
-  [DllImport("user32.dll", SetLastError = true)] public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
-}
-'@
-Add-Type -TypeDefinition $keySig
+# The Win32 calls below come from lib/XfcWin32.dll (prebuilt, so no csc.exe and
+# no temp directory are needed -- see lib/win32.ps1).
+. "$PSScriptRoot\lib\win32.ps1"
+[void](Import-XfcWin32)
 
 $foreground = [GameKeyInput]::GetForegroundWindow()
 $foregroundProcessId = [uint32]0

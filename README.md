@@ -802,21 +802,51 @@ Windows 的 8.3 短名也**不帮忙**（实测本项目短名是 `D:\GITHUB~1\�
 同一个根因还会咬到**所有现场编译 C# 的 PowerShell 脚本**，而且多数是**静默**的
 （`Add-Type -TypeDefinition` 要临时目录，`Add-Type -AssemblyName` 不要）：
 
-| 脚本 | 临时目录不可写时会发生什么 |
+| 脚本 | 编译失败时会发生什么 |
 | --- | --- |
 | `grab.ps1` | DPI 那步被 catch 成 `dpi=failed` → **静默截出缩放错的图**（2560×1600 截成 1707×1067）→ 之后所有识别全错 |
 | `focus-game.ps1` | 直接**死在编译那一步**，游戏窗口没被激活 → 截到的是别的窗口 |
 | `game-key.ps1` | 同样死在编译那一步，**按键发不出去** |
 | `screen-info.ps1` | 什么都不输出 → 自检里「截屏是不是被 DPI 虚拟化了」那道**防线静默失效** |
 
-所以这四个脚本统一 `dot-source` 一份 `scripts/lib/ensure-tmp.ps1`，开头先验一次临时目录
-能不能写（真写一个文件再删），不行就退到项目自己的 `data/tmp`
-（`grab.ps1` 退到「这张图本来要落盘的目录」）。**新增会编译 C# 的脚本，记得也接上这一句。**
+#### 所以现在根本不编译了：改成加载预编译程序集
+
+一开始的修法是给这四个脚本加临时目录守卫（`lib/ensure-tmp.ps1`）。**但守卫不够**：
+实测有机器上临时目录**明摆着可写**（守卫的写入探测通过了），`Add-Type` 还是失败，
+而且前后给出两个不同的错：
+
+```
+Add-Type : 拒绝访问
+Add-Type : A required privilege is not held by the client     ← Win32 1314
+```
+
+说明问题不在临时目录，而在「现场编译」这件事本身（要拉起 `csc.exe`，在某些环境里被拦）。
+于是改成：**把 P/Invoke 声明编成一个 5KB 的程序集 `scripts/lib/XfcWin32.dll` 提交进仓库**
+（源码是 `scripts/lib/xfc-win32.cs`，改动后用 `lib/build-win32-dll.ps1` 重建，两个都要提交），
+四个脚本开头只写：
+
+```powershell
+. "$PSScriptRoot\lib\win32.ps1"
+[void](Import-XfcWin32)
+```
+
+加载程序集**不需要编译器、不需要临时目录、不需要任何特权**，所以这一类故障被整体消掉了，
+顺带每次调用省掉约 140ms（实测干净进程：现场编译 254-281ms，加载 dll 117-129ms）——
+而 `focus-game.ps1` 每次识别前都要跑一次。没有 dll 时（只拿了源码）才回落到现场编译，
+那条路才需要 `lib/ensure-tmp.ps1` 的守卫。
+
+**注意一个坑：加载这个 dll 不能用 `Add-Type -Path`**（它内部是 `Assembly.LoadFrom`，
+会把路径拼成 `file://` URI，而本项目路径带中文 → URI 非法 → `COR_E_FILELOAD` 0x80131515
+「Operation is not supported」，程序集本身完全没问题：拷到纯 ASCII 路径就能加载）。
+所以 `lib/win32.ps1` 用的是 `[Reflection.Assembly]::Load([IO.File]::ReadAllBytes($dll))` ——
+**读字节数组，全程不碰 URI，任何路径都能用**。这也是为什么这个项目里
+「路径带中文」这件事会反复咬人：外部 exe 读不了、`LoadFrom` 也读不了。
 
 修完的实测：把 `TEMP` 指到一个不存在的盘，这四个脚本的输出与正常环境**逐字一致** ——
 `focus-game.ps1` 照样找到并激活 `鸣潮`、`game-key.ps1` 照样走到焦点判断、
 `screen-info.ps1` 照样报 `2560 x 1600`、`grab.ps1` 照样 `dpi=per-monitor-v2`；
 自检报「截到 2560x1600，物理屏 2560x1600 —— 整屏，DPI 感知正常」，十一种分辨率 22/22。
+而且这次不依赖 `%TEMP%` 是否可写，也不依赖能不能编译 —— 两条路都不需要了。
 
 **注意 `scripts/*.ps1` 全部保持纯 ASCII、不带 BOM** —— Windows PowerShell 5.1 会把
 无 BOM 的 .ps1 按 GBK 读，写中文注释会直接把脚本解析坏（`grab.ps1` 就这么坏过一次，
@@ -1080,8 +1110,9 @@ scripts/             运维与自检：check（语法）、smoke（接口冒烟�
                      grab.ps1（截屏，先做 DPI 感知）、focus-game.ps1（把游戏窗口唤到前台）、
                      game-key.ps1（往游戏窗口发一个白名单按键）、screen-info.ps1（真实显示模式，
                      用来核对截屏是不是整屏）、ocr.ps1（Windows 自带 OCR）、
-                     lib/（测试实例、CDP 客户端，以及 ensure-tmp.ps1 —— 那四个会编译 C# 的
-                     .ps1 共用的临时目录守卫）
+                     lib/（测试实例、CDP 客户端，ensure-tmp.ps1 —— 临时目录守卫，
+                     win32.ps1 —— 加载下面那个程序集，xfc-win32.cs —— P/Invoke 源码，
+                     XfcWin32.dll —— 编好的程序集（改 .cs 后用 build-win32-dll.ps1 重建））
 hooks/pre-commit     提交前闸门：语法自检 + 接口冒烟（git config core.hooksPath hooks 启用）
 data/                 运行时生成：console.db + uploads/ + resource-icons/
 tools/ocr/            自动安装的本地 OCR 引擎（不进版本库）

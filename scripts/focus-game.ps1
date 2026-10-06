@@ -6,25 +6,13 @@ param(
 $ErrorActionPreference = 'Stop'
 try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false) } catch { }
 
-# Add-Type below compiles C# and needs a writable temp directory; without this
-# the script dies here instead of focusing the game window (see lib/ensure-tmp.ps1).
-. "$PSScriptRoot\lib\ensure-tmp.ps1"
-[void](Ensure-WritableTemp)
-
-$focusSig = @'
-using System;
-using System.Runtime.InteropServices;
-public static class GameWindowFocus {
-  [DllImport("user32.dll", SetLastError = true)] public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
-  [DllImport("user32.dll", SetLastError = true)] public static extern bool SetForegroundWindow(IntPtr hWnd);
-  [DllImport("user32.dll", SetLastError = true)] public static extern bool BringWindowToTop(IntPtr hWnd);
-  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
-  [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hWnd, IntPtr processId);
-  [DllImport("user32.dll", SetLastError = true)] public static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool attach);
-  [DllImport("kernel32.dll")] public static extern uint GetCurrentThreadId();
-}
-'@
-Add-Type -TypeDefinition $focusSig
+# The Win32 calls below come from lib/XfcWin32.dll. This used to compile the C#
+# inline with Add-Type -TypeDefinition, which needs csc.exe and a writable temp
+# directory and gets blocked outright on some machines (measured: "Access is
+# denied", and at another time "A required privilege is not held by the client").
+# Loading a prebuilt assembly needs neither. See lib/win32.ps1.
+. "$PSScriptRoot\lib\win32.ps1"
+[void](Import-XfcWin32)
 
 $chineseTitle = ([char]0x9E23).ToString() + ([char]0x6F6E)
 $candidates = @()

@@ -10,62 +10,13 @@
 # Output: "2560 x 1600" (or "unknown" if the API cannot be reached).
 $ErrorActionPreference = 'Stop'
 
-# Add-Type below compiles C# and needs a writable temp directory. When it is not
-# writable this script prints nothing -- which matters more than it looks: this is
-# the ruler the self-test uses to notice a DPI-virtualized capture, so a broken
-# ruler silently disables that guard. See lib/ensure-tmp.ps1.
-. "$PSScriptRoot\lib\ensure-tmp.ps1"
-[void](Ensure-WritableTemp)
+# The Win32 call below comes from lib/XfcWin32.dll. This used to compile the C#
+# inline with Add-Type -TypeDefinition, and a failed compile made this script
+# print nothing -- which matters more than it looks: this is the ruler the
+# self-test uses to notice a DPI-virtualized capture, so a broken ruler silently
+# disables that guard. Loading a prebuilt assembly needs no csc.exe and no temp
+# directory, so there is nothing left to fail. See lib/win32.ps1.
+. "$PSScriptRoot\lib\win32.ps1"
+[void](Import-XfcWin32)
 
-$sig = @'
-using System;
-using System.Runtime.InteropServices;
-
-public static class DisplayMode {
-  [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-  public struct DEVMODE {
-    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string dmDeviceName;
-    public ushort dmSpecVersion;
-    public ushort dmDriverVersion;
-    public ushort dmSize;
-    public ushort dmDriverExtra;
-    public uint dmFields;
-    public int dmPositionX;
-    public int dmPositionY;
-    public uint dmDisplayOrientation;
-    public uint dmDisplayFixedOutput;
-    public short dmColor;
-    public short dmDuplex;
-    public short dmYResolution;
-    public short dmTTOption;
-    public short dmCollate;
-    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string dmFormName;
-    public ushort dmLogPixels;
-    public uint dmBitsPerPel;
-    public uint dmPelsWidth;
-    public uint dmPelsHeight;
-    public uint dmDisplayFlags;
-    public uint dmDisplayFrequency;
-    public uint dmICMMethod;
-    public uint dmICMIntent;
-    public uint dmMediaType;
-    public uint dmDitherType;
-    public uint dmReserved1;
-    public uint dmReserved2;
-    public uint dmPanningWidth;
-    public uint dmPanningHeight;
-  }
-
-  [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-  public static extern bool EnumDisplaySettings(string deviceName, int modeNum, ref DEVMODE devMode);
-
-  public static string Primary() {
-    DEVMODE dm = new DEVMODE();
-    dm.dmSize = (ushort)Marshal.SizeOf(typeof(DEVMODE));
-    if (!EnumDisplaySettings(null, -1, ref dm)) return "unknown";
-    return dm.dmPelsWidth + " x " + dm.dmPelsHeight;
-  }
-}
-'@
-Add-Type -TypeDefinition $sig
 Write-Output ([DisplayMode]::Primary())
