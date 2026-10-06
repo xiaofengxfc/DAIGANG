@@ -159,7 +159,7 @@ const ROUTES = [
   { hash: '/', label: '总览', sel: '.react-shell', text: '待确认' },
   { hash: '/orders', label: '订单', sel: '.orders-page', text: 'UI客户' },
   { hash: '/customers', label: '客户', sel: '.customers-page', text: 'UI客户' },
-  { hash: '/price', label: '价格表', sel: '.price-page', text: 'UI服务项' },
+  { hash: '/price', label: '价格表', sel: '.price-page', text: 'UI服务项', prepare: expandPriceTree },
   { hash: '/games', label: '游戏', sel: '.games-page', text: 'UI冒烟游戏' },
   { hash: '/finance', label: '财务', sel: '.finance-page', text: '财务' },
   { hash: '/quotes', label: '报价单', sel: '.quotes-page', text: '报价单' },
@@ -171,6 +171,22 @@ const ROUTES = [
 async function gotoHash(cdp, hash) {
   await cdp.eval(`location.hash = ${JSON.stringify('#' + hash)}`)
   await sleep(400)
+}
+
+/**
+ * 价格表默认是**全部收起**的（一屏先看完整棵大类树），服务行要点开才渲染。
+ * 所以凡是进入价格表之后要摸服务行的用例，都得先展开一次 —— 走页面右上角那个
+ * 「全部展开」，顺带也把这个按钮本身测了。
+ */
+async function expandPriceTree(cdp) {
+  const clicked = await cdp.eval(`(() => {
+    const button = [...document.querySelectorAll('.price-catalog__tools button')].find((b) => b.textContent.includes('全部展开'))
+    if (!button) return false
+    button.click()
+    return true
+  })()`)
+  if (clicked) await sleep(300)
+  return clicked
 }
 
 /**
@@ -452,6 +468,8 @@ async function checkRoute(cdp, route, index) {
   await gotoHash(cdp, route.hash)
   const found = await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(route.sel)}))`, { tries: 30, interval: 200 })
   ok(`${route.label}：页面渲染出来（${route.sel}）`, found)
+  // 有些页面默认是收起的（价格表就是），要断言里面的内容得先按用例自己的方式展开
+  if (route.prepare) await route.prepare(cdp)
   const text = await cdp.eval('document.querySelector(".react-main__inner")?.innerText || ""')
   ok(`${route.label}：内容里有「${route.text}」`, text.includes(route.text), text.replace(/\s+/g, ' ').slice(0, 160))
   const errors = cdp.errors.slice(before)
@@ -471,9 +489,11 @@ async function checkRoute(cdp, route, index) {
 }
 
 /** 点一下某个按钮，等抽屉开出来，检查里面有没有该有的字，然后关掉 */
-async function checkDrawer(cdp, { label, hash, click, expect, expectText }) {
+async function checkDrawer(cdp, { label, hash, click, expect, expectText, prepare }) {
   const before = cdp.errors.length
   await gotoHash(cdp, hash)
+  // 按钮在收起的内容里时（价格表的服务行就是），先让用例自己把内容展开出来
+  if (prepare) await prepare(cdp)
   const ready = await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(click)}))`, { tries: 30, interval: 200 })
   ok(`${label}：按钮在（${click}）`, ready)
   if (!ready) return
@@ -559,6 +579,7 @@ async function main() {
       click: 'button[title="查看服务详情"]',
       expect: 'dialog.drawer[open]',
       expectText: fixture.service,
+      prepare: expandPriceTree,
     })
     await checkDrawer(cdp, {
       label: '订单 · 记收款',
@@ -1087,6 +1108,10 @@ async function main() {
 
       // 旧视图删掉之后没得对比了，形状写死在这儿
       await gotoHash(cdp, '/price')
+      // 默认全部收起：服务行压根不在 DOM 里，先确认这一点，再点「全部展开」
+      ok('价格表默认全部收起（服务行还没渲染）', !(await cdp.eval(`Boolean(document.querySelector('button[title="编辑服务"]'))`)))
+      ok('右上角点得到「全部展开」', await expandPriceTree(cdp))
+      ok('展开之后服务行才出现', await waitFor(cdp, `Boolean(document.querySelector('button[title="编辑服务"]'))`, { tries: 25, interval: 200 }))
       await cdp.eval(`document.querySelector('button[title="编辑服务"]').click()`)
       ok('React 服务项表单打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
       checkFormShape(ok, await measureForm(cdp), {
@@ -1131,6 +1156,7 @@ async function main() {
     {
       const before = cdp.errors.length
       await gotoHash(cdp, '/price')
+      await expandPriceTree(cdp)
       ok('服务行上有「查看服务详情」', await waitFor(cdp, `Boolean(document.querySelector('button[title="查看服务详情"]'))`, { tries: 30, interval: 200 }))
       await cdp.eval(`[...document.querySelectorAll('button[title="查看服务详情"]')].find((b) => b.closest('.price-service')?.innerText.includes(${JSON.stringify(fixture.tiered)})).click()`)
       ok('详情抽屉打开了', await waitFor(cdp, `${drawerCountText} === 1`, { tries: 25, interval: 200 }), await drawerCount(cdp))
@@ -1196,6 +1222,7 @@ async function main() {
     {
       const before = cdp.errors.length
       await gotoHash(cdp, '/price')
+      await expandPriceTree(cdp)
       ok('待删服务在列表里', await waitFor(cdp, `(document.querySelector('.price-page')?.innerText || '').includes(${JSON.stringify(fixture.doomed)})`, { tries: 30, interval: 200 }))
       await cdp.eval(`[...document.querySelectorAll('button[title="查看服务详情"]')].find((b) => b.closest('.price-service')?.innerText.includes(${JSON.stringify(fixture.doomed)})).click()`)
       ok('详情抽屉打开了', await waitFor(cdp, `${drawerCountText} === 1`, { tries: 25, interval: 200 }), await drawerCount(cdp))

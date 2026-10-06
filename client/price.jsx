@@ -81,7 +81,9 @@ function CategoryBlock({ category, currency = '', open, onOpenChange, onEdit, on
 function GroupWorkspace({ group, query, onNewCategory, onService, onEditCategory, onSum, onToggleCategory, onDeleteCategory, onEditService, onPeekService, onAdvancedService, onToggleService, onDeleteService }) {
   const categories = group.categories || []
   const [selected, setSelected] = useState('all')
-  const [openMap, setOpenMap] = useState(() => new Map(categories.slice(0, 1).map((category) => [String(category.id), true])))
+  // 默认全部收起：一屏先看完整棵树（有几个大类、各多少项、价格区间），想展开哪个点哪个。
+  // 右上角的「全部展开」一键铺开；搜索时下面那个 effect 会自动全展开，方便直接看命中项。
+  const [openMap, setOpenMap] = useState(() => new Map())
   const text = query.q.trim()
 
   useEffect(() => {
