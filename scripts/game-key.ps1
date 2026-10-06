@@ -9,6 +9,11 @@ param(
 $ErrorActionPreference = 'Stop'
 try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false) } catch { }
 
+# Add-Type below compiles C# and needs a writable temp directory; without this
+# the script dies here instead of sending the key (see lib/ensure-tmp.ps1).
+. "$PSScriptRoot\lib\ensure-tmp.ps1"
+[void](Ensure-WritableTemp)
+
 $keySig = @'
 using System;
 using System.Runtime.InteropServices;

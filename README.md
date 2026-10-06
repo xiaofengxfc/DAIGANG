@@ -788,16 +788,24 @@ Python 那边每帧慢 ~200ms（热态整帧 1100ms vs 898ms），但多了置�
 RapidOCR-json / PaddleOCR-json / Tesseract 这几条路就**彻底没戏**，只有 Python 后端能活
 （它读图用的是 `np.fromfile + cv2.imdecode`，中文路径无所谓）。
 
-同一个根因还会咬到截屏，而且是**静默**的：`grab.ps1` 里的 DPI 感知要现场编译 C#，
-编译要用临时目录 —— 临时目录不可写时 `Add-Type` 抛错，被 catch 成 `dpi=failed`，
-进程就不是 DPI 感知的了，`Screen.Bounds` 返回虚拟化尺寸，把 2560×1600 的屏截成
-1707×1067，之后所有识别全错。`screen-info.ps1`（那把用来发现「截屏被虚拟化了」的尺子）
-是同一个毛病：`Add-Type` 一失败它就什么都不输出，**那道防线也跟着静默失效**。
-所以这两个脚本开头都会先验一次临时目录能不能写，不行就退到项目自己的 `data/tmp`
-（`grab.ps1` 退到「这张图本来要落盘的目录」）。
+同一个根因还会咬到**所有现场编译 C# 的 PowerShell 脚本**，而且多数是**静默**的
+（`Add-Type -TypeDefinition` 要临时目录，`Add-Type -AssemblyName` 不要）：
 
-修完的实测：把 `TEMP` 指到一个不存在的盘，截屏自检照样报
-「截到 2560x1600，物理屏 2560x1600 —— 整屏，DPI 感知正常」，十一种分辨率 22/22。
+| 脚本 | 临时目录不可写时会发生什么 |
+| --- | --- |
+| `grab.ps1` | DPI 那步被 catch 成 `dpi=failed` → **静默截出缩放错的图**（2560×1600 截成 1707×1067）→ 之后所有识别全错 |
+| `focus-game.ps1` | 直接**死在编译那一步**，游戏窗口没被激活 → 截到的是别的窗口 |
+| `game-key.ps1` | 同样死在编译那一步，**按键发不出去** |
+| `screen-info.ps1` | 什么都不输出 → 自检里「截屏是不是被 DPI 虚拟化了」那道**防线静默失效** |
+
+所以这四个脚本统一 `dot-source` 一份 `scripts/lib/ensure-tmp.ps1`，开头先验一次临时目录
+能不能写（真写一个文件再删），不行就退到项目自己的 `data/tmp`
+（`grab.ps1` 退到「这张图本来要落盘的目录」）。**新增会编译 C# 的脚本，记得也接上这一句。**
+
+修完的实测：把 `TEMP` 指到一个不存在的盘，这四个脚本的输出与正常环境**逐字一致** ——
+`focus-game.ps1` 照样找到并激活 `鸣潮`、`game-key.ps1` 照样走到焦点判断、
+`screen-info.ps1` 照样报 `2560 x 1600`、`grab.ps1` 照样 `dpi=per-monitor-v2`；
+自检报「截到 2560x1600，物理屏 2560x1600 —— 整屏，DPI 感知正常」，十一种分辨率 22/22。
 
 **注意 `scripts/*.ps1` 全部保持纯 ASCII、不带 BOM** —— Windows PowerShell 5.1 会把
 无 BOM 的 .ps1 按 GBK 读，写中文注释会直接把脚本解析坏（`grab.ps1` 就这么坏过一次，
@@ -1058,8 +1066,11 @@ public/               静态资源 + 三个仍被 React 调用的画图/状态�
 scripts/             运维与自检：check（语法）、smoke（接口冒烟）、smoke-run（自起实例）、
                      ui-smoke（界面冒烟）、shot（截图）、vision-selftest（识别+截屏自检，
                      支持 --backend）、vision-parity（两个后端并排对照）、
-                     grab.ps1（截屏，先做 DPI 感知）、screen-info.ps1（真实显示模式，
-                     用来核对截屏是不是整屏）、ocr.ps1（Windows 自带 OCR）、lib/（测试实例与 CDP 客户端）
+                     grab.ps1（截屏，先做 DPI 感知）、focus-game.ps1（把游戏窗口唤到前台）、
+                     game-key.ps1（往游戏窗口发一个白名单按键）、screen-info.ps1（真实显示模式，
+                     用来核对截屏是不是整屏）、ocr.ps1（Windows 自带 OCR）、
+                     lib/（测试实例、CDP 客户端，以及 ensure-tmp.ps1 —— 那四个会编译 C# 的
+                     .ps1 共用的临时目录守卫）
 hooks/pre-commit     提交前闸门：语法自检 + 接口冒烟（git config core.hooksPath hooks 启用）
 data/                 运行时生成：console.db + uploads/ + resource-icons/
 tools/ocr/            自动安装的本地 OCR 引擎（不进版本库）

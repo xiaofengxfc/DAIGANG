@@ -10,31 +10,12 @@
 # Output: "2560 x 1600" (or "unknown" if the API cannot be reached).
 $ErrorActionPreference = 'Stop'
 
-# Add-Type compiles C# on the fly and needs a writable temp directory. When the temp
-# directory is not writable the compile throws ("The system cannot find the path
-# specified") and this script prints nothing -- which matters more than it looks:
-# this is the ruler the self-test uses to notice a DPI-virtualized capture, so a
-# broken ruler silently disables that guard. Fall back to the project's own data/tmp.
-# NOTE: keep this file pure ASCII. Windows PowerShell 5.1 reads a BOM-less .ps1 as
-# GBK, so non-ASCII comments here would break the parser.
-function Test-WritableDir([string]$dir) {
-  if (-not $dir) { return $false }
-  try {
-    if (-not (Test-Path -LiteralPath $dir)) { return $false }
-    $probe = Join-Path $dir ('.xfc-write-test-' + [Guid]::NewGuid().ToString('N'))
-    [IO.File]::WriteAllText($probe, 'ok')
-    Remove-Item -LiteralPath $probe -Force
-    return $true
-  } catch { return $false }
-}
-if (-not (Test-WritableDir $env:TEMP)) {
-  $fallbackTmp = Join-Path (Split-Path -Parent $PSScriptRoot) 'data\tmp'
-  try { New-Item -ItemType Directory -Force -Path $fallbackTmp | Out-Null } catch { }
-  if (Test-WritableDir $fallbackTmp) {
-    $env:TEMP = $fallbackTmp
-    $env:TMP = $fallbackTmp
-  }
-}
+# Add-Type below compiles C# and needs a writable temp directory. When it is not
+# writable this script prints nothing -- which matters more than it looks: this is
+# the ruler the self-test uses to notice a DPI-virtualized capture, so a broken
+# ruler silently disables that guard. See lib/ensure-tmp.ps1.
+. "$PSScriptRoot\lib\ensure-tmp.ps1"
+[void](Ensure-WritableTemp)
 
 $sig = @'
 using System;
