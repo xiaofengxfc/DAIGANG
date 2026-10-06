@@ -19,6 +19,34 @@ param(
   [long]$WindowHandle = 0
 )
 $ErrorActionPreference = 'Stop'
+
+# Add-Type compiles C# on the fly, and that compile needs a writable temp directory.
+# When the temp directory is not writable the compile throws, the DPI block below
+# fails, and the damage is silent: the screenshot comes out at the wrong scale
+# (measured: a 2560x1600 screen captured as 1707x1067) and every recognition after
+# that is wrong. So make sure the temp directory really is writable first; if it is
+# not, fall back to the directory this screenshot is about to be written into --
+# the caller picked it and just proved it writable.
+# NOTE: keep this file pure ASCII. Windows PowerShell 5.1 reads a BOM-less .ps1 as
+# GBK, so non-ASCII comments here break the parser (this file did exactly that once).
+function Test-WritableDir([string]$dir) {
+  if (-not $dir) { return $false }
+  try {
+    if (-not (Test-Path -LiteralPath $dir)) { return $false }
+    $probe = Join-Path $dir ('.xfc-write-test-' + [Guid]::NewGuid().ToString('N'))
+    [IO.File]::WriteAllText($probe, 'ok')
+    Remove-Item -LiteralPath $probe -Force
+    return $true
+  } catch { return $false }
+}
+if (-not (Test-WritableDir $env:TEMP)) {
+  $fallbackTmp = Split-Path -Parent $Out
+  if (Test-WritableDir $fallbackTmp) {
+    $env:TEMP = $fallbackTmp
+    $env:TMP = $fallbackTmp
+  }
+}
+
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName System.Windows.Forms
 

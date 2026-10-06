@@ -14,7 +14,6 @@
    ============================================================ */
 
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 import {
@@ -32,6 +31,7 @@ import {
   VISION_VENV,
 } from './config.mjs'
 import { visionDependencyStatus, visionDependencyStatusCached, visionVenvPython } from './vision-deps.mjs'
+import { scratchFile } from './util.mjs'
 
 const ENGINE_ID = 'python'
 const HEALTH_TTL_MS = 20 * 1000
@@ -433,9 +433,19 @@ export async function visionHealthCheck() {
   steps.push({ step: '探活 /health', ok: health.ok, detail: health.ok ? `预热完成（载模型 ${health.payload.load_ms}ms / 预热 ${health.payload.warm_ms}ms）` : health.error })
   if (!health.ok) return { ok: false, engine: ENGINE_ID, error: health.error, steps }
 
-  const tmp = path.join(os.tmpdir(), `xfc-vision-health-${process.pid}-${Date.now()}.png`)
+  /**
+   * 临时图走 scratchFile（优先项目自己的 data/tmp）而不是 os.tmpdir()。
+   * 这一条是踩出来的：用户机器上往 %TEMP% 写这个 PNG 被拒（EPERM），
+   * 自检接口直接 500。顺带整段包上 try/catch —— 自检本身失败也要给一句
+   * 能照做的原因，不能把栈丢到用户脸上。
+   */
+  const tmp = scratchFile('xfc-vision-health')
   try {
     fs.writeFileSync(tmp, Buffer.from(TINY_PNG, 'base64'))
+  } catch (err) {
+    return { ok: false, engine: ENGINE_ID, error: `临时目录写不进去（${err.code || err.message}）：${path.dirname(tmp)}`, steps }
+  }
+  try {
     const tiny = await visionOcr(tmp, { timeoutMs: 30000 })
     steps.push({ step: '认一张 2×2 小图', ok: tiny.ok, detail: tiny.ok ? `返回 ${tiny.words.length} 个词（0 个也正常）` : tiny.error })
     if (!tiny.ok) return { ok: false, engine: ENGINE_ID, error: tiny.error, steps }

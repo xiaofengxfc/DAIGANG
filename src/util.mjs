@@ -1,4 +1,8 @@
 import crypto from 'node:crypto'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { DATA_DIR } from './config.mjs'
 
 export class HttpError extends Error {
   constructor(status, message, code) {
@@ -13,6 +17,64 @@ export const fail = (status, message, code) => {
 }
 export const bad = (message, code) => fail(400, message, code || 'bad_request')
 export const notFound = (message = '没有找到这条记录') => fail(404, message, 'not_found')
+
+/* ---------- 临时文件 ---------- */
+
+const scratchProbe = new Map()
+let scratchSeq = 0
+
+/** 这个目录现在写得进去吗（真写一个再删掉，目录存在 ≠ 写得进去） */
+function writable(dir) {
+  if (scratchProbe.has(dir)) return scratchProbe.get(dir)
+  let ok = false
+  try {
+    fs.mkdirSync(dir, { recursive: true })
+    const probe = path.join(dir, `.write-test-${process.pid}`)
+    fs.writeFileSync(probe, 'ok')
+    fs.unlinkSync(probe)
+    ok = true
+  } catch {
+    ok = false
+  }
+  scratchProbe.set(dir, ok)
+  return ok
+}
+
+/**
+ * 临时文件放哪儿。两种偏好，都会互相兜底：
+ *
+ *   mode='project'（默认）—— 先 data/tmp，写不进再退系统临时目录。
+ *     给「只被我们自己读」的临时文件用（Python 侧解图走 np.fromfile，中文路径没问题）。
+ *
+ *   mode='ascii' —— 先系统临时目录（纯 ASCII），写不进再退 data/tmp。
+ *     给**外部 exe** 读的临时文件用：实测 RapidOCR-json 读不了中文路径
+ *     （src/ocr.mjs 里那个 asciiCopy 就是为这件事存在的），所以优先 ASCII。
+ *     %TEMP% 万一写不进去，退到项目目录至少 Python 那条路还能用 ——
+ *     那种情况下反正 exe 那条路本来也跑不起来。
+ *
+ * 为什么要这么绕：**别以为 os.tmpdir() 一定写得进去**。这是实测过的真实故障
+ * （用户机器上）：往 %TEMP% 写一个 2×2 的 PNG 直接被拒（EPERM），
+ * 「Python 视觉后端 → 自检一下」整个接口 500，截屏和每帧的带图也一样写不进去 ——
+ * 而原因跟识别本身一点关系都没有。程序确定写得进去的只有项目自己的 data/
+ * （数据库、日志、上传件都在那儿）。
+ */
+export function scratchDir({ mode = 'project' } = {}) {
+  const project = path.join(DATA_DIR, 'tmp')
+  const system = os.tmpdir()
+  const order = mode === 'ascii' ? [system, project] : [project, system]
+  for (const dir of order) if (writable(dir)) return dir
+  return order[0]
+}
+
+/**
+ * 一个临时文件的路径（只给路径，不创建文件）。
+ * 名字里带进程号和自增序号：同一毫秒里连开两个（一帧里裁带 + 截图就是这种情况）
+ * 光靠 Date.now() 会撞在同一个文件名上。
+ */
+export function scratchFile(prefix, ext = '.png', opts = {}) {
+  scratchSeq += 1
+  return path.join(scratchDir(opts), `${prefix}-${process.pid}-${Date.now()}-${scratchSeq.toString(36)}${ext}`)
+}
 
 /* ---------- 时间 ---------- */
 

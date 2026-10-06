@@ -25,6 +25,12 @@ del*.png
 # 构建产物：npm start / npm run setup 都会自动 build（prestart），不用进版本库
 public/dist/
 
+# Python 的字节码缓存（Python 视觉后端跑一次就会生成）
+# 它跟源码目录同名嵌套，容易跟着一起提交进去，所以显式排掉
+__pycache__/
+*.pyc
+*.pyo
+
 # 自动安装的 OCR 引擎（100MB 级的二进制 + 模型，不该进版本库）
 # 用户点「自动安装」时会重新下；手动解压的用户也是自己往这里放
 tools/

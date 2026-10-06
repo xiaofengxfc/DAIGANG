@@ -24,10 +24,10 @@
    ============================================================ */
 
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { scratchFile } from './util.mjs'
 import { ocrImage, parseNumber, ocrStatus } from './ocr.mjs'
 import { activeGameWindow } from './game-window.mjs'
 import { decodePNG, crop, encodePNG, resize } from './imgmatch.mjs'
@@ -680,7 +680,10 @@ async function ocrBand(img, bandH, { lang = 'zh-Hans-CN' } = {}) {
   const target = ocrTargetWidth(img, bandH)
   const shrink = target / band.width
   const small = Math.abs(shrink - 1) > 0.05 ? resampleBilinear(band, Math.round(band.width * shrink), Math.round(band.height * shrink)) : band
-  const tmp = path.join(os.tmpdir(), `xfc-band-${process.pid}-${Date.now()}.png`)
+  // mode:'ascii' = 优先系统临时目录：这条带图可能被喂给 RapidOCR-json 那种
+  // 外部 exe，而它读不了中文路径（见 src/ocr.mjs 的 asciiCopy）。
+  // 系统临时目录写不进去时才退到 data/tmp —— 那时候至少 Python 后端还能用。
+  const tmp = scratchFile('xfc-band', '.png', { mode: 'ascii' })
   fs.writeFileSync(tmp, encodePNG(small))
   try {
     const ocr = await ocrImage(tmp, { lang })
@@ -816,7 +819,9 @@ export async function recognizeScreenOnce({
   timeBudgetMs = 0,
 } = {}) {
   pruneSessions()
-  const tmp = path.join(os.tmpdir(), `xfc-screen-${process.pid}-${Date.now()}.png`)
+  // 截图落点：优先系统临时目录（纯 ASCII），写不进去再退 data/tmp。
+  // 这一步要是写不了，整个识别就没法开始 —— 所以它必须有退路。
+  const tmp = scratchFile('xfc-screen', '.png', { mode: 'ascii' })
   try {
     const g = await grabScreen(tmp)
     if (!g.ok) return { ok: false, error: g.error }

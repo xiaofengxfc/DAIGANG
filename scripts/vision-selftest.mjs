@@ -23,7 +23,6 @@
    ============================================================ */
 
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
@@ -32,6 +31,7 @@ import { resampleBilinear } from '../src/vision.mjs'
 import { recognizeFrame, recognizeImageFile, ocrTopBand, templateStatus, loadTemplates, grabScreen } from '../src/screen.mjs'
 import { ensureEnginesProbed, ocrEngines } from '../src/ocr.mjs'
 import { ensureVisionStarted } from '../src/vision-python.mjs'
+import { scratchFile } from '../src/util.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const SAMPLE = path.join(ROOT, 'shots', 'samples', 'weapon-list.png')
@@ -115,7 +115,9 @@ function physicalScreenSize() {
   return m ? { width: Number(m[1]), height: Number(m[2]) } : null
 }
 
-const grabTmp = path.join(os.tmpdir(), `xfc-selftest-grab-${process.pid}.png`)
+// 截屏自检自己也得能在「系统临时目录写不进去」的环境里跑 ——
+// 它正是用来判断截屏对不对的那个工具，不能比被测的程序更娇气。
+const grabTmp = scratchFile('xfc-selftest-grab', '.png', { mode: 'ascii' })
 let captured = null
 let grabError = ''
 try {
