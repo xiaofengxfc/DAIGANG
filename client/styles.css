@@ -2954,25 +2954,30 @@ button.react-side-row {
 .price-status button { min-height: 27px; padding: 0 8px; border: 0; border-radius: 5px; background: transparent; color: var(--ink-3); cursor: pointer; font: inherit; font-size: 10px; }
 .price-status button:hover, .price-status button.is-active { background: var(--surface-3); color: var(--ink); }
 
-@media (max-width: 980px) {
-  .price-service__labels, .price-service { grid-template-columns: minmax(150px, 1.6fr) minmax(100px, .8fr) minmax(75px, .55fr) minmax(145px, 1fr) 128px; gap: 8px; }
-}
+/* 5 列账目布局的最小宽度是 725px（列最小宽合计 677 + 4×12 间距）。
+   算上目录轨 190、目录内边距 36、内容区内边距 68、侧栏 236，
+   视口要有 **约 1255px** 才放得下。
 
-@media (max-width: 760px) {
-  .price-group__head { padding-inline: 0; }
+   原来折成卡片行的断点设在 760px —— 中间这 500px 宽的区间里，
+   行内容比行本身宽 159~334px，而 .react-main 是 overflow-x: clip，
+   不会出滚动条，右侧的「价格」和「操作」被**静默裁掉**。
+   所以：账目表只在 ≥1280px 出现，以下一律走卡片行。 */
+@media (max-width: 1279px) {
   .price-workspace { display: block; }
   .price-directory { border-right: 0; border-bottom: 1px solid var(--line); }
-  .price-catalog { padding: 9px 0 0; }
-  .price-status { width: 100%; }
-  .price-status button { flex: 1; }
   .price-service__labels { display: none; }
-  .price-service { grid-template-columns: minmax(0, 1fr) auto; gap: 7px 9px; padding: 11px 0; }
+  .price-service { grid-template-columns: minmax(0, 1fr) auto; gap: 7px 9px; }
   .price-service__main { grid-column: 1; grid-row: 1 / span 3; align-self: center; }
   .price-service__type { display: block; grid-column: 2; grid-row: 1; min-width: 92px; text-align: right; }
   .price-service__money { grid-column: 2; grid-row: 2; }
   .price-service__tiers { grid-column: 1 / -1; grid-row: 4; padding-top: 2px; }
   .price-service__actions { grid-column: 2; grid-row: 3; justify-content: flex-end; }
-  .price-category__head { padding-inline: 0; }
+}
+
+/* 手机：工具栏和分类抬头再收一档 */
+@media (max-width: 760px) {
+  .price-status { width: 100%; }
+  .price-status button { flex: 1; }
   .price-category__head > p { display: none; }
   .price-category__actions { flex-wrap: wrap; justify-content: flex-end; }
 }
@@ -3287,10 +3292,11 @@ button.react-side-row {
 
 /* ---------- 面板类：全部换成玻璃板 ---------- */
 
+/* 只有"直接压在画布上"的大面才是玻璃。
+   嵌在玻璃里面的东西（空态、按钮、提示条、价格表的内层分区）一律只给
+   半透明底 —— 玻璃叠玻璃会让内层糊成实心，既丢质感又是白花钱。 */
 .react-ledger,
 .react-dashboard-panel,
-.react-dashboard-empty,
-.react-panel-empty,
 .orders-panel,
 .customers-panel,
 .games-panel,
@@ -3298,8 +3304,6 @@ button.react-side-row {
 .finance-ledger,
 .quotes-panel,
 .price-group,
-.price-category,
-.price-workspace,
 .media-panel,
 .media-summary > div,
 .media-dependency-card,
@@ -3310,6 +3314,44 @@ button.react-side-row {
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   border-color: transparent;
   box-shadow: var(--shadow-glass), var(--shadow-hi);
+}
+
+/* 价格表：整页原来是"一张纸"，group / workspace / category 都被刻意拍平过
+   （border:0; background:transparent，见上面第 2938 行那段）。
+   所以玻璃只给最外层那张纸，里面全部保持平坦，靠细线分区。 */
+.price-group {
+  overflow: hidden;
+  border-radius: var(--r-card);
+}
+
+/* 拍平那一段把这几处 padding-inline 归零了（当时整页没有卡片边框，
+   内容顶到页面边距上）。现在外层重新成了一张纸，得把内边距还给内容。 */
+.price-group__head {
+  padding-inline: 18px;
+  border-bottom-color: var(--line);
+}
+
+.price-catalog {
+  padding: 14px 18px 18px;
+  /* 保险丝：账目行的最小宽度是硬的（列最小宽合计 677px），
+     万一以后有人调宽了列或收窄了侧栏，让它出滚动条，
+     而不是被 .react-main 的 overflow-x: clip 悄悄裁掉右半边。 */
+  overflow-x: auto;
+}
+
+.price-workspace,
+.price-category {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* 空态：长在面板里面，只给半透明底 */
+.react-dashboard-empty,
+.react-panel-empty {
+  background: var(--glass-soft);
+  border-color: transparent;
+  box-shadow: var(--shadow-hi);
 }
 
 /* 总览抬头是主角：一块更厚的玻璃，去掉原来那道彩色顶线 */
@@ -3438,7 +3480,12 @@ button.react-side-row {
   background: var(--glass-soft);
 }
 
-.price-service__labels,
+/* 价格表的列头：坐在"纸"上，给一层极浅的底把列名和账目分开 */
+.price-service__labels {
+  border-bottom-color: var(--line);
+  background: var(--glass-soft);
+}
+
 .price-category__head,
 .orders-table-head,
 .customers-table-head,
@@ -3446,6 +3493,55 @@ button.react-side-row {
 .quotes-table-head {
   border-bottom-color: var(--line);
   background: transparent;
+}
+
+/* 价格表的字：服务名是这一行的主体，不该比右边的价格还小。
+   原来 11px 对 14px，读起来像"数字才是主角、名字只是注解"。 */
+.price-service__name b {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* 服务说明是真内容（不是占位），用 --ink-2；"暂无说明"那种占位才用 --ink-3 */
+.price-service__main p {
+  color: var(--ink-2);
+  font-size: 11px;
+}
+
+.price-service__type b,
+.price-service__tiers b {
+  font-size: 11px;
+}
+
+.price-service__type small {
+  font-size: 10px;
+}
+
+.price-service__tiers small {
+  font-size: 10px;
+}
+
+.price-service__money b {
+  font-size: 14px;
+}
+
+.price-service__money small {
+  font-size: 10px;
+}
+
+/* 小标签抬到 10px：9px 在 Windows 上已经糊了 */
+.price-tag {
+  font-size: 10px;
+  padding: 0 5px;
+}
+
+.price-service__labels {
+  font-size: 11px;
+}
+
+/* 服务行：行高稳一点，一列账目看起来才齐 */
+.price-service {
+  padding-block: 11px;
 }
 
 /* 订单/客户/游戏列表的表头：吸顶必须实心，否则滚动时透出字 */

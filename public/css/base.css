@@ -237,8 +237,9 @@ input[type='month'] {
   border: 1px solid var(--line);
   border-radius: var(--r-ctl);
   background: var(--glass);
-  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-sat));
-  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-sat));
+  /* 按钮不给 backdrop-filter：它几乎总是压在已经模糊过的面板上，
+     再模糊一次纯属白花钱，而且会跟祖先的玻璃叠成"嵌套玻璃"。
+     毛玻璃只留给直接压在画布上的大面。 */
   color: var(--ink);
   font-size: var(--fs-base);
   font-weight: 500;

@@ -86,7 +86,7 @@ export default function CustomersPage({ route, navigate, onNew, reloadKey }) {
   return (
     <div className="customers-page">
       <header className="customers-page__head">
-        <div><span className="refactor-eyebrow">客户档案</span><h2>{title}</h2><p>{rows.length ? `${rows.length} 位${rows.length !== all.length ? ` · 共 ${all.length} 位` : ''}` : '集中查看客户联系信息、订单和收款情况'}</p></div>
+        <div><h2>{title}</h2><p>{rows.length ? `${rows.length} 位${rows.length !== all.length ? ` · 共 ${all.length} 位` : ''}` : '集中查看客户联系信息、订单和收款情况'}</p></div>
         <button className="refactor-button refactor-button--primary" type="button" onClick={onNew}><Plus {...iconProps(15)} />新建客户</button>
       </header>
       <section className="customers-toolbar" aria-label="客户筛选">

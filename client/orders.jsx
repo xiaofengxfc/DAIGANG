@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowUpRight, Check, Clock3, ListFilter, Plus, Search, Users, WalletCards } from 'lucide-react'
 import { api, ORDER_STATUS_LABEL, STATUS_TONE } from './lib/api.js'
 import { fmtDay, fmtMoney, remainInfo } from './lib/formatters.js'
@@ -161,7 +161,7 @@ export default function OrdersPage({ route, navigate, onNew, onReload, reloadKey
   return (
     <div className="orders-page">
       <header className="orders-page__head">
-        <div><span className="refactor-eyebrow">业务清单</span><h2>{title}</h2><p>{rows.length ? `${rows.length} 张单 · ${customers} 位客户${walkIn ? ` + ${walkIn} 张散客` : ''} · 合计 ¥${fmtMoney(total)} · 未收 ¥${fmtMoney(due)}` : '按状态、客户和交付情况快速定位订单'}</p></div>
+        <div><h2>{title}</h2><p>{rows.length ? `${rows.length} 张单 · ${customers} 位客户${walkIn ? ` + ${walkIn} 张散客` : ''} · 合计 ¥${fmtMoney(total)} · 未收 ¥${fmtMoney(due)}` : '按状态、客户和交付情况快速定位订单'}</p></div>
         <button className="refactor-button refactor-button--primary" type="button" onClick={onNew}><Plus {...iconProps(15)} />开新单</button>
       </header>
       <section className="orders-toolbar" aria-label="订单筛选">

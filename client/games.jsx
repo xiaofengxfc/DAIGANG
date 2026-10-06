@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Archive, Gamepad2, Pencil, Plus, RefreshCw, Search, Trash2 } from 'lucide-react'
 import { api } from './lib/api.js'
 import { fmtDate } from './lib/formatters.js'
@@ -123,7 +123,7 @@ export default function GamesPage({ route, navigate, onNew, onReload, reloadKey 
   return (
     <div className="games-page">
       <header className="games-page__head">
-        <div><span className="refactor-eyebrow">业务目录</span><h2>游戏</h2><p>{activeCount} 个上架{archivedCount ? ` · ${archivedCount} 个已归档` : ''}</p></div>
+        <div><h2>游戏</h2><p>{activeCount} 个上架{archivedCount ? ` · ${archivedCount} 个已归档` : ''}</p></div>
         <button className="refactor-button refactor-button--primary" type="button" onClick={onNew}><Plus {...iconProps(15)} />新建游戏</button>
       </header>
       <section className="games-toolbar" aria-label="游戏筛选">

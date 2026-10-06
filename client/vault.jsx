@@ -117,7 +117,6 @@ export default function VaultPage({ route, navigate, onReload, reloadKey }) {
     <div className="vault-page">
       <header className="vault-page__head">
         <div>
-          <span className="refactor-eyebrow">加密存放</span>
           <h2>登录凭证保险箱</h2>
           <p>{`${shown.length} 条凭证 · 用 AES-256-GCM 加密存储，明文不落盘`}</p>
         </div>

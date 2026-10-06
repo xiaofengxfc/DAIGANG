@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { AlertTriangle, CalendarClock, Check, CheckCircle2, Clock3, FileVideo, FolderOpen, Pencil, Plus, Radio, RefreshCw, RotateCcw, Send, Trash2, Upload, UserRound, X } from 'lucide-react'
 import { api } from './lib/api.js'
 import { toast, toastErr } from './app/toast-store.js'
@@ -233,7 +233,6 @@ export default function MediaPage({ reloadKey = 0 }) {
     <div className="media-page">
       <div className="media-page__head">
         <div>
-          <span className="refactor-eyebrow">MEDIA PUBLISH</span>
           <h2>自媒体发布</h2>
           <p>统一管理素材、平台账号和跨平台发布任务。</p>
         </div>

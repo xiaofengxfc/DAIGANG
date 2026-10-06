@@ -3451,23 +3451,34 @@ img.avatar--lg {
   border-top: 1px solid var(--line);
 }
 
-/* ---------- 玻璃面板：把「描边卡片」换成「玻璃板」 ---------- */
+/* ---------- 玻璃面板 ----------
+   规则只有一条：**只有直接压在画布上的面，才配 backdrop-filter。**
+   凡是长在别的面里面的（安装面板、价目表、服务选择器、空态、提示条、
+   按钮…），一律只给半透明底 + 内高光。
+   理由有两个：玻璃叠玻璃会让内层糊成接近实心，等于把玻璃做没了；
+   而且内层背后已经是一张模糊过的面，再模糊一次纯属白花钱。 */
 
 .panel,
 .ledger,
-.sheet,
-.quote-sheet,
-.picker,
-.gate__card,
-.install,
-.empty,
-.item--more,
-.report-preview {
+.gate__card {
   background: var(--glass);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   border-color: transparent;
   box-shadow: var(--shadow-glass), var(--shadow-hi);
+}
+
+/* 长在面板/弹窗里的分区与子面板：只给半透明底 */
+.install,
+.sheet,
+.quote-sheet,
+.picker,
+.item--more,
+.report-preview,
+.empty {
+  background: var(--glass-soft);
+  border-color: transparent;
+  box-shadow: var(--shadow-hi);
 }
 
 /* 账簿抬头：原来那道 2px 靛蓝顶线去掉，改用一块更厚的玻璃。
@@ -3639,8 +3650,6 @@ img.avatar--lg {
 
 .note {
   background: var(--glass);
-  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-sat));
-  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-sat));
   border-color: transparent;
   box-shadow: var(--shadow-hi);
 }

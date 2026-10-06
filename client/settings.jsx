@@ -184,7 +184,6 @@ export default function SettingsPage({ onReload, reloadKey }) {
     <div className="settings-page">
       <header className="settings-page__head">
         <div>
-          <span className="refactor-eyebrow">本机设置</span>
           <h2>设置</h2>
           <p>店铺信息、密码、备份与安全</p>
         </div>

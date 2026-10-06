@@ -159,7 +159,6 @@ export default function OrderDetailPage({ route, navigate, onReload, reloadKey }
     <div className="orders-page">
       <header className="orders-page__head">
         <div>
-          <span className="refactor-eyebrow">订单详情</span>
           <h2>{order.order_no}</h2>
           <p>{order.title || '（没写标题）'}</p>
         </div>
