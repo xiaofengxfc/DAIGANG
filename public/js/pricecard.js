@@ -1,18 +1,18 @@
 /* ============================================================
    价格表 → 一张可以直接发微信的图片
    用 canvas 画，不依赖任何库。
-   走的是应用同一套现代浅色面：雾白底 + 靛蓝 + 结构线。
+
+   配色只有黑白灰：近黑 + 三档灰，一个彩色都没有。
+   层级靠字重、字号和留白表达，不靠颜色 —— 所以也不再有
+   顶部色条、大类色块、彩色底纹和点线这些装饰。
    ============================================================ */
 
 const PAPER = '#FFFFFF'
-const PAPER_EDGE = '#E2E7ED'
-const INK = '#20242B'
-const INK_GRAY = '#5F6B7A'
-const INK_FAINT = '#7F8A98'
-const CINNABAR = '#5C54C7'
-const RULE = '#E2E7ED'
-const RULE_STRONG = '#CBD3DE'
-const TINT = '#F1F2FF'
+const INK = '#1F2328'
+const GRAY = '#5C6166'
+const FAINT = '#8B9096'
+const RULE = '#E7E9EB'
+const RULE_STRONG = '#CACDD1'
 
 const FONT_UI = '"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif'
 const FONT_FIG = 'ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace'
@@ -20,6 +20,16 @@ const FONT_FIG = 'ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace'
 const W = 1080
 const PAD = 72
 const CW = W - PAD * 2
+
+/** 只用这几档字号，层级才不会花 */
+const SZ = {
+  shop: 44,
+  game: 32,
+  strong: 24,
+  body: 22,
+  small: 20,
+  tiny: 18,
+}
 
 const font = (size, weight = 400, fig = false) => `${weight} ${size}px ${fig ? FONT_FIG : FONT_UI}`
 
@@ -94,67 +104,62 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
     if (!str) return
     ops.push({ t: 'text', x, y: baseline, str, f, color, align })
   }
-  const line = (x1, y1, x2, y2, color, width = 1, dash = null) =>
-    ops.push({ t: 'line', x1, y1, x2, y2, color, width, dash })
+  const line = (x1, y1, x2, y2, color, width = 1) => ops.push({ t: 'line', x1, y1, x2, y2, color, width })
   const rect = (x, y0, w, h, color) => ops.push({ t: 'rect', x, y: y0, w, h, color })
 
   /* ---------- 提示条 ---------- */
-  // 浅色底 + 左边一道靛蓝竖线，和 Word 文档里的排法完全一致。
-  // 顺序要紧：底纹要先推入 ops，文字后推，画的时候才是「先底后字」。
+  // 没有底纹，只在左边留一道细灰竖线 —— 一眼看得出是提示，又不抢价格。
+  // 顺序要紧：竖线要先推入 ops，文字后推，画的时候才是「先线后字」。
   // 参数千万别叫 text —— 会把外面那个画字的 text() 遮住，
   // 结果就是「预览画不出来：text is not a function」。
   // label 默认空着：价目表是发给客户的，提示块自己就说明白了，
   // 不用在上面再压一个「公告」的标题。
   // indent / size 是给「大类提示」用的：缩进一格、字小一号，层级低一级。
-  const noticeBlock = (notice, label = '', { indent = 0, size = 23 } = {}) => {
+  const noticeBlock = (notice, label = '', { indent = 0, size = SZ.small } = {}) => {
     const raw = String(notice || '').trim()
     if (!raw) return
-    const inner = 30
+    const barW = 3
+    const inner = 24
+    const textX = PAD + indent + barW + inner
     const bodyFont = font(size)
-    const labelFont = font(Math.max(15, size - 4), 700)
+    const labelFont = font(Math.max(15, size - 2), 700)
     const boxW = CW - indent
-    const lines = wrapText(measure, raw, bodyFont, boxW - inner * 2 - 6, 8)
+    const lines = wrapText(measure, raw, bodyFont, boxW - barW - inner - 6, 8)
     if (!lines.length) return
 
-    // 高度先算好再铺底 —— ops 是按顺序画的，底纹必须先推入，否则会盖住文字
-    const lead = 28
+    // 高度先算好再画竖线 —— ops 是按顺序画的，线必须先推入，否则会盖住文字
+    const lead = 26
     const labelStep = label ? size + 7 : 0
     const lineStep = Math.round(size * 1.48)
-    const h = lead + labelStep + lines.length * lineStep + 18
+    const h = lead + labelStep + lines.length * lineStep + 14
 
-    y += size >= 23 ? 46 : 32
+    y += size >= SZ.small ? 42 : 30
     const top = y
-    rect(PAD + indent, top, boxW, h, TINT)
-    rect(PAD + indent, top, 6, h, CINNABAR)
+    rect(PAD + indent, top, barW, h, RULE_STRONG)
 
     let base = top + lead
     if (label) {
-      text(PAD + indent + inner, base, label, labelFont, CINNABAR)
+      text(textX, base, label, labelFont, INK)
       base += labelStep
     }
     for (const ln of lines) {
       base += lineStep
-      text(PAD + indent + inner, base, ln, bodyFont, INK)
+      text(textX, base, ln, bodyFont, GRAY)
     }
     y = top + h
   }
 
   /* ---------- 抬头 ---------- */
-  rect(0, 0, W, 7, CINNABAR)
-  y = 7
-
   y += 64
-  text(PAD, y, fitText(measure, model.shopName, font(48, 700), CW), font(48, 700), INK)
+  text(PAD, y, fitText(measure, model.shopName, font(SZ.shop, 700), CW), font(SZ.shop, 700), INK)
 
-  y += 44
-  const titleFont = font(23, 500)
-  text(PAD, y, model.title, titleFont, INK_GRAY)
-  const dateFont = font(21, 400, true)
-  if (model.date) text(W - PAD, y, model.date, dateFont, INK_FAINT, 'right')
+  y += 42
+  text(PAD, y, model.title, font(SZ.small, 500), GRAY)
+  if (model.date) text(W - PAD, y, model.date, font(SZ.tiny, 400, true), FAINT, 'right')
 
   if (model.subtitle) {
-    y += 34
-    text(PAD, y, fitText(measure, model.subtitle, font(23), CW), font(23), INK_GRAY)
+    y += 32
+    text(PAD, y, fitText(measure, model.subtitle, font(SZ.small), CW), font(SZ.small), GRAY)
   }
 
   y += 26
@@ -164,18 +169,18 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
   noticeBlock(model.notice)
 
   /* ---------- 大类与服务项 ---------- */
-  const nameFont = font(25, 500)
-  const priceFont = font(27, 600, true)
-  const descFont = font(20)
-  const hintFont = font(19, 400, true)
-  const gainFont = font(21, 500)
-  const catFont = font(27, 600)
-  const gameFont = font(37, 700)
-  const moreFont = font(20, 400)
+  const nameFont = font(SZ.body, 500)
+  const priceFont = font(SZ.strong, 700, true)
+  const descFont = font(SZ.tiny)
+  const tierFont = font(SZ.tiny)
+  const gainFont = font(SZ.small, 500)
+  const catFont = font(SZ.strong, 700)
+  const gameFont = font(SZ.game, 700)
+  const moreFont = font(SZ.tiny)
 
   if (!model.groups.length) {
     y += 64
-    text(PAD, y, '这张价格表还没有在架的服务项。', font(24), INK_FAINT)
+    text(PAD, y, '这张价格表还没有在架的服务项。', font(SZ.strong), FAINT)
     y += 40
   }
 
@@ -185,7 +190,7 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
     const gameHead = Boolean(model.multiGame && g.gameName && g.gameName !== lastGame)
     if (gameHead) {
       lastGame = g.gameName
-      y += 78
+      y += 76
       text(PAD, y, fitText(measure, g.gameName, gameFont, CW), gameFont, INK)
       y += 16
       line(PAD, y, W - PAD, y, RULE_STRONG, 2)
@@ -195,14 +200,13 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
     // 小标题里已经写了游戏名就不重复；没写标题的才用游戏名当标签 —— 但不再出现「公告」两个字。
     if (g.gameNotice) noticeBlock(g.gameNotice, gameHead || !g.gameName ? '' : g.gameName)
 
-    y += 62
-    rect(PAD, y - 23, 6, 27, CINNABAR)
-    text(PAD + 18, y, fitText(measure, g.name, catFont, CW - 18), catFont, g.isOrphan ? INK_GRAY : INK)
+    y += 60
+    text(PAD + 18, y, fitText(measure, g.name, catFont, CW - 18), catFont, g.isOrphan ? GRAY : INK)
     y += 14
     line(PAD, y, W - PAD, y, RULE, 1)
 
     // 大类自己的提示：排在名字下面、服务项上面，缩进一格、字小一号
-    if (g.catNotice) noticeBlock(g.catNotice, '', { indent: 22, size: 20 })
+    if (g.catNotice) noticeBlock(g.catNotice, '', { indent: 22, size: SZ.tiny })
 
     for (const it of g.items) {
       y += 46
@@ -210,52 +214,45 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
       const priceW = measure(priceStr, priceFont)
       const nameX = PAD + 18
       const nameMax = CW - priceW - 60
-      const shown = fitText(measure, it.name, nameFont, nameMax)
-      text(nameX, y, shown, nameFont, INK)
-      text(W - PAD, y, priceStr, priceFont, CINNABAR, 'right')
-
-      // 菜单式点线：把服务名和价格连起来
-      const nameW = measure(shown, nameFont)
-      const dotFrom = nameX + nameW + 14
-      const dotTo = W - PAD - priceW - 14
-      if (dotTo > dotFrom + 20) line(dotFrom, y - 6, dotTo, y - 6, RULE_STRONG, 1, [2, 7])
+      text(nameX, y, fitText(measure, it.name, nameFont, nameMax), nameFont, INK)
+      text(W - PAD, y, priceStr, priceFont, INK, 'right')
 
       // 阶梯价逐档列出；旧模型没有 tierLines 时仍显示原来的摘要。
       const tierLines = Array.isArray(it.tierLines) ? it.tierLines.filter(Boolean) : []
       if (tierLines.length > 1) {
         for (const tier of tierLines) {
           y += 27
-          text(nameX, y, fitText(measure, tier, hintFont, CW - 18), hintFont, CINNABAR)
+          text(nameX, y, fitText(measure, tier, tierFont, CW - 18), tierFont, GRAY)
         }
       } else if (it.hint) {
         y += 27
-        text(nameX, y, fitText(measure, it.hint, hintFont, CW - 18), hintFont, CINNABAR)
+        text(nameX, y, fitText(measure, it.hint, tierFont, CW - 18), tierFont, GRAY)
       }
 
       // 可得货币：客户最关心的是「花这个钱能拿到多少」，
       // 所以单独一行、比说明重一档，也不能被 notes 的截断挤掉
       if (it.gain) {
         y += 29
-        text(nameX, y, fitText(measure, it.gain, gainFont, CW - 18), gainFont, INK_GRAY)
+        text(nameX, y, fitText(measure, it.gain, gainFont, CW - 18), gainFont, INK)
       }
 
       // 说明 / 含… / 增项…，最多两行
       const notes = (it.notes || []).filter(Boolean).slice(0, 2)
       for (const n of notes) {
         y += 29
-        text(nameX, y, fitText(measure, n, descFont, CW - 18), descFont, INK_FAINT)
+        text(nameX, y, fitText(measure, n, descFont, CW - 18), descFont, FAINT)
       }
     }
 
     if (g.more > 0) {
       y += 34
-      text(PAD + 18, y, `…… 这个大类还有 ${g.more} 项`, moreFont, INK_FAINT)
+      text(PAD + 18, y, `…… 这个大类还有 ${g.more} 项`, moreFont, FAINT)
     }
   }
 
   if (model.hiddenCategories > 0) {
     y += 44
-    text(PAD, y, `…… 还有 ${model.hiddenCategories} 个大类没有列出`, moreFont, INK_FAINT)
+    text(PAD, y, `…… 还有 ${model.hiddenCategories} 个大类没有列出`, moreFont, FAINT)
   }
 
   /* ---------- 页脚 ---------- */
@@ -264,11 +261,11 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
 
   if (model.contact) {
     y += 40
-    text(PAD, y, fitText(measure, `联系：${model.contact}`, font(24, 500), CW), font(24, 500), INK)
+    text(PAD, y, fitText(measure, `联系：${model.contact}`, font(SZ.small, 500), CW), font(SZ.small, 500), INK)
   }
   if (model.footer) {
     y += 34
-    text(PAD, y, fitText(measure, model.footer, font(20), CW), font(20), INK_FAINT)
+    text(PAD, y, fitText(measure, model.footer, font(SZ.tiny), CW), font(SZ.tiny), FAINT)
   }
   y += PAD
 
@@ -283,9 +280,6 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
 
   ctx.fillStyle = PAPER
   ctx.fillRect(0, 0, W, H)
-  ctx.strokeStyle = PAPER_EDGE
-  ctx.lineWidth = 2
-  ctx.strokeRect(1, 1, W - 2, H - 2)
 
   for (const op of ops) {
     if (op.t === 'rect') {
@@ -294,12 +288,10 @@ export function renderPriceCard(model, { scale = 2 } = {}) {
     } else if (op.t === 'line') {
       ctx.strokeStyle = op.color
       ctx.lineWidth = op.width
-      ctx.setLineDash(op.dash || [])
       ctx.beginPath()
       ctx.moveTo(op.x1, op.y1)
       ctx.lineTo(op.x2, op.y2)
       ctx.stroke()
-      ctx.setLineDash([])
     } else {
       ctx.font = op.f
       ctx.fillStyle = op.color

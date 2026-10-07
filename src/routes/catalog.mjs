@@ -4,6 +4,7 @@ import { bad, notFound, int, clampStr, nextSortOrder } from '../util.mjs'
 import { makeDef, registerCrud, getRow, createRow, updateRow, removeRow, listRows, shapeRow } from './_helpers.mjs'
 import { buildExportModel } from '../priceexport.mjs'
 import { buildDocx } from '../docx.mjs'
+import { buildXlsx } from '../xlsx.mjs'
 import { enqueueERPNextChange } from '../outbox.mjs'
 import { transaction } from '../infrastructure/sqlite/transaction.mjs'
 
@@ -381,18 +382,36 @@ export function register() {
   /** 导出模型（JSON）—— 前端拿它画图片 */
   get('/api/pricebook/export-model', (ctx) => buildExportModel(exportOpts(ctx.query)))
 
-  /** Word 文档（.docx）—— 直接落盘下载 */
-  get('/api/pricebook/export.docx', (ctx) => {
-    const model = buildExportModel(exportOpts(ctx.query))
-    const buf = buildDocx(model)
+  /** 把生成好的文件直接落盘下载 */
+  const sendFile = (ctx, model, buf, { ext, type, fallback }) => {
     const safe = `${model.shopName}-价目表-${model.date}`.replace(/[\\/:*?"<>|]/g, '_').slice(0, 80)
     ctx.res.writeHead(200, {
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'Content-Type': type,
       'Content-Length': buf.length,
-      'Content-Disposition': `attachment; filename="price-list.docx"; filename*=UTF-8''${encodeURIComponent(safe)}.docx`,
+      'Content-Disposition': `attachment; filename="${fallback}.${ext}"; filename*=UTF-8''${encodeURIComponent(safe)}.${ext}`,
       'Cache-Control': 'no-store',
     })
     ctx.res.end(buf)
     return undefined // 已经自己回过响应了
+  }
+
+  /** Word 文档（.docx）—— 完整 A4 价目册，真实表格、阶梯价逐档列出 */
+  get('/api/pricebook/export.docx', (ctx) => {
+    const model = buildExportModel(exportOpts(ctx.query))
+    return sendFile(ctx, model, buildDocx(model), {
+      ext: 'docx',
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      fallback: 'price-list',
+    })
+  })
+
+  /** Excel 表格（.xlsx）—— 一行一个价格档，单价是真数字，能排序、能求和 */
+  get('/api/pricebook/export.xlsx', (ctx) => {
+    const model = buildExportModel(exportOpts(ctx.query))
+    return sendFile(ctx, model, buildXlsx(model), {
+      ext: 'xlsx',
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      fallback: 'price-list',
+    })
   })
 }

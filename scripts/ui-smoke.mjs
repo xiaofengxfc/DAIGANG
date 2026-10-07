@@ -1294,7 +1294,7 @@ async function main() {
         wide: true,
         fields: ['导出范围｜整', '图片内容｜整', '带说明文字｜整', '联系方式｜整', '页脚说明｜整'],
         controls: ['SELECT', 'custom', 'INPUT', 'INPUT', 'INPUT'],
-        foot: ['关闭', '生成 Word 文档', '生成图片'],
+        foot: ['关闭', '生成 Excel 表格', '生成 Word 文档', '生成图片'],
       }, '导出器：')
 
       // 预览是真的画出来的：canvas → data URL
@@ -1319,6 +1319,12 @@ async function main() {
       ok('点「生成 Word 文档」触发了下载', await waitFor(cdp, `(window.__downloads || []).length > 0`, { tries: 60, interval: 300 }), JSON.stringify(await cdp.eval('window.__downloads')))
       const docx = (await cdp.eval('window.__downloads'))[0]
       ok('Word 文件名是「店铺-价目表-日期.docx」（合并模式不带游戏名）', /^UI冒烟小铺-价目表-\d{4}-\d{2}-\d{2}\.docx$/.test(docx.name), docx.name)
+
+      await cdp.eval(`window.__downloads = []`)
+      await cdp.eval(`[...document.querySelector(${JSON.stringify(OPEN_DRAWER)}).querySelectorAll('.drawer__foot button')].find((b) => b.textContent.includes('生成 Excel 表格')).click()`)
+      ok('点「生成 Excel 表格」触发了下载', await waitFor(cdp, `(window.__downloads || []).length > 0`, { tries: 60, interval: 300 }), JSON.stringify(await cdp.eval('window.__downloads')))
+      const xlsx = (await cdp.eval('window.__downloads'))[0]
+      ok('Excel 文件名是「店铺-价目表-日期.xlsx」', /^UI冒烟小铺-价目表-\d{4}-\d{2}-\d{2}\.xlsx$/.test(xlsx.name), xlsx.name)
 
       await cdp.eval(`document.querySelector(${JSON.stringify(OPEN_DRAWER)}).close()`)
       ok('导出抽屉关掉后没有残留', await waitFor(cdp, `document.querySelectorAll('dialog[open]').length === 0`, { tries: 25, interval: 200 }), await cdp.eval(`document.querySelectorAll('dialog[open]').length`))

@@ -18,7 +18,7 @@ export const ERPNEXT_SCOPE = Object.freeze({
   local_only: Object.freeze([
     { key: 'credentials', label: '游戏登录凭证', reason: '凭证继续由本地保险箱加密保管，不进入 ERPNext' },
     { key: 'ocr', label: 'OCR 与屏幕识别', reason: '本机辅助工具，不属于 ERPNext 主数据' },
-    { key: 'price_exports', label: '价格表图片与 Word 导出', reason: '本地展示与交付功能' },
+    { key: 'price_exports', label: '价格表图片、Word 与 Excel 导出', reason: '本地展示与交付功能' },
     { key: 'dashboard_finance', label: '看板与财务报表', reason: '保留本地统计口径，待 ERPNext 账套确认后再对接' },
     { key: 'auth_vault_backup', label: '登录、保险箱、备份', reason: '本地安全与灾备基础设施' },
   ]),

@@ -1,5 +1,5 @@
-﻿import React, { useEffect, useRef, useState } from 'react'
-import { Download, FileText } from 'lucide-react'
+import React, { useEffect, useRef, useState } from 'react'
+import { Download, FileSpreadsheet, FileText } from 'lucide-react'
 import { api } from './lib/api.js'
 import { toast, toastErr } from './app/toast-store.js'
 import Drawer from './app/drawer.jsx'
@@ -15,10 +15,12 @@ import { canvasToBlob, downloadBlob, renderPriceCard } from '../public/js/pricec
 
      openExporter(ctx, { games })
 
-   图片和 Word 都从服务端同一个「导出模型」生成，内容保证一致：
+   图片、Word 和 Excel 都从服务端同一个「导出模型」生成，内容保证一致：
      · 图片 —— 在浏览器里用 canvas 画（public/js/pricecard.js），
                 所以预览能直接给你看「发出去的就是这张」；
-     · Word —— 直接下载服务端生成的 .docx（真实表格，阶梯价逐档列出）。
+     · Word —— 直接下载服务端生成的 .docx（真实表格，阶梯价逐档列出）；
+     · Excel —— 直接下载服务端生成的 .xlsx（一行一个价格档，单价是真数字，
+                首行冻结 + 自动筛选，多游戏各一张工作表）。
 
    默认「每个游戏各出一份」：发给客户时只发他那款游戏，不把几个游戏的价目
    混在同一张图 / 同一个文档里。导出会自动裁掉多余内容（空大类、超出条数的
@@ -178,9 +180,25 @@ function PriceExporter({ games, close }) {
     }
   }
 
-  async function exportDocx() {
+  async function exportFile(kind) {
     if (!model) return
-    setBusy('doc')
+    const spec =
+      kind === 'xlsx'
+        ? {
+            url: 'xlsx',
+            ext: 'xlsx',
+            busy: 'xls',
+            many: (n) => `已生成 ${n} 份 Excel 表格，每个游戏一份`,
+            one: 'Excel 表格已生成，可以直接筛选、排序和改价',
+          }
+        : {
+            url: 'docx',
+            ext: 'docx',
+            busy: 'doc',
+            many: (n) => `已生成 ${n} 份 Word 文档，每个游戏一份`,
+            one: 'Word 文档已生成，可以用 Word / WPS 打开和修改',
+          }
+    setBusy(spec.busy)
     try {
       const jobs = await eachModel()
       if (!jobs.length) return
@@ -188,9 +206,9 @@ function PriceExporter({ games, close }) {
       for (const job of jobs) {
         const query = new URLSearchParams(baseQuery())
         if (scope !== 'merged' && job.target.key) query.set('game_id', job.target.key)
-        const res = await fetch(`/api/pricebook/export.docx?${query.toString()}`, { credentials: 'same-origin' })
+        const res = await fetch(`/api/pricebook/export.${spec.url}?${query.toString()}`, { credentials: 'same-origin' })
         if (!res.ok) {
-          let message = '生成文档失败'
+          let message = '生成文件失败'
           try {
             const body = await res.json()
             if (body && body.error) message = body.error
@@ -200,11 +218,11 @@ function PriceExporter({ games, close }) {
           toast(message, 'err', 4200)
           return
         }
-        downloadBlob(await res.blob(), fileName(job.model, job.target, 'docx'))
+        downloadBlob(await res.blob(), fileName(job.model, job.target, spec.ext))
         count++
         if (count < jobs.length) await new Promise((resolve) => setTimeout(resolve, 400))
       }
-      toast(count > 1 ? `已生成 ${count} 份 Word 文档，每个游戏一份` : 'Word 文档已生成，可以用 Word / WPS 打开和修改', 'ok', 3600)
+      toast(count > 1 ? spec.many(count) : spec.one, 'ok', 3600)
     } catch (err) {
       toastErr(err)
     } finally {
@@ -215,7 +233,7 @@ function PriceExporter({ games, close }) {
   return (
     <Drawer
       title="导出价格表"
-      subtitle="生成能直接发微信的图片，或者能打印、能编辑的 Word 文档"
+      subtitle="发微信的图片、能打印编辑的 Word、能筛选改价的 Excel，都是同一份内容"
       wide
       onClose={() => close(null)}
       footer={
@@ -224,7 +242,11 @@ function PriceExporter({ games, close }) {
             关闭
           </button>
           <div style={{ flex: '1' }} />
-          <button className="btn" type="button" disabled={!list.length || busy === 'doc'} data-loading={busy === 'doc' ? '1' : undefined} onClick={exportDocx}>
+          <button className="btn" type="button" disabled={!list.length || busy === 'xls'} data-loading={busy === 'xls' ? '1' : undefined} onClick={() => exportFile('xlsx')}>
+            <FileSpreadsheet {...iconProps()} />
+            生成 Excel 表格
+          </button>
+          <button className="btn" type="button" disabled={!list.length || busy === 'doc'} data-loading={busy === 'doc' ? '1' : undefined} onClick={() => exportFile('docx')}>
             <FileText {...iconProps()} />
             生成 Word 文档
           </button>
@@ -251,7 +273,7 @@ function PriceExporter({ games, close }) {
           </Field>
 
           {/* 这一格没有控件，只是一句说明（旧版也是这样） */}
-          <Field label="图片内容" hint="按游戏生成一张完整的客户速览长图；Word 会保留完整服务和阶梯价。" />
+          <Field label="图片内容" hint="按游戏生成一张完整的客户速览长图；Word 和 Excel 会保留完整服务和阶梯价。" />
 
           <Field label="带说明文字">
             <label className="inline" style={{ cursor: 'pointer' }}>
@@ -296,7 +318,10 @@ function PriceExporter({ games, close }) {
 
         <div className="hint">{summary}</div>
 
-        <div className="note">图片按游戏生成一张完整长图；Word 是 A4 完整价目册，使用真实表格并逐档列出阶梯价。</div>
+        <div className="note">
+          图片按游戏生成一张完整长图；Word 是 A4 完整价目册，使用真实表格并逐档列出阶梯价；Excel 一行一个价格档，单价是能
+          排序、能求和的真数字。
+        </div>
       </div>
     </Drawer>
   )

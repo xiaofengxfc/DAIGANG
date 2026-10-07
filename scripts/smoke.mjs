@@ -15,6 +15,7 @@
  * 本文件导出 run()，由 smoke-run.mjs 调用；直接执行时才自己跑一遍。
  */
 import path from 'node:path'
+import fs from 'node:fs'
 import zlib from 'node:zlib'
 import { pathToFileURL } from 'node:url'
 // 纯函数，不连数据库，可以直接拿来验「凌晨 4 点换日」的边界
@@ -73,17 +74,34 @@ function paragraphOf(xml, text) {
 }
 
 /**
- * 这段文字所在的段落，是不是「暖色底纹 + 左侧竖线」那种提示框。
- * 必须按段落判断：全文里只要出现过色值就通过的话，提示框样式丢了测试也看不出来。
+ * 这段文字所在的段落，是不是「左边一条细灰竖线」那种提示块。
+ * 必须按段落判断：全文里只要出现过色值就通过的话，提示块样式丢了测试也看不出来。
+ *
+ * 提示块现在**没有底纹**（整套导出只剩黑白灰，不用色块去抢价格的注意力），
+ * 所以这里反过来要求它不许出现 <w:shd> —— 有人手滑把底纹加回来就会红。
  */
 function isNoticeBox(xml, text) {
   const para = paragraphOf(xml, text)
   return (
-    para.includes(`w:fill="${DOCX_PALETTE.TINT}"`) &&
-    para.includes(`w:color="${DOCX_PALETTE.CINNABAR}"`) &&
     para.includes('w:pBdr') &&
-    para.includes('w:left')
+    para.includes('w:left') &&
+    para.includes(`w:color="${DOCX_PALETTE.RULE_STRONG}"`) &&
+    !para.includes('<w:shd')
   )
+}
+
+/**
+ * 色值是不是「灰」的：R/G/B 三通道差别很小（近黑 1F2328 也算灰）。
+ * 导出只允许黑白灰，任何彩色都会被这条挡住。
+ */
+function isNeutral(hex) {
+  const h = String(hex).replace(/^#/, '')
+  const rgb = h.length === 8 ? h.slice(2) : h
+  if (!/^[0-9a-fA-F]{6}$/.test(rgb)) return false
+  const r = parseInt(rgb.slice(0, 2), 16)
+  const g = parseInt(rgb.slice(2, 4), 16)
+  const b = parseInt(rgb.slice(4, 6), 16)
+  return Math.max(r, g, b) - Math.min(r, g, b) <= 12
 }
 
 /**
@@ -789,8 +807,21 @@ export async function run() {
   r = await api('GET', `/api/customers/${tmpCust}`)
   ok('真删后客户没了', r.status === 404, String(r.status))
 
-  /* ---------- 导出：图片模型 / Word 文档 ---------- */
+  /* ---------- 导出：图片模型 / Word 文档 / Excel 表格 ---------- */
   section('导出价格表')
+
+  /* 配色：整套导出只允许黑白灰 —— 图片、Word、Excel 三处都查一遍。
+     这条挡的是「有人手滑把彩色加回来」，比人眼看截图靠谱。 */
+  ok('Word 调色板是纯灰阶', Object.values(DOCX_PALETTE).every(isNeutral), JSON.stringify(DOCX_PALETTE))
+  const cardSrc = fs.readFileSync(new URL('../public/js/pricecard.js', import.meta.url), 'utf8')
+  const cardColors = [...cardSrc.matchAll(/'(#[0-9A-Fa-f]{6})'/g)].map((m) => m[1])
+  ok('图片调色板是纯灰阶', cardColors.length > 0 && cardColors.every(isNeutral), cardColors.join(', '))
+  ok(
+    '图片去掉了顶部色条 / 外框 / 点线',
+    !cardSrc.includes('strokeRect') && !cardSrc.includes('setLineDash'),
+    `strokeRect=${cardSrc.includes('strokeRect')} setLineDash=${cardSrc.includes('setLineDash')}`
+  )
+
   r = await api('GET', '/api/pricebook/export-model')
   ok('导出模型有抬头', typeof r.body.shopName === 'string' && r.body.shopName.length > 0, r.body.shopName)
   ok('导出模型带大类和服务项', (r.body.groups || []).length > 0 && r.body.itemCount > 0, `groups=${r.body.groups?.length} items=${r.body.itemCount}`)
@@ -862,6 +893,37 @@ export async function run() {
   const docTexts = [...docXml.matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)].map((m) => m[1])
   ok('文档里有服务名', docTexts.includes('每日委托'), docTexts.slice(0, 8).join(' | '))
   ok('文档里有价格文本', docTexts.some((t) => t.startsWith('¥')))
+  ok('Word 里不再有底纹色块', !docXml.includes('<w:shd'), docXml.slice(docXml.indexOf('<w:shd'), docXml.indexOf('<w:shd') + 80))
+  ok('Word 里不再有点线引导符', !docXml.includes('w:leader="dot"'))
+
+  // Excel 表格
+  const xlsRes = await fetch(`${BASE}/api/pricebook/export.xlsx`, { headers: cookie ? { cookie } : {} })
+  ok('xlsx 返回 200', xlsRes.status === 200, String(xlsRes.status))
+  ok('xlsx MIME 正确', (xlsRes.headers.get('content-type') || '').includes('spreadsheetml.sheet'), xlsRes.headers.get('content-type'))
+  ok('xlsx 带中文文件名', (xlsRes.headers.get('content-disposition') || '').includes("filename*=UTF-8''"), xlsRes.headers.get('content-disposition'))
+  const xlsBuf = Buffer.from(await xlsRes.arrayBuffer())
+  ok('xlsx 是合法 ZIP（PK 头）', xlsBuf[0] === 0x50 && xlsBuf[1] === 0x4b && xlsBuf[2] === 0x03 && xlsBuf[3] === 0x04)
+  ok('xlsx 有实际内容', xlsBuf.length > 1200, `${xlsBuf.length} bytes`)
+
+  const xlsParts = readZip(xlsBuf) || []
+  const needParts = ['[Content_Types].xml', '_rels/.rels', 'xl/workbook.xml', 'xl/_rels/workbook.xml.rels', 'xl/styles.xml', 'xl/worksheets/sheet1.xml']
+  ok('xlsx 必需部件都在', needParts.every((n) => xlsParts.some((e) => e.name === n)), xlsParts.map((e) => e.name).join(', '))
+  const partText = (name) => xlsParts.find((e) => e.name === name)?.data.toString('utf8') || ''
+  const wbXml = partText('xl/workbook.xml')
+  const sheetAll = xlsParts
+    .filter((e) => /^xl\/worksheets\/sheet\d+\.xml$/.test(e.name))
+    .map((e) => e.data.toString('utf8'))
+    .join('\n')
+  ok('工作簿声明了工作表', /<sheet name="[^"]+" sheetId="1"/.test(wbXml), wbXml.slice(0, 200))
+  ok('Excel 表头是这十列', ['大类', '服务项目', '单位', '起订', '档位', '单价(元)', '可得货币', '可得数量', '说明'].every((t) => sheetAll.includes(t)))
+  ok('工作表里有服务名', sheetAll.includes('每日委托'))
+  ok('单价是能算数的真数字（不是「¥」文本）', /<c r="F\d+" s="2"><v>[\d.]+<\/v><\/c>/.test(sheetAll), (sheetAll.match(/<c r="F\d+"[^>]*>[^<]*<v>[^<]*<\/v>/) || [''])[0])
+  ok('首行是冻结的', sheetAll.includes('state="frozen"'))
+  ok('开了自动筛选', sheetAll.includes('<autoFilter '))
+  ok('工作表是合法 XML', sheetAll.startsWith('<?xml') && sheetAll.includes('</worksheet>'))
+  const styleColors = [...partText('xl/styles.xml').matchAll(/rgb="([0-9A-Fa-f]{6,8})"/g)].map((m) => m[1])
+  ok('Excel 调色板是纯灰阶', styleColors.length > 0 && styleColors.every(isNeutral), styleColors.join(', '))
+  ok('Excel 里没有底纹填充（只有 none / gray125）', (partText('xl/styles.xml').match(/patternType="([a-z0-9]+)"/g) || []).join(',') === 'patternType="none",patternType="gray125"')
 
   /* 公告：每个游戏一条，导出时放在最上方（图片和 Word 共用一个模型） */
   const NOTICE = '冒烟测试公告：周一到周五下单送一天'
@@ -884,7 +946,7 @@ export async function run() {
   const iFirstCat = noticeTexts.indexOf('日常')
   ok('docx 里不再出现「公告」两个字', !noticeTexts.includes('公告'), noticeTexts.slice(0, 8).join(' | '))
   ok('docx 里公告正文排在第一个大类之前', iNotice >= 0 && iFirstCat > iNotice, `正文@${iNotice} 大类@${iFirstCat}`)
-  ok('公告段落自带底纹和朱砂竖线', isNoticeBox(noticeXml, NOTICE), paragraphOf(noticeXml, NOTICE).slice(0, 200))
+  ok('公告段落只有一条细灰竖线，没有底纹', isNoticeBox(noticeXml, NOTICE), paragraphOf(noticeXml, NOTICE).slice(0, 200))
 
   // 清空之后不能有残留（老游戏的 notice 默认是空串）
   await api('PATCH', `/api/games/${gameId}`, { notice: '' })
@@ -917,7 +979,7 @@ export async function run() {
     iCat >= 0 && iCatNotice > iCat && iItem > iCatNotice,
     `大类@${iCat} 提示@${iCatNotice} 服务项@${iItem}`
   )
-  ok('大类提示也自带底纹和朱砂竖线', isNoticeBox(catXml, CAT_NOTICE), paragraphOf(catXml, CAT_NOTICE).slice(0, 200))
+  ok('大类提示也只有细灰竖线，没有底纹', isNoticeBox(catXml, CAT_NOTICE), paragraphOf(catXml, CAT_NOTICE).slice(0, 200))
   ok('docx 里同样不出现「公告」两个字', !catTexts.includes('公告'))
 
   await api('PATCH', `/api/categories/${catId}`, { notice: '' })
