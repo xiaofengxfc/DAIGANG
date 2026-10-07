@@ -63,6 +63,14 @@ function ServiceForm({ values, games, categories, quick, close }) {
     max_qty: values.max_qty === null || values.max_qty === undefined ? '' : String(values.max_qty),
     currency_amount: values.currency_amount === null || values.currency_amount === undefined ? '' : String(values.currency_amount),
     description: values.description || '',
+    /**
+     * 别名：视频里怎么写这一项，一行一个。
+     *
+     * 「从扫描结果建服务项」会自动填这个。手工维护也有用：视频里写
+     * `挪德卡莱满探+前置任务+神瞳`、你价格表上写 `挪德卡莱满探`，
+     * 把原话填进来下次比价就能自动匹上。
+     */
+    aliases: values.aliases || '',
     is_daily: values.is_daily === null || values.is_daily === undefined ? '' : String(values.is_daily),
     package_items: Array.isArray(values.package_items) ? values.package_items : [],
     status: values.status || 'active',
@@ -194,6 +202,13 @@ function ServiceForm({ values, games, categories, quick, close }) {
       </Field>
       <Field label="说明" htmlFor="service-description">
         <TextArea id="service-description" rows={3} maxLength={2000} value={form.description} onChange={set('description')} placeholder="客户问的时候你能直接念出来的一段话" />
+      </Field>
+      <Field
+        label="别名（可选）"
+        htmlFor="service-aliases"
+        hint="B站比价用：视频里是怎么写这一项的，一行一个。填了之后，视频里那种长写法（「挪德卡莱满探+前置任务+神瞳」）也能自动对上这一项。从扫描结果建服务项时会自动填。"
+      >
+        <TextArea id="service-aliases" rows={3} maxLength={2000} value={form.aliases} onChange={set('aliases')} placeholder={'挪德卡莱满探+前置任务+神瞳\n套餐①：至东国满探索100%探索+神瞳'} />
       </Field>
       <Field label="每天都做" half htmlFor="service-is-daily" hint="默认跟着大类走 —— 往「日常」大类里加的服务项自动就算每天做">
         <SelectInput

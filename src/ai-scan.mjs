@@ -474,4 +474,96 @@ export async function aiMatchUnmatched({ game, services = [], names = [] }) {
   return { ok: true, picks: out, ms: result.ms, usage: result.usage, model: result.model }
 }
 
-export const __testing = { buildTranscript, pickFields, cleanAiName, DECISION_FIELDS, SCOPES }
+/**
+ * 把「没匹上的名字」整理成一份**可建的服务项清单**。
+ *
+ * 这是给新游戏用的。新加一个游戏时库里一个服务项都没有，比价必然 0 匹配 ——
+ * 不是坏了，是没东西可以匹配。缺的是「把扫描结果变成服务项」这一步。
+ *
+ * 模型做四件事，都是它擅长而规则做不好的：
+ *   1. **合并**：同一个东西在不同视频里的写法归到一起（`全包箱` / `全宝箱`）
+ *   2. **起名**：从一长串套餐描述里挑出能当服务名的短名字
+ *      （`套餐①：至东国满探索100%探索+神瞳+前置任务+供奉` → `至东国满探索`）
+ *   3. **归类**：放进已有的哪个大类
+ *   4. **丢垃圾**：`改为`、`星期三`、`一月` 这种根本不是服务项
+ *
+ * **它碰不到价格。** 输出里没有价格字段；价格由调用方按 `sources` 里的原始行
+ * 自己算中位数。理由和甄别那一步一样：价格错了会开错单，而且在界面上看不出来。
+ *
+ * `sources` 必须是**我们给它的名字**，不认识的会被丢掉 —— 和 `aiMatchUnmatched`
+ * 校验 `service_id` 是同一个道理：模型编不出一个扫描里不存在的名字。
+ */
+export async function aiProposeServices({ game, names = [], categories = [] }) {
+  if (!aiConfig().enabled) return { ok: false, error: 'AI 没配置', skipped: true }
+  if (!names.length) return { ok: false, error: '没有要整理的', skipped: true }
+
+  const shown = names.slice(0, 120)
+  const user = [
+    `游戏：${game}`,
+    '',
+    '下面是程序从别人的价格表视频里认出来、但你的价格表里还没有的名字。',
+    '「出现视频数」是这个名字在几个视频里出现过 —— 数字大的更可信。',
+    '',
+    '序号 | 名字 | 出现视频数',
+    ...shown.map((item, i) => `${i + 1} | ${item.name} | ${item.videos}`),
+    '',
+    categories.length ? `已有的大类：${categories.map((c) => c.name).join(' / ')}` : '（还没有建过大类）',
+  ].join('\n')
+
+  const schemaHint = `只输出 JSON：
+{"items":[{"name":"整理后的服务名","category":"大类名或空","sources":["视频里的原话"],"why":""}]}
+
+- name：能直接当服务项名字的短名字。**不要带价格、不要带「套餐①②」这种序号**。
+  例：「套餐①：至东国满探索100%探索+神瞳+前置任务+供奉」→「至东国满探索」
+- category：只能从上面「已有的大类」里选一个；对不上就填空字符串，**不要自己编大类名**
+- sources：这个服务名对应上面列表里的哪些名字，**必须原样照抄**，可以多个
+- why：不超过 20 个字
+
+规则：
+- **同一样东西的不同写法要合并成一条**（「全包箱」和「全宝箱」是同一样东西）
+- **不是服务项的整条丢掉，不要放进 items**：文档界面上的词（「改为」「查找替换」）、
+  日期（「星期三」）、时间碎片（「一月」「一周」）、纯聊天记录，都不是服务项
+- 认不出是什么的，宁可丢掉也不要硬起个名字
+- 不要产出价格，一个字都不要`
+
+  const result = await aiChatJson({
+    system: '你在把视频里认出来的服务名整理成一份干净的服务项清单，供人挑选后建进价格表。你只负责名字、归类、合并，不产出任何价格。',
+    user,
+    schemaHint,
+    maxTokens: Math.min(8000, Math.max(2500, shown.length * 60)),
+  })
+  if (!result.ok) return { ok: false, error: result.error }
+
+  /**
+   * `sources` 只认我们发出去的名字。
+   *
+   * 用归一化后的名字做键：模型可能会把标点稍微改一下（`+` 写成 `＋`），
+   * 那不算编造，但对不上就是不对上 —— 宁可丢，不能让它指向一个不存在的东西。
+   *
+   * 这里还要剥掉**我们自己加的注释**。第一版 prompt 写成 `- 7.0版本主线（3 个视频）`，
+   * 模型就老老实实把整行抄进了 `sources`，63 条建议全被丢掉 —— 一条都没建成。
+   * prompt 已经改成表格了，但模型抄整行是常事，所以这里再兜一道。
+   * **只剥「N 个视频」这一种**：`时与风（隐藏）` 这种真名字里也有括号，不能一起剥。
+   */
+  const stripOurAnnotation = (text) => String(text || '').replace(/[（(]\s*\d+\s*个视频\s*[)）]\s*$/, '').trim()
+  const known = new Map(shown.map((item) => [normalizeServiceName(item.name), item.name]))
+  const categoryByName = new Map(categories.map((c) => [String(c.name).trim(), c.name]))
+
+  const items = []
+  for (const raw of Array.isArray(result.data?.items) ? result.data.items : []) {
+    const name = cleanAiName(raw?.name)
+    if (!name || name.length > MAX_NAME_CHARS) continue
+    const sources = []
+    for (const source of Array.isArray(raw?.sources) ? raw.sources : []) {
+      const hit = known.get(normalizeServiceName(stripOurAnnotation(source)))
+      if (hit && !sources.includes(hit)) sources.push(hit)
+    }
+    // 一个来源都对不上，说明这一条是编的，整条丢掉
+    if (!sources.length) continue
+    const category = categoryByName.get(String(raw?.category || '').trim()) || ''
+    items.push({ name, category, sources, why: String(raw?.why || '').trim().slice(0, 40) })
+  }
+  return { ok: true, items, ms: result.ms, usage: result.usage, model: result.model }
+}
+
+export const __testing = { buildTranscript, pickFields, cleanAiName, DECISION_FIELDS, SCOPES, MAX_NAME_CHARS }

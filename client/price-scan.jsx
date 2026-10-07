@@ -131,6 +131,8 @@ function PriceScan({ game, close, onApplied }) {
   const [sectionPicked, setSectionPicked] = useState(new Set())
   /** 这个游戏下已有的大类名，用来在候选里标出「已经有了」 */
   const [categoryNames, setCategoryNames] = useState([])
+  /** 建服务项时要选大类，得带上 id —— 只有名字没法写进 category_id */
+  const [categoryOptions, setCategoryOptions] = useState([])
   /** 这一次已经建成的（名字 → 服务端返回的 id），建成后立刻标出来 */
   const [createdSections, setCreatedSections] = useState({})
   const [creatingSections, setCreatingSections] = useState(false)
@@ -270,22 +272,24 @@ function PriceScan({ game, close, onApplied }) {
   }, [loadAi])
 
   /**
-   * 拉这个游戏的服务项清单，供改派用。
+   * 拉这个游戏的服务项清单，供改派和「建服务项」用。
    *
    * 只拉本游戏的：后端 applyScan 会校验服务项属于该任务对应的游戏，
    * 列出别的游戏只会让人白挑一次再被拒。
    */
-  useEffect(() => {
-    let stopped = false
-    api.get('/api/services', { game_id: game.id })
-      .then((data) => {
-        if (stopped) return
-        const list = Array.isArray(data) ? data : data?.items || []
-        setServices(list.filter((service) => service.status !== 'archived'))
-      })
-      .catch(() => {})
-    return () => { stopped = true }
+  const loadServices = useCallback(async () => {
+    try {
+      const data = await api.get('/api/services', { game_id: game.id })
+      const list = Array.isArray(data) ? data : data?.items || []
+      setServices(list.filter((service) => service.status !== 'archived'))
+    } catch {
+      /* 拉不到就只是少个改派选项 */
+    }
   }, [game.id])
+
+  useEffect(() => {
+    void loadServices()
+  }, [loadServices])
 
   /**
    * 拉大类清单，用来在候选里标「已经有了」。
@@ -298,12 +302,11 @@ function PriceScan({ game, close, onApplied }) {
     try {
       const data = await api.get('/api/categories')
       const list = Array.isArray(data) ? data : data?.items || []
-      setCategoryNames(
-        list
-          .filter((item) => item.status !== 'archived')
-          .filter((item) => !item.game_id || String(item.game_id) === String(game.id))
-          .map((item) => item.name),
-      )
+      const mine = list
+        .filter((item) => item.status !== 'archived')
+        .filter((item) => !item.game_id || String(item.game_id) === String(game.id))
+      setCategoryNames(mine.map((item) => item.name))
+      setCategoryOptions(mine.map((item) => ({ id: item.id, name: item.name })))
     } catch {
       /* 拉不到就只是不标重复，不影响建 */
     }
@@ -392,6 +395,89 @@ function PriceScan({ game, close, onApplied }) {
       setCreatingSections(false)
     }
   }, [sectionPicked, createdSections, job?.id, loadCategories])
+
+  /**
+   * 从扫描结果建服务项。
+   *
+   * 这是给**新加的游戏**用的：库里一个服务项都没有时，比价必然 0 匹配 ——
+   * 不是坏了，是没东西可以匹配。这一步让 AI 把认出来的名字合并、起名、归类，
+   * 用户改完勾选，一键建进库里，**下次扫描就能匹上了**。
+   */
+  const [proposals, setProposals] = useState(null)
+  const [proposalAi, setProposalAi] = useState(null)
+  const [proposalError, setProposalError] = useState('')
+  const [proposalLoading, setProposalLoading] = useState(false)
+  const [proposalPicked, setProposalPicked] = useState(new Set())
+  /** 用户改过的名字 / 价格 / 大类，按来源名字存 —— 用下标存的话删一条就全错位了 */
+  const [proposalEdits, setProposalEdits] = useState({})
+  const [creatingServices, setCreatingServices] = useState(false)
+
+  const loadProposals = useCallback(async () => {
+    if (!job?.id) return
+    setProposalLoading(true)
+    setProposalError('')
+    try {
+      const data = await api.post(`/api/price-scan/jobs/${job.id}/propose-services`, {})
+      setProposals(data?.items || [])
+      setProposalAi(data?.ai || null)
+      setProposalPicked(new Set())
+      setProposalEdits({})
+    } catch (err) {
+      setProposalError(String(err?.message || err))
+    } finally {
+      setProposalLoading(false)
+    }
+  }, [job?.id])
+
+  /** 编辑值：用户没改过就用 AI 给的 */
+  const proposalValue = useCallback((item, field) => {
+    const key = item.sources[0]
+    const edit = proposalEdits[key]
+    if (edit && edit[field] !== undefined) return edit[field]
+    if (field === 'category_id') return item.category_id ?? ''
+    return item[field]
+  }, [proposalEdits])
+
+  const editProposal = useCallback((item, field, value) => {
+    const key = item.sources[0]
+    setProposalEdits((current) => ({ ...current, [key]: { ...(current[key] || {}), [field]: value } }))
+  }, [])
+
+  const createServices = useCallback(async () => {
+    const items = (proposals || [])
+      .filter((item) => proposalPicked.has(item.sources[0]))
+      .map((item) => ({
+        name: String(proposalValue(item, 'name') || '').trim(),
+        price: Number(proposalValue(item, 'price')),
+        category_id: proposalValue(item, 'category_id') || null,
+        sources: item.sources,
+      }))
+    if (!items.length) {
+      toast('没有要建的服务项')
+      return
+    }
+    setCreatingServices(true)
+    try {
+      const result = await api.post(`/api/price-scan/jobs/${job.id}/services`, { items })
+      const made = result?.created || []
+      const skipped = result?.skipped || []
+      if (made.length) {
+        // 建完把建过的从清单里去掉 —— 留着的话用户会重复勾，然后被告知「重名」
+        setProposals((current) => (current || []).filter((item) => !proposalPicked.has(item.sources[0])))
+        setProposalPicked(new Set())
+        await Promise.all([loadServices(), loadCategories()])
+        toast(`建好了 ${made.length} 个服务项，扫描到的价也一起写进去了`)
+      }
+      if (skipped.length) {
+        const dup = skipped.filter((s) => s.reason === 'duplicate')
+        toastErr(`${skipped.length} 个没建：${dup.length ? '已有同名服务项' : skipped[0]?.reason || '名字或价格不合法'}`)
+      }
+    } catch (err) {
+      toastErr(err)
+    } finally {
+      setCreatingServices(false)
+    }
+  }, [proposals, proposalPicked, proposalValue, job?.id, loadServices, loadCategories])
 
   /** 这一行最终会写到哪个服务项上 */
   const targetOf = useCallback((row) => targets[row.service_id] ?? row.service_id, [targets])
@@ -648,7 +734,21 @@ function PriceScan({ game, close, onApplied }) {
 
   /* ---- 渲染 ---- */
 
-  const footer = done && tab === 'sections' ? (
+  const footer = done && tab === 'build' && proposals ? (
+    <div className="ps-foot">
+      <span className="ps-foot__note">
+        已勾选 <b>{proposalPicked.size}</b> 个，建成后挂在「{game.name}」下，
+        <b>扫描到的价会一起写成基准价</b>，视频里的原话会记成别名
+      </span>
+      <div className="ps-foot__actions">
+        <button className="refactor-button" type="button" onClick={close}>先不建</button>
+        <button className="refactor-button refactor-button--primary" type="button" disabled={!proposalPicked.size || creatingServices} onClick={createServices}>
+          {creatingServices ? <Loader2 {...iconProps(15)} className="ps-spin" /> : <Plus {...iconProps(15)} />}
+          建选中的 {proposalPicked.size} 个服务项
+        </button>
+      </div>
+    </div>
+  ) : done && tab === 'sections' ? (
     <div className="ps-foot">
       <span className="ps-foot__note">
         已勾选 <b>{sectionPicked.size}</b> 个，建成后挂在「{game.name}」下，只建大类、不建服务项
@@ -963,13 +1063,18 @@ function PriceScan({ game, close, onApplied }) {
                   {sections.length ? (
                     <button className={tab === 'sections' ? 'is-active' : ''} type="button" onClick={() => setTab('sections')}>大类候选 {sections.length}</button>
                   ) : null}
+                  {counts.unmatched ? (
+                    <button className={tab === 'build' ? 'is-active' : ''} type="button" onClick={() => setTab('build')}>
+                      建服务项 {proposals ? proposals.length : counts.unmatched}
+                    </button>
+                  ) : null}
                   <div className="ps-tabs__spacer" />
                   {tab === 'sections' ? (
                     <>
                       <button className="ps-link" type="button" onClick={pickCleanSections}>勾上不重复的</button>
                       <button className="ps-link" type="button" onClick={() => setSectionPicked(new Set())}>清空</button>
                     </>
-                  ) : (
+                  ) : tab === 'build' ? null : (
                     <>
                       <button className="ps-link" type="button" onClick={() => setPicked(new Set(rows.filter((row) => row.enough && row.suggested_price !== null).map((row) => row.service_id)))}>全选样本够的</button>
                       <button className="ps-link" type="button" onClick={() => setPicked(new Set())}>清空</button>
@@ -979,6 +1084,26 @@ function PriceScan({ game, close, onApplied }) {
 
                 {tab === 'unmatched' ? (
                   <UnmatchedList items={job.unmatched || []} />
+                ) : tab === 'build' ? (
+                  <ServiceProposalPanel
+                    items={proposals}
+                    ai={proposalAi}
+                    loading={proposalLoading}
+                    error={proposalError}
+                    picked={proposalPicked}
+                    categories={categoryOptions}
+                    valueOf={proposalValue}
+                    onEdit={editProposal}
+                    onReload={loadProposals}
+                    onToggle={(key) => setProposalPicked((current) => {
+                      const next = new Set(current)
+                      if (next.has(key)) next.delete(key)
+                      else next.add(key)
+                      return next
+                    })}
+                    onPickAll={() => setProposalPicked(new Set((proposals || []).map((item) => item.sources[0])))}
+                    onClear={() => setProposalPicked(new Set())}
+                  />
                 ) : tab === 'sections' ? (
                   <SectionList
                     sections={sections}
@@ -1278,6 +1403,113 @@ function SectionList({ sections, picked, created, onToggle }) {
           </label>
         )
       })}
+    </div>
+  )
+}
+
+/**
+ * 把「没匹上的名字」建成服务项。
+ *
+ * 新加一个游戏时库里一个服务项都没有，比价必然 0 匹配 —— 不是坏了，
+ * 是没东西可以匹配。这个面板就是补那一步：AI 把认出来的名字合并、起名、归类，
+ * 用户改完勾选，一键建进库里，**下次扫描就能匹上了**。
+ *
+ * 名字改短了也不会丢匹配：建的时候会把**视频里的原话记成别名**，
+ * 下次 `套餐①：至东国满探索100%探索+神瞳+前置任务+供奉` 照样能匹到「至东国满探索」。
+ */
+function ServiceProposalPanel({ items, ai, loading, error, picked, categories, valueOf, onEdit, onToggle, onReload, onPickAll, onClear }) {
+  if (loading) return <div className="ps-empty">正在让 AI 整理这份清单…（大概十几秒）</div>
+  if (error) {
+    return (
+      <div className="ps-empty">
+        整理失败了：{error}
+        <div className="ps-suggest__actions"><button className="ps-link" type="button" onClick={onReload}>再试一次</button></div>
+      </div>
+    )
+  }
+  if (!items) {
+    return (
+      <div className="ps-propose__intro">
+        <p>
+          库里没有能对上的服务项时，扫描出来的名字会全部落在「没匹配上」里。
+          <b>这不是扫描坏了，是价格表里还没有这些项。</b>
+          让 AI 把这些名字整理成一份可建的清单，你改完勾选，一键建进库里 ——
+          <b>下次扫描就能匹上了</b>。
+        </p>
+        <button className="refactor-button refactor-button--primary" type="button" onClick={onReload}>
+          让 AI 整理这份清单
+        </button>
+      </div>
+    )
+  }
+  if (!items.length) return <div className="ps-empty">没有可建的名字</div>
+
+  return (
+    <div className="ps-propose">
+      <p className="ps-propose__hint">
+        名字和价格都能改。建的时候会<b>把视频里的原话记成别名</b>，
+        所以你把名字改短（<code>套餐①：至东国满探索100%探索+…</code> → <code>至东国满探索</code>）
+        下次照样能匹上。
+        {ai?.enabled ? <span className="ps-propose__ai">AI 整理用了 {(ai.ms / 1000).toFixed(1)}s</span> : null}
+        {ai && !ai.enabled ? <span className="ps-propose__warn">没配 AI，名字是视频里的原话，得你自己改</span> : null}
+        {ai?.error ? <span className="ps-propose__warn">AI 没成功（{ai.error}），下面是原话</span> : null}
+      </p>
+      <div className="ps-tabs__tools">
+        <button className="ps-link" type="button" onClick={onPickAll}>全选</button>
+        <button className="ps-link" type="button" onClick={onClear}>清空</button>
+        <button className="ps-link" type="button" onClick={onReload}>让 AI 重新整理</button>
+      </div>
+      <div className="ps-propose__list">
+        {items.map((item) => {
+          const key = item.sources[0]
+          const on = picked.has(key)
+          const renamed = String(valueOf(item, 'name')) !== item.sources[0]
+          return (
+            <div key={key} className={`ps-propose__row${on ? ' is-picked' : ''}`}>
+              <input type="checkbox" checked={on} onChange={() => onToggle(key)} />
+              <div className="ps-propose__body">
+                <div className="ps-propose__main">
+                  <input
+                    className="ps-propose__name"
+                    value={valueOf(item, 'name')}
+                    onChange={(event) => onEdit(item, 'name', event.target.value)}
+                    aria-label="服务名"
+                  />
+                  <span className="ps-propose__yuan">¥</span>
+                  <input
+                    className="ps-propose__price"
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={valueOf(item, 'price') ?? ''}
+                    onChange={(event) => onEdit(item, 'price', event.target.value)}
+                    aria-label="单价"
+                  />
+                  <select
+                    className="ps-propose__cat"
+                    value={valueOf(item, 'category_id') || ''}
+                    onChange={(event) => onEdit(item, 'category_id', event.target.value ? Number(event.target.value) : '')}
+                    aria-label="大类"
+                  >
+                    <option value="">不归类</option>
+                    {categories.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                  </select>
+                </div>
+                <div className="ps-propose__meta">
+                  <span className="ps-tag">{item.video_count} 个视频 · {item.sample_count} 条样本</span>
+                  {item.from_ai ? <span className="ps-tag ps-tag--ai">AI 整理</span> : null}
+                  {renamed ? <span className="ps-tag ps-tag--warn">改了名字，原话会记成别名</span> : null}
+                  {item.why ? <span className="ps-propose__why">{item.why}</span> : null}
+                </div>
+                <div className="ps-propose__sources">
+                  视频里这么写：
+                  {item.sources.map((source) => <span key={source} className="ps-chip ps-chip--sm" title={source}>{source}</span>)}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

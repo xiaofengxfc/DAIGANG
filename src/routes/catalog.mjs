@@ -90,6 +90,9 @@ export const services = makeDef({
     // 这个服务项能让客户拿到多少「游戏里那个货币」。
     // 留空(NULL) = 不显示；货币名字在游戏上配（games.currency）。
     currency_amount: { type: 'number', label: '可获得货币', nullable: true, default: null },
+    // B站比价用：视频里怎么写这一项，一行一个。填了之后视频里的长写法
+    // （`挪德卡莱满探+前置任务+神瞳`）也能对上这一项 —— 见 price-match.mjs 的 serviceNames。
+    aliases: { type: 'text', label: '别名', max: 2000 },
     status: { type: 'string', default: 'active', enum: ['active', 'archived'], filter: true },
     sort_order: { type: 'int', default: 0 },
     note: { type: 'text', label: '备注', max: 1000 },

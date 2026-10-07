@@ -322,6 +322,21 @@ export function expandParsedNames(parsedNames) {
  * @param {Array} services    [{ id, name, unit_label, base_price, category_id, category_name }]
  * @returns {{ matched: Array, unmatched: Array }}
  */
+/**
+ * 一个服务项可以被认成哪些写法：正式名字 + 别名。
+ *
+ * 别名是「视频里怎么写这一项」，一行一个。空行和和正式名字重复的都去掉 ——
+ * 重复不会算错，但会让 `via` 的判定变糊。
+ */
+export function serviceNames(service) {
+  const out = [String(service?.name || '').trim()]
+  for (const line of String(service?.aliases || '').split('\n')) {
+    const name = line.trim()
+    if (name) out.push(name)
+  }
+  return [...new Set(out.filter(Boolean))]
+}
+
 export function matchServices(parsedNames, services, opts = {}) {
   // 两档阈值：包含/Dice 这类结构信号够 0.62 才信；错别字信号（edit/windowed）
   // 天生分低（4 字错 2 字就只有 0.5），单独用 0.5 这一档，并要求更大的领先优势。
@@ -330,7 +345,7 @@ export function matchServices(parsedNames, services, opts = {}) {
   const fuzzyThreshold = opts.fuzzyThreshold ?? 0.5
   const fuzzyMargin = opts.fuzzyMargin ?? 0.1
 
-  const pool = (services || []).filter((s) => s && s.name)
+  const pool = (services || []).filter((s) => s && s.name).map((s) => ({ ...s, names: serviceNames(s) }))
   // 先把「名字：说明」和「打包短语」摊平，再按视频分组
   const list = expandParsedNames(parsedNames)
 
@@ -349,12 +364,44 @@ export function matchServices(parsedNames, services, opts = {}) {
     for (const parsed of group) {
       const scored = []
       for (const service of pool) {
-        // 整包价只认同名服务项：800 是「黎娜西塔+珑十一图+黑海岸」这一整套的钱
-        if (parsed.strictExact && normalizeName(parsed.name) !== normalizeName(service.name)) continue
-        const { score: base, signal } = compareNames(parsed.name, service.name)
-        const score = Math.min(1, base + unitBonus(parsed, service))
-        const floor = signal === 'edit' || signal === 'windowed' ? fuzzyThreshold : threshold
-        if (score >= floor) scored.push({ service, score, signal })
+        /**
+         * 服务项的「别名」也参与匹配。
+         *
+         * 别名是「视频里怎么写这一项」，由「从扫描结果建服务项」记下来。没有它的话，
+         * 用户给服务项起的短名字（`挪德卡莱满探`）永远匹不上视频里的长写法
+         * （`挪德卡莱满探+前置任务+神瞳`）—— 后者含 `+`，算打包价，只认同名。
+         *
+         * 另外还要认 `parsed.label` —— 也就是 OCR 认出来的**整行原话**。
+         * `effectiveName` 会把 `套餐①：至东国满探索…` 削成 `套餐①`（「名字：说明」
+         * 这条规则对 `日体：5R/天` 是对的，对 `套餐①：…` 就把真名字削掉了）。
+         * 所以原话**只认完全相等**，不做模糊：别名记的就是这句原话；
+         * 拿原话做模糊匹配的话，`全包：主线+前置+全宝箱` 会误匹到库里的「主线」。
+         */
+        const exactNames = parsed.label && parsed.label !== parsed.name ? [parsed.name, parsed.label] : [parsed.name]
+
+        let best = null
+        for (const candidateName of service.names) {
+          const norm = normalizeName(candidateName)
+          if (!norm) continue
+          const exact = exactNames.some((n) => normalizeName(n) === norm)
+          // 整包价只认同名服务项：800 是「黎娜西塔+珑十一图+黑海岸」这一整套的钱
+          if (!exact && parsed.strictExact) continue
+          let score
+          let signal
+          if (exact) {
+            score = 1
+            signal = 'exact'
+          } else {
+            const compared = compareNames(parsed.name, candidateName)
+            score = compared.score
+            signal = compared.signal
+          }
+          score = Math.min(1, score + unitBonus(parsed, service))
+          const floor = signal === 'edit' || signal === 'windowed' ? fuzzyThreshold : threshold
+          if (score < floor) continue
+          if (!best || score > best.score) best = { score, signal, via: candidateName === service.name ? 'name' : 'alias' }
+        }
+        if (best) scored.push({ service, score: best.score, signal: best.signal, via: best.via })
       }
       scored.sort((a, b) => b.score - a.score)
       for (const entry of scored) {
@@ -363,6 +410,7 @@ export function matchServices(parsedNames, services, opts = {}) {
           service: entry.service,
           score: entry.score,
           signal: entry.signal,
+          via: entry.via,
           runnerUp: scored[1] ? scored[1].score : 0,
         })
       }
@@ -407,6 +455,9 @@ export function matchServices(parsedNames, services, opts = {}) {
         line: entry.parsed.line || '',
         score: Math.round(entry.score * 1000) / 1000,
         signal: entry.signal,
+        // 是靠正式名字匹上的，还是靠「视频里怎么写这一项」的别名匹上的。
+        // 界面上要说清楚 —— 别名是用户建服务项时记下来的，看得到才敢信。
+        matched_via: entry.via || 'name',
         exact: isExact,
         /**
          * AI 的判断要一路带到界面上。
@@ -549,6 +600,8 @@ export function groupByService(matchedRows, { minSamples = 3 } = {}) {
         scope_unresolved: false,
         best_score: 0,
         exact: false,
+        // 这一项有没有样本是靠别名匹上的 —— 界面上要能看出来
+        via_alias: false,
       })
     }
     const group = map.get(row.service_id)
@@ -568,6 +621,7 @@ export function groupByService(matchedRows, { minSamples = 3 } = {}) {
       scope: row.scope || '',
       inclusions: row.inclusions || '',
       matched_by: row.matched_by || '',
+      matched_via: row.matched_via || 'name',
       ai_confidence: row.ai_confidence || '',
       ai_why: row.ai_why || '',
     }
@@ -583,6 +637,7 @@ export function groupByService(matchedRows, { minSamples = 3 } = {}) {
       group.aliases.push({ parsed_name: row.parsed_name, score: row.score, price: row.price, unit: row.unit, video: row.video })
     }
     group.samples.push(sample)
+    if (row.matched_via === 'alias') group.via_alias = true
     if (row.score > group.best_score) group.best_score = row.score
     if (row.exact) group.exact = true
   }

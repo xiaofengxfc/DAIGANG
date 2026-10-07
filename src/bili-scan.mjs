@@ -42,7 +42,7 @@ import { downloadVideo, extractFrames } from './bili-video.mjs'
 import { collapseWithinVideo, extractPriceCandidates, extractSections, groupLines, median, spread } from './price-parse.mjs'
 import { groupByService, matchServices } from './price-match.mjs'
 import { aiConfig } from './ai.mjs'
-import { acceptRename, aiMatchUnmatched, aiTriageVideo, isKnownServiceName, normalizeServiceName } from './ai-scan.mjs'
+import { acceptRename, aiMatchUnmatched, aiProposeServices, aiTriageVideo, isKnownServiceName, normalizeServiceName } from './ai-scan.mjs'
 import { ensureVisionStarted, visionOcr } from './vision-python.mjs'
 import { enqueueERPNextChange } from './outbox.mjs'
 import { bad, nextSortOrder, notFound } from './util.mjs'
@@ -484,7 +484,7 @@ export function cancelScan(id) {
 function servicesOfGame(gameId) {
   return db
     .prepare(
-      `SELECT s.id, s.name, s.unit_label, s.base_price, s.category_id, c.name AS category_name
+      `SELECT s.id, s.name, s.unit_label, s.base_price, s.category_id, s.aliases, c.name AS category_name
        FROM services s
        LEFT JOIN service_categories c ON c.id = s.category_id
        WHERE s.game_id = ? AND s.status = 'active'
@@ -1071,6 +1071,242 @@ function parseOcr(job, video, source) {
 
   video.ocr_frames = ocrFrames
   return { candidates, frameLines, sectionHits, ocrFrames }
+}
+
+/**
+ * 把「没匹上的名字」按名字归并，算好每一项的建议价。
+ *
+ * **价格在这里算，不交给 AI。** 和甄别那一步同一个理由：价格错了会开错单，
+ * 而且在界面上看不出来。AI 只负责名字、合并、归类。
+ *
+ * 归并规则和正式匹配那边保持一致：**同一个视频给了多个不同价格就整票弃用** ——
+ * 那通常是一行里写了两个口径（`25r/周 90r/月`），硬挑一个就是掷骰子。
+ */
+export function unmatchedGroups(job) {
+  const rows = Array.isArray(job?.unmatched) ? job.unmatched : []
+  const byName = new Map()
+  for (const row of rows) {
+    const name = String(row.parsed_name || '').trim()
+    if (!name) continue
+    if (!byName.has(name)) byName.set(name, { name, rows: [], videos: new Set() })
+    const entry = byName.get(name)
+    entry.rows.push(row)
+    if (row.video) entry.videos.add(row.video)
+  }
+
+  const out = []
+  for (const entry of byName.values()) {
+    const byVideo = new Map()
+    for (const row of entry.rows) {
+      const key = row.video || ''
+      if (!byVideo.has(key)) byVideo.set(key, [])
+      byVideo.get(key).push(row)
+    }
+    const prices = []
+    let ambiguous = 0
+    for (const list of byVideo.values()) {
+      const distinct = new Set(list.map((r) => Number(r.price)))
+      if (distinct.size > 1) {
+        ambiguous += 1
+        continue
+      }
+      prices.push(Number(list[0].price))
+    }
+    out.push({
+      name: entry.name,
+      price: median(prices),
+      // 有几条样本、几个视频、几个视频因为口径不一被弃用 —— 界面上要能看出来
+      sample_count: prices.length,
+      video_count: entry.videos.size,
+      dropped_videos: ambiguous,
+      unit: entry.rows[0]?.unit || '',
+      frame: entry.rows[0]?.frame || '',
+      line: entry.rows[0]?.line || '',
+    })
+  }
+  return out.sort((a, b) => b.video_count - a.video_count || b.sample_count - a.sample_count || a.name.localeCompare(b.name, 'zh'))
+}
+
+/**
+ * 让 AI 把上面那堆名字整理成一份可建的服务项清单，并配上算好的价。
+ *
+ * 拿不到 AI 就退回「原样列出」—— 用户照样能勾选建，只是名字得自己改。
+ * **绝不因为 AI 挂了就什么都不给。**
+ */
+export async function proposeServicesFromScan(id) {
+  const job = getScanJob(id)
+  if (!job) throw notFound('这个扫描任务不存在')
+  const groups = unmatchedGroups(job)
+  if (!groups.length) {
+    return { ok: true, items: [], groups: 0, ai: { enabled: false, error: '' }, note: '这次扫描没有没匹上的名字' }
+  }
+
+  const categories = db
+    .prepare("SELECT id, name FROM service_categories WHERE (game_id = ? OR game_id IS NULL) AND status <> 'archived' ORDER BY sort_order ASC, id ASC")
+    .all(job.game_id ?? null)
+
+  let ai = { enabled: aiConfig().enabled, error: '', model: '', ms: 0 }
+  let items = []
+  if (ai.enabled) {
+    let result
+    try {
+      result = await aiProposeServices({
+        game: job.game_name || '',
+        names: groups.map((g) => ({ name: g.name, videos: g.video_count })),
+        categories,
+      })
+    } catch (err) {
+      result = { ok: false, error: err?.message || String(err) }
+    }
+    if (result.ok) {
+      ai.model = result.model || ''
+      ai.ms = result.ms || 0
+      items = result.items
+    } else {
+      ai.error = result.error || '调用失败'
+      logLine(job, `整理服务项清单时 AI 没成功：${ai.error}`)
+    }
+  }
+
+  const byName = new Map(groups.map((g) => [g.name, g]))
+  const used = new Set()
+  const proposals = []
+
+  /**
+   * AI 整理过的：按它给的 `sources` 把原始行聚起来，价格取这些行的中位数。
+   * 价格完全来自原始行，AI 一个数字都没碰。
+   */
+  for (const item of items) {
+    const sources = item.sources.filter((s) => byName.has(s))
+    if (!sources.length) continue
+    for (const s of sources) used.add(s)
+    const picked = sources.map((s) => byName.get(s))
+    proposals.push({
+      name: item.name,
+      category: item.category,
+      sources,
+      why: item.why,
+      price: median(picked.map((p) => p.price).filter((p) => p !== null)),
+      sample_count: picked.reduce((n, p) => n + p.sample_count, 0),
+      video_count: picked.reduce((n, p) => n + p.video_count, 0),
+      from_ai: true,
+    })
+  }
+  // AI 没提的（没配 AI，或者它判断成垃圾丢掉了）也列出来 ——
+  // 丢是 AI 的判断，用户有权看到并自己决定
+  for (const group of groups) {
+    if (used.has(group.name)) continue
+    proposals.push({
+      name: group.name,
+      category: '',
+      sources: [group.name],
+      why: '',
+      price: group.price,
+      sample_count: group.sample_count,
+      video_count: group.video_count,
+      from_ai: false,
+    })
+  }
+
+  proposals.sort((a, b) => b.video_count - a.video_count || b.sample_count - a.sample_count || a.name.localeCompare(b.name, 'zh'))
+  return {
+    ok: true,
+    items: proposals.slice(0, 200),
+    groups: groups.length,
+    categories: categories.map((c) => ({ id: c.id, name: c.name })),
+    ai,
+  }
+}
+
+/**
+ * 把选中的服务项建进库里。
+ *
+ * 和「建大类」一样，**名字必须来自这次扫描的结果** —— 接口是公开的，不校验的话
+ * 就成了「用比价接口建任意名字的服务项」。但比建大类宽松一点：允许用户改名字
+ * （AI 给的是建议，用户改完才建），只要**来源名字在扫描结果里**就行。
+ *
+ * 建的时候把**视频里的原话记成别名**。这一步是关键：用户起的短名字
+ * （`挪德卡莱满探`）匹不上视频里的长写法（`挪德卡莱满探+前置任务+神瞳`）——
+ * 后者含 `+`，算打包价，只认同名。别名就是那个「同名」。
+ */
+export function createServicesFromScan(id, items = []) {
+  const job = getScanJob(id)
+  if (!job) throw notFound('这个扫描任务不存在')
+  if (!Array.isArray(items) || !items.length) throw bad('没有要建的服务项', 'no_items')
+
+  const known = new Map(unmatchedGroups(job).map((g) => [g.name, g]))
+  const categories = new Set(
+    db.prepare("SELECT id FROM service_categories WHERE game_id = ? OR game_id IS NULL").all(job.game_id ?? null).map((r) => Number(r.id)),
+  )
+  const existing = new Map(
+    // `IS ?` 而不是 `= ?`：SQL 里 `game_id = NULL` 永远不成立，
+    // 任务没挂游戏时重名检查会**静默失效**，同一个名字能建两遍
+    db.prepare('SELECT id, name FROM services WHERE game_id IS ?').all(job.game_id ?? null).map((r) => [nameKey(r.name), r]),
+  )
+
+  const created = []
+  const skipped = []
+  const now = stamp()
+  let order = nextSortOrder(db, 'services')
+  const insert = db.prepare(
+    `INSERT INTO services (category_id, game_id, name, description, price_type, unit_label, base_price,
+       min_qty, max_qty, package_items, status, sort_order, note, aliases, created_at, updated_at)
+     VALUES (?, ?, ?, '', 'fixed', ?, ?, 1, NULL, '[]', 'active', ?, '', ?, ?, ?)`,
+  )
+
+  db.exec('BEGIN')
+  try {
+    for (const raw of items) {
+      const name = String(raw?.name || '').trim().slice(0, 120)
+      const price = Number(raw?.price)
+      if (!name) {
+        skipped.push({ name: '', reason: 'empty' })
+        continue
+      }
+      // 来源必须是这次扫描真的认出来的名字
+      const sources = (Array.isArray(raw?.sources) ? raw.sources : []).map((s) => String(s).trim()).filter((s) => known.has(s))
+      if (!sources.length) {
+        skipped.push({ name, reason: 'not_in_scan' })
+        continue
+      }
+      if (!Number.isFinite(price) || price < 0 || price > 100000) {
+        skipped.push({ name, reason: 'bad_price' })
+        continue
+      }
+      const dup = existing.get(nameKey(name))
+      if (dup) {
+        skipped.push({ name, reason: 'duplicate', existing_id: dup.id, existing_name: dup.name })
+        continue
+      }
+      const categoryId = categories.has(Number(raw?.category_id)) ? Number(raw.category_id) : null
+      /**
+       * 别名 = 视频里的原话。正式名字本身不写进去（`serviceNames` 会自己带上）。
+       * 去重、限长、限条数 —— 这是个会参与匹配的字段，不能让它无限长。
+       */
+      const aliases = [...new Set(sources.filter((s) => s !== name))].slice(0, 20).join('\n')
+
+      const info = insert.run(
+        categoryId,
+        job.game_id ?? null,
+        name,
+        String(raw?.unit || '').trim().slice(0, 20),
+        Math.round(price * 100) / 100,
+        order,
+        aliases,
+        now,
+        now,
+      )
+      created.push({ id: Number(info.lastInsertRowid), name, price: Math.round(price * 100) / 100, category_id: categoryId, aliases })
+      existing.set(nameKey(name), { id: Number(info.lastInsertRowid), name })
+      order += 10
+    }
+    db.exec('COMMIT')
+  } catch (err) {
+    db.exec('ROLLBACK')
+    throw err
+  }
+  if (created.length) logLine(job, `从扫描结果建了 ${created.length} 个服务项`)
+  return { ok: true, created, skipped }
 }
 
 /**

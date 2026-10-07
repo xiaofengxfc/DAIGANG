@@ -443,6 +443,25 @@ const MIGRATIONS = [
   ALTER TABLE bili_video_cache ADD COLUMN ai_sig TEXT NOT NULL DEFAULT '';
   ALTER TABLE bili_video_cache ADD COLUMN ai_result TEXT NOT NULL DEFAULT '';
   `,
+
+  /**
+   * 服务项的「别名」—— 视频里是怎么写这一项的。
+   *
+   * 为什么需要它：新加一个游戏时库里没有服务项，比价必然 0 匹配。所以要让
+   * **扫描结果能直接建成服务项**。但建的时候名字得由用户定（价格表上要好看），
+   * 而视频里的写法往往完全不同：
+   *
+   *   用户建的名字：`挪德卡莱满探`
+   *   视频里写的：  `挪德卡莱满探+前置任务+神瞳`
+   *
+   * 后者含 `+`，被判定成「打包价」，按规矩**只认同名服务项**（这是为了防止把
+   * 一个打包价摊给单项）。所以光靠模糊匹配是匹不上的，得把视频原话记下来当别名。
+   *
+   * 一行一个，用换行分隔 —— 这样在界面上就是一个普通的文本框，能直接看、直接改。
+   */
+  `
+  ALTER TABLE services ADD COLUMN aliases TEXT NOT NULL DEFAULT '';
+  `,
 ]
 
 export function migrate() {

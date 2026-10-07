@@ -3765,6 +3765,33 @@ button.react-side-row {
 .ps-chip--sm { padding: 1px 7px; font-size: var(--fs-xs); }
 .ps-section__more { color: var(--ink-3); }
 
+/* ---------- 从扫描结果建服务项（新游戏的冷启动） ---------- */
+.ps-propose { display: flex; flex-direction: column; gap: 8px; }
+.ps-propose__intro { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; padding: 14px 4px; }
+.ps-propose__intro p { margin: 0; max-width: 70ch; color: var(--ink-2); font-size: var(--fs-sm); line-height: 1.85; }
+.ps-propose__hint { margin: 0 0 2px; padding: 0 2px; color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.85; }
+.ps-propose__hint code { padding: 1px 5px; border-radius: 4px; background: var(--surface-inset); color: var(--ink-2); font-family: var(--font-fig); font-size: 0.95em; }
+.ps-propose__ai { margin-left: 8px; color: var(--jade-ink); }
+.ps-propose__warn { margin-left: 8px; color: var(--cinnabar-ink); }
+.ps-propose__list { display: flex; flex-direction: column; gap: 6px; }
+.ps-propose__row { display: flex; gap: 10px; align-items: flex-start; padding: 9px 11px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface-solid); }
+.ps-propose__row:hover { border-color: var(--line-strong); }
+.ps-propose__row.is-picked { border-color: var(--cinnabar-line); background: var(--cinnabar-bg); }
+.ps-propose__row > input { flex: none; margin-top: 7px; }
+.ps-propose__body { flex: 1; min-width: 0; }
+.ps-propose__main { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ps-propose__name { flex: 1; min-width: 180px; padding: 5px 9px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface-2); color: var(--ink); font: inherit; font-size: var(--fs-sm); }
+.ps-propose__name:focus { outline: none; border-color: var(--cinnabar-line); background: var(--surface-solid); }
+.ps-propose__yuan { color: var(--ink-3); font-size: var(--fs-sm); }
+.ps-propose__price { width: 88px; padding: 5px 9px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface-2); color: var(--ink); font: inherit; font-family: var(--font-fig); font-size: var(--fs-sm); }
+.ps-propose__price:focus { outline: none; border-color: var(--cinnabar-line); background: var(--surface-solid); }
+.ps-propose__cat { max-width: 150px; padding: 5px 8px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface-2); color: var(--ink-2); font: inherit; font-size: var(--fs-xs); }
+.ps-propose__meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 5px; font-size: var(--fs-xs); }
+.ps-propose__why { color: var(--ink-3); }
+.ps-propose__sources { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-top: 5px; color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.9; }
+.ps-propose__sources .ps-chip { max-width: 46ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ps-propose__actions { display: flex; gap: 8px; margin-top: 10px; }
+
 /* ---------- AI 甄别 ---------- */
 .ps-ai { margin-top: 10px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface-solid); overflow: hidden; }
 .ps-ai.is-on { border-color: var(--jade-line); }

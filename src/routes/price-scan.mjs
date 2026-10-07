@@ -20,8 +20,10 @@ import {
   applyScan,
   cancelScan,
   createCategoriesFromScan,
+  createServicesFromScan,
   getScanJob,
   listScanJobs,
+  proposeServicesFromScan,
   scanReadiness,
   startScan,
 } from '../bili-scan.mjs'
@@ -104,6 +106,27 @@ export function register() {
   post('/api/price-scan/jobs/:id/categories', (ctx) => {
     const names = Array.isArray(ctx.body?.names) ? ctx.body.names : []
     return createCategoriesFromScan(ctx.params.id, names)
+  })
+
+  /**
+   * 把「没匹上的名字」整理成一份可建的服务项清单。
+   *
+   * 这是给**新加的游戏**用的：库里一个服务项都没有时，比价必然 0 匹配 ——
+   * 不是坏了，是没东西可以匹配。让 AI 把认出来的名字合并、起名、归类，
+   * 用户勾选后建进库里，下次扫描就能匹上了。
+   */
+  post('/api/price-scan/jobs/:id/propose-services', (ctx) => proposeServicesFromScan(ctx.params.id))
+
+  /**
+   * 把选中的建进库。
+   *
+   * 和建大类一样要校验「名字来自这次扫描」，但**允许用户改名字** ——
+   * AI 给的只是建议，用户改完才建。同时把**视频里的原话记成别名**，
+   * 这样短名字下次也能匹上长写法（含 `+` 的打包价只认同名）。
+   */
+  post('/api/price-scan/jobs/:id/services', (ctx) => {
+    const items = Array.isArray(ctx.body?.items) ? ctx.body.items : []
+    return createServicesFromScan(ctx.params.id, items)
   })
 
   /* ---------------- AI 配置 ---------------- */

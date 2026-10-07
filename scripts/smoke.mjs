@@ -1914,6 +1914,103 @@ export async function run() {
   ok('相似度：错别字能过阈值', similarity('黎娜西塔全图探索', '黎那汐塔') >= 0.5, similarity('黎娜西塔全图探索', '黎那汐塔'))
   ok('相似度：同后缀不同前缀不该高', similarity('危行任务', '潮汐任务') < 0.62, similarity('危行任务', '潮汐任务'))
 
+  /**
+   * 新游戏冷启动：库里一个服务项都没有时，比价必然 0 匹配 —— 不是坏了，
+   * 是没东西可以匹配。这一节验的是补那一步的两块砖：**别名**和**原话精确匹配**。
+   *
+   * 为什么必须有别名：视频里写 `挪德卡莱满探+前置任务+神瞳`，用户价格表上想写
+   * `挪德卡莱满探`。前者含 `+`，算打包价，按规矩只认同名服务项（防止把一个
+   * 打包价摊给单项）。所以短名字**永远**匹不上 —— 除非把原话记下来当别名。
+   */
+  section('B站自动比价 · 新游戏冷启动（别名与建服务项）')
+  const { serviceNames, unmatchedGroups, createServicesFromScan, proposeServicesFromScan } = await import('../src/price-match.mjs')
+    .then(async (pm) => ({ serviceNames: pm.serviceNames, ...(await import('../src/bili-scan.mjs')) }))
+    .catch(() => ({}))
+
+  ok('serviceNames 把别名也算进来',
+    JSON.stringify(serviceNames({ name: '挪德卡莱满探', aliases: '挪德卡莱满探+前置任务+神瞳\n' })) === JSON.stringify(['挪德卡莱满探', '挪德卡莱满探+前置任务+神瞳']),
+    JSON.stringify(serviceNames({ name: '挪德卡莱满探', aliases: '挪德卡莱满探+前置任务+神瞳\n' })))
+  ok('别名里的空行和重复会去掉',
+    JSON.stringify(serviceNames({ name: '甲', aliases: '\n甲\n乙\n\n' })) === JSON.stringify(['甲', '乙']),
+    JSON.stringify(serviceNames({ name: '甲', aliases: '\n甲\n乙\n\n' })))
+  ok('没有别名时只有正式名字', JSON.stringify(serviceNames({ name: '甲' })) === JSON.stringify(['甲']))
+
+  const aliasPool = [{ id: 1, name: '挪德卡莱满探', aliases: '挪德卡莱满探+前置任务+神瞳', unit_label: '', base_price: 0 }]
+  const viaAlias = matchServices([{ name: '挪德卡莱满探+前置任务+神瞳', price: 500, video: 'v1' }], aliasPool).matched
+  ok('打包价的长写法靠别名匹上短名字', viaAlias.length === 1 && viaAlias[0].matched_via === 'alias',
+    JSON.stringify(viaAlias.map((m) => ({ n: m.service_name, via: m.matched_via }))))
+  ok('别名匹上时分数是满分（本来就是同一句原话）', viaAlias[0]?.score === 1, viaAlias[0]?.score)
+
+  // 没记别名的同名短名字：打包价只认同名，所以匹不上 —— 这正是别名存在的理由
+  const noAlias = matchServices([{ name: '挪德卡莱满探+前置任务+神瞳', price: 500, video: 'v1' }], [{ id: 1, name: '挪德卡莱满探', unit_label: '', base_price: 0 }]).matched
+  ok('没记别名就匹不上（打包价只认同名）', noAlias.length === 0, JSON.stringify(noAlias.map((m) => m.service_name)))
+
+  /**
+   * `effectiveName` 会把 `套餐①：至东国满探索…` 削成 `套餐①`（「名字：说明」这条
+   * 规则对 `日体：5R/天` 是对的，对 `套餐①：…` 就把真名字削掉了）。
+   * 所以原话还要能**精确**参与匹配 —— 但**只能精确**：拿原话做模糊匹配的话，
+   * `全包：主线+前置+全宝箱` 会误匹到库里的「主线」。
+   */
+  ok('effectiveName 确实把套餐①削掉了（这是既有行为）', effectiveName('套餐①：至东国满探索100%探索+神瞳') === '套餐①')
+  const labelPool = [{ id: 1, name: '至东国满探索', aliases: '套餐①：至东国满探索100%探索+神瞳', unit_label: '', base_price: 0 }]
+  const viaLabel = matchServices([{ name: '套餐①：至东国满探索100%探索+神瞳', price: 240, video: 'v1' }], labelPool).matched
+  ok('被削掉的原话仍能靠别名精确匹上', viaLabel.length === 1 && viaLabel[0].matched_via === 'alias',
+    JSON.stringify(viaLabel.map((m) => ({ n: m.service_name, via: m.matched_via }))))
+  const fuzzyLabel = matchServices([{ name: '全包：主线+前置+全宝箱+神瞳', price: 400, video: 'v1' }], [{ id: 1, name: '主线', unit_label: '', base_price: 0 }]).matched
+  ok('原话只做精确匹配，不会把「全包：主线+…」模糊匹到「主线」', fuzzyLabel.length === 0,
+    JSON.stringify(fuzzyLabel.map((m) => m.service_name)))
+
+  /** `unmatchedGroups`：按名字归并 + 算建议价，价格绝不能交给 AI */
+  const fakeJob = {
+    unmatched: [
+      { parsed_name: '甲项', price: 100, video: 'v1' },
+      { parsed_name: '甲项', price: 120, video: 'v2' },
+      { parsed_name: '乙项', price: 50, video: 'v1' },
+      // 同一个视频给了两个不同价 —— 口径不明，这一票要整票弃用
+      { parsed_name: '丙项', price: 10, video: 'v1' },
+      { parsed_name: '丙项', price: 99, video: 'v1' },
+      { parsed_name: '丙项', price: 30, video: 'v2' },
+    ],
+  }
+  const groups = unmatchedGroups(fakeJob)
+  const g = (name) => groups.find((x) => x.name === name)
+  ok('归并后按名字去重', groups.length === 3, groups.map((x) => x.name))
+  ok('建议价取中位数', g('甲项').price === 110, g('甲项').price)
+  ok('同一个视频给了两个价就整票弃用', g('丙项').price === 30 && g('丙项').dropped_videos === 1,
+    JSON.stringify({ price: g('丙项').price, dropped: g('丙项').dropped_videos }))
+  ok('归并结果里没有价格以外的 AI 字段', groups.every((x) => !('why' in x) && !('category' in x)))
+
+  /** 建服务项的安全边界：名字必须来自这次扫描，价格必须合法 */
+  {
+    const { db } = await import('../src/db.mjs')
+    const job = {
+      id: 'scan-smoke-build', game_id: null, game_name: '冒烟游戏', status: 'done',
+      unmatched: [{ parsed_name: '原话写法', price: 88, video: 'v1' }],
+      sections: [], matched: [], videos: [], progress: {}, summary: {}, ai: {}, applied: [], log: [],
+    }
+    db.prepare('INSERT INTO price_scan_jobs (id, game_id, game_name, keyword, status, result, error_msg, created_at, updated_at) VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?)')
+      .run(job.id, job.game_name, 'k', 'done', JSON.stringify(job), '', '2020-01-01', '2020-01-01')
+
+    const good = createServicesFromScan(job.id, [{ name: '我的短名字', price: 88, sources: ['原话写法'] }])
+    ok('能建出来', good.created.length === 1, JSON.stringify(good.skipped))
+    ok('建的时候把原话记成了别名', good.created[0]?.aliases === '原话写法', good.created[0]?.aliases)
+    ok('正式名字不会重复写进别名', !String(good.created[0]?.aliases || '').split('\n').includes('我的短名字'))
+
+    const made = db.prepare('SELECT aliases, base_price FROM services WHERE id = ?').get(good.created[0].id)
+    ok('别名真的落库了', made?.aliases === '原话写法', made?.aliases)
+    ok('扫描到的价写成了基准价', Number(made?.base_price) === 88, made?.base_price)
+
+    ok('来源不在扫描结果里 → 建不出来',
+      createServicesFromScan(job.id, [{ name: '编的', price: 1, sources: ['扫描里没有'] }]).created.length === 0)
+    ok('负价格 → 建不出来',
+      createServicesFromScan(job.id, [{ name: '负数', price: -1, sources: ['原话写法'] }]).created.length === 0)
+    ok('重名 → 不重复建',
+      createServicesFromScan(job.id, [{ name: '我的短名字', price: 1, sources: ['原话写法'] }]).skipped[0]?.reason === 'duplicate')
+
+    db.prepare('DELETE FROM services WHERE id = ?').run(good.created[0].id)
+    db.prepare('DELETE FROM price_scan_jobs WHERE id = ?').run(job.id)
+  }
+
   /* ---------- 结果 ---------- */
   console.log(`\n${'═'.repeat(52)}`)
   console.log(`  通过 ${pass} 项，失败 ${failures.length} 项`)
