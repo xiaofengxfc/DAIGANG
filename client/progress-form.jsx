@@ -44,9 +44,13 @@ export async function openProgressForm(order, onDone) {
 /**
  * 改一条已记的进度。`game` 是这张单的游戏名 —— 用来决定资源字段显示哪几个
  * （异环比鸣潮多记甲硬币 / 方斯 / 环石 / 都市活力），不传就按默认那份来。
+ * `games` 是这一单涉及的全部游戏（多游戏时资源按【游戏】分段各记一套）。
  */
-export function openEditProgressForm(progress, onDone, game = '') {
-  return openOverlay((close) => <EditProgressForm progress={progress} game={game} onDone={onDone} close={close} />, `progress-edit-${progress.id}`)
+export function openEditProgressForm(progress, onDone, game = '', games = []) {
+  return openOverlay(
+    (close) => <EditProgressForm progress={progress} game={game} games={games} onDone={onDone} close={close} />,
+    `progress-edit-${progress.id}`
+  )
 }
 
 function ProgressForm({ order, carried, onDone, close }) {
@@ -119,6 +123,7 @@ function ProgressForm({ order, carried, onDone, close }) {
               before={carried || ''}
               beforeFrom={carried ? '上一条的「做之后」' : ''}
               game={order.game_name}
+              games={(order.games || []).map((g) => g.name).filter(Boolean)}
               onChange={setResources}
             />
 
@@ -150,7 +155,7 @@ function ProgressForm({ order, carried, onDone, close }) {
   )
 }
 
-function EditProgressForm({ progress, game = '', onDone, close }) {
+function EditProgressForm({ progress, game = '', games = [], onDone, close }) {
   const [form, setForm] = useState({
     happened_on: progress.happened_on || '',
     content: progress.content || '',
@@ -226,6 +231,7 @@ function EditProgressForm({ progress, game = '', onDone, close }) {
               before={progress.resources_before || ''}
               after={progress.resources_after || ''}
               game={game}
+              games={games}
               onChange={setResources}
             />
 

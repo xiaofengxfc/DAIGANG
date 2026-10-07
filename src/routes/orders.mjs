@@ -10,8 +10,11 @@ import {
   insertOrderItems,
   decorateOrder,
   ORDER_LIST_SQL,
+  gamesOfServices,
+  orderGameOfItemGames,
 } from '../modules/orders/orders.repository.mjs'
 import { priceOrder, priceSplit, proportionalShare } from '../modules/orders/orders.service.mjs'
+import { resourceDeltaList } from '../../shared/resources.js'
 
 export { STATUS_LABEL, TRANSITIONS, canTransition }
 
@@ -88,7 +91,11 @@ export function register() {
   post('/api/orders', (ctx) => {
     const { computed, totals } = priceOrder(ctx.body)
     const customerId = ctx.body.customer_id ? int(ctx.body.customer_id) : null
-    const gameId = ctx.body.game_id ? int(ctx.body.game_id) : null
+    // 游戏：前端明确给了就听它的（报价单转换、老流程）；没给就**按明细里的服务项推**。
+    // 推不出来的（服务项都没挂游戏）就留空，别硬塞一个默认值 —— 留空至少是诚实的。
+    const pickedGames = gamesOfServices(computed.items.map((item) => item.ref_id))
+    const derivedGame = orderGameOfItemGames(pickedGames)
+    const gameId = ctx.body.game_id ? int(ctx.body.game_id) : derivedGame.game_id
     const customer = customerId ? db.prepare('SELECT * FROM customers WHERE id = ?').get(customerId) : null
     if (customerId && !customer) bad('客户不存在', 'bad_customer')
     const game = gameId ? db.prepare('SELECT * FROM games WHERE id = ?').get(gameId) : null
@@ -115,7 +122,8 @@ export function register() {
           title,
           status,
           customer?.name || clampStr(ctx.body.customer_name, 60),
-          game?.name || clampStr(ctx.body.game_name, 60),
+          // 一个游戏就写它的名字；多个游戏拼成「鸣潮 + 异环」；一个都推不出来才用前端传的
+          ctx.body.game_id ? game?.name || '' : derivedGame.game_name || clampStr(ctx.body.game_name, 60),
           totals.items_subtotal,
           totals.addon_total,
           totals.discount,
@@ -354,6 +362,13 @@ export function register() {
           platform_fee: 'platform_fee' in ctx.body ? ctx.body.platform_fee : existing.platform_fee,
           cost: 'cost' in ctx.body ? ctx.body.cost : existing.cost,
         }),
+      }
+      // 明细变了，游戏跟着重推（前端没明确指定游戏时）——
+      // 不然改完明细订单头上还挂着上一个游戏的 game_name，按游戏筛就筛错了。
+      if (!('game_id' in ctx.body)) {
+        const derived = orderGameOfItemGames(gamesOfServices(finalItems.map((item) => item.ref_id)))
+        sets.push('game_id = ?', 'game_name = ?')
+        values.push(derived.game_id, derived.game_name)
       }
     } else if (['discount', 'platform_fee', 'cost'].some((k) => k in ctx.body)) {
       recomputed = {
@@ -675,31 +690,19 @@ export function register() {
 
   /* 进度汇报：给客户看的文本 + 图片模型，两者内容一致 */
 /**
- * 从「星声 105 体力 86」里抠出 标签→数字（跟前端 parseResources 一个规则）
- */
-function parseResPairs(text) {
-  const out = {}
-  const re = /([^\s\d,，./·、]+)\s*([\d][\d,，]*(?:\.\d+)?)/g
-  let m
-  while ((m = re.exec(String(text || '')))) out[m[1]] = Number(m[2].replace(/[,，]/g, ''))
-  return out
-}
-
-/**
  * 算出这一趟的消耗，给人看的一行：`星声 +780 · 体力 −191`
- * 跟前端「本次消耗」用同一套规则 —— 分享出去的文字和界面上看到的必须一致。
+ *
+ * 规则和界面上那行「本次消耗」是**同一份代码**（shared/resources.js）：
+ * 分享出去的文字和界面上看到的必须一致，抄一遍迟早会抄出偏差。
+ *   · includeUnknown：老数据里可能写着别的游戏/别的写法（原石、树脂…），
+ *     报表不该因为「不在并集里」就少一行 —— 认得出标签就照原文比。
+ *   · 差值为 0 的不报（界面上会显示 ±0，报表里全是 0 很吵）。
  */
 function resourceDeltaText(beforeText, afterText) {
-  const a = parseResPairs(beforeText)
-  const b = parseResPairs(afterText)
-  const parts = []
-  for (const k of Object.keys(b)) {
-    if (!(k in a)) continue
-    const d = money(b[k] - a[k])
-    if (!Number.isFinite(d) || Math.abs(d) < 0.001) continue
-    parts.push(`${k} ${d > 0 ? '+' : '−'}${Math.abs(d)}`)
-  }
-  return parts.join(' · ')
+  return resourceDeltaList(beforeText, afterText, { includeUnknown: true })
+    .filter((d) => Math.abs(d.diff) >= 0.001)
+    .map((d) => `${d.game ? `${d.game} ` : ''}${d.key} ${d.diff > 0 ? '+' : '−'}${Math.abs(d.diff)}`)
+    .join(' · ')
 }
 
   get('/api/orders/:id/progress-report', (ctx) => {

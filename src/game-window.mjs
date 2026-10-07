@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { profileForGame } from '../shared/game-profiles.js'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const FOCUS_PS1 = path.resolve(HERE, '..', 'scripts', 'focus-game.ps1')
@@ -15,11 +16,19 @@ export function activeGameWindow() {
   return activeWindow ? { ...activeWindow } : null
 }
 
-/** Find and foreground the game's top-level window from an explicit UI action. */
-export function focusGameWindow({ timeoutMs = 10000 } = {}) {
+/**
+ * Find and foreground the game's top-level window from an explicit UI action.
+ *
+ * `game` 是订单上那个游戏名（鸣潮 / 异环）：两个游戏的进程名和窗口标题都不
+ * 一样，认哪个游戏的界面就得切哪个游戏的窗口 —— 切错了后面全认错。
+ * 认不出游戏名时按默认那份（鸣潮）来，保持老行为。
+ */
+export function focusGameWindow({ timeoutMs = 10000, game = '' } = {}) {
   if (process.platform !== 'win32') {
     return Promise.resolve({ ok: false, error: '自动切回游戏目前只支持 Windows。' })
   }
+  const profile = profileForGame(game)
+  const gameLabel = (profile.names && profile.names[0]) || profile.id
 
   return new Promise((resolve) => {
     let settled = false
@@ -36,6 +45,9 @@ export function focusGameWindow({ timeoutMs = 10000 } = {}) {
     let child
     try {
       const args = ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', FOCUS_PS1]
+      // 游戏名**不往命令行上传**：中文参数在 Windows 命令行上转一手就可能变乱码
+      // （这个仓库已经被编码坑过一次）。传 profile id，中文在脚本里用码点拼。
+      if (profile.id) args.push('-Profile', String(profile.id))
       const processName = String(process.env.XFC_GAME_PROCESS || '').trim()
       if (processName) args.push('-ProcessName', processName)
       child = spawn('powershell.exe', args, { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
@@ -73,9 +85,13 @@ export function focusGameWindow({ timeoutMs = 10000 } = {}) {
               + `，再执行 icacls "${path.join(root, 'DaiganLauncher.exe')}" /setintegritylevel High，然后重启本程序。`,
           })
         }
+        // 错误里带上具体是哪个游戏 —— 「没有找到游戏窗口」在混着两个游戏时帮不上忙
+        const seen = Array.isArray(result?.seen) ? result.seen.filter(Boolean) : []
         const knownErrors = {
-          game_window_missing: '没有找到鸣潮游戏窗口。请先启动游戏；如果进程名称不同，可设置 XFC_GAME_PROCESS。',
-          focus_denied: 'Windows 没有允许切换到鸣潮窗口。请先手动切到游戏一次，再点击识别。',
+          game_window_missing:
+            `没有找到${gameLabel}游戏窗口，请先启动${gameLabel}。`
+            + (seen.length ? `看到这几个疑似游戏窗口：${seen.join('；')} —— 如果${gameLabel}在里面，把它的进程名设成环境变量 XFC_GAME_PROCESS 再试。` : '如果它的进程名和猜的不一样，可以设置环境变量 XFC_GAME_PROCESS 直接指定进程名。'),
+          focus_denied: `Windows 没有允许切换到${gameLabel}窗口。请先手动切到${gameLabel}一次，再点击识别。`,
         }
         return finish({ ok: false, error: knownErrors[result?.code] || stderr.trim() || '没有切换到游戏窗口。' })
       }
@@ -84,7 +100,9 @@ export function focusGameWindow({ timeoutMs = 10000 } = {}) {
       // front), so the flow will not try to hand focus anywhere.
       const previousHwnd = String(result.previous || '0')
       previousWindow = previousHwnd && previousHwnd !== '0' ? { hwnd: previousHwnd } : null
-      finish({ ...result, ok: true })
+      // matchedBy=fallback：进程名/标题里没有任何该游戏的特征，是按「一个不是
+      // 其它支持游戏的 UE 窗口」猜的。界面会说出来，别让人以为一定切对了。
+      finish({ ...result, game: profile.id, game_name: gameLabel, matched_by: result.matchedBy || 'name', ok: true })
     })
   })
 }

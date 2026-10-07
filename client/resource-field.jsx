@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Eye, RefreshCw } from 'lucide-react'
 import { api } from './lib/api.js'
 import { fmtQty } from './lib/formatters.js'
-import { RES_KEYS, buildResources, deltaText, parseResources } from '../shared/resources.js'
+import { RES_KEYS, buildResources, deltaText, joinResourceSections, parseResources, sectionText } from '../shared/resources.js'
 import { profileForGame, profileKeys } from '../shared/game-profiles.js'
 import { toast, toastErr } from './app/toast-store.js'
 
@@ -15,13 +15,23 @@ import { toast, toastErr } from './app/toast-store.js'
    「做之前」和「做之后」两排，中间自动算「本次消耗」。
    两边都能点「识别画面」（看屏幕）或「识别截图」（选一张图）。
 
-   **记哪几个资源、按哪个键打开哪个界面，由订单上选的游戏决定**
+   **记哪几个资源、按哪个键打开哪个界面，由订单上的游戏决定**
    （父组件把 order.game_name 传进来）。鸣潮记三个、异环记五个，
    「体力」在两边都记，但图标是两张不同的图 —— 这些全在
    shared/game-profiles.js 里，这里只负责渲染。
 
    交给父组件的值是两行文本（resources_before / resources_after），
    和旧版 collect() 塞进去的完全一样 —— 后端存的还是同一格式。
+
+   ---- 一单混了两个游戏怎么办 ----
+
+   一张单里既有鸣潮又有异环时，一行文本装不下两套数（「体力」两边都记，
+   可不是同一个数），所以每个游戏渲染成**一块自己的表**，各点各的
+   「识别画面」，存进去时按【游戏名】分段（shared/resources.js 里那套）。
+
+   为什么不合成一块、点一次自动跑遍两个游戏？识别要先把游戏窗口切到前台，
+   而「哪个窗口是游戏」是猜的（focus 那条规则）；两个游戏同时在跑的时候
+   来回切更容易认错画面。分开点，切哪个、开哪一页都是明确的。
    ============================================================ */
 
 const tinyStyle = { marginTop: '2px', opacity: '.85' }
@@ -29,7 +39,22 @@ const tinyTopStyle = { marginTop: '4px', opacity: '.85' }
 const amberStyle = { marginTop: '2px' }
 const MAX_SCREEN_FRAMES = 8
 
-export default function ResourceField({ before = '', after = '', beforeFrom = '', game = '', onChange }) {
+/**
+ * 外壳：决定渲染一块还是多块。自己不带 hook（条件 return 不能夹在 hook 中间），
+ * 真正的实现都在下面两个组件里。
+ */
+export default function ResourceField(props) {
+  const games = (props.games || []).filter(Boolean)
+  if (games.length > 1) return <MultiGameField {...props} games={games} />
+  return <SingleGameField {...props} game={games[0] || props.game || ''} />
+}
+
+/**
+ * 一个游戏一块表。多游戏时每一块都是它，各自管自己那一段文本。
+ * 里面所有状态都只属于**这一个游戏** —— 这是「按游戏分开记」最省事的做法：
+ * 换游戏只是换一块，不用把已有的识别流程拆开重写。
+ */
+function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', onChange }) {
   // 订单上选的游戏 → 这张表：记哪几个资源、按什么键打开哪些界面
   const profile = profileForGame(game)
   const keys = profileKeys(profile)
@@ -111,7 +136,13 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
         reader.onerror = () => reject(new Error('读不了这个文件'))
         reader.readAsDataURL(file)
       })
-      const result = await api.post('/api/ocr', { data_url: dataUrl, game: gameName })
+      // 手工截图不知道截的是哪一屏，所以这个游戏名下所有资源一起找（和后端默认一致）；
+      // 只是把「本游戏有哪几个」讲明白，省得后端拿整份模板表去扫。
+      const result = await api.post('/api/ocr', {
+        data_url: dataUrl,
+        game: gameName,
+        keys: [...new Set(stages.flatMap((s) => s.resources))],
+      })
       const got = result.resources || {}
       const found = keys.filter((key) => got[key] !== undefined && got[key] !== null)
       fill(side, got)
@@ -207,10 +238,16 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
 
     paintProgress(stages[0])
     try {
-      const focus = await api.post('/api/ocr/screen/focus')
+      // 带上游戏名：切窗口是按游戏找的（鸣潮和异环的进程名/窗口标题都不一样）
+      const focus = await api.post('/api/ocr/screen/focus', { game: gameName })
       if (!focus || !focus.ok) throw new Error((focus && focus.error) || `没有切换到${gameName}窗口`)
       focused = true
-      progressHint = `已切回${gameName}${focus.title ? `（${focus.title}）` : ''}，准备打开${stages[0].title}…`
+      // 按通用规则猜中的窗口要说出来：猜错的话后面认出来的全是别的游戏的画面
+      if (focus.matched_by === 'fallback') {
+        progressHint = `没认出${gameName}的窗口特征，按通用规则切到了 ${focus.title || focus.process}`
+      } else {
+        progressHint = `已切回${gameName}${focus.title ? `（${focus.title}）` : ''}，准备打开${stages[0].title}…`
+      }
       // Give the restored game window a moment to repaint before capturing it.
       await new Promise((resolve) => setTimeout(resolve, 500))
 
@@ -229,7 +266,7 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
         await new Promise((resolve) => setTimeout(resolve, stage.openDelay))
 
         for (let attempt = 0; attempt < MAX_SCREEN_FRAMES && !token.stop; attempt++) {
-          const result = await api.post('/api/ocr/screen', { session, min_votes: 2, game: gameName })
+          const result = await api.post('/api/ocr/screen', { session, min_votes: 2, game: gameName, keys: stage.resources })
           if (result.engine) engine = result.engine
           if (Array.isArray(result.hits)) {
             for (const hit of result.hits) {
@@ -404,6 +441,48 @@ export default function ResourceField({ before = '', after = '', beforeFrom = ''
     <div className="stack stack--tight field--full">
       {buildSide('before', '资源对比 · 做之前', true)}
       {buildSide('after', '资源对比 · 做之后', false)}
+    </div>
+  )
+}
+
+/**
+ * 多游戏：一个游戏一块单游戏表，各自识别、各自记。
+ * 存进订单的还是**一行**文本，按【游戏名】分段（【鸣潮】… 【异环】…）。
+ *
+ * 哪一段是哪一块的，靠 game 名对；用户只填了一块也没关系 ——
+ * 空的那段拼接时会整段丢掉，不会留一个光秃秃的【异环】在库里。
+ */
+function MultiGameField({ games, before = '', after = '', beforeFrom = '', onChange }) {
+  // 初始值从分段文本里各取自己那一段；之后每一块自己维护自己的正文
+  const [parts, setParts] = useState(() => {
+    const init = {}
+    for (const game of games) init[game] = { before: sectionText(before, game), after: sectionText(after, game) }
+    return init
+  })
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+
+  const textBefore = joinResourceSections(games.map((game) => ({ game, body: parts[game] && parts[game].before })))
+  const textAfter = joinResourceSections(games.map((game) => ({ game, body: parts[game] && parts[game].after })))
+
+  useEffect(() => {
+    if (onChangeRef.current) onChangeRef.current({ resources_before: textBefore, resources_after: textAfter })
+  }, [textBefore, textAfter])
+
+  return (
+    <div className="stack stack--tight field--full">
+      <div className="hint">{`这一单有 ${games.length} 个游戏（${games.join(' + ')}），各记各的：切到哪个游戏就点那一块的「识别画面」。`}</div>
+      {games.map((game, index) => (
+        <SingleGameField
+          key={game}
+          game={game}
+          before={(parts[game] && parts[game].before) || ''}
+          after={(parts[game] && parts[game].after) || ''}
+          // 「做之前」带上一条的提示只在第一块说一次，不然两块都挂一句很吵
+          beforeFrom={index === 0 ? beforeFrom : ''}
+          onChange={(next) => setParts((prev) => ({ ...prev, [game]: { before: next.resources_before, after: next.resources_after } }))}
+        />
+      ))}
     </div>
   )
 }

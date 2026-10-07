@@ -212,7 +212,7 @@ function rectSqSumB(ii, x0, y0, x1, y1) {
  * 每个像素取 (R-S/3, G-S/3)，S = R+G+B，正好是「颜色比例」的线性形式，
  * 而且亮度大的像素权重自然大，不用另外加权。
  */
-export function compileTemplate(img, { brightFactor = 1.0, minCoreRatio = 0.03, name = '' } = {}) {
+export function compileTemplate(img, { brightFactor = 1.0, minCoreRatio = 0.03, name = '', maskedNcc = false } = {}) {
   const n = img.width * img.height
   const px = img.px
   // 每个像素的 (a, b) 特征
@@ -272,7 +272,7 @@ export function compileTemplate(img, { brightFactor = 1.0, minCoreRatio = 0.03, 
     corePx[k] = i % img.width
     corePy[k] = (i / img.width) | 0
   }
-  return { name, img, width: img.width, height: img.height, count, idx, ta, tb, hasMask: useMask, lumMean, thr, corePx, corePy }
+  return { name, img, width: img.width, height: img.height, count, idx, ta, tb, hasMask: useMask, lumMean, thr, corePx, corePy, maskedNcc: !!maskedNcc }
 }
 
 /* ---------------- 匹配 ---------------- */
@@ -286,6 +286,20 @@ export function compileTemplate(img, { brightFactor = 1.0, minCoreRatio = 0.03, 
  * 分子按模板的 core 像素扫（暗背景跳过），窗口方差走积分图 —— 两者都便宜。
  * 分母里窗口那一项用**整个窗口**的方差（含背景）：这样分数对「图标周围
  * 背景明暗变化」不敏感，比只算 core 更稳。
+ *
+ * ---- tpl.maskedNcc：分母也换成 core 自己的起伏 ----
+ *
+ * 上面那个分母有个前提：图标四周的背景跟图标本身「摊平」得差不多。
+ * 一旦图标又亮又光滑、背景又暗（异环那枚金币：内部几乎是一整块渐变金色，
+ * 压在近黑的底上），整窗方差会被「图标 vs 背景」那点反差撑得很大，
+ * 于是**模板跟它自己匹配也只有 0.5 上下** —— 实测把模板、真位置那块、
+ * 命中那块三张图并排放大看，肉眼一模一样，分数却是 0.524，锚点因此永远
+ * 定不出来（异环的锚点就是甲硬币，直接卡死整条链路）。
+ *
+ * 换成 core 自己的起伏后，分子分母是同一批像素、同一套去中心化，
+ * 自己匹配自己严格等于 1（柯西-施瓦茨，且恒在 [0,1] 内），假阳性也一起压低。
+ * 代价是内层循环多 4 个累加器（实测这一档慢 ~1.6 倍），所以**按游戏开**：
+ * 鸣潮那套阈值是按旧口径标定的，不动它就一点风险都没有。
  */
 export function matchAt(img, ii, region, tpl, { step = 2, deadline = 0, exclude = null } = {}) {
   const tw = tpl.width
@@ -306,29 +320,54 @@ export function matchAt(img, ii, region, tpl, { step = 2, deadline = 0, exclude 
   const tb = tpl.tb
   const corePx = tpl.corePx
   const corePy = tpl.corePy
+  const masked = !!tpl.maskedNcc
   let guard = 0
 
   for (let y = y0; y <= y1 - th; y += step) {
     for (let x = x0; x <= x1 - tw; x += step) {
       if (deadline && (++guard & 63) === 0 && Date.now() > deadline) return res
       if (exclude && excluded(exclude, x, y, tw, th)) continue
-      const sA = rectSum(ii, x, y, x + tw, y + th)
-      const qA = rectSqSum(ii, x, y, x + tw, y + th)
-      const meanA = sA / n
-      let varr = qA - n * meanA * meanA
-      if (featureB) {
-        const sB = rectSumB(ii, x, y, x + tw, y + th)
-        const qB = rectSqSumB(ii, x, y, x + tw, y + th)
-        const meanB = sB / n
-        varr += qB - n * meanB * meanB
+      let varr = 0
+      if (!masked) {
+        const sA = rectSum(ii, x, y, x + tw, y + th)
+        const qA = rectSqSum(ii, x, y, x + tw, y + th)
+        const meanA = sA / n
+        varr = qA - n * meanA * meanA
+        if (featureB) {
+          const sB = rectSumB(ii, x, y, x + tw, y + th)
+          const qB = rectSqSumB(ii, x, y, x + tw, y + th)
+          const meanB = sB / n
+          varr += qB - n * meanB * meanB
+        }
+        if (varr <= 1e-6) continue
       }
-      if (varr <= 1e-6) continue
       let num = 0
+      // maskedNcc：顺手把 core 的 Σ、Σ² 也累起来（分母就靠它们）
+      let scA = 0
+      let qcA = 0
+      let scB = 0
+      let qcB = 0
       const base = y * W + x
       for (let k = 0; k < count; k++) {
         const i = base + corePy[k] * W + corePx[k]
-        num += ta[k] * featureA[i]
-        if (featureB) num += tb[k] * featureB[i]
+        const pa = featureA[i]
+        num += ta[k] * pa
+        if (masked) {
+          scA += pa
+          qcA += pa * pa
+        }
+        if (featureB) {
+          const pb = featureB[i]
+          num += tb[k] * pb
+          if (masked) {
+            scB += pb
+            qcB += pb * pb
+          }
+        }
+      }
+      if (masked) {
+        varr = qcA - (scA * scA) / count + (featureB ? qcB - (scB * scB) / count : 0)
+        if (varr <= 1e-6) continue
       }
       const score = num / Math.sqrt(varr)
       if (score > res.score) {
@@ -373,8 +412,12 @@ export function findIcon(screen, tplImg, {
   refine = 8,
   exclude = null,
   timeBudgetMs = 0,
+  maskedNcc = null,
 } = {}) {
   const list = scales && scales.length ? scales : sweepScales(baseScale, scaleFactor, scaleSteps)
+  // maskedNcc 挂在模板图上（loadTemplates 按游戏设一次），这里也可以显式覆盖。
+  // 每一档缩放都要重新 compileTemplate，标志必须跟着走，否则只有第一档是新口径。
+  const useMasked = maskedNcc === null ? !!tplImg.maskedNcc : !!maskedNcc
   const t0 = Date.now()
   const deadline = timeBudgetMs > 0 ? t0 + timeBudgetMs : 0
 
@@ -408,7 +451,7 @@ export function findIcon(screen, tplImg, {
      于是「粗筛的大步长」换来的速度不会被精度吃掉。 */
   let bestCoarse = null
   for (const s of list) {
-    const st = compileTemplate(resampleBilinear(tplImg, tplImg.width * s * scale, tplImg.height * s * scale))
+    const st = compileTemplate(resampleBilinear(tplImg, tplImg.width * s * scale, tplImg.height * s * scale), { maskedNcc: useMasked })
     if (st.width < 4 || st.height < 4) continue
     const rough = matchAt(wImg, workII, wRegion, st, { step: coarseStep, deadline, exclude: wExclude })
     if (rough.score < -1) continue
@@ -436,7 +479,7 @@ export function findIcon(screen, tplImg, {
   if (!fineList.length) fineList.push(bestCoarse.scale)
   let bestFine = null
   for (const s of fineList) {
-    const st = compileTemplate(resampleBilinear(tplImg, tplImg.width * s * scale, tplImg.height * s * scale))
+    const st = compileTemplate(resampleBilinear(tplImg, tplImg.width * s * scale, tplImg.height * s * scale), { maskedNcc: useMasked })
     if (st.width < 4 || st.height < 4) continue
     const scan = {
       x: bestCoarse.x - refine,
@@ -487,8 +530,18 @@ export function findIconTop(screen, tplImg, opts = {}, topN = 3, minSeparation =
   const holes = []
   // 挖洞用的是工作图坐标，所以要先知道工作图相对原图缩了多少（没传就是 1）
   const scale = opts.work && opts.work.img ? opts.work.img.height / screen.height : 1
+  // 预算按**这一整次调用**算，不是每次 findIcon 都重新给一份。
+  // 以前每个候选都拿到完整预算，topN=3 就等于把时间乘以 3 —— 异环实测
+  // 定锚点那一步因此花了 4.5 秒（3 × 1.5 秒），而它其实只要一遍扫完就够。
+  const t0 = Date.now()
+  const total = Math.max(0, Number(opts.timeBudgetMs) || 0)
   for (let i = 0; i < topN; i++) {
-    const hit = findIcon(screen, tplImg, { ...opts, exclude: holes.length ? holes : null })
+    let left = 0
+    if (total) {
+      left = total - (Date.now() - t0)
+      if (left <= 0) break
+    }
+    const hit = findIcon(screen, tplImg, { ...opts, timeBudgetMs: left, exclude: holes.length ? holes : null })
     if (!hit) break
     if (hit.weak || hit.score < stopBelow) {
       if (!hits.length) hits.push(hit)

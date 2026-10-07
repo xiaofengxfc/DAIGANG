@@ -119,6 +119,13 @@ export const MIN_SCORE = 0.62
 export const TOP_BAND_RATIO = 0.14
 
 /**
+ * 「锚点周围多大算同一簇」的单侧半径，占画面宽度的比例。
+ * 0.2236 = 6.5 × 0.0344，也就是鸣潮原来那句「锚点图标宽的 6.5 倍」——
+ * 换算成比例是为了让图标更小的游戏（异环 0.0225）也够宽，见 recognizeFrame。
+ */
+export const CLUSTER_RATIO = 0.2236
+
+/**
  * 顶栏图标宽度占画面宽度的比例 —— **每个游戏不一样，所以从 profile 取**。
  * 鸣潮：同一张截图缩到 1152×720 ~ 3840×2400 十种分辨率量出来都是 0.0344；
  * 异环：2559×1599 实测 0.0225 —— 只有鸣潮的 65%，
@@ -167,6 +174,9 @@ export function loadTemplates({ force = false, profile = DEFAULT_PROFILE } = {})
       const file = path.join(dir, `${r.file}.png`)
       try {
         const img = decodePNG(fs.readFileSync(file))
+        // 打分口径挂在图对象上：模板会一路被 resample 成各档缩放，
+        // 挂在图上就不用在每个 findIcon 调用点再传一遍（漏一处就只有一档是新口径）。
+        img.maskedNcc = Boolean(p.maskedNcc)
         refs.push({
           key: r.key,
           anchor: Boolean(r.anchor),
@@ -177,7 +187,7 @@ export function loadTemplates({ force = false, profile = DEFAULT_PROFILE } = {})
           file,
           from: dir.includes(`${path.sep}data${path.sep}`) ? 'custom' : 'bundled',
           img,
-          tpl: compileTemplate(img, { name: r.key }),
+          tpl: compileTemplate(img, { name: r.key, maskedNcc: Boolean(p.maskedNcc) }),
         })
         break
       } catch {
@@ -365,13 +375,25 @@ export function recognizeFrame(img, words, {
   minScore = MIN_SCORE,
   profile = DEFAULT_PROFILE,
   refs = null,
+  keys = null,
   topBandRatio = TOP_BAND_RATIO,
   timeBudgetMs = 1500,
   timings = null,
 } = {}) {
   // profile 收对象也收游戏名：调用方（路由/自检）两种都能传
   const p = profile && profile.resources ? profile : profileForGame(profile)
-  const iconRefs = refs || loadTemplates({ profile: p })
+  /**
+   * 只找这一屏**真的会有**的那几个。
+   *
+   * 一屏只需要两三个资源，但以前每帧都把整份模板表扫一遍，于是：
+   *   · 定标锚点按「谁最像锚点」挑，常常挑到本屏根本没有的那个（异环的地图页
+   *     优先挑甲硬币，那屏压根没有甲硬币），锚点定不出来 → 退化成一堆全条带
+   *     搜索，又慢又容易认到隔壁的图标上（实测地图页把 255 挂到了甲硬币名下）；
+   *   · 白扫的那几个图标每帧都占时间。
+   * 传了 keys 就只找这几个，锚点也从这几个里挑。不传 = 老行为（整份表都找）。
+   */
+  const wanted = Array.isArray(keys) && keys.length ? new Set(keys) : null
+  const iconRefs = (refs || loadTemplates({ profile: p })).filter((r) => !wanted || wanted.has(r.key))
   const t0 = Date.now()
   const mark = (k) => {
     if (timings) timings[k] = (timings[k] || 0) + (Date.now() - t0)
@@ -385,6 +407,15 @@ export function recognizeFrame(img, words, {
   const seen = []
   const deadline = timeBudgetMs > 0 ? t0 + timeBudgetMs : 0
   const budget = () => (deadline ? Math.max(0, deadline - Date.now()) : 0)
+  /**
+   * 「还剩多少时间，但至少给 ms」。
+   *
+   * 定出锚点之后每个图标都还要一遍搜索，而 budget() 到点之后返回 0 ——
+   * 0 在 findIcon 里的意思是**不限时**（不传预算的调用方用它），于是「预算用完」
+   * 反而变成了「随便跑」：异环实测定出锚点之后这一遍跑了 11 秒。
+   * 保底给一点时间，既不漏图标，也不会无限跑。
+   */
+  const leftOr = (ms) => (deadline ? Math.max(budget(), ms) : 0)
 
   // 这一屏「图标大概多大」：**跟画面宽度成比例，不跟高度**。
   //
@@ -397,7 +428,19 @@ export function recognizeFrame(img, words, {
   const expectedIconW = Math.max(8, img.width * (p.iconWidthRatio || ICON_W_RATIO))
   // 不同页面的 HUD 不一定按同一个轴缩放：武器页图标接近 80px，地图页
   // 同一套资源可能只有 45px。放宽搜索档位，避免模板尺寸正确却完全错过。
-  const scalesFor = (tplImg) => sweepScales((expectedIconW / tplImg.width) * 1.1, 2.35, 11)
+  //
+  // 铺多宽可以按游戏给（profile.scaleSpan/scaleSteps），但**别为了省时间收窄**：
+  // 异环试过从 11 档 / 5.5 倍收到 6 档 / 2.56 倍，档距变成 21%，同一个金币
+  // 的分数从 0.971 掉到 0.807，锚点那一遍反而更慢（分数低就一直找下一个候选）。
+  // 带掩码的 NCC 对尺度很敏感，档位密才是对的。两个游戏现在都用默认值。
+  const scalesFor = (tplImg) => sweepScales((expectedIconW / tplImg.width) * 1.1, p.scaleSpan || 2.35, p.scaleSteps || 11)
+
+  /* 锚点那一簇有多宽（单侧，按画面宽度的比例）。
+     原来写的是「锚点图标宽的 6.5 倍」：对鸣潮成立（6.5 × 0.0344 = 0.2236），
+     但异环图标只有画面宽的 0.0225，6.5 倍只剩 14.6%，而它顶栏三个资源横跨
+     62%~86% 的画面宽 —— 最右边那个（环石）落在簇外，锚点认出来了它却永远
+     认不到（实机复现）。换成比例后鸣潮的数值和以前一模一样。 */
+  const clusterSpan = img.width * (p.clusterRatio || CLUSTER_RATIO)
 
   /* ---- 工作图：只裁顶栏那条带 ----
      「任何分辨率都跑得动」的关键就在这一步：4K 截图整张缩一遍要 200ms 以上，
@@ -441,7 +484,7 @@ export function recognizeFrame(img, words, {
   let anchorR = null
   if (quick && quick.img) {
     const tryHit = (opts) => {
-      const found = findIconTop(img, quick.img, { work, minScore, timeBudgetMs: budget(), ...opts }, 3)
+      const found = findIconTop(img, quick.img, { work, minScore, timeBudgetMs: leftOr(1200), ...opts }, 3)
       return pickStableCandidate(found, { margin: 0.92, minScore })
     }
     /**
@@ -457,16 +500,15 @@ export function recognizeFrame(img, words, {
       if (!hit) return null
       if (hit.score >= ANCHOR_MIN_SCORE) return hit
       if (hit.score < ANCHOR_FALLBACK_SCORE) return null
-      const aw = quick.img.width * hit.scale
       const near = {
-        x: Math.max(0, hit.x - aw * 6.5),
+        x: Math.max(0, hit.x - clusterSpan),
         y: 0,
-        w: Math.min(img.width, hit.x + aw * 6.5) - Math.max(0, hit.x - aw * 6.5),
+        w: Math.min(img.width, hit.x + clusterSpan) - Math.max(0, hit.x - clusterSpan),
         h: bandH,
       }
       for (const other of iconRefs) {
         if (!other.img || other === quick) continue
-        const found = findIconTop(img, other.img, { region: near, baseScale: hit.scale, scaleFactor: 1.3, scaleSteps: 7, work, coarseStep: 3, minScore, timeBudgetMs: Math.min(budget() || 500, 500) }, 1)
+        const found = findIconTop(img, other.img, { region: near, baseScale: hit.scale, scaleFactor: 1.3, scaleSteps: 7, work, coarseStep: 3, minScore, timeBudgetMs: Math.min(leftOr(400), 400) }, 1)
         const best = pickStableCandidate(found, { margin: 0.92, minScore })
         if (best) return { ...hit, confirmed_by: other.key, confirm_score: +best.score.toFixed(3) }
       }
@@ -490,7 +532,7 @@ export function recognizeFrame(img, words, {
       }
     }
     if (!anchor) {
-      const hit = confirmAnchor(tryHit({ region: band, scales: scalesFor(quick.img), coarseStep: 3, timeBudgetMs: budget() }))
+      const hit = confirmAnchor(tryHit({ region: band, scales: scalesFor(quick.img), coarseStep: 3, timeBudgetMs: leftOr(1200) }))
       if (hit) {
         anchor = { ...hit, key: quick.key, tpl: quick.img }
         anchorR = quick
@@ -501,7 +543,7 @@ export function recognizeFrame(img, words, {
   mark('anchor')
 
   /* ---- 第二遍：锚点定标 → 其余图标只在锚点那一簇里找（几档细尺度） ---- */
-  const MAX_CLUSTER = 15 // 单位：锚点图标的宽度（顶栏资源都在这个范围内）
+  const MAX_CLUSTER = clusterSpan * 2.3 // 和原来的 aw*15 等价（15/6.5 ≈ 2.3）
   const hits = []
   for (const r of iconRefs) {
     if (!r.img) continue
@@ -520,19 +562,18 @@ export function recognizeFrame(img, words, {
       const tw = r.img.width * memo.scale
       const th = r.img.height * memo.scale
       const near = { x: Math.max(0, memo.x - tw), y: Math.max(0, memo.y - th), w: tw * 3, h: th * 3 }
-      const found = findIconTop(img, r.img, { region: near, baseScale: memo.scale, scaleFactor: 1.12, scaleSteps: 5, work, coarseStep: 3, minScore, timeBudgetMs: budget() }, 1)
+      const found = findIconTop(img, r.img, { region: near, baseScale: memo.scale, scaleFactor: 1.12, scaleSteps: 5, work, coarseStep: 3, minScore, timeBudgetMs: leftOr(300) }, 1)
       const best = pickStableCandidate(found, { margin: 0.92, minScore })
       if (best) hit = best
     }
     if (!hit && anchor && anchorR && r !== anchorR) {
-      const aw = anchor.tpl.width * anchor.scale
       const near = {
-        x: Math.max(0, anchor.x - aw * 6.5),
+        x: Math.max(0, anchor.x - clusterSpan),
         y: 0,
-        w: Math.min(img.width, anchor.x + aw * 6.5) - Math.max(0, anchor.x - aw * 6.5),
+        w: Math.min(img.width, anchor.x + clusterSpan) - Math.max(0, anchor.x - clusterSpan),
         h: bandH,
       }
-      const local = findIconTop(img, r.img, { region: near, baseScale: anchor.scale, scaleFactor: 1.25, scaleSteps: 7, work, coarseStep: 3, minScore, timeBudgetMs: budget() }, 3)
+      const local = findIconTop(img, r.img, { region: near, baseScale: anchor.scale, scaleFactor: 1.25, scaleSteps: 7, work, coarseStep: 3, minScore, timeBudgetMs: leftOr(700) }, 3)
       hit = pickStableCandidate(local, { margin: 0.92, minScore })
       // 簇里没找到就到此为止：**不再跑一遍全条带**。
       // 这一步以前很贵（每个找不到的图标多花 0.9 秒，一帧就两秒），收益却极小 ——
@@ -541,19 +582,26 @@ export function recognizeFrame(img, words, {
       // 只有锚点自己也弱（说明这张图跟模板差别大，可能是新版本界面）时，
       // 才值得退回全条带再找一遍看看。
       if (!hit && anchor.score < ANCHOR_STRONG) {
-        fallbackHits = findIconTop(img, r.img, { region: band, scales: scalesFor(r.img), work, coarseStep: 3, minScore, timeBudgetMs: budget() }, 3)
+        fallbackHits = findIconTop(img, r.img, { region: band, scales: scalesFor(r.img), work, coarseStep: 3, minScore, timeBudgetMs: leftOr(700) }, 3)
         const wide = pickStableCandidate(fallbackHits, { margin: 0.92, minScore })
-        if (wide && Math.abs(wide.x - anchor.x) <= aw * MAX_CLUSTER) hit = wide
+        if (wide && Math.abs(wide.x - anchor.x) <= MAX_CLUSTER) hit = wide
         else if (wide) {
           seen.push({ key: r.key, score: +wide.score.toFixed(3), found: false, why: '离锚点太远' })
           continue
         }
       }
     } else if (!hit) {
-      // 锚点就是自己，或者压根没定出锚点 → 老老实实全条带找
-      const found = findIconTop(img, r.img, { region: band, scales: scalesFor(r.img), work, coarseStep: 3, minScore, timeBudgetMs: budget() }, 3)
-      hit = pickStableCandidate(found, { margin: 0.92, minScore })
-      fallbackHits = found
+      if (anchor && r === anchorR) {
+        // 锚点就是它自己：第一遍已经全条带扫过一遍了，直接用那次的命中。
+        // 以前这里又扫了一遍全条带 —— 异环实测白花 4.5 秒（一帧总共才十几秒），
+        // 而且扫出来的还是同一个位置。
+        hit = anchor
+      } else {
+        // 压根没定出锚点 → 老老实实全条带找
+        const found = findIconTop(img, r.img, { region: band, scales: scalesFor(r.img), work, coarseStep: 3, minScore, timeBudgetMs: leftOr(700) }, 3)
+        hit = pickStableCandidate(found, { margin: 0.92, minScore })
+        fallbackHits = found
+      }
     }
     if (!hit) {
       seen.push({ key: r.key, score: fallbackHits?.[0] ? +fallbackHits[0].score.toFixed(3) : null, found: false })
@@ -752,7 +800,7 @@ async function ocrBand(img, bandH, { lang = 'zh-Hans-CN' } = {}) {
  * 但明说「这张图只能看字、认不了图标数字」，让人换 PNG 重截，
  * 而不是丢一个看不懂的解码异常给用户。
  */
-export async function recognizeImageFile(filePath, { lang = 'zh-Hans-CN', minScore = MIN_SCORE, game = '' } = {}) {
+export async function recognizeImageFile(filePath, { lang = 'zh-Hans-CN', minScore = MIN_SCORE, game = '', keys = null } = {}) {
   const profile = profileForGame(game)
   const buf = fs.readFileSync(filePath)
   let img = null
@@ -782,7 +830,7 @@ export async function recognizeImageFile(filePath, { lang = 'zh-Hans-CN', minSco
   const bandH = Math.max(48, Math.round(img.height * TOP_BAND_RATIO))
   const ocr = await ocrBand(img, bandH, { lang })
   if (!ocr.ok) return { ok: false, error: ocr.error }
-  const r = recognizeFrame(img, ocr.words, { minScore, profile })
+  const r = recognizeFrame(img, ocr.words, { minScore, profile, keys })
   return {
     ok: true,
     game: profile.id,
@@ -861,6 +909,7 @@ export async function recognizeScreenOnce({
   minScore = MIN_SCORE,
   lang = 'zh-Hans-CN',
   timeBudgetMs = 0,
+  keys = null,
 } = {}) {
   // 认哪个游戏由调用方给（前端传的是**订单上选的游戏**）
   const profile = profileForGame(game)
@@ -882,7 +931,7 @@ export async function recognizeScreenOnce({
     const ocr = await ocrBand(img, bandH, { lang })
     if (!ocr.ok) return { ok: false, error: ocr.error }
     // 单帧最多花 1.5 秒：认不出来就该老实返回，让前端接着看下一帧
-    const frame = recognizeFrame(img, ocr.words, { minScore, timeBudgetMs: 1500, profile })
+    const frame = recognizeFrame(img, ocr.words, { minScore, timeBudgetMs: 1500, profile, keys })
     let session = sessions.get(id)
     if (!session) {
       session = { votes: new Map(), frames: 0, touched: Date.now(), game: profile.id }

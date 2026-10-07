@@ -142,6 +142,7 @@ async function seed(base) {
     orderNo: order.body.order_no,
     customerId: customer.body.id,
     game: 'UI冒烟游戏',
+    gameId: game.body.id,
     customer: 'UI客户',
     service: 'UI服务项',
     categoryId: category.body.id,
@@ -701,9 +702,33 @@ async function main() {
         title: '开一张新单',
         wide: true,
         fields: ['客户', '游戏', '下单日期', '交付日期', '｜整', '订单标题｜整', '折扣（元）', '平台手续费（元）', '成本（元）', '给客户看的备注｜整', '只有自己看得到的备注｜整'],
-        controls: ['SELECT', 'SELECT', 'INPUT', 'INPUT', 'custom', 'INPUT', 'INPUT', 'INPUT', 'INPUT', 'TEXTAREA', 'TEXTAREA'],
+        // 「游戏」不再是下拉：它由挑中的服务项推出来，所以是 custom（readonly 展示），
+        // 也没有 composer-game 这个 select 了（用户报的「选了游戏但服务没跟着筛」就是这么消掉的）。
+        controls: ['SELECT', 'custom', 'INPUT', 'INPUT', 'custom', 'INPUT', 'INPUT', 'INPUT', 'INPUT', 'TEXTAREA', 'TEXTAREA'],
         foot: ['取消', '开单'],
       }, '开单台：')
+
+      // 还没挑服务时，游戏那一格明确说「挑了服务项自动填」，不能空着让人以为要手选
+      ok('没挑服务时游戏格写着自动填', (await cdp.eval(`document.querySelector('[data-testid="composer-games"]')?.innerText || ''`)).includes('自动填'), await cdp.eval(`document.querySelector('[data-testid="composer-games"]')?.innerText || ''`))
+
+      // 用户报的另一个毛病：「挑了游戏，服务没自动跟着选分类」。
+      // 现在按游戏筛了之后，这个游戏只有一个大类时大类下拉自己选中它 ——
+      // 只有一个候选还要人再点一次下拉，纯属多余的机械动作。
+      await fillTopField(cdp, 'select[aria-label="按游戏筛选"]', String(fixture.gameId))
+      const catSelectText = `(() => {
+        const sel = document.querySelector('select[aria-label="按大类筛选"]')
+        if (!sel) return 'no-select'
+        const opts = [...sel.options].filter((o) => o.value)
+        return JSON.stringify({ options: opts.map((o) => o.textContent.trim()), value: sel.value, picked: (sel.selectedOptions[0] || {}).textContent || '' })
+      })()`
+      ok('按游戏筛选后大类自动选中了那一个', await waitFor(cdp, `(() => {
+        const sel = document.querySelector('select[aria-label="按大类筛选"]')
+        if (!sel) return false
+        const opts = [...sel.options].filter((o) => o.value)
+        return opts.length === 1 && sel.value === opts[0].value
+      })()`, { tries: 25, interval: 200 }), await cdp.eval(catSelectText))
+      // 筛完游戏还能正常搜到本游戏的服务项（筛选是「都要满足」，不能把列表筛没）
+      ok('按游戏筛完还能搜到服务项', (await cdp.eval(`document.querySelectorAll(${JSON.stringify(`${OPEN_DRAWER} .pickrow`)}).length`)) >= 1, await cdp.eval(`document.querySelectorAll(${JSON.stringify(`${OPEN_DRAWER} .pickrow`)}).length`))
 
       // 搜出来勾上：默认数量 = 起订量，钱按基准价
       await fillTopField(cdp, 'input[type="search"]', fixture.service)
@@ -711,6 +736,8 @@ async function main() {
       ok('搜出 1 行服务项', (await cdp.eval(`document.querySelectorAll(${JSON.stringify(`${OPEN_DRAWER} .pickrow`)}).length`)) === 1, await cdp.eval(`document.querySelectorAll(${JSON.stringify(`${OPEN_DRAWER} .pickrow`)}).length`))
       ok('勾上了这一行', await pickService(cdp, fixture.service))
       ok('合计按基准价 ¥12', await waitFor(cdp, `(${TOP_DRAWER})?.querySelector('.quote-sheet__totalfig')?.textContent === '¥12'`, { tries: 25, interval: 200 }), await totalText(cdp))
+      // 游戏由服务项推出来：勾完就该显示这个服务项所属的游戏，不用手选
+      ok('勾完服务项，游戏自动显示出来了', await waitFor(cdp, `(document.querySelector('[data-testid="composer-games"]')?.innerText || '').includes(${JSON.stringify(fixture.game)})`, { tries: 20, interval: 200 }), await cdp.eval(`document.querySelector('[data-testid="composer-games"]')?.innerText || ''`))
       ok('行上写清了按什么算', (await topText(cdp)).includes('按 1 单 算，基准单价 ¥12'), (await topText(cdp)).slice(0, 200))
 
       // 数量 / 改价
@@ -764,6 +791,11 @@ async function main() {
       const created = await api(app.base, 'GET', `/api/orders/${newId}`, undefined, fixture.cookie)
       ok('新单合计 ¥232', Number(created.body.total) === 232, created.body.total)
       ok('折扣 6 记下了', Number(created.body.discount) === 6, created.body.discount)
+      // 表单里没有「游戏」这个下拉了：这一单的游戏是服务端按明细里的服务项推出来的。
+      // 界面上那一行显示的、和库里存下来的必须是同一个游戏，不然「一单混几个游戏」
+      // 就会变成「头上写一个、明细其实是另一个」。
+      ok('订单的游戏是按服务项自动推出来的', Number(created.body.game_id) === Number(fixture.gameId) && created.body.game_name === fixture.game, `${created.body.game_id} / ${created.body.game_name}`)
+      ok('详情页上也写着这个游戏', await waitFor(cdp, `(document.body.innerText || '').includes(${JSON.stringify(fixture.game)})`, { tries: 20, interval: 200 }))
       ok('三条明细都在', (created.body.items || []).length === 3, (created.body.items || []).map((item) => `${item.name}×${item.quantity}`).join(' / '))
       const fixedLine = (created.body.items || []).find((item) => item.name === fixture.service)
       ok('UI服务项 3 单 × ¥12', fixedLine && Number(fixedLine.quantity) === 3 && Number(fixedLine.unit_price) === 12, fixedLine && `${fixedLine.quantity} × ${fixedLine.unit_price}`)

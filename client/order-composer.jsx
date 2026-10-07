@@ -138,7 +138,6 @@ function OrderComposer({
   const [picked, setPicked] = useState(initialPicked)
   const [form, setForm] = useState(() => ({
     customer_id: existing ? String(existing.customer_id) : presetCustomer ? String(presetCustomer) : '',
-    game_id: existing && existing.game_id ? String(existing.game_id) : '',
     ordered_at: existing ? fmtDate(existing.ordered_at) : todayStr(),
     due_at: existing && existing.due_at ? fmtDate(existing.due_at) : '',
     title: existing?.title || '',
@@ -158,6 +157,36 @@ function OrderComposer({
 
   const set = (key) => (value) => setForm((current) => ({ ...current, [key]: value }))
 
+  /* ============================================================
+     这一单是哪个（哪些）游戏 —— 由**挑中的服务项**推出来，不用手选。
+     ============================================================
+
+     以前开单台上有个「游戏」下拉，但它其实只管存进订单、并不过滤服务项；
+     真正过滤的是挑服务区那个「按游戏筛选」。两个控件各管一半，于是：
+       · 以为选了游戏就能只看到那个游戏的服务 —— 结果列表没变（用户报的就是这个）；
+       · 一张单里混了两个游戏的服务时，订单头上的游戏只能写一个（或者空着），
+         进度里该记哪套资源也说不清。
+     现在明细说了算：一个游戏就写它，多个就拼成「鸣潮 + 异环」，
+     一张单想混几个游戏就混几个。
+     ============================================================ */
+  const pickedGames = useMemo(() => {
+    const out = []
+    for (const id of Object.keys(picked)) {
+      const service = servicesById.get(Number(id))
+      if (!service) continue
+      const gid = service.game_id || service._catGameId || ''
+      if (!gid) continue
+      const key = String(gid)
+      if (out.some((g) => g.key === key)) continue
+      out.push({ key, name: gameById.get(key)?.name || '' })
+    }
+    return out
+  }, [picked, servicesById, gameById])
+  // 头上一行显示用：一个游戏写名字，多个拼起来，一个都没有就说还没挑
+  const pickedGameText = pickedGames.length
+    ? pickedGames.map((g) => g.name).filter(Boolean).join(' + ')
+    : ''
+
   const pickableCats = useMemo(() => {
     const withService = categories.filter((category) => category.services && category.services.length)
     if (!gameFilter) return withService
@@ -170,6 +199,18 @@ function OrderComposer({
   useEffect(() => {
     if (catFilter && !pickableCats.some((category) => String(category.id) === catFilter)) setCatFilter('')
   }, [pickableCats, catFilter])
+
+  /**
+   * 按游戏筛了之后**自动选大类**：一个游戏通常就一个大类（比如鸣潮一个、异环一个），
+   * 这时候还让人再从下拉里挑一次纯属多余 —— 筛了游戏却还看着「全部大类」，
+   * 就是用户说的「挑了游戏没自动选分类」。有好几个大类时才留给他自己选。
+   */
+  useEffect(() => {
+    if (!gameFilter) return
+    if (pickableCats.length === 1) setCatFilter(String(pickableCats[0].id))
+    // 只在换游戏时自动选一次；之后用户自己改大类不要再被拽回去
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameFilter])
 
   const groups = useMemo(() => {
     const keyword = query.trim().toLowerCase()
@@ -272,10 +313,6 @@ function OrderComposer({
   }
 
   async function submit() {
-    if (!form.customer_id && !form.game_id && !pickedCount) {
-      toast('至少选一个客户和一个服务项', 'err')
-      return
-    }
     if (!pickedCount) {
       toast('还没挑服务项', 'err')
       return
@@ -325,7 +362,8 @@ function OrderComposer({
 
     const payload = {
       customer_id: Number(form.customer_id),
-      game_id: form.game_id ? Number(form.game_id) : null,
+      // 游戏**不发了**：服务端按 items 里的服务项自己推。
+      // 以前这里发的是那个手选的下拉值，和服务项实际属于哪个游戏可以完全无关。
       title: form.title,
       discount,
       platform_fee: fee,
@@ -409,17 +447,19 @@ function OrderComposer({
             </div>
 
             <div className="field">
-              <label className="lbl" htmlFor="composer-game">
-                游戏
-              </label>
-              <select id="composer-game" className="sel" value={form.game_id} onChange={(event) => set('game_id')(event.target.value)}>
-                <option value="">— 选游戏 —</option>
-                {games.map((game) => (
-                  <option key={game.id} value={String(game.id)}>
-                    {game.name}
-                  </option>
-                ))}
-              </select>
+              <span className="lbl">游戏</span>
+              {/* 不是下拉：游戏由下面挑的服务项推出来，改不了（也不需要改） */}
+              <div className="inp" style={{ display: 'flex', alignItems: 'center', gap: '6px' }} data-testid="composer-games">
+                {pickedGameText ? (
+                  <>
+                    <span>{pickedGameText}</span>
+                    {pickedGames.length > 1 ? <span className="tiny dim">{`混了 ${pickedGames.length} 个游戏`}</span> : null}
+                  </>
+                ) : (
+                  <span className="dim">挑了服务项自动填</span>
+                )}
+              </div>
+              <div className="hint">按挑中的服务项自动推，可以混着挑多个游戏的服务。</div>
             </div>
 
             <div className="field">

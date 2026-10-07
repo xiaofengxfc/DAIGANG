@@ -19,6 +19,12 @@ import zlib from 'node:zlib'
 import { pathToFileURL } from 'node:url'
 // 纯函数，不连数据库，可以直接拿来验「凌晨 4 点换日」的边界
 import { bizDate, localDate, DAY_START_HOUR } from '../src/util.mjs'
+// 资源文本的分段（一单多个游戏）也是纯函数，直接验
+import { splitResourceSections, sectionText, joinResourceSections, deltaText, resourceDeltaList } from '../shared/resources.js'
+// 识别打分口径（掩码 NCC）和「按屏取键」也是纯函数：不连服务器就能验那两个踩过的坑
+import { subImage, buildIntegral, compileTemplate, matchAt } from '../src/vision.mjs'
+import { recognizeFrame, CLUSTER_RATIO } from '../src/screen.mjs'
+import { profileForGame } from '../shared/game-profiles.js'
 // 导出配色的定义处，断言从这里取色值，不再把十六进制写死在测试里
 import { DOCX_PALETTE } from '../src/docx.mjs'
 
@@ -303,6 +309,168 @@ export async function run() {
   ok('快照记下增项', order.addon_summary?.length === 2, order.addon_summary)
   ok('订单冻结了客户名', order.customer_name === '小王', order.customer_name)
   ok('订单冻结了游戏名', order.game_name === '原神', order.game_name)
+
+  /* ---------- 订单的游戏：按明细自动推，不用手选，也能混 ---------- */
+  section('订单 · 游戏按服务项自动推')
+  {
+    // 单游戏：不传 game_id，也要按服务项推出来（以前不传就是空串）
+    r = await api('POST', '/api/orders', { customer_id: custId, items: [{ service_id: svcDaily, quantity: 1 }] })
+    ok('没手选游戏时按服务项推出来', r.status === 200 && r.body.game_name === '原神', r.body.game_name)
+    ok('单游戏时 game_id 仍是那个游戏', r.body.game_id === gameId, r.body.game_id)
+    ok('详情里带本单游戏列表', Array.isArray(r.body.games) && r.body.games.length === 1 && r.body.games[0].name === '原神', r.body.games)
+    await api('DELETE', `/api/orders/${r.body.id}?force=1`)
+  }
+  {
+    // 混两个游戏：一张单装得下，头上写「A + B」，game_id 留空
+    // （硬塞其中一个会让「按游戏筛选」说谎 —— 这单明明是两张游戏的）
+    const cat2 = (await api('POST', '/api/categories', { name: '星穹日常', game_id: game2 })).body.id
+    const svc2 = (await api('POST', '/api/services', { name: '星穹每日', category_id: cat2, game_id: game2, price_type: 'fixed', base_price: 3 })).body.id
+    r = await api('POST', '/api/orders', {
+      customer_id: custId,
+      items: [
+        { service_id: svcDaily, quantity: 1 },
+        { service_id: svc2, quantity: 1 },
+      ],
+    })
+    ok('一张单可以混两个游戏', r.status === 200 && r.body.items?.length === 2, r.body.items?.length)
+    ok('混游戏时游戏名拼起来', r.body.game_name === '原神 + 崩坏：星穹铁道', r.body.game_name)
+    ok('混游戏时 game_id 留空', r.body.game_id === null, r.body.game_id)
+    ok('详情里列出两个游戏', r.body.games?.length === 2, r.body.games)
+
+    // 明细改了，游戏跟着重推：把这个混单改成只剩原神一项
+    r = await api('PATCH', `/api/orders/${r.body.id}`, { items: [{ service_id: svcDaily, quantity: 1 }] })
+    ok('改完明细游戏跟着重推', r.body.game_name === '原神' && r.body.game_id === gameId, `${r.body.game_name} / ${r.body.game_id}`)
+
+    await api('DELETE', `/api/orders/${r.body.id}?force=1`)
+    await api('DELETE', `/api/services/${svc2}?hard=1`)
+    await api('DELETE', `/api/categories/${cat2}?hard=1`)
+  }
+
+  /* ---------- 资源文本的分段（一单多个游戏时按【游戏】分开记） ---------- */
+  section('资源 · 一单多游戏的分段存法')
+  {
+    const two = '【鸣潮】星声 2174 体力 255 贝币 2508319 【异环】甲硬币 929484 方斯 4116889 环石 3087'
+    const secs = splitResourceSections(two)
+    ok('分段文本拆成两段', secs && secs.length === 2, secs)
+    ok('分段带游戏名', secs?.[0]?.game === '鸣潮' && secs?.[1]?.game === '异环', secs?.map((s) => s.game))
+    ok('两段正文各自独立', sectionText(two, '异环') === '甲硬币 929484 方斯 4116889 环石 3087', sectionText(two, '异环'))
+    ok('没分段的文本不算分段', splitResourceSections('星声 105 体力 86') === null, splitResourceSections('星声 105 体力 86'))
+
+    // 单游戏订单存出来必须和以前**一模一样**（老记录、老报表都当没这回事）
+    ok('只有一段时不加【】标记', joinResourceSections([{ game: '鸣潮', body: '星声 1' }, { game: '异环', body: '' }]) === '星声 1', joinResourceSections([{ game: '鸣潮', body: '星声 1' }, { game: '异环', body: '' }]))
+    ok('两段都有内容时才分段', joinResourceSections([{ game: '鸣潮', body: '星声 1' }, { game: '异环', body: '环石 2' }]) === '【鸣潮】星声 1 【异环】环石 2', joinResourceSections([{ game: '鸣潮', body: '星声 1' }, { game: '异环', body: '环石 2' }]))
+
+    // 分段文本的差值要按段各算一次：两个游戏都记了「体力」，不能混成一个数
+    const twoAfter = '【鸣潮】星声 2154 体力 215 贝币 2508319 【异环】甲硬币 929000 方斯 4116889 环石 3000'
+    const deltas = resourceDeltaList(two, twoAfter)
+    ok('分段差值带游戏名', deltas.every((d) => d.game), deltas)
+    ok(
+      '鸣潮体力 −40、异环体力没记就不算',
+      deltas.some((d) => d.game === '鸣潮' && d.key === '体力' && d.diff === -40) && !deltas.some((d) => d.game === '异环' && d.key === '体力'),
+      deltas
+    )
+    ok('文案里也带游戏名', deltaText(two, twoAfter).includes('鸣潮 体力 −40'), deltaText(two, twoAfter))
+    ok('老文本的文案一个字没变', deltaText('星声 105 体力 86', '星声 85 体力 60') === '本次消耗：星声 −20 · 体力 −26', deltaText('星声 105 体力 86', '星声 85 体力 60'))
+    // 报表口径：认不出的标签也要照原文比（老数据里有原石、树脂这种）
+    ok(
+      '报表连认不出的标签一起比',
+      resourceDeltaList('原石 12000', '原石 11900', { includeUnknown: true })[0]?.diff === -100,
+      resourceDeltaList('原石 12000', '原石 11900', { includeUnknown: true })
+    )
+  }
+
+  /* ============================================================
+     屏幕识别 · 打分口径（掩码 NCC）与「按屏只找需要的图标」
+
+     两条都是纯函数，不连服务器。放在这里是因为各自对应一次真踩过的坑：
+       · 异环的甲硬币是锚点，旧口径下模板跟它自己匹配只有 0.52 → 锚点永远定不出来；
+       · 每帧把整份模板表都扫一遍，地图页把体力的 255 挂到了甲硬币名下。
+     ============================================================ */
+  section('屏幕识别 · 掩码 NCC 与按屏取键')
+  {
+    // ---- 打分口径 ----
+    // 造一张「又亮又光滑的图标压在暗背景上」的图，正是异环金币那种画风：
+    // 图标内部几乎是一整块渐变，背景近黑。旧分母用整窗（含背景）的起伏，
+    // 会被那点反差撑大，于是自己匹配自己也只有 0.5 上下。
+    const W = 160
+    const H = 80
+    const px = new Uint8Array(W * H * 3)
+    for (let i = 0; i < px.length; i += 3) {
+      px[i] = 12
+      px[i + 1] = 12
+      px[i + 2] = 18
+    }
+    const cx = 60
+    const cy = 36
+    const r = 22
+    for (let y = cy - r; y <= cy + r; y++) {
+      for (let x = cx - r; x <= cx + r; x++) {
+        const d = Math.hypot(x - cx, y - cy)
+        if (d > r) continue
+        const t = 1 - d / r
+        const i = (y * W + x) * 3
+        px[i] = Math.round(95 + 145 * t)
+        px[i + 1] = Math.round(75 + 115 * t)
+        px[i + 2] = Math.round(25 + 45 * t)
+      }
+    }
+    const canvas = { width: W, height: H, px }
+    // 模板比圆大一圈（和真实模板一样带一点背景），锚定位置 = (38,14)
+    const box = { x: cx - 22, y: cy - 22, w: 44, h: 44 }
+    const patch = subImage(canvas, box.x, box.y, box.w, box.h)
+    const ii = buildIntegral(canvas)
+    const region = { x: 0, y: 0, w: W, h: H }
+    const oldHit = matchAt(canvas, ii, region, compileTemplate(patch), { step: 1 })
+    const newHit = matchAt(canvas, ii, region, compileTemplate(patch, { maskedNcc: true }), { step: 1 })
+    ok('掩码 NCC：自己匹配自己 ≈ 1', Math.abs(newHit.score - 1) < 0.02, newHit.score)
+    ok('掩码 NCC 命中的正是模板抠出来的位置', newHit.x === box.x && newHit.y === box.y, `${newHit.x},${newHit.y}`)
+    ok('旧口径在同一个位置只有 0.8 以下（异环金币就是这么认不出来的）', oldHit.score < 0.8, oldHit.score)
+    ok('掩码 NCC 的分数到得了锚点线 0.85', newHit.score >= 0.85, newHit.score)
+
+    // ---- 按屏取键 ----
+    // 两个「图标」摆在同一条带上，只请求其中一个：另一个连 seen 里都不该出现。
+    // 尺寸要像真的：识别会按「图标宽 = 画面宽的 0.0344」去估大小，
+    // 给一张 120×40 的小图会被放大十几倍去扫，那测的是反缩放不是取键。
+    const BW = 1280
+    const BH = 400
+    const board = { width: BW, height: BH, px: new Uint8Array(BW * BH * 3) }
+    for (let i = 0; i < board.px.length; i += 3) {
+      const v = 24 + (i % 9)
+      board.px[i] = v
+      board.px[i + 1] = v
+      board.px[i + 2] = v + 4
+    }
+    const tile = (x0, rd, gd, bd) => {
+      const side = 44
+      for (let y = 8; y < 8 + side; y++) {
+        for (let x = x0; x < x0 + side; x++) {
+          const i = (y * BW + x) * 3
+          board.px[i] = rd
+          board.px[i + 1] = gd
+          board.px[i + 2] = bd
+        }
+      }
+      return { width: side, height: side, px: subImage(board, x0, 8, side, side).px }
+    }
+    const refs = [
+      { key: '红块', img: tile(200, 220, 40, 40), anchor: true, allowZero: false, aliases: ['红块'] },
+      { key: '蓝块', img: tile(600, 40, 60, 220), anchor: false, allowZero: false, aliases: ['蓝块'] },
+    ]
+    // 不限时：平色块本来就定不出锚点，给预算会走到「没锚点就到点收工」那条分支，
+    // 结果 seen 是空的 —— 那是另一码事，不是取键的问题。
+    const onlyRed = recognizeFrame(board, [], { refs, keys: ['红块'], profile: '鸣潮', timeBudgetMs: 0 })
+    ok('只请求一个键时另一个键不会被找（seen 里也不出现）', onlyRed.seen.length === 1 && onlyRed.seen[0].key === '红块', onlyRed.seen.map((s) => s.key))
+    const bothTiles = recognizeFrame(board, [], { refs, profile: '鸣潮', timeBudgetMs: 0 })
+    ok('不传 keys 还是老行为：整份模板表都找', bothTiles.seen.length === 2, bothTiles.seen.map((s) => s.key))
+
+    // ---- 簇半径换算 ----
+    // 簇半径从「锚点图标宽的 6.5 倍」换成「画面宽度的比例」之后，
+    // 鸣潮那套已经调好的数值必须一模一样（6.5 × 0.0344 = 0.2236）。
+    const wuwa = profileForGame('鸣潮')
+    ok('鸣潮的簇半径和旧的 6.5×图标宽等价', Math.abs(CLUSTER_RATIO - 6.5 * wuwa.iconWidthRatio) < 0.001, `${CLUSTER_RATIO} vs ${6.5 * wuwa.iconWidthRatio}`)
+    ok('异环的簇半径更宽（图标只有鸣潮的 65%，顶栏资源还铺得更开）', profileForGame('异环').clusterRatio > CLUSTER_RATIO, profileForGame('异环').clusterRatio)
+    ok('异环走掩码 NCC、鸣潮不走（不动它标定好的阈值）', profileForGame('异环').maskedNcc === true && !wuwa.maskedNcc, `${profileForGame('异环').maskedNcc}/${wuwa.maskedNcc}`)
+  }
 
   // 改价格表，老订单不受影响
   await api('PATCH', `/api/services/${svcDaily}`, { base_price: 99 })

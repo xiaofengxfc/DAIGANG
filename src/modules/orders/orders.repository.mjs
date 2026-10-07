@@ -48,10 +48,13 @@ export function getOrder(id) {
   const items = db
     .prepare(
       `SELECT i.*, c.name AS category_name,
-              CASE WHEN s.is_daily IS NOT NULL THEN s.is_daily ELSE c.is_daily END AS daily_flag
+              CASE WHEN s.is_daily IS NOT NULL THEN s.is_daily ELSE c.is_daily END AS daily_flag,
+              COALESCE(s.game_id, c.game_id) AS item_game_id,
+              g.name AS item_game_name
        FROM order_items i
        LEFT JOIN services s ON s.id = i.ref_id
        LEFT JOIN service_categories c ON c.id = s.category_id
+       LEFT JOIN games g ON g.id = COALESCE(s.game_id, c.game_id)
        WHERE i.order_id = ? ORDER BY i.sort_order, i.id`
     )
     .all(order.id)
@@ -76,12 +79,31 @@ export function getOrder(id) {
   const parsedProgress = progress.map((entry) => ({ ...entry, media: parseProgressMedia(entry.media) }))
   const dailyItems = parsedItems.filter((item) => item.is_daily)
 
+  /**
+   * 这一单实际涉及哪些游戏 —— **按明细里的服务项推**，不看订单头上那个 game_id。
+   *
+   * 以前订单的游戏是开单时手选的，还兼着「过滤服务项」的活；结果一张单里有
+   * 两个游戏的服务时，头上只能写一个（或者干脆空着），进度里该记哪套资源
+   * 也说不清。现在明细说了算：一单混几个游戏，就记几套。
+   * 明细里的服务项已经不在价格表里（报价单转来的）时，退回订单头上的字段 ——
+   * 那是唯一线索了。
+   */
+  const gameList = []
+  for (const item of parsedItems) {
+    const gid = item.item_game_id
+    if (!gid) continue
+    if (!gameList.some((g) => g.id === gid)) gameList.push({ id: gid, name: item.item_game_name || '' })
+  }
+  if (!gameList.length && order.game_id) gameList.push({ id: order.game_id, name: order.game_name || '' })
+
   return {
     ...order,
     items: parsedItems,
     payments,
     progress: parsedProgress,
     credentials,
+    games: gameList,
+    game_names: gameList.map((g) => g.name),
     package_contents: parsedItems.flatMap((item) => (item.snapshot.package_items || []).map((content) => ({ service: item.name, item: content }))),
     addon_summary: parsedItems.flatMap((item) => (item.snapshot.addons || []).map((addon) => ({ service: item.name, ...addon }))),
     daily_item_count: dailyItems.length,
@@ -90,8 +112,37 @@ export function getOrder(id) {
   }
 }
 
-export function insertOrderItems(orderId, items) {
-  const stmt = db.prepare(
+/**
+ * 一组服务项各自属于哪个游戏（服务项自己没设游戏时看它的大类）。
+ * 服务项和大类都没设 → 这个服务项不算游戏（返回里就没有它）。
+ */
+export function gamesOfServices(refIds) {
+  const ids = [...new Set((refIds || []).map((x) => Number(x)).filter((n) => n > 0))]
+  if (!ids.length) return []
+  return db
+    .prepare(
+      `SELECT DISTINCT g.id, g.name FROM services s
+       LEFT JOIN service_categories c ON c.id = s.category_id
+       JOIN games g ON g.id = COALESCE(s.game_id, c.game_id)
+       WHERE s.id IN (${ids.map(() => '?').join(',')}) ORDER BY g.id`
+    )
+    .all(...ids)
+}
+
+/**
+ * 明细的游戏列表 → 订单头上那两个字段该写什么。
+ *   一个游戏 → 就写它（老行为，列表里按游戏筛还能筛到）
+ *   多个游戏 → game_id 留空、game_name 拼成「鸣潮 + 异环」——
+ *     硬塞其中一个会让「按游戏筛选」说谎（明明是两张游戏的单）。
+ */
+export function orderGameOfItemGames(list) {
+  const games = list || []
+  if (!games.length) return { game_id: null, game_name: '' }
+  if (games.length === 1) return { game_id: games[0].id, game_name: games[0].name || '' }
+  return { game_id: null, game_name: games.map((g) => g.name).filter(Boolean).join(' + ') }
+}
+
+export function insertOrderItems(orderId, items) {  const stmt = db.prepare(
     `INSERT INTO order_items (order_id, kind, ref_id, name, spec, price_type, unit_label, unit_price, quantity, amount, snapshot, sort_order)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )

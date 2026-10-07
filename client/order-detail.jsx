@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Check, Copy, Link as LinkIcon, Pencil, Plus, RefreshCw, Trash2, Wallet } from 'lucide-react'
 import { PAY_KIND_LABEL, PAY_METHOD_LABEL, STATUS_FLOW, STATUS_TONE, api } from './lib/api.js'
 import { fmtDateTime, fmtDay, fmtMoney, fmtQty, remainInfo } from './lib/formatters.js'
-import { resourceDelta } from '../shared/resources.js'
+import { resourceDeltaList } from '../shared/resources.js'
 import { canvasToBlob, downloadBlob } from '../public/js/pricecard.js'
 import { renderProgressCard } from '../public/js/progresscard.js'
 import { toast, toastErr } from './app/toast-store.js'
@@ -256,7 +256,18 @@ export default function OrderDetailPage({ route, navigate, onReload, reloadKey }
                 />
               </div>
               <div className="panel__body" style={{ paddingTop: '0' }}>
-                <ProgressTimeline list={order.progress} onEdit={(progress) => openEditProgressForm(progress, reload, order.game_name)} onDelete={removeProgress} />
+                <ProgressTimeline
+                  list={order.progress}
+                  onEdit={(progress) =>
+                    openEditProgressForm(
+                      progress,
+                      reload,
+                      order.game_name,
+                      (order.games || []).map((g) => g.name).filter(Boolean)
+                    )
+                  }
+                  onDelete={removeProgress}
+                />
               </div>
             </section>
           </div>
@@ -519,7 +530,8 @@ function ProgressTimeline({ list, onEdit, onDelete }) {
   return (
     <div className="timeline">
       {sorted.map((progress, index) => {
-        const deltas = resourceDelta(progress.resources_before, progress.resources_after)
+        // 分段文本（一单多个游戏）按段各算一次，key 上会带游戏名
+        const deltas = resourceDeltaList(progress.resources_before, progress.resources_after)
         const media = progress.media || []
         const shots = media.filter((item) => /\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(item))
         const links = media.filter((item) => !/\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(item))
@@ -553,8 +565,11 @@ function ProgressTimeline({ list, onEdit, onDelete }) {
                 <div className="tl__deltas">
                   <span className="dim tiny">本次消耗</span>
                   {deltas.map((delta) => (
-                    <span key={delta.key} className={`tl__delta tone-${delta.diff < 0 ? 'oxblood' : delta.diff > 0 ? 'jade' : 'muted'}`}>
-                      {`${delta.key} ${delta.diff < 0 ? '−' : delta.diff > 0 ? '+' : '±'}${fmtQty(Math.abs(delta.diff))}`}
+                    <span
+                      key={`${delta.game || ''}-${delta.key}`}
+                      className={`tl__delta tone-${delta.diff < 0 ? 'oxblood' : delta.diff > 0 ? 'jade' : 'muted'}`}
+                    >
+                      {`${delta.game ? `${delta.game} ` : ''}${delta.key} ${delta.diff < 0 ? '−' : delta.diff > 0 ? '+' : '±'}${fmtQty(Math.abs(delta.diff))}`}
                     </span>
                   ))}
                 </div>

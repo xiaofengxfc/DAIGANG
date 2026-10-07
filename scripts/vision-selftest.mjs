@@ -7,12 +7,18 @@
    所以留一个能反复跑的自检，改完 `src/vision.mjs` / `src/screen.mjs` / `src/ocr.mjs`
    就 `node scripts/vision-selftest.mjs` 过一遍。
 
+   一个游戏一条（现在两条：鸣潮的武器页、异环的背包页和地图页），
+   每条带自己的期望值 —— 两个游戏的图标大小、画风、取数页面都不一样，
+   混在一起比等于没比（异环的图标只有鸣潮的 65%，早期拿鸣潮的尺度去扫它，
+   一个都找不到）。
+
    它不需要起服务器、不碰数据库，只读 shots/samples/ 里的图。
    没有样例图就跳过（不会让 check 失败）。
 
    用法：
      node scripts/vision-selftest.mjs              # 全部
-     node scripts/vision-selftest.mjs --quick      # 只跑两个分辨率
+     node scripts/vision-selftest.mjs --quick      # 每套只跑两个分辨率
+     node scripts/vision-selftest.mjs --game=异环  # 只跑一个游戏
      node scripts/vision-selftest.mjs --json       # 输出 JSON（给别的脚本用）
      node scripts/vision-selftest.mjs --backend=python   # 只跑 Python 视觉后端
      node scripts/vision-selftest.mjs --backend=node     # 只跑旧的引擎链
@@ -34,11 +40,11 @@ import { ensureVisionStarted } from '../src/vision-python.mjs'
 import { scratchFile } from '../src/util.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const SAMPLE = path.join(ROOT, 'shots', 'samples', 'weapon-list.png')
 const argv = process.argv.slice(2)
 const args = new Set(argv)
 const QUICK = args.has('--quick')
 const AS_JSON = args.has('--json')
+const ONLY_GAME = (argv.find((a) => a.startsWith('--game=')) || '').split('=')[1] || ''
 const BACKEND = (argv.find((a) => a.startsWith('--backend=')) || '').split('=')[1] || ''
 
 /**
@@ -67,8 +73,7 @@ if (BACKEND === 'python') {
   process.env.XFC_OCR_ENGINE = BACKEND
 }
 
-/** 期望值：游戏顶栏那张图里星声 2174、贝币 2508319 */
-const EXPECT = { 星声: 2174, 贝币: 2508319 }
+/* 分辨率档位：从 720p 到 4K 都来一遍，再加几档超宽比例。 */
 const ALL_SIZES = [
   [1152, 720],
   [1280, 800],
@@ -84,7 +89,53 @@ const ALL_SIZES = [
   [1920, 822, { ultrawide: true }],
   [3440, 1440, { ultrawide: true }],
 ]
-const SIZES = QUICK ? [ALL_SIZES[1], ALL_SIZES[5]] : ALL_SIZES
+
+/**
+ * 异环只跑常规比例那几档。
+ *
+ * 它的样例图是 2559×1599 的真截图，缩到超宽比例等于把画面横向压扁
+ * （自检不保留宽高比，只按给定尺寸重采样），图标跟着变形 —— 那测的就不是
+ * 「异环认不认得出」，而是「变形到什么程度会认不出」。超宽那条上限
+ * 由鸣潮那套覆盖就够了（它本来就是按「UI 按高度缩」写的）。
+ */
+const NTE_SIZES = [
+  [1280, 800],
+  [1920, 1200],
+  [2559, 1599],
+  [3840, 2400],
+]
+
+/* ============================================================
+   每一套：一个游戏的一张真截图 + 期望值。
+   keys 是这一屏实际会有哪几个资源 —— 前端也是这么传的（见 /api/ocr/screen），
+   传了它识别就只找这几个，所以自检也要按同样的姿势跑。
+   ============================================================ */
+const CASES = [
+  {
+    game: '鸣潮',
+    sample: 'weapon-list.png',
+    keys: null,
+    expect: { 星声: 2174, 贝币: 2508319 },
+    sizes: ALL_SIZES,
+    note: '鸣潮顶栏（武器页）：星声 2174、贝币 2508319',
+  },
+  {
+    game: '异环',
+    sample: 'nte-bag.png',
+    keys: ['甲硬币', '方斯', '环石'],
+    expect: { 甲硬币: 929484, 方斯: 4116889, 环石: 3087 },
+    sizes: NTE_SIZES,
+    note: '异环背包页：甲硬币 929484、方斯 4116889、环石 3087（画风亮而光滑，走 maskedNcc 口径）',
+  },
+  {
+    game: '异环',
+    sample: 'nte-map.png',
+    keys: ['都市活力', '体力'],
+    expect: { 都市活力: 0, 体力: 255 },
+    sizes: NTE_SIZES,
+    note: '异环地图页：都市活力 0/700 取 0（allowZero）、体力 255/320 取 255',
+  },
+].filter((c) => !ONLY_GAME || c.game === ONLY_GAME)
 
 /* ============================================================
    截屏自检：截出来的必须是**整屏**，不能是被 DPI 虚拟化裁掉的一块。
@@ -160,9 +211,8 @@ if (!captured) {
 }
 console.log('')
 
-if (!fs.existsSync(SAMPLE)) {
-  console.log(`跳过：没有样例图 ${path.relative(ROOT, SAMPLE)}（把一张游戏顶栏截图放进去就能跑）`)
-  // 截屏那条是独立的，没有样例图也该管住它
+if (!CASES.length) {
+  console.log(`跳过：--game=${ONLY_GAME} 没有对应的样例（现在有 ${[...new Set(['鸣潮', '异环'])].join('、')}）`)
   process.exit(captureFailure ? 1 : 0)
 }
 
@@ -176,93 +226,133 @@ if (!st.available) {
 }
 
 const tpl = templateStatus()
-const src = decodePNG(fs.readFileSync(SAMPLE))
-const rows = []
+const report = []
 let pass = 0
 let total = 0
 let widePass = 0
 let wideTotal = 0
+let ranCases = 0
 
-for (const [W, H, opt] of SIZES) {
-  const img = resampleBilinear(src, W, H)
-  const bandH = Math.max(48, Math.round(H * 0.14))
-  const t0 = Date.now()
-  const ocr = await ocrTopBand(img, bandH)
-  const frame = ocr.ok ? recognizeFrame(img, ocr.words) : { hits: [], seen: [], anchor: null }
-  const ms = Date.now() - t0
-  /**
-   * 再来一遍，记「热态」耗时。
-   *
-   * 为什么要两遍：第一遍是冷启动 —— 锚点没定过标（要整条带扫一遍所有尺度），
-   * OCR 也可能撞上新形状。实测冷 2.8s / 热 1.1s，差两倍多。
-   * 用户点一次「识别画面」会连认好几帧，所以**热态那个数才是他日常感受到的速度**，
-   * 而冷态那个数是「第一次点要等多久」。两个都报，别只报好看的那个。
-   */
-  const t1 = Date.now()
-  const ocr2 = await ocrTopBand(img, bandH)
-  const frame2 = ocr2.ok ? recognizeFrame(img, ocr2.words) : { hits: [], seen: [], anchor: null }
-  const msWarm = Date.now() - t1
-  const got = Object.fromEntries(frame.hits.map((h) => [h.key, h.value]))
-  const smallText = frame.hits.filter((h) => h.warn).map((h) => h.key)
-  const wrong = Object.keys(EXPECT).filter((k) => got[k] !== EXPECT[k])
-  const row = {
-    size: `${W}x${H}`,
-    ultrawide: Boolean(opt && opt.ultrawide),
-    anchor: frame.anchor ? `${frame.anchor.key}@${frame.anchor.score}` : null,
-    got,
-    wrong,
-    small_text: smallText,
-    band_scale: ocr.band_scale,
-    ocr_ms: ocr.ms,
-    ms,
-    ms_warm: msWarm,
-    warm_got: Object.fromEntries(frame2.hits.map((h) => [h.key, h.value])),
+for (const c of CASES) {
+  const samplePath = path.join(ROOT, 'shots', 'samples', c.sample)
+  const tplForGame = templateStatus(c.game)
+  // 样例图是本地东西（shots/ 不进库），缺了就跳过这一套，不算失败 ——
+  // 但一张都没有时整个脚本等于什么都没验，那就该说清楚（见下面的收尾）。
+  if (!fs.existsSync(samplePath)) {
+    console.log(`跳过 ${c.game} / ${c.sample}：没有这张样例图（放进 shots/samples/ 就能跑）`)
+    continue
   }
-  rows.push(row)
-  if (row.ultrawide) {
-    wideTotal += Object.keys(EXPECT).length
-    widePass += Object.keys(EXPECT).length - wrong.length
-  } else {
-    total += Object.keys(EXPECT).length
-    pass += Object.keys(EXPECT).length - wrong.length
+  ranCases += 1
+  const wantKeys = Object.keys(c.expect)
+  const sizes = QUICK ? c.sizes.filter((_, i) => i === 1 || i === 2).slice(0, 2) : c.sizes
+  const src = decodePNG(fs.readFileSync(samplePath))
+
+  console.log(`── ${c.game} · ${c.sample} ──`)
+  console.log(`   ${c.note}`)
+  console.log(`   模板：${tplForGame.items.map((i) => `${i.key}(${i.w}×${i.h},${i.from})`).join(' ')}`)
+  console.log('')
+  console.log('   分辨率        锚点                结果                              带缩放  冷态     热态')
+
+  const rows = []
+  for (const [W, H, opt] of sizes) {
+    const img = resampleBilinear(src, W, H)
+    const bandH = Math.max(48, Math.round(H * 0.14))
+    const t0 = Date.now()
+    const ocr = await ocrTopBand(img, bandH)
+    const frame = ocr.ok ? recognizeFrame(img, ocr.words, { profile: c.game, keys: c.keys }) : { hits: [], seen: [], anchor: null }
+    const ms = Date.now() - t0
+    /**
+     * 再来一遍，记「热态」耗时。
+     *
+     * 为什么要两遍：第一遍是冷启动 —— 锚点没定过标（要整条带扫一遍所有尺度），
+     * OCR 也可能撞上新形状。实测冷 2.8s / 热 1.1s，差两倍多。
+     * 用户点一次「识别画面」会连认好几帧，所以**热态那个数才是他日常感受到的速度**，
+     * 而冷态那个数是「第一次点要等多久」。两个都报，别只报好看的那个。
+     */
+    const t1 = Date.now()
+    const ocr2 = await ocrTopBand(img, bandH)
+    const frame2 = ocr2.ok ? recognizeFrame(img, ocr2.words, { profile: c.game, keys: c.keys }) : { hits: [], seen: [], anchor: null }
+    const msWarm = Date.now() - t1
+    const got = Object.fromEntries(frame.hits.map((h) => [h.key, h.value]))
+    const smallText = frame.hits.filter((h) => h.warn).map((h) => h.key)
+    const wrong = wantKeys.filter((k) => got[k] !== c.expect[k])
+    const row = {
+      game: c.game,
+      sample: c.sample,
+      size: `${W}x${H}`,
+      ultrawide: Boolean(opt && opt.ultrawide),
+      anchor: frame.anchor ? `${frame.anchor.key}@${frame.anchor.score}` : null,
+      got,
+      wrong,
+      small_text: smallText,
+      band_scale: ocr.band_scale,
+      ocr_ms: ocr.ms,
+      ms,
+      ms_warm: msWarm,
+      warm_got: Object.fromEntries(frame2.hits.map((h) => [h.key, h.value])),
+    }
+    rows.push(row)
+    if (row.ultrawide) {
+      wideTotal += wantKeys.length
+      widePass += wantKeys.length - wrong.length
+    } else {
+      total += wantKeys.length
+      pass += wantKeys.length - wrong.length
+    }
+    if (opt && opt.ultrawide && wrong.length) {
+      // 超宽屏的已知上限：字太小导致自带 OCR 读错位数。只记录一下
+      // （界面上还会另外标「字太小」，认出来的数字也一律要人工核对）。
+      row.silent_wrong = wrong.filter((k) => !smallText.includes(k))
+    }
   }
-  if (opt && opt.ultrawide && wrong.length) {
-    // 超宽屏的已知上限：字太小导致自带 OCR 读错位数。只记录一下
-    // （界面上还会另外标「字太小」，认出来的数字也一律要人工核对）。
-    row.silent_wrong = wrong.filter((k) => !smallText.includes(k))
+
+  for (const r of rows) {
+    const cells = wantKeys.map((k) => `${k}=${r.got[k] ?? '—'}${r.got[k] === c.expect[k] ? '' : ' ✗'}`)
+    const tag = r.ultrawide ? ' (超宽)' : ''
+    const note = r.small_text.length ? `  [字太小:${r.small_text.join(',')}]` : ''
+    console.log(
+      `   ${(r.size + tag).padEnd(14)}${(r.anchor || '无锚点').padEnd(19)} ${cells.join('  ').padEnd(34)} ${String(r.band_scale ?? '-').padStart(5)}x ${String(r.ms).padStart(6)}ms ${String(r.ms_warm).padStart(6)}ms${note}`
+    )
   }
+
+  // 真实入口（含 PNG 解码、只 OCR 顶栏那条带）
+  let entry = null
+  try {
+    const r = await recognizeImageFile(samplePath, { game: c.game, keys: c.keys })
+    entry = { resources: r.resources, anchor: r.anchor, engine: r.engine, pixel: r.pixel }
+  } catch (err) {
+    entry = { error: err.message }
+  }
+  // 真实入口也压进通过线：它多走了解码和「只认顶栏那条带」两步，
+  // 分辨率那一圈全对、这条路却挂了的事发生过，所以两边都要管住。
+  const entryWrong = entry.error ? wantKeys : wantKeys.filter((k) => entry.resources?.[k] !== c.expect[k])
+  total += wantKeys.length
+  pass += wantKeys.length - entryWrong.length
+  const caseRows = rows.filter((r) => !r.ultrawide)
+  const casePass = caseRows.reduce((n, r) => n + (wantKeys.length - r.wrong.length), 0)
+  const caseTotal = caseRows.length * wantKeys.length
+  console.log('')
+  console.log(`   真实入口 recognizeImageFile：${entry.error ? '失败 ' + entry.error : JSON.stringify(entry.resources)}`)
+  console.log(`   ${c.game} / ${c.sample} 常规比例准确率：${casePass}/${caseTotal}，真实入口 ${wantKeys.length - entryWrong.length}/${wantKeys.length}`)
+  console.log('')
+  report.push({ ...c, rows, entry })
 }
 
-// 真实入口（含 PNG 解码、只 OCR 顶栏那条带）
-let entry = null
-try {
-  const r = await recognizeImageFile(SAMPLE)
-  entry = { resources: r.resources, anchor: r.anchor, engine: r.engine, pixel: r.pixel }
-} catch (err) {
-  entry = { error: err.message }
-}
+const wideSilent = report.flatMap((c) => c.rows.filter((r) => r.silent_wrong && r.silent_wrong.length).flatMap((r) => r.silent_wrong))
 
-const wideSilent = rows.filter((r) => r.silent_wrong && r.silent_wrong.length).flatMap((r) => r.silent_wrong)
+if (!ranCases) {
+  console.log(`跳过：shots/samples/ 里一张对的上的样例图都没有（这一遍等于什么都没验）`)
+  process.exit(captureFailure ? 1 : 0)
+}
 
 if (AS_JSON) {
-  console.log(JSON.stringify({ templates: tpl, engines: { engine: st.engine, name: st.engine_name }, backend: BACKEND || 'auto', forced_engine: process.env.XFC_OCR_ENGINE || '', rows, pass, total, widePass, wideTotal, entry }, null, 2))
-  process.exit(pass === total && !entry.error && !captureFailure ? 0 : 1)
+  console.log(JSON.stringify({ templates: tpl, engines: { engine: st.engine, name: st.engine_name }, backend: BACKEND || 'auto', forced_engine: process.env.XFC_OCR_ENGINE || '', cases: report, pass, total, widePass, wideTotal }, null, 2))
+  process.exit(pass === total && !captureFailure ? 0 : 1)
 }
 
-console.log(`引擎：${st.engine_name || st.engine}${BACKEND ? `（--backend=${BACKEND} 强制：${process.env.XFC_OCR_ENGINE}）` : ''}    图标模板：${tpl.items.map((i) => `${i.key}(${i.w}×${i.h},${i.from})`).join(' ')}`)
-console.log('')
-console.log('分辨率        锚点                结果                              带缩放  冷态     热态')
-for (const r of rows) {
-  const cells = Object.keys(EXPECT).map((k) => `${k}=${r.got[k] ?? '—'}${r.got[k] === EXPECT[k] ? '' : ' ✗'}`)
-  const tag = r.ultrawide ? ' (超宽)' : ''
-  const note = r.small_text.length ? `  [字太小:${r.small_text.join(',')}]` : ''
-  console.log(
-    `${(r.size + tag).padEnd(14)}${(r.anchor || '无锚点').padEnd(19)} ${cells.join('  ').padEnd(34)} ${String(r.band_scale ?? '-').padStart(5)}x ${String(r.ms).padStart(6)}ms ${String(r.ms_warm).padStart(6)}ms${note}`
-  )
-}
-console.log('')
 console.log('（冷态＝第一次点「识别画面」要等多久；热态＝同一分辨率再认一帧要多久。识别一屏会连认好几帧。）')
-console.log(`常规比例准确率：${pass}/${total}`)
+console.log(`引擎：${st.engine_name || st.engine}${BACKEND ? `（--backend=${BACKEND} 强制：${process.env.XFC_OCR_ENGINE}）` : ''}`)
+console.log(`常规比例准确率（含真实入口）：${pass}/${total}`)
 if (wideTotal) {
   console.log(`超宽比例（游戏 UI 按高度缩，自带 OCR 有上限）：${widePass}/${wideTotal}`)
   if (widePass < wideTotal) {
@@ -271,20 +361,19 @@ if (wideTotal) {
     console.log('  想在这种分辨率下也认准：装一个本地 OCR 引擎（设置页有指引）。')
   }
 }
-console.log(`真实入口 recognizeImageFile：${entry.error ? '失败 ' + entry.error : JSON.stringify(entry.resources) + ' 引擎=' + entry.engine}`)
 
 // 通过线压在三件真事上：
 //   1. 常规比例必须全对（这是「任何分辨率都能用」的承诺）；
 //   2. 不许崩、不许静默给出明显不合理的位数；
 //   3. 截屏必须是整屏（不然上面全对也没用，真用起来一个都认不出来）。
 // 超宽那条上限算已知情况，只报告不判失败。
-const absurd = rows.filter((r) => Object.entries(r.got).some(([k, v]) => v !== undefined && v !== null && String(v).length > 9))
-const ok = pass === total && !entry.error && !absurd.length && !captureFailure
+const absurd = report.flatMap((c) => c.rows).filter((r) => Object.entries(r.got).some(([, v]) => v !== undefined && v !== null && String(v).length > 9))
+const ok = pass === total && !absurd.length && !captureFailure && ranCases > 0
 if (!ok) {
   if (captureFailure) console.log(`\n失败（截屏）：${captureFailure}`)
-  if (absurd.length) console.log(`\n失败：${absurd.map((r) => r.size).join('、')} 上出现了明显不合理的位数（>9 位）`)
+  if (absurd.length) console.log(`\n失败：${absurd.map((r) => `${r.game}/${r.size}`).join('、')} 上出现了明显不合理的位数（>9 位）`)
   if (pass !== total) console.log('\n失败：常规比例下有分辨率没认对（见上面标 ✗ 的那些）')
-  if (entry.error) console.log('\n失败：真实入口没跑通')
+  if (!ranCases) console.log('\n失败：一张样例图都没跑（无从判断识别有没有退化）')
   process.exit(1)
 }
 console.log('\n通过')

@@ -27,6 +27,19 @@ import { transaction } from '../infrastructure/sqlite/transaction.mjs'
 
 /* ---------------- 看板 ---------------- */
 
+/**
+ * 前端只想让识别找「这一屏真会有的那几个资源」（异环背包页三个、地图页两个）。
+ * 传进来的 key 必须先在**这个游戏**的模板表里对得上才算数：不能让请求体
+ * 塞任意字符串，更不能让它把别的游戏的图标拉进来一起找。
+ * 传空/不传 = 老行为（整份模板表都找）。
+ */
+function screenKeysWanted(game, raw) {
+  if (!Array.isArray(raw)) return null
+  const allowed = new Set(loadTemplates({ profile: profileForGame(game) }).map((r) => r.key))
+  const keys = [...new Set(raw.map((k) => clampStr(k, 40)).filter((k) => k && allowed.has(k)))]
+  return keys.length ? keys : null
+}
+
 function decorateLite(row) {
   const paid = money(
     db
@@ -444,7 +457,11 @@ export function register() {
     const tmp = scratchFile(`xfc-ocr-src-${process.pid}-${Date.now()}`, ext, { mode: 'ascii' })
     fs.writeFileSync(tmp, buf)
     try {
-      const r = await recognizeImageFile(tmp, { lang: clampStr(ctx.body.lang, 20) || 'zh-Hans-CN', game })
+      const r = await recognizeImageFile(tmp, {
+        lang: clampStr(ctx.body.lang, 20) || 'zh-Hans-CN',
+        game,
+        keys: screenKeysWanted(game, ctx.body.keys),
+      })
       if (!r.ok) fail(400, r.error || '识别失败', 'ocr_failed')
       return {
         game: r.game,
@@ -494,9 +511,13 @@ export function register() {
     return { ...st, screen: process.platform === 'win32', templates: templateStatus(game), resources: screenResourcesFor(game), min_score: MIN_SCORE }
   })
 
-  /** 用户点击「识别画面」后，把鸣潮窗口切到前台；后续截屏会裁取这个窗口。 */
-  post('/api/ocr/screen/focus', async () => {
-    const r = await focusGameWindow()
+  /**
+   * 用户点击「识别画面」后，把**这一单那个游戏**的窗口切到前台；后续截屏会裁取这个窗口。
+   * game 传订单上的游戏名：鸣潮和异环的窗口特征不一样，切错了后面全认错。
+   */
+  post('/api/ocr/screen/focus', async (ctx) => {
+    const game = clampStr(ctx.body?.game, 40)
+    const r = await focusGameWindow({ game })
     if (!r.ok) fail(400, r.error || '没有切换到游戏窗口', 'game_focus_failed')
     return r
   })
@@ -534,6 +555,7 @@ export function register() {
     const r = await recognizeScreenOnce({
       id: clampStr(ctx.body.session, 40) || 'default',
       game,
+      keys: screenKeysWanted(game, ctx.body.keys),
       minVotes: Math.max(1, Math.min(6, int(ctx.body.min_votes, 2) || 2)),
       minScore: num(ctx.body.min_score, MIN_SCORE) || MIN_SCORE,
     })
@@ -546,6 +568,9 @@ export function register() {
       votes: r.votes,
       hits: r.hits,
       seen: r.seen,
+      // 和 /api/ocr 那条一样把锚点带出来：调识别的时候，「锚点定在哪、多少分」
+      // 是判断「为什么这个数没认到」的第一手信息。
+      anchor: r.anchor,
       frames: r.frames,
       size: r.size,
       engine: r.engine,
