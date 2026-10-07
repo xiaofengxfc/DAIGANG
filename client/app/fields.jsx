@@ -53,7 +53,9 @@ export function TextInput({ value, onChange, numeric = false, money = false, max
       // 留着原文，交给提交时的「请填数字」去拦。
       onBlur={(event) => {
         const raw = event.target.value
-        if (money && raw !== '' && Number.isFinite(Number(raw))) onChange(String(Math.round(Number(raw) * 100) / 100))
+        // 只敲了空格也算「没填」：Number(' ') === 0，收成两位小数会把它写成 0，
+        // 于是「请填写基准单价」再也拦不住，一个 ¥0 的服务项就悄悄存下去了。
+        if (money && raw.trim() !== '' && Number.isFinite(Number(raw))) onChange(String(Math.round(Number(raw) * 100) / 100))
         if (onBlur) onBlur(event)
       }}
     />

@@ -23,6 +23,18 @@ export function makeDef(spec) {
   return { listOrder: 'id DESC', searchColumns: [], limit: 300, ...spec }
 }
 
+/** 「没填」的几种写法：null / undefined / '' / 只有空格 */
+const isBlank = (raw) => raw === null || raw === undefined || String(raw).trim() === ''
+
+/**
+ * 数字列收到空白时该存什么。
+ * 声明了默认值就存默认值（min_qty 的默认值是 1，存成 0 会把「起订 1」变成「起订 0」，
+ * 导出里的起订提示也就没了）；没声明就还是 0。
+ */
+function blankNumber(col) {
+  return col.default !== undefined ? col.default : 0
+}
+
 function coerceValue(col, raw, isCreate) {
   const t = col.type || 'string'
   if (raw === undefined) {
@@ -39,11 +51,12 @@ function coerceValue(col, raw, isCreate) {
   if (col.nullable && (raw === null || raw === '' || raw === undefined)) return null
   switch (t) {
     case 'money':
-      return money(raw)
+      // 只敲了空格也算没填：Number(' ') === 0，会把「上限 / 起订量」悄悄存成 0
+      return isBlank(raw) ? blankNumber(col) : money(raw)
     case 'number':
-      return num(raw)
+      return isBlank(raw) ? blankNumber(col) : num(raw)
     case 'int':
-      return int(raw)
+      return isBlank(raw) ? blankNumber(col) : int(raw)
     case 'bool':
       return bool01(raw)
     case 'ref': {
@@ -54,7 +67,9 @@ function coerceValue(col, raw, isCreate) {
     case 'strarray':
       return toStringArray(raw, col.max || 60)
     case 'json':
-      return raw === null || raw === undefined ? (col.default ?? {}) : raw
+      // '' 不是「一个空对象」，是「没填」：直接存下去会变成字符串 '""'，
+      // 读回来 parseJSON 得到 ''，Array.isArray 不成立 —— 套餐内容就这样静默消失。
+      return isBlank(raw) ? (col.default ?? {}) : raw
     case 'text':
       return clampStr(raw, col.max || 4000)
     default: {
@@ -212,7 +227,15 @@ export function listRows(def, query = {}) {
       continue
     }
     where.push(`${key} = ?`)
-    values.push(col.type === 'ref' || col.type === 'int' ? int(raw) : String(raw))
+    // bool 列在库里是 0 / 1：不过一遍 bool01 的话，?is_daily=false 拿字符串去比
+    // 整数列，SQLite 的亲和性会让它一条都匹配不上（看着像「没有这样的数据」）。
+    values.push(
+      col.type === 'ref' || col.type === 'int'
+        ? int(raw)
+        : col.type === 'bool'
+          ? bool01(raw)
+          : String(raw)
+    )
   }
   const sql = `SELECT * FROM ${def.table} ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY ${
     def.listOrder

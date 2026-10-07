@@ -191,6 +191,15 @@ async function expandPriceTree(cdp) {
 }
 
 /**
+ * 价格表是照 hash 挂载的：地址没变就不会重新取数。
+ * 所以用接口造完数据、要让页面看到它时，得先跳去别的页再回来（重新挂载 → 重新拉数）。
+ */
+async function reloadPricePage(cdp) {
+  await gotoHash(cdp, '/orders')
+  await gotoHash(cdp, '/price')
+}
+
+/**
  * 往输入框里塞值。
  * 直接 `el.value = x` 对 React 受控组件无效——React 内部记着上一次的值，
  * 看见没变化就不触发 onChange。必须走原型上的原生 setter，再补一个 input 事件，
@@ -1183,7 +1192,134 @@ async function main() {
       ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
     }
 
-    /* ---- 价格表：在架 / 已归档 / 全部（状态是服务端过滤的，切了必须重新取数）---- */
+    /* ---- 价格表：服务项表单里的「计价方式」和留空字段 ----
+       计价方式那个下拉以前传的是 shared/domain.js 的 PRICE_TYPES（{key,label,unitLabel}），
+       而 SelectInput 认的是 {value,label} —— 五项的值全变成字符串 "undefined"：
+       打开时显示「（原值：fixed）」，一动它就存不进去（服务端 400）。 */
+    section('价格表 · 计价方式与留空字段')
+    {
+      const before = cdp.errors.length
+      const TEMP = 'UI计价方式服务'
+      const made = await api(app.base, 'POST', '/api/services/append', {
+        name: TEMP,
+        category_id: fixture.categoryId,
+        game_id: fixture.gameId,
+        price_type: 'fixed',
+        base_price: 8,
+        unit_label: '单',
+      }, fixture.cookie)
+      ok('造了一个待改计价方式的服务项', made.status === 200 && made.body.id > 0, `${made.status}`)
+
+      await reloadPricePage(cdp)
+      await expandPriceTree(cdp)
+      ok('找到这一行的编辑按钮', await waitFor(cdp, `[...document.querySelectorAll('button[title="编辑服务"]')].some((b) => b.closest('.price-service')?.innerText.includes(${JSON.stringify(TEMP)}))`, { tries: 30, interval: 200 }))
+      await cdp.eval(`[...document.querySelectorAll('button[title="编辑服务"]')].find((b) => b.closest('.price-service')?.innerText.includes(${JSON.stringify(TEMP)})).click()`)
+      ok('服务项表单打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
+
+      const opts = await cdp.eval(`[...document.querySelectorAll('#service-price-type option')].map((o) => o.value + '|' + o.textContent)`)
+      ok('计价方式下拉里的值是真枚举（不是 undefined）', opts.length === 5 && opts.every((o) => !o.startsWith('undefined')), opts.join(' / '))
+      ok('下拉里没有「（原值：…）」占位项', !opts.some((o) => o.includes('原值')), opts.join(' / '))
+      const shown = await cdp.eval(`(() => { const el = document.querySelector('#service-price-type'); return el.options[el.selectedIndex]?.textContent || '' })()`)
+      ok('打开时选中的就是当前计价方式', shown === '固定价', shown)
+
+      // 换成「按次」+ 起订量清空 + 封顶量只敲一个空格：一次保存把三件事都验了
+      await fillField(cdp, `${OPEN_DRAWER} #service-price-type`, 'per_time')
+      await fillField(cdp, `${OPEN_DRAWER} #service-min-qty`, '')
+      await fillField(cdp, `${OPEN_DRAWER} #service-max-qty`, ' ')
+      await cdp.eval(`document.querySelector(${JSON.stringify(SUBMIT)}).click()`)
+      ok('保存后抽屉自己关掉', await waitFor(cdp, `!document.querySelector(${JSON.stringify(OPEN_DRAWER)})`, { tries: 40, interval: 200 }))
+
+      const after = (await pricebookServices(app, fixture.cookie)).find((service) => service.name === TEMP)
+      ok('计价方式真的存成了「按次」', after && after.price_type === 'per_time', after && after.price_type)
+      ok('起订量留空存成默认的 1', after && Number(after.min_qty) === 1, after && after.min_qty)
+      ok('封顶量只敲空格当成没填（NULL）', after && after.max_qty === null, after && JSON.stringify(after.max_qty))
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+
+      await api(app.base, 'DELETE', `/api/services/${made.body.id}?hard=1`, undefined, fixture.cookie)
+      // 删完要把页面刷回和库里一致：下一个用例（状态筛选）是照页面上的数字比的
+      await reloadPricePage(cdp)
+    }
+
+    /* ---- 价格表：搜索时的计数 / 组合报价的范围 / 空状态 ----
+       搜索只该决定「显示哪几条」，不该改变「这一节一共有几条」，
+       更不该把组合报价悄悄缩成命中的那几条（客户拿到的报价单会少几项）。 */
+    section('价格表 · 搜索计数与组合报价')
+    {
+      const before = cdp.errors.length
+      // 一个未分类服务：搜索把它藏起来时，整页不能从「没有找到匹配的价格」
+      // 变成一排「0 个大类」的空壳（组是照可见行建的，不能为了计数硬造出来）
+      const loose = await api(app.base, 'POST', '/api/services/append', {
+        name: 'UI未分类服务',
+        category_id: null,
+        game_id: fixture.gameId,
+        base_price: 9,
+      }, fixture.cookie)
+      ok('造了一个未分类服务', loose.status === 200 && loose.body.id > 0, `${loose.status}`)
+
+      const setSearch = async (term) => {
+        await fillField(cdp, '.price-search input', term)
+        // 搜索是防抖的（260ms 才落到地址栏），等它跑完
+        await sleep(900)
+      }
+
+      await reloadPricePage(cdp)
+      ok('价格表回来了', await waitFor(cdp, `Boolean(document.querySelector('.price-group'))`, { tries: 30, interval: 200 }))
+
+      // 只命中一个大类里的部分服务项：标题要写「N 项（命中 M）」，正文只留命中的
+      await setSearch('阶梯')
+      ok('搜索命中了阶梯服务', await waitFor(cdp, `(document.querySelector('.price-page')?.innerText || '').includes(${JSON.stringify(fixture.tiered)})`, { tries: 40, interval: 200 }))
+      const headCount = await cdp.eval(`(() => {
+        const block = [...document.querySelectorAll('.price-category')].find((s) => s.innerText.includes(${JSON.stringify(fixture.tiered)}))
+        return block?.querySelector('.price-category__toggle small')?.textContent || ''
+      })()`)
+      ok('大类标题写的是「一共几项（命中几项）」', /^\d+ 项（命中 \d+）/.test(headCount), headCount)
+
+      // 组合报价要按大类里的**全部**服务项算，不是只算命中的那几条
+      await cdp.eval(`(() => {
+        const block = [...document.querySelectorAll('.price-category')].find((s) => s.innerText.includes(${JSON.stringify(fixture.tiered)}))
+        block.querySelector('button[title="组合报价"]').click()
+      })()`)
+      ok('组合报价弹出来了', await waitFor(cdp, `Boolean(document.querySelector('dialog.modal[open]'))`, { tries: 25, interval: 200 }))
+      const sumText = await cdp.eval(`document.querySelector('dialog.modal[open]')?.innerText || ''`)
+      ok('组合报价里列的是这个大类的全部服务项', sumText.includes(fixture.tiered) && sumText.includes(fixture.service), sumText.replace(/\s+/g, ' ').slice(0, 200))
+      await cdp.eval(`[...document.querySelectorAll('dialog.modal[open] button')].find((b) => b.textContent.trim() === '关闭')?.click()`)
+      await sleep(300)
+
+      // 只命中大类提示（没有任何服务项命中）：正文要说「这个筛选下没有服务项」，
+      // 而不是「还没有服务项」—— 后者是句假话，这个大类里明明有 4 项
+      await api(app.base, 'PATCH', `/api/categories/${fixture.categoryId}`, { notice: 'UI大类专用提示词' }, fixture.cookie)
+      await reloadPricePage(cdp)
+      await setSearch('专用提示词')
+      const catQuery = (inner) =>
+        `(() => { const b = [...document.querySelectorAll('.price-category')].find((s) => s.innerText.includes('UI大类')); return ${inner} })()`
+      ok('命中大类提示时大类还在', await waitFor(cdp, catQuery(`Boolean(b)`), { tries: 40, interval: 200 }), (await cdp.eval(`document.querySelector('.price-groups')?.innerText || ''`)).replace(/\s+/g, ' ').slice(0, 160))
+      const zeroText = await cdp.eval(catQuery(`b?.querySelector('.price-category__empty')?.textContent || ''`))
+      ok('正文说的是「这个筛选下没有服务项」', zeroText.includes('这个筛选下没有服务项'), zeroText)
+      const zeroHead = await cdp.eval(catQuery(`b?.querySelector('.price-category__toggle small')?.textContent || ''`))
+      ok('大类标题这时写的是「N 项（命中 0）」', /^\d+ 项（命中 0）$/.test(zeroHead), zeroHead)
+      ok('这时候组合报价还是能点（大类里有货）', !(await cdp.eval(catQuery(`Boolean(b?.querySelector('button[title="组合报价"]')?.disabled)`))))
+      await api(app.base, 'PATCH', `/api/categories/${fixture.categoryId}`, { notice: '' }, fixture.cookie)
+
+      // 什么都没命中：整页必须是「没有找到匹配的价格」，不能是一排空壳组
+      await setSearch('zzz没有这种东西zzz')
+      ok('整页回到空状态', await waitFor(cdp, `Boolean(document.querySelector('.price-empty'))`, { tries: 40, interval: 200 }), (await cdp.eval(`document.querySelector('.price-groups')?.innerText || ''`)).replace(/\s+/g, ' ').slice(0, 200))
+      const emptyText = await cdp.eval(`document.querySelector('.price-empty')?.innerText || ''`)
+      ok('空状态说的是「没有找到匹配的价格」', emptyText.includes('没有找到匹配的价格'), emptyText.replace(/\s+/g, ' '))
+      ok('空状态里没有「0 个大类」的空壳组', !emptyText.includes('0 个大类') && !(await cdp.eval(`Boolean(document.querySelector('.price-group'))`)))
+
+      // 搜「未分类服务」之外的东西时，组标题不能还说「服务均已归类」
+      await setSearch('阶梯')
+      ok('未分类服务被搜索藏起来时，组标题不再说「服务均已归类」', await waitFor(cdp, `!((document.querySelector('.price-group__head')?.innerText || '').includes('服务均已归类'))`, { tries: 40, interval: 200 }), await cdp.eval(`document.querySelector('.price-group__head')?.innerText || ''`))
+
+      await setSearch('')
+      ok('清空搜索后一切照旧', await waitFor(cdp, `(document.querySelector('.price-page')?.innerText || '').includes(${JSON.stringify('UI未分类服务')})`, { tries: 40, interval: 200 }))
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+
+      await api(app.base, 'DELETE', `/api/services/${loose.body.id}?hard=1`, undefined, fixture.cookie)
+      await reloadPricePage(cdp)
+    }
+
+
     section('价格表 · 状态筛选')
     {
       const before = cdp.errors.length

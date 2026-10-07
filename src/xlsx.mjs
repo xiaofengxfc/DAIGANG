@@ -213,7 +213,10 @@ function sheetXml(sheet, model) {
     items.forEach((it, idx) => {
       const catNotice = idx === 0 ? g.catNotice || '' : ''
       const notes = (it.notes || []).filter(Boolean).join('\n')
-      const gainName = it.gain ? g.currency || '' : ''
+      // 货币名要取**这一项自己的**：通用大类里可以挂着别的游戏的服务项，
+      // 数量是从它自己的游戏算出来的，拿整组的货币名去标就标错了
+      //（曾经出现过「可得货币=星声 / 可得数量=5」，而那一项其实是另一个游戏的）。
+      const gainName = it.gain ? it.gainName || g.currency || '' : ''
       const gainQty = it.gain ? it.gainAmount : null
       const tiers = Array.isArray(it.tiers) ? it.tiers.filter(Boolean) : []
       if (tiers.length) {

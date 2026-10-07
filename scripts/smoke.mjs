@@ -1092,6 +1092,130 @@ export async function run() {
   // 收尾：别把货币名留给后面的用例
   await api('PATCH', `/api/games/${gameId}`, { currency: '' })
 
+  /* ---------- 价格表 / 导出的逻辑修正 ---------- */
+  section('价格表 · 逻辑修正')
+
+  // 数字 / 数组列收到空白：'' 和只敲空格都算没填。声明了默认值的要用默认值，
+  // 不然 min_qty 会被存成 0（导出里的「起订 N」就没了），json 列会存成字符串 '""'。
+  r = await api('POST', '/api/services/append', {
+    name: '冒烟空白字段',
+    category_id: catId,
+    game_id: gameId,
+    base_price: 3,
+    min_qty: '',
+    max_qty: ' ',
+    package_items: '',
+  })
+  ok('起订量留空存成默认的 1（不是 0）', Number(r.body.min_qty) === 1, r.body.min_qty)
+  ok('封顶量只敲空格当成没填（NULL）', r.body.max_qty === null, JSON.stringify(r.body.max_qty))
+  ok('套餐内容给空串存成空数组（不是字符串）', Array.isArray(r.body.package_items) && r.body.package_items.length === 0, JSON.stringify(r.body.package_items))
+  const svcBlank = r.body.id
+  r = await api('GET', '/api/services?q=冒烟空白字段')
+  ok('列表里读回来也还是数组', Array.isArray(r.body.items?.[0]?.package_items), JSON.stringify(r.body.items?.[0]?.package_items))
+  await api('DELETE', `/api/services/${svcBlank}?hard=1`)
+
+  // 增项计数只数在架的：归档一个之后价格表里只剩 1 个，列表不能还说 2 个
+  const cntSvc = await api('POST', '/api/services/append', { name: '冒烟计数服务项', category_id: catId, game_id: gameId, base_price: 5 })
+  const cntOpt1 = await api('POST', '/api/options', { service_id: cntSvc.body.id, name: '冒烟增项甲', price: 1 })
+  const cntOpt2 = await api('POST', '/api/options', { service_id: cntSvc.body.id, name: '冒烟增项乙', price: 2 })
+  r = await api('GET', '/api/services?q=冒烟计数服务项')
+  ok('两个增项时列表说 2 个', r.body.items?.[0]?.option_count === 2, r.body.items?.[0]?.option_count)
+  await api('DELETE', `/api/options/${cntOpt2.body.id}`)
+  r = await api('GET', '/api/services?q=冒烟计数服务项')
+  ok('归档一个之后列表说 1 个（不是 2 个）', r.body.items?.[0]?.option_count === 1, r.body.items?.[0]?.option_count)
+  r = await api('GET', '/api/pricebook')
+  const cntBook = (r.body.categories || []).flatMap((c) => c.services || []).find((s) => s.name === '冒烟计数服务项')
+  ok('价格表里也只剩 1 个增项', (cntBook?.options || []).filter((o) => String(o.name).startsWith('冒烟增项')).length === 1, JSON.stringify((cntBook?.options || []).map((o) => o.name)))
+  await api('DELETE', `/api/options/${cntOpt1.body.id}?hard=1`)
+  await api('DELETE', `/api/services/${cntSvc.body.id}?hard=1`)
+
+  // bool 筛选：?is_daily=false 得真能筛出「否」的那些
+  //（以前拿字符串去比整数列，SQLite 一条都匹配不上，看着像「没有这样的数据」）
+  const flagSvc = await api('POST', '/api/services/append', { name: '冒烟非每日', category_id: catId, game_id: gameId, base_price: 5, is_daily: 0 })
+  r = await api('GET', '/api/services?is_daily=false&limit=300')
+  ok(
+    '?is_daily=false 能筛出「否」的服务项',
+    (r.body.items || []).length > 0 && (r.body.items || []).every((s) => s.is_daily === false),
+    `n=${(r.body.items || []).length}`
+  )
+  ok('筛出来的里面有刚建的那条', (r.body.items || []).some((s) => s.id === flagSvc.body.id))
+  await api('DELETE', `/api/services/${flagSvc.body.id}?hard=1`)
+
+  // 阶梯价：数量比所有档的起量都小 → 按最低那一档算。
+  // 以前会掉回基准价，而基准价填 0 的服务项就这么算出了 ¥0（白干一单）。
+  const lowSvc = await api('POST', '/api/services/append', {
+    name: '冒烟低于起量',
+    category_id: catId,
+    game_id: gameId,
+    price_type: 'per_unit',
+    unit_label: '层',
+    base_price: 0,
+    min_qty: 5,
+  })
+  await api('POST', `/api/services/${lowSvc.body.id}/tiers`, { min_qty: 5, max_qty: 10, unit_price: 9 })
+  r = await api('POST', '/api/quotes/preview', { items: [{ service_id: lowSvc.body.id, quantity: 2 }] })
+  ok('数量低于第一档起量时按第一档算（不是 ¥0）', r.body.total === 18, `total=${r.body.total}`)
+  r = await api('POST', '/api/quotes/preview', { items: [{ service_id: lowSvc.body.id, quantity: 6 }] })
+  ok('落在档里还是按档算', r.body.total === 54, `total=${r.body.total}`)
+
+  // 不限上界的那一档要写「以上」：只写「11层」会被读成「就是 11 层」
+  await api('POST', `/api/services/${lowSvc.body.id}/tiers`, { min_qty: 11, max_qty: null, unit_price: 7 })
+  r = await api('GET', `/api/pricebook/export-model?game_id=${gameId}`)
+  const openTier = (r.body.groups || []).flatMap((g) => g.items).find((i) => i.name === '冒烟低于起量')
+  ok('不限上界的档写成「11层以上」', (openTier?.tierLines || []).some((t) => String(t).startsWith('11层以上')), JSON.stringify(openTier?.tierLines))
+  await api('DELETE', `/api/services/${lowSvc.body.id}?hard=1`)
+
+  // 归档游戏的整节价格不能从导出里消失（价格表页面照常显示它们）
+  const agGame = await api('POST', '/api/games', { name: '冒烟归档游戏', currency: '冒烟币' })
+  const agCat = await api('POST', '/api/categories/append', { name: '冒烟归档大类', game_id: agGame.body.id })
+  const agSvc = await api('POST', '/api/services/append', {
+    name: '冒烟归档服务项',
+    category_id: agCat.body.id,
+    game_id: agGame.body.id,
+    base_price: 12,
+    currency_amount: 3,
+  })
+  await api('PATCH', `/api/games/${agGame.body.id}`, { status: 'archived' })
+
+  r = await api('GET', '/api/pricebook/export-model?full=1')
+  const agGroup = (r.body.groups || []).find((g) => g.name === '冒烟归档大类')
+  ok('归档游戏的大类照样导出（不再整节消失）', Boolean(agGroup), JSON.stringify((r.body.groups || []).map((g) => g.name)))
+  ok('归档游戏那一节带着游戏名', agGroup?.gameName === '冒烟归档游戏', agGroup?.gameName)
+  ok('归档游戏的服务项也在里面', (r.body.groups || []).flatMap((g) => g.items).some((i) => i.name === '冒烟归档服务项'))
+  const agSum = (r.body.groups || []).reduce((n, g) => n + g.total, 0)
+  ok('各节的项数之和 = totalServices（数字和正文对得上）', agSum === r.body.totalServices, `${agSum} vs ${r.body.totalServices}`)
+  ok(
+    '没展开的项数 = 总数 − 真正排进去的',
+    r.body.hiddenServices === r.body.totalServices - r.body.itemCount,
+    JSON.stringify({ hidden: r.body.hiddenServices, total: r.body.totalServices, items: r.body.itemCount })
+  )
+  ok(
+    'gameOptions 各项数量之和也等于 totalServices',
+    (r.body.gameOptions || []).reduce((n, g) => n + g.count, 0) === r.body.totalServices,
+    JSON.stringify(r.body.gameOptions)
+  )
+
+  // 单独导这一份（归档游戏）：抬头和货币名都得有
+  const agOne = await api('GET', `/api/pricebook/export-model?game_id=${agGame.body.id}`)
+  ok('按归档游戏导出的那一份有抬头', agOne.body.subtitle === '冒烟归档游戏', agOne.body.subtitle)
+  ok(
+    '那一份里的货币名没丢',
+    (agOne.body.groups || []).flatMap((g) => g.items).some((i) => i.gain === '可得 冒烟币 3'),
+    JSON.stringify((agOne.body.groups || []).flatMap((g) => g.items).map((i) => i.gain))
+  )
+  ok('归档游戏的这一份也把项数算全了', agOne.body.totalServices === 1, agOne.body.totalServices)
+
+  // 价格表也要认得归档游戏的货币名：组标题和服务行上的「可得」都靠它
+  r = await api('GET', '/api/pricebook?status=all')
+  const agCatRow = (r.body.categories || []).find((c) => c.name === '冒烟归档大类')
+  ok('价格表里归档游戏的大类带着货币名', agCatRow?.game_currency === '冒烟币', JSON.stringify(agCatRow?.game_currency))
+  ok('它下面的服务项也带着货币名', agCatRow?.services?.[0]?.game_currency === '冒烟币', JSON.stringify(agCatRow?.services?.[0]?.game_currency))
+
+  // 收尾：先删子记录再彻底删游戏，别给后面的用例留一个多余的游戏
+  await api('DELETE', `/api/services/${agSvc.body.id}?hard=1`)
+  await api('DELETE', `/api/categories/${agCat.body.id}?hard=1`)
+  await api('DELETE', `/api/games/${agGame.body.id}?hard=1`)
+
   /* ---------- 财务 ---------- */
   section('财务')
   r = await api('GET', '/api/finance/summary?from=2020-01-01&to=2099-01-01')

@@ -16,8 +16,9 @@ const iconProps = (size = 15) => ({ size, strokeWidth: 1.8, absoluteStrokeWidth:
 const unitOf = (service) => unitOfShared(service)
 
 function priceRange(services) {
-  const values = services.map((service) => Number(service.base_price)).filter(Number.isFinite)
-  if (!values.length) return '暂无价格'
+  const values = (services || []).map((service) => Number(service.base_price)).filter(Number.isFinite)
+  // 一条都没有就不写价格区间（旧版也是这样：宁可不写，也不写「暂无价格」占着位置）
+  if (!values.length) return ''
   const low = Math.min(...values)
   const high = Math.max(...values)
   return low === high ? `¥${fmtMoney(low)}` : `¥${fmtMoney(low)} - ¥${fmtMoney(high)}`
@@ -45,14 +46,14 @@ function optionSummary(options) {
   return `${options.length} 个${items.length ? ` · ${items.join('、')}${options.length > items.length ? '…' : ''}` : ''}`
 }
 
-function ServiceRow({ service, currency = '', onEdit, onPeek, onAdvanced, onToggle, onDelete }) {
+function ServiceRow({ service, currency = '', orphan = false, onEdit, onPeek, onAdvanced, onToggle, onDelete }) {
   const tiers = service.tiers || []
   const options = service.options || []
   const unit = unitOf(service)
   return (
     <div className={`price-service${service.status === 'archived' ? ' is-archived' : ''}`}>
       <div className="price-service__main">
-        <div className="price-service__name"><b>{service.name}</b>{service.is_daily ? <span className="price-tag price-tag--jade">每天</span> : null}{tiers.length ? <span className="price-tag">{tiers.length} 档</span> : null}{options.length ? <span className="price-tag">{options.length} 个增项</span> : null}</div>
+        <div className="price-service__name"><b>{service.name}</b>{service.is_daily ? <span className="price-tag price-tag--jade">每天</span> : null}{tiers.length ? <span className="price-tag">{tiers.length} 档</span> : null}{options.length ? <span className="price-tag">{options.length} 个增项</span> : null}{orphan ? <span className="price-tag" title="它原来挂的大类不在当前这份列表里（多半是归档了）。重新选一个分类就能归位。">{`原大类：${service.category_name || '已删除'}`}</span> : null}</div>
         {service.description ? <p title={service.description}>{service.description}</p> : <p className="price-service__muted">暂无说明</p>}
         {service.package_items?.length ? <small title={service.package_items.join(' · ')}>套餐含：{service.package_items.join(' · ')}</small> : null}
       </div>
@@ -66,14 +67,18 @@ function ServiceRow({ service, currency = '', onEdit, onPeek, onAdvanced, onTogg
 
 function CategoryBlock({ category, currency = '', open, onOpenChange, onEdit, onService, onSum, onToggle, onDelete, onEditService, onPeekService, onAdvancedService, onToggleService, onDeleteService }) {
   const services = category.services || []
+  // 搜索命中的那几条 vs 这个大类一共几条：标题要写「5 项（命中 2）」，
+  // 空的时候也要分清「这个筛选下没有」和「这个大类下真的还没有」——
+  // 不然一搜索，满员的分类会说自己「还没有服务项」。
+  const all = category.allServices || services
   return (
     <section className={`price-category${category.status === 'archived' ? ' is-archived' : ''}`} id={`price-category-${category.id}`}>
       <header className="price-category__head">
-        <button className="price-category__toggle" type="button" aria-expanded={open} onClick={() => onOpenChange(!open)}>{open ? <ChevronDown {...iconProps(16)} /> : <ChevronRight {...iconProps(16)} />}<span><b>{category.name}</b><small>{services.length} 项 · {priceRange(services)}</small></span></button>
+        <button className="price-category__toggle" type="button" aria-expanded={open} onClick={() => onOpenChange(!open)}>{open ? <ChevronDown {...iconProps(16)} /> : <ChevronRight {...iconProps(16)} />}<span><b>{category.name}</b><small>{all.length} 项{services.length !== all.length ? `（命中 ${services.length}）` : ''}{services.length ? ` · ${priceRange(services)}` : ''}</small></span></button>
         {category.notice ? <p title={category.notice}>{category.notice}</p> : null}
-        <div className="price-category__actions"><button className="react-mini-button react-mini-button--label" type="button" title="在此分类添加服务" onClick={() => onService(category)}><Plus {...iconProps(14)} /><span>添加服务</span></button><button className="react-mini-button" type="button" title="组合报价" onClick={() => onSum(category)} disabled={!services.length}><Copy {...iconProps(14)} /></button><button className="react-mini-button" type="button" title="编辑大类" onClick={() => onEdit(category)}><Edit3 {...iconProps(14)} /></button><button className="react-mini-button" type="button" title={category.status === 'active' ? '归档大类' : '恢复大类'} onClick={() => onToggle(category)}>{category.status === 'active' ? <Archive {...iconProps(14)} /> : <ArchiveRestore {...iconProps(14)} />}</button><button className="react-mini-button price-danger" type="button" title="删除大类" onClick={() => onDelete(category)}><Trash2 {...iconProps(14)} /></button></div>
+        <div className="price-category__actions"><button className="react-mini-button react-mini-button--label" type="button" title="在此分类添加服务" onClick={() => onService(category)}><Plus {...iconProps(14)} /><span>添加服务</span></button><button className="react-mini-button" type="button" title="组合报价" onClick={() => onSum(category)} disabled={!all.length}><Copy {...iconProps(14)} /></button><button className="react-mini-button" type="button" title="编辑大类" onClick={() => onEdit(category)}><Edit3 {...iconProps(14)} /></button><button className="react-mini-button" type="button" title={category.status === 'active' ? '归档大类' : '恢复大类'} onClick={() => onToggle(category)}>{category.status === 'active' ? <Archive {...iconProps(14)} /> : <ArchiveRestore {...iconProps(14)} />}</button><button className="react-mini-button price-danger" type="button" title="删除大类" onClick={() => onDelete(category)}><Trash2 {...iconProps(14)} /></button></div>
       </header>
-      {open ? <div className="price-category__body"><div className="price-service__labels"><span>服务项目</span><span>计价方式</span><span>基准价</span><span>阶梯与增项</span><span>操作</span></div>{services.length ? services.map((service) => <ServiceRow key={service.id} service={service} currency={currency} onEdit={onEditService} onPeek={onPeekService} onAdvanced={onAdvancedService} onToggle={onToggleService} onDelete={onDeleteService} />) : <div className="price-category__empty">还没有服务项，点“添加服务”即可使用当前游戏和分类。</div>}</div> : null}
+      {open ? <div className="price-category__body"><div className="price-service__labels"><span>服务项目</span><span>计价方式</span><span>基准价</span><span>阶梯与增项</span><span>操作</span></div>{services.length ? services.map((service) => <ServiceRow key={service.id} service={service} currency={currency} onEdit={onEditService} onPeek={onPeekService} onAdvanced={onAdvancedService} onToggle={onToggleService} onDelete={onDeleteService} />) : <div className="price-category__empty">{category.rawTotal ? '这个筛选下没有服务项。' : '还没有服务项，点“添加服务”即可使用当前游戏和分类。'}</div>}</div> : null}
     </section>
   )
 }
@@ -109,10 +114,10 @@ function GroupWorkspace({ group, query, onNewCategory, onService, onEditCategory
 
   return (
     <section className="price-group" key={group.key || 'generic'}>
-      <header className="price-group__head"><div><h3>{group.game?.name || '通用价格'}</h3><span>{categories.length} 个大类 · {group.loose.length ? `${group.loose.length} 个未分类服务` : '服务均已归类'}</span></div><div className="price-group__head-actions">{group.game?.currency ? <em>{group.game.currency}</em> : null}<button className="refactor-button refactor-button--compact" type="button" onClick={() => onNewCategory(group.key || '')}><FolderPlus {...iconProps(14)} />新建大类</button></div></header>
+      <header className="price-group__head"><div><h3>{group.game?.name || '通用价格'}</h3><span>{categories.length} 个大类{group.loose.length ? ` · ${group.loose.length} 个未分类服务` : group.looseTotal ? ` · 另有 ${group.looseTotal} 个未分类服务没被筛出来` : ' · 服务均已归类'}</span></div><div className="price-group__head-actions">{group.game?.currency ? <em>{group.game.currency}</em> : null}<button className="refactor-button refactor-button--compact" type="button" onClick={() => onNewCategory(group.key || '')}><FolderPlus {...iconProps(14)} />新建大类</button></div></header>
       <div className="price-workspace">
-        <aside className="price-directory" aria-label={`${group.game?.name || '通用价格'}分类目录`}><div className="price-directory__head"><b>分类目录</b><span>{categories.length}</span></div><button className={`price-directory__item${current === 'all' ? ' is-active' : ''}`} type="button" onClick={() => selectCategory('all')}><span>全部分类</span><small>{categories.reduce((count, category) => count + (category.services || []).length, 0)} 项</small></button>{categories.map((category) => <button className={`price-directory__item${current === String(category.id) ? ' is-active' : ''}`} type="button" key={category.id} onClick={() => selectCategory(String(category.id))}><span>{category.name}</span><small>{(category.services || []).length}</small></button>)}{!categories.length ? <p className="price-directory__empty">还没有分类</p> : null}<button className="price-directory__add" type="button" onClick={() => onNewCategory(group.key || '')}><Plus {...iconProps(14)} />新建分类</button></aside>
-        <div className="price-catalog"><div className="price-catalog__tools"><span>{current === 'all' ? '全部分类' : categories.find((category) => String(category.id) === current)?.name}</span><div><button className="refactor-button refactor-button--compact" type="button" onClick={setAllOpen} disabled={!categories.length}>{allOpen ? <ChevronDown {...iconProps(14)} /> : <ChevronRight {...iconProps(14)} />}{allOpen ? '全部收起' : '全部展开'}</button>{current !== 'all' ? <button className="refactor-button refactor-button--compact" type="button" onClick={() => onService(categories.find((category) => String(category.id) === current))}><Plus {...iconProps(14)} />添加服务</button> : null}</div></div>{visible.map((category) => <CategoryBlock key={category.id} category={category} currency={group.game?.currency || ''} open={!!openMap.get(String(category.id))} onOpenChange={(value) => setCategoryOpen(category.id, value)} onEdit={onEditCategory} onService={onService} onSum={onSum} onToggle={onToggleCategory} onDelete={onDeleteCategory} onEditService={onEditService} onPeekService={onPeekService} onAdvancedService={onAdvancedService} onToggleService={onToggleService} onDeleteService={onDeleteService} />)}{group.loose.length ? <div className="price-loose"><div className="price-loose__head"><b>未分类服务</b><span>请编辑服务并选择一个分类</span></div>{group.loose.map((service) => <ServiceRow key={service.id} service={service} currency={group.game?.currency || ''} onEdit={onEditService} onPeek={onPeekService} onAdvanced={onAdvancedService} onToggle={onToggleService} onDelete={onDeleteService} />)}</div> : null}{!visible.length && !group.loose.length ? <div className="price-category__empty price-category__empty--large">还没有分类，先新建一个分类再添加服务。</div> : null}</div>
+        <aside className="price-directory" aria-label={`${group.game?.name || '通用价格'}分类目录`}><div className="price-directory__head"><b>分类目录</b><span>{categories.length}</span></div><button className={`price-directory__item${current === 'all' ? ' is-active' : ''}`} type="button" onClick={() => selectCategory('all')}><span>全部分类</span><small>{categories.reduce((count, category) => count + (category.services || []).length, 0)} 项</small></button>{categories.map((category) => <button className={`price-directory__item${current === String(category.id) ? ' is-active' : ''}`} type="button" key={category.id} onClick={() => selectCategory(String(category.id))}><span>{category.name}</span><small>{(category.services || []).length}</small></button>)}{!categories.length ? <p className="price-directory__empty">{query.q ? '这个筛选下没有分类' : '还没有分类'}</p> : null}<button className="price-directory__add" type="button" onClick={() => onNewCategory(group.key || '')}><Plus {...iconProps(14)} />新建分类</button></aside>
+        <div className="price-catalog"><div className="price-catalog__tools"><span>{current === 'all' ? '全部分类' : categories.find((category) => String(category.id) === current)?.name}</span><div><button className="refactor-button refactor-button--compact" type="button" onClick={setAllOpen} disabled={!categories.length}>{allOpen ? <ChevronDown {...iconProps(14)} /> : <ChevronRight {...iconProps(14)} />}{allOpen ? '全部收起' : '全部展开'}</button>{current !== 'all' ? <button className="refactor-button refactor-button--compact" type="button" onClick={() => onService(categories.find((category) => String(category.id) === current))}><Plus {...iconProps(14)} />添加服务</button> : null}</div></div>{visible.map((category) => <CategoryBlock key={category.id} category={category} currency={group.game?.currency || ''} open={!!openMap.get(String(category.id))} onOpenChange={(value) => setCategoryOpen(category.id, value)} onEdit={onEditCategory} onService={onService} onSum={onSum} onToggle={onToggleCategory} onDelete={onDeleteCategory} onEditService={onEditService} onPeekService={onPeekService} onAdvancedService={onAdvancedService} onToggleService={onToggleService} onDeleteService={onDeleteService} />)}{group.loose.length ? <div className="price-loose"><div className="price-loose__head"><b>未分类服务</b><span>{group.loose.some((service) => service.category_name) ? '它原来那个大类不在当前列表里（多半是归档了），重新选一个分类就能归位' : '请编辑服务并选择一个分类'}</span></div>{group.loose.map((service) => <ServiceRow key={service.id} service={service} currency={group.game?.currency || ''} orphan={Boolean(service.category_name)} onEdit={onEditService} onPeek={onPeekService} onAdvanced={onAdvancedService} onToggle={onToggleService} onDelete={onDeleteService} />)}</div> : null}{!visible.length && !group.loose.length ? <div className="price-category__empty price-category__empty--large">还没有分类，先新建一个分类再添加服务。</div> : null}</div>
       </div>
     </section>
   )
@@ -153,37 +158,81 @@ export default function PricePage({ route, navigate, onNewGame, onReload, reload
 
   const data = book || { games: [], categories: [], loose: [] }
   const gameMap = new Map((data.games || []).map((game) => [String(game.id), game]))
-  const gameFilter = query.game === 'generic' ? '' : query.game
+  // 地址里的 game= 可能指着一个已经归档 / 删掉的游戏（旧书签，或者你选了它之后
+  // 又去游戏页把它归档了）。那种情况下标签栏里一个都不亮，列表却已经被筛过，
+  // 看着就像坏了 —— 退回「全部价格表」。数据没回来时先不判定，免得标签闪一下。
+  const activeGame = !query.game || query.game === 'generic' || book === null || gameMap.has(query.game) ? query.game : ''
+  const gameFilter = activeGame === 'generic' ? '' : activeGame
   const categories = (data.categories || []).filter((category) => {
-    if (!query.game) return true
-    if (query.game === 'generic') return !category.game_id
+    if (!activeGame) return true
+    if (activeGame === 'generic') return !category.game_id
     return !category.game_id || String(category.game_id) === gameFilter
   })
   const loose = (data.loose || []).filter((service) => {
-    if (!query.game) return true
-    if (query.game === 'generic') return !service.game_id
+    if (!activeGame) return true
+    if (activeGame === 'generic') return !service.game_id
     return !service.game_id || String(service.game_id) === gameFilter
   })
   const text = query.q.trim().toLowerCase()
   const match = (value) => !text || String(value || '').toLowerCase().includes(text)
-  const visibleCategories = categories.map((category) => ({ ...category, services: (category.services || []).filter((service) => match(`${service.name} ${service.description} ${category.name}`)) })).filter((category) => match(`${category.name} ${category.notice}`) || category.services.length)
+  // 游戏筛选也要落到**大类里面的**服务项上：一个服务项自己的 game_id 说了算，
+  // 没绑游戏就跟它大类走。不然通用大类里挂给「原神」的服务项，会在崩铁的表里
+  // 也列出来、还算进「N 个服务项」，而崩铁那份导出里并没有它 —— 页面和发出去的
+  // 价格表对不上。（导出用的是同一条规则：!s.game_id || s.game_id === gameId）
+  const inGame = (service, category) => {
+    if (!activeGame) return true
+    const own = service.game_id ? String(service.game_id) : category && category.game_id ? String(category.game_id) : ''
+    if (activeGame === 'generic') return !own
+    return !own || own === gameFilter
+  }
+  // 搜索只决定「显示哪几条」，不改变「这一节一共有几条」。
+  // 所以每条大类都把两份都带上：allServices = 这个游戏范围内全部（组合报价和计数要用它），
+  // services = 再命中搜索的那些（正文渲染用）。旧版标题写的就是「5 项（命中 2）」，
+  // 组合报价也一直是拿全部算的 —— 只算命中的话，搜着搜着报价单会悄悄少几项。
+  const visibleCategories = categories
+    .map((category) => {
+      const allServices = (category.services || []).filter((service) => inGame(service, category))
+      return {
+        ...category,
+        // rawTotal = 库里这个大类的全部服务项（不分游戏、不分搜索）：
+        // 正文空的时候要靠它分清「这个筛选下没有」和「这个大类里真的还没有」
+        rawTotal: (category.services || []).length,
+        allServices,
+        services: allServices.filter((service) => match(`${service.name} ${service.description} ${category.name}`)),
+      }
+    })
+    // 留下「名字/提示命中搜索」或者「有命中搜索的服务项」的大类。
+    // 注意这里看的是命中后的 services —— 看 allServices 的话，
+    // 搜一个谁都不命中的词，满员的分类还会一个个挂在页面上，空状态永远不出现。
+    .filter((category) => match(`${category.name} ${category.notice}`) || category.services.length)
   const visibleLoose = loose.filter((service) => match(`${service.name} ${service.description}`))
+  // 表头这几个数说的是**当前这个筛选范围**（游戏标签 + 状态）里的东西，
+  // 不然点了某个游戏，上面写着全库的数、下面只有这一个游戏的表，对不上。
+  const shownCategoryCount = categories.length
+  const shownServiceCount = categories.reduce((sum, category) => sum + (category.services || []).filter((service) => inGame(service, category)).length, 0) + loose.length
 
   // 游戏被归档之后就不在 data.games 里了，但它的大类和服务项还在库里。
-  // 这时退回记录自带的 game_name，否则这一组会顶着一个空游戏渲染成「通用价格」，
-  // 和真正的通用表糊在一起。
-  const gameOf = (row) => gameMap.get(String(row.game_id)) || (row.game_name ? { name: row.game_name } : null)
+  // 这时退回记录自带的 game_name / game_currency，否则这一组会顶着一个空游戏
+  // 渲染成「通用价格」，服务行上的「可得」也会丢掉货币名只剩一个数字。
+  const gameOf = (row) => gameMap.get(String(row.game_id)) || (row.game_name ? { name: row.game_name, currency: row.game_currency || '' } : null)
   const groupMap = new Map()
-  for (const category of visibleCategories) {
-    const key = category.game_id ? String(category.game_id) : ''
-    if (!groupMap.has(key)) groupMap.set(key, { key, game: gameOf(category), categories: [], loose: [] })
-    groupMap.get(key).categories.push(category)
+  const groupFor = (row) => {
+    const key = row.game_id ? String(row.game_id) : ''
+    if (!groupMap.has(key)) groupMap.set(key, { key, game: gameOf(row), categories: [], loose: [], looseTotal: 0 })
+    return groupMap.get(key)
   }
-  for (const service of visibleLoose) {
+  for (const category of visibleCategories) groupFor(category).categories.push(category)
+  for (const service of visibleLoose) groupFor(service).loose.push(service)
+  // 未分类服务**一共**有几条（不受搜索影响）：搜索把它们藏起来时，
+  // 组标题不能还写「服务均已归类」—— 那是句假话。
+  // 这里**不能**顺手调 groupFor()：那会给「只有未分类服务、又被搜索藏起来」的游戏
+  // 也造出一个组，页面就从「没有找到匹配的价格」变成一排「0 个大类」的空壳。
+  const looseTotalByKey = new Map()
+  for (const service of loose) {
     const key = service.game_id ? String(service.game_id) : ''
-    if (!groupMap.has(key)) groupMap.set(key, { key, game: gameOf(service), categories: [], loose: [] })
-    groupMap.get(key).loose.push(service)
+    looseTotalByKey.set(key, (looseTotalByKey.get(key) || 0) + 1)
   }
+  for (const group of groupMap.values()) group.looseTotal = looseTotalByKey.get(group.key) || 0
   const groups = [...groupMap.values()]
 
   const createCategory = async (gameId = '') => { try { if (await openCategoryForm({}, data.games || [], gameId && gameId !== 'generic' ? gameId : null)) await onReload() } catch (err) { toastErr(err) } }
@@ -191,10 +240,10 @@ export default function PricePage({ route, navigate, onNewGame, onReload, reload
   const newService = async (category) => {
     if (!category?.id) {
       toast('先建一个大类，服务项要挂在大类下面', 'err')
-      return createCategory(query.game)
+      return createCategory(activeGame)
     }
     try {
-      if (await openServiceForm({ category_id: category.id, game_id: category.game_id || (query.game !== 'generic' ? query.game : '') }, { games: data.games || [], categories: data.categories || [] }, { quick: true })) await onReload()
+      if (await openServiceForm({ category_id: category.id, game_id: category.game_id || (activeGame !== 'generic' ? activeGame : '') }, { games: data.games || [], categories: data.categories || [] }, { quick: true })) await onReload()
     } catch (err) { toastErr(err) }
   }
   const editService = async (service) => { try { if (await openServiceForm(service, { games: data.games || [], categories: data.categories || [] })) await onReload() } catch (err) { toastErr(err) } }
@@ -205,18 +254,18 @@ export default function PricePage({ route, navigate, onNewGame, onReload, reload
   const toggleService = async (service) => { try { await api.patch(`/api/services/${service.id}`, { status: service.status === 'active' ? 'archived' : 'active' }); toast(service.status === 'active' ? '服务已归档' : '服务已恢复', 'ok'); await onReload() } catch (err) { toastErr(err) } }
   const deleteService = async (service) => { try { const usage = await api.get(`/api/services/${service.id}/usage`); if (!await confirmDelete({ title: `删除「${service.name}」？`, message: usage.order_items ? `${usage.order_items} 张订单使用过它，老订单快照不会改变。` : '这个服务还没有关联订单。' })) return; await api.del(`/api/services/${service.id}`, { hard: 1 }); toast('服务已删除', 'ok'); await onReload() } catch (err) { toastErr(err) } }
   const quickAddService = () => {
-    if (!query.game) {
+    if (!activeGame) {
       toast('请先选择一个游戏或通用价格表，再添加服务', 'err')
       return
     }
     // 搜索会把大类筛掉，但「添加服务」要的是「这个游戏下的大类」：
     // 只看筛过的 groups 的话，搜一个不命中任何大类的词再点添加服务，
     // 会莫名其妙弹出「新建大类」，而其实这个游戏下早就有大类了。
-    const key = query.game === 'generic' ? '' : query.game
+    const key = activeGame === 'generic' ? '' : activeGame
     const group = groups.find((item) => item.key === key)
     const category = group?.categories?.[0] || (data.categories || []).find((item) => String(item.game_id || '') === key)
     if (category) newService(category)
-    else createCategory(query.game)
+    else createCategory(activeGame)
   }
 
   // 全局搜索点「服务」会跳到 /price?s=<id>：把那条服务的详情抽屉直接打开。
@@ -237,11 +286,17 @@ export default function PricePage({ route, navigate, onNewGame, onReload, reload
       .then((full) => {
         if (!active || !full || !full.service) return
         openServicePeek({ ...full.service, tiers: full.tiers || [], options: full.options || [] }, peekContext, { onChanged: onReload })
-        // 参数用完就抹掉：留着的话再点一次同一个搜索结果地址没变，抽屉不会再开
-        update({})
+        // 参数用完就抹掉：留着的话再点一次同一个搜索结果地址没变，抽屉不会再开。
+        // 走 ref：这个 effect 的依赖里没有 update，直接调会拿着**取数那一刻**的
+        // query 去重建地址，把用户在这几百毫秒里改的筛选/搜索悄悄还原掉。
+        updateRef.current({})
       })
       .catch((err) => {
-        if (active) toastErr(err)
+        if (!active) return
+        // 取失败也要把「开过了」的标记放掉，不然 s= 一直挂在地址上，
+        // 同一个 id 再点一次地址没变、effect 也不再跑 —— 这个深链接就死了。
+        openedServiceRef.current = ''
+        toastErr(err)
       })
     return () => {
       active = false
@@ -250,12 +305,20 @@ export default function PricePage({ route, navigate, onNewGame, onReload, reload
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusServiceId, book])
 
+  // 空状态要说清是「哪种空」：搜不到、这个筛选下没有、还是整个价格表都还是空的。
+  // 一律写「还没有价格表」的话，点一下「通用」标签就会以为自己的价格表丢了。
+  const emptyHint = query.q
+    ? { title: '没有找到匹配的价格', note: '换个关键词试试。', action: '' }
+    : activeGame
+      ? { title: '这个筛选下还没有价格', note: '换个标签看看，或者就在这里新建一个大类。', action: 'category' }
+      : { title: '还没有价格表', note: '先新建游戏，再建立大类和服务项。', action: 'game' }
+
   return (
     <div className="price-page">
-      <header className="price-page__head"><div><h2>价格表</h2><p>{data.games.length} 个游戏 · {data.categories.length} 个大类 · {data.categories.reduce((sum, category) => sum + (category.services || []).length, 0) + data.loose.length} 个服务项</p></div><div className="price-page__head-actions"><button className="refactor-button" type="button" onClick={() => openExporter(null, { games: data.games || [] })}><Copy {...iconProps(15)} />导出</button><button className="refactor-button" type="button" onClick={onNewGame}><Gamepad2 {...iconProps(15)} />新建价格表</button><button className="refactor-button" type="button" onClick={() => createCategory(query.game)}><FolderPlus {...iconProps(15)} />新建大类</button><button className="refactor-button refactor-button--primary" type="button" onClick={quickAddService}><Plus {...iconProps(15)} />添加服务</button></div></header>
-      <section className="price-toolbar"><div className="price-games"><button className={`price-game${!query.game ? ' is-active' : ''}`} type="button" onClick={() => update({ game: '' })}>全部价格表</button>{data.games.map((game) => <button key={game.id} className={`price-game${query.game === String(game.id) ? ' is-active' : ''}`} type="button" onClick={() => update({ game: String(game.id) })}>{game.name}</button>)}<button className={`price-game${query.game === 'generic' ? ' is-active' : ''}`} type="button" onClick={() => update({ game: 'generic' })}>通用</button></div><div className="price-toolbar__spacer" /><div className="price-status" role="group" aria-label="价格状态"><button className={query.status === 'active' ? 'is-active' : ''} type="button" onClick={() => update({ status: 'active' })}>在架</button><button className={query.status === 'archived' ? 'is-active' : ''} type="button" onClick={() => update({ status: 'archived' })}>已归档</button><button className={query.status === 'all' ? 'is-active' : ''} type="button" onClick={() => update({ status: 'all' })}>全部</button></div><label className="price-search"><Search {...iconProps(15)} /><input type="search" value={search} placeholder="搜大类、服务或说明" onChange={(event) => { const value = event.target.value; setSearch(value); window.clearTimeout(searchTimer.current); searchTimer.current = window.setTimeout(() => updateRef.current({ q: value.trim() }), 260) }} /></label></section>
+      <header className="price-page__head"><div><h2>价格表</h2><p>{data.games.length} 个游戏 · {shownCategoryCount} 个大类 · {shownServiceCount} 个服务项</p></div><div className="price-page__head-actions"><button className="refactor-button" type="button" onClick={() => openExporter(null, { games: data.games || [] })}><Copy {...iconProps(15)} />导出</button><button className="refactor-button" type="button" onClick={onNewGame}><Gamepad2 {...iconProps(15)} />新建价格表</button><button className="refactor-button" type="button" onClick={() => createCategory(activeGame)}><FolderPlus {...iconProps(15)} />新建大类</button><button className="refactor-button refactor-button--primary" type="button" onClick={quickAddService}><Plus {...iconProps(15)} />添加服务</button></div></header>
+      <section className="price-toolbar"><div className="price-games"><button className={`price-game${!activeGame ? ' is-active' : ''}`} type="button" onClick={() => update({ game: '' })}>全部价格表</button>{data.games.map((game) => <button key={game.id} className={`price-game${activeGame === String(game.id) ? ' is-active' : ''}`} type="button" onClick={() => update({ game: String(game.id) })}>{game.name}</button>)}<button className={`price-game${activeGame === 'generic' ? ' is-active' : ''}`} type="button" onClick={() => update({ game: 'generic' })}>通用</button></div><div className="price-toolbar__spacer" /><div className="price-status" role="group" aria-label="价格状态"><button className={query.status === 'active' ? 'is-active' : ''} type="button" onClick={() => update({ status: 'active' })}>在架</button><button className={query.status === 'archived' ? 'is-active' : ''} type="button" onClick={() => update({ status: 'archived' })}>已归档</button><button className={query.status === 'all' ? 'is-active' : ''} type="button" onClick={() => update({ status: 'all' })}>全部</button></div><label className="price-search"><Search {...iconProps(15)} /><input type="search" value={search} placeholder="搜大类、服务或说明" onChange={(event) => { const value = event.target.value; setSearch(value); window.clearTimeout(searchTimer.current); searchTimer.current = window.setTimeout(() => updateRef.current({ q: value.trim() }), 260) }} /></label></section>
       {error ? <div className="refactor-alert" role="alert">{error}</div> : null}
-      <section className="price-groups">{book === null ? <div className="refactor-loading"><span /><span /><span /></div> : groups.length ? groups.map((group) => <GroupWorkspace key={group.key || 'generic'} group={group} query={query} onNewCategory={createCategory} onService={newService} onEditCategory={editCategory} onSum={(cat) => openPriceSum(cat, cat.services || [])} onToggleCategory={toggleCategory} onDeleteCategory={deleteCategory} onEditService={editService} onPeekService={peekService} onAdvancedService={peekService} onToggleService={toggleService} onDeleteService={deleteService} />) : <div className="price-empty"><Layers3 {...iconProps(24)} /><b>{query.q ? '没有找到匹配的价格' : '还没有价格表'}</b><span>{query.q ? '换个关键词试试。' : '先新建游戏，再建立大类和服务项。'}</span><button className="refactor-button refactor-button--primary" type="button" onClick={onNewGame}><Plus {...iconProps(15)} />新建价格表</button></div>}</section>
+      <section className="price-groups">{book === null ? <div className="refactor-loading"><span /><span /><span /></div> : groups.length ? groups.map((group) => <GroupWorkspace key={group.key || 'generic'} group={group} query={query} onNewCategory={createCategory} onService={newService} onEditCategory={editCategory} onSum={(cat) => openPriceSum(cat, cat.allServices || cat.services || [])} onToggleCategory={toggleCategory} onDeleteCategory={deleteCategory} onEditService={editService} onPeekService={peekService} onAdvancedService={peekService} onToggleService={toggleService} onDeleteService={deleteService} />) : <div className="price-empty"><Layers3 {...iconProps(24)} /><b>{emptyHint.title}</b><span>{emptyHint.note}</span>{emptyHint.action === 'game' ? <button className="refactor-button refactor-button--primary" type="button" onClick={onNewGame}><Plus {...iconProps(15)} />新建价格表</button> : null}{emptyHint.action === 'category' ? <button className="refactor-button refactor-button--primary" type="button" onClick={() => createCategory(activeGame)}><Plus {...iconProps(15)} />新建大类</button> : null}</div>}</section>
     </div>
   )
 }

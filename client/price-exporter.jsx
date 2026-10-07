@@ -100,11 +100,24 @@ function PriceExporter({ games, close }) {
     try {
       all = await fetchModel()
     } catch (err) {
+      // 失败就别留着上一次的预览和模型：图还挂在那里，标题写着「这就是生成出来的图片」，
+      // 三个按钮也还按着旧模型亮着 —— 用户会以为这份就是刚改完的结果。
+      if (token !== tokenRef.current) return
+      setModel(null)
+      setPreviewUrl('')
       setSummary('预览生成失败：' + (err.message || ''))
       return
     }
     if (token !== tokenRef.current) return
     setModel(all)
+
+    // 模型还没回来的时候，下拉里列的是价格表里的全部游戏（那会儿还不知道谁有内容）。
+    // 要是用户正好选了「只要某个空游戏这一份」，模型一到这个选项就没了 ——
+    // 按钮全灰、下拉还显示一个不存在的值。这里退回「每个游戏各出一份」。
+    if (scope.startsWith('game:') && !(all.gameOptions || []).some((game) => `game:${game.key}` === scope)) {
+      setScope('per-game')
+      return
+    }
 
     // 用户没改过的话，把服务端给的默认值回填进输入框
     if (contact === null) setContactText(all.contact || '')
@@ -129,6 +142,7 @@ function PriceExporter({ games, close }) {
     try {
       canvas = renderPriceCard(preview, { scale: 1 })
     } catch (err) {
+      setPreviewUrl('')
       setSummary('预览画不出来：' + (err.message || ''))
       return
     }

@@ -130,6 +130,8 @@ export const options = makeDef({
 
 const nameMaps = () => ({
   games: new Map(db.prepare('SELECT id, name FROM games').all().map((r) => [r.id, r.name])),
+  // 货币名配在游戏上。归档的游戏也要能查到 —— 它的服务项还在，价格表照样显示它们。
+  gameCurrency: new Map(db.prepare('SELECT id, currency FROM games').all().map((r) => [r.id, r.currency || ''])),
   categories: new Map(db.prepare('SELECT id, name FROM service_categories').all().map((r) => [r.id, r.name])),
   customers: new Map(db.prepare('SELECT id, name FROM customers').all().map((r) => [r.id, r.name])),
 })
@@ -139,12 +141,18 @@ function decorateServices(rows) {
   const tierCounts = new Map(
     db.prepare('SELECT service_id, COUNT(*) AS c FROM service_tiers GROUP BY service_id').all().map((r) => [r.service_id, r.c])
   )
+  // 只数在架的增项：价格表和导出都只看 status='active'，
+  // 这里把归档的也算进去的话，列表说「2 个增项」、价格表里只显示 1 个。
   const optionCounts = new Map(
-    db.prepare('SELECT service_id, COUNT(*) AS c FROM service_options GROUP BY service_id').all().map((r) => [r.service_id, r.c])
+    db
+      .prepare("SELECT service_id, COUNT(*) AS c FROM service_options WHERE status = 'active' GROUP BY service_id")
+      .all()
+      .map((r) => [r.service_id, r.c])
   )
   return rows.map((r) => ({
     ...r,
     game_name: r.game_id ? map.games.get(r.game_id) || '' : '',
+    game_currency: r.game_id ? map.gameCurrency.get(r.game_id) || '' : '',
     category_name: r.category_id ? map.categories.get(r.category_id) || '' : '',
     tier_count: tierCounts.get(r.id) || 0,
     option_count: optionCounts.get(r.id) || 0,
@@ -307,6 +315,7 @@ export function register() {
     const listStatus = requestedStatus === 'all' || requestedStatus === 'archived' ? requestedStatus : 'active'
     const statusWhere = listStatus === 'all' ? "status IN ('active', 'archived')" : `status = '${listStatus}'`
     const map = nameMaps()
+    const currencyByGame = map.gameCurrency
     const svcRows = db
       .prepare(`SELECT * FROM services WHERE ${statusWhere} ORDER BY sort_order ASC, id ASC`)
       .all()
@@ -337,20 +346,27 @@ export function register() {
       categories: catRows.map((c) => ({
         ...c,
         game_name: c.game_id ? map.games.get(c.game_id) || '' : '',
+        game_currency: c.game_id ? currencyByGame.get(c.game_id) || '' : '',
         services: svcRows
           .filter((s) => s.category_id === c.id)
           .map((s) => ({
             ...s,
             game_name: s.game_id ? map.games.get(s.game_id) || '' : '',
+            game_currency: s.game_id ? currencyByGame.get(s.game_id) || '' : '',
             tiers: tiersBy.get(s.id) || [],
             options: [...(optsBy.get(s.id) || []), ...(optsBy.get(0) || [])],
           })),
       })),
+      // 「没有大类」有两种：真的没挂大类，和挂的大类被归档 / 删掉了。
+      // 带上大类名字，前端才能说清是哪一种 —— 不然界面会对着一条
+      // 明明归过类的服务项说「请编辑服务并选择一个分类」。
       loose: svcRows
         .filter((s) => !s.category_id || !catRows.some((c) => c.id === s.category_id))
         .map((s) => ({
           ...s,
           game_name: s.game_id ? map.games.get(s.game_id) || '' : '',
+          game_currency: s.game_id ? currencyByGame.get(s.game_id) || '' : '',
+          category_name: s.category_id ? map.categories.get(s.category_id) || '' : '',
           tiers: tiersBy.get(s.id) || [],
           options: [...(optsBy.get(s.id) || []), ...(optsBy.get(0) || [])],
         })),

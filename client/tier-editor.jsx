@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { api } from './lib/api.js'
 import { fmtMoney, fmtQty } from './lib/formatters.js'
@@ -49,6 +49,16 @@ function TierEditor({ service, close }) {
 
   const unit = unitOf(service)
 
+  // 「不限」的止量当无穷大比，免得 null 被当成 0 反而算成不重叠
+  const maxOf = (tier) => (tier.max_qty === null || tier.max_qty === undefined || tier.max_qty === '' ? Infinity : Number(tier.max_qty))
+  const rangeText = (tier) => `${fmtQty(tier.min_qty)} ~ ${maxOf(tier) === Infinity ? '不限' : fmtQty(tier.max_qty)} ${unit}`
+  const overlaps = (() => {
+    const list = [...(items || [])].sort((a, b) => Number(a.min_qty) - Number(b.min_qty) || maxOf(a) - maxOf(b))
+    const hits = []
+    for (let i = 1; i < list.length; i++) if (Number(list[i].min_qty) <= maxOf(list[i - 1])) hits.push([list[i - 1], list[i]])
+    return hits
+  })()
+
   async function remove(tier) {
     if (!(await confirmDelete({ title: '删掉这一档？', message: `第 ${fmtQty(tier.min_qty)} 档` }))) return
     try {
@@ -67,7 +77,16 @@ function TierEditor({ service, close }) {
       onClose={() => close(null)}
     >
       <div className="stack">
-        <div className="note">按「数量」计价的服务项会先来这里找匹配的一档；找不到就用基准单价。例：1~5 层 30 元/层，6~12 层 25 元/层。</div>
+        <div className="note">按「数量」计价的服务项会先来这里找匹配的一档；数量落在两档之间就用下面那档的价，比第一档的起量还小就按第一档算。例：1~5 层 30 元/层，6~12 层 25 元/层。</div>
+
+        {/* 区间叠在一起（1~5 和 3~4）时，数量落在重叠段里只会命中其中一档 ——
+            哪一档是按起量排序后在前的那一档。不点破的话，改价时看到的钱
+            和实际算出来的钱对不上，所以这里直接列出来让人去改。 */}
+        {overlaps.length ? (
+          <div className="note note--alert">
+            {`有两档的区间叠在一起：${overlaps.map(([a, b]) => `${rangeText(a)} 和 ${rangeText(b)}`).join('；')}。重叠的数量只会按起量小的那一档算，建议把区间改开。`}
+          </div>
+        ) : null}
 
         <div className="itemlist">
           {items === null ? (
@@ -137,11 +156,20 @@ function TierForm({ service, tier, close }) {
   async function submit(event) {
     event.preventDefault()
     const next = {}
-    if (String(form.min_qty).trim() === '') next.min_qty = '请填写起始数量'
+    // 只敲了空格也算没填（不然 Number(' ') === 0 会存成「0 ~ x」）
+    const blank = (value) => value === null || value === undefined || String(value).trim() === ''
+    if (blank(form.min_qty)) next.min_qty = '请填写起始数量'
     else if (!Number.isFinite(Number(form.min_qty))) next.min_qty = '请填数字'
-    if (String(form.unit_price).trim() === '') next.unit_price = '请填写这一档的单价'
+    else if (Number(form.min_qty) <= 0) next.min_qty = '起始数量要大于 0'
+    if (blank(form.unit_price)) next.unit_price = '请填写这一档的单价'
     else if (!Number.isFinite(Number(form.unit_price))) next.unit_price = '请填数字'
-    if (String(form.max_qty).trim() !== '' && !Number.isFinite(Number(form.max_qty))) next.max_qty = '请填数字'
+    else if (Number(form.unit_price) < 0) next.unit_price = '单价不能是负数'
+    if (!blank(form.max_qty) && !Number.isFinite(Number(form.max_qty))) next.max_qty = '请填数字'
+    // 结束比起始还小 = 这一档永远不会被命中（价格会退到起量小的那一档），
+    // 列表上还会显示成「10 ~ 5 层」这种看不懂的区间。宁可不给存。
+    if (!next.min_qty && !next.max_qty && !blank(form.min_qty) && !blank(form.max_qty) && Number(form.max_qty) < Number(form.min_qty)) {
+      next.max_qty = '结束数量不能比起始数量小'
+    }
     setErrors(next)
     setAlert('')
     if (Object.keys(next).length) {
@@ -153,7 +181,7 @@ function TierForm({ service, tier, close }) {
     try {
       const payload = {
         min_qty: Number(form.min_qty),
-        max_qty: form.max_qty === '' ? null : Number(form.max_qty),
+        max_qty: blank(form.max_qty) ? null : Number(form.max_qty),
         unit_price: Number(form.unit_price),
       }
       if (isEdit) await api.patch(`/api/tiers/${tier.id}`, payload)

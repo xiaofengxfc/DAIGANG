@@ -74,8 +74,12 @@ function ServicePeek({ service, ctx, onChanged, close }) {
     return `${option.name || '未命名'}${price}${description ? ` · 说明：${description}` : ''}`
   })
 
-  // 能给客户拿到多少货币（货币名字配在游戏上）
-  const gain = currencyGain(current, ctx?.meta?.games || [], ctx?.meta?.categories || [])
+  // 能给客户拿到多少货币（货币名字配在游戏上）。
+  // 游戏被归档后就不在 meta.games 里了，currencyGain 查不到名字 ——
+  // 退回价格表带过来的 game_currency，别让「星声 200」变成光秃秃一个数。
+  const gain =
+    currencyGain(current, ctx?.meta?.games || [], ctx?.meta?.categories || []) ||
+    (Number(current?.currency_amount) > 0 && current?.game_currency ? `${current.game_currency} ${fmtQty(current.currency_amount)}` : '')
 
   async function toggleStatus() {
     const next = current.status === 'active' ? 'archived' : 'active'

@@ -49,8 +49,10 @@ function priceOf(service, tiers) {
 
   const tierRange = (t) => {
     const lo = qty(t.minQty)
-    const hi = t.maxQty === null ? '' : `-${qty(t.maxQty)}`
-    return `${lo}${hi}${unit}`
+    // 不限上界的一档要写「5层以上」：只写「5层」会被读成「就是 5 层」，
+    // 和 Excel（xlsx.mjs）以及价格表页面（price.jsx）上的写法也就对不上了。
+    if (t.maxQty === null) return `${lo}${unit}以上`
+    return `${lo}-${qty(t.maxQty)}${unit}`
   }
 
   if (list.length) {
@@ -95,8 +97,12 @@ export function buildExportModel(opts = {}) {
   const setting = (k) => db.prepare('SELECT value FROM settings WHERE key = ?').get(k)?.value || ''
 
   /* ---------- 取数：全部在架内容 ---------- */
-  const games = db.prepare("SELECT * FROM games WHERE status = 'active' ORDER BY sort_order ASC, id ASC").all()
+  const allGames = db.prepare('SELECT * FROM games ORDER BY sort_order ASC, id ASC').all()
+  const games = allGames.filter((g) => g.status === 'active')
   const gameById = new Map(games.map((g) => [g.id, g]))
+  // 归档的游戏不在 games 里，但它的大类 / 服务项还在库里（价格表页面照常显示它们）。
+  // 名字、货币、公告也得查得到，否则导出里那一节会变成没有抬头、没有货币的黑户。
+  const anyGameById = new Map(allGames.map((g) => [g.id, g]))
 
   /* ---------- 公告 ---------- */
   // 每个游戏一条公告，导出时放在最上方。
@@ -107,13 +113,13 @@ export function buildExportModel(opts = {}) {
   //   · 多个游戏合并成一份 → 不能都塞最上面，改成跟在各自游戏小标题下面，
   //     免得「鸣潮的公告」被当成整张表的总说明。
   const noticeByGame = new Map()
-  for (const g of games) {
+  for (const g of allGames) {
     const t = String(g.notice || '').trim()
     if (t) noticeByGame.set(String(g.id), t)
   }
   let focusKey = ''
   if (genericOnly) focusKey = ''
-  else if (gameId && gameById.has(gameId)) focusKey = String(gameId)
+  else if (gameId && anyGameById.has(gameId)) focusKey = String(gameId)
   else if (!gameId && games.length === 1) focusKey = String(games[0].id)
   const topNotice = focusKey ? clampStr(noticeByGame.get(focusKey) || '', 600) : ''
 
@@ -150,16 +156,17 @@ export function buildExportModel(opts = {}) {
      游戏没配名字、或者服务项没填数量 → 返回空串，那就什么都不显示。 */
   const gainOf = (s) => {
     const raw = s.currency_amount
-    if (raw === null || raw === undefined || raw === '') return ''
+    if (raw === null || raw === undefined || raw === '') return { name: '', text: '', amount: null }
     const n = num(raw)
-    if (!Number.isFinite(n) || n <= 0) return ''
+    if (!Number.isFinite(n) || n <= 0) return { name: '', text: '', amount: n }
     let gid = s.game_id && gameById.has(s.game_id) ? s.game_id : null
+    if (!gid && s.game_id && anyGameById.has(s.game_id)) gid = s.game_id
     if (!gid && s.category_id) {
       const g = catById.get(s.category_id)?.game_id
-      if (g && gameById.has(g)) gid = g
+      if (g && anyGameById.has(g)) gid = g
     }
-    const currency = String((gid ? gameById.get(gid)?.currency : '') || '').trim()
-    return currency ? `可得 ${currency} ${qty(n)}` : ''
+    const currency = String((gid ? anyGameById.get(gid)?.currency : '') || '').trim()
+    return { name: currency, text: currency ? `可得 ${currency} ${qty(n)}` : '', amount: n }
   }
 
   /* ---------- 归类 ---------- */
@@ -179,8 +186,11 @@ export function buildExportModel(opts = {}) {
         notes.push(`增项：${shown.map((option) => addonText(option, full)).join('、')}`)
       }
     }
+    const gain = gainOf(s)
     // 单个服务项的价格说明和「可得货币」都跟 withDesc 无关：
     // 前者是价格本身的一部分，后者是客户最关心的那个数，裁掉就没意义了。
+    // gainName 是**这一项自己的**货币名（Word/Excel 用它写表头，
+    // 不能拿整组的货币名 —— 一个通用大类里可以挂着别的游戏的服务项）。
     return {
       name: full ? String(s.name || '').trim() : clampStr(s.name, 40),
       price,
@@ -192,12 +202,16 @@ export function buildExportModel(opts = {}) {
       maxQty: s.max_qty === null || s.max_qty === undefined || s.max_qty === '' ? null : num(s.max_qty),
       basePrice: num(s.base_price, 0),
       notes,
-      gain: gainOf(s),
-      gainAmount: s.currency_amount === null || s.currency_amount === undefined || s.currency_amount === '' ? null : num(s.currency_amount),
+      gain: gain.text,
+      gainName: gain.name,
+      gainAmount: gain.amount,
     }
   }
 
-  // 有归属的大类 → 按大类分组；没有的 → 按游戏落到「未分类」
+  // 有归属的大类 → 按大类分组；没有的 → 按游戏落到「未分类」。
+  // 游戏 key 认的是服务项自己的 game_id（哪怕这个游戏已经归档）——
+  // 归档游戏的 key 下面这几段也要排出来，不能静默丢掉整节价格。
+  const exportGameKey = (row) => (row.game_id ? String(row.game_id) : '')
   const byCat = new Map()
   const orphansByGame = new Map()
   for (const s of services) {
@@ -206,7 +220,7 @@ export function buildExportModel(opts = {}) {
       if (!byCat.has(cat.id)) byCat.set(cat.id, [])
       byCat.get(cat.id).push(s)
     } else {
-      const key = s.game_id && gameById.has(s.game_id) ? String(s.game_id) : ''
+      const key = exportGameKey(s)
       if (!orphansByGame.has(key)) orphansByGame.set(key, [])
       orphansByGame.get(key).push(s)
     }
@@ -227,8 +241,10 @@ export function buildExportModel(opts = {}) {
       name: cat ? clampStr(cat.name, 40) : '未分类',
       isOrphan: !cat,
       gameKey,
-      gameName: gameKey ? gameById.get(Number(gameKey))?.name || '' : '',
-      currency: gameKey ? String(gameById.get(Number(gameKey))?.currency || '').trim() : '',
+      // 名字 / 货币查**全部**游戏（含已归档）：归档游戏的价格表照样要导出，
+      // 查不到名字就会变成一节没有抬头、没有货币的黑户。
+      gameName: gameKey ? anyGameById.get(Number(gameKey))?.name || '' : '',
+      currency: gameKey ? String(anyGameById.get(Number(gameKey))?.currency || '').trim() : '',
       gameNotice,
       // 大类自己的提示：排在它名字下面、服务项上面。
       // 「未分类」是临时的桶，没有真正的大类记录，所以没有提示。
@@ -241,7 +257,15 @@ export function buildExportModel(opts = {}) {
 
   // genericOnly 时 gameKeys 留空：通用大类 / 通用未分类由下面那两段专门处理，
   // 在这里再走一遍会重复出块。
-  const gameKeys = genericOnly ? [] : gameId ? [String(gameId)] : games.map((g) => String(g.id))
+  //
+  // 除了在架游戏，还要把「有内容但游戏已归档」的 key 也排进去：
+  // 归档游戏的大类和服务项还在库里（价格表页面照常显示它们），导出却只按
+  // 在架游戏列表分组的话，那一整节价格会从 Word / Excel / 图片里凭空消失，
+  // 而 totalServices 还照样把它们算进去 —— 数字和正文对不上。
+  const archivedKeys = [...new Set([...cats.map((c) => c.game_id), ...services.map((s) => s.game_id)].filter((id) => id && !gameById.has(id)))]
+    .map(String)
+    .sort((a, b) => Number(a) - Number(b))
+  const gameKeys = genericOnly ? [] : gameId ? [String(gameId)] : [...games.map((g) => String(g.id)), ...archivedKeys]
   const emitted = new Set()
   for (const key of gameKeys) {
     for (const c of cats) {
@@ -268,7 +292,6 @@ export function buildExportModel(opts = {}) {
   const trimmed = sections.slice(0, maxCategories)
   const hiddenCategories = sections.length - trimmed.length
   const itemCount = trimmed.reduce((n, g) => n + g.items.length, 0)
-
   /* ---------- 抬头 ---------- */
   const today = new Date()
   const p = (n) => String(n).padStart(2, '0')
@@ -276,20 +299,24 @@ export function buildExportModel(opts = {}) {
 
   let subtitle = ''
   if (genericOnly) subtitle = '未指定游戏的通用项'
-  else if (gameId) subtitle = gameById.get(gameId)?.name || ''
+  else if (gameId) subtitle = anyGameById.get(gameId)?.name || ''
   else if (games.length === 1) subtitle = games[0].name
   else if (games.length > 1) subtitle = games.map((g) => g.name).slice(0, 3).join(' / ') + (games.length > 3 ? ` 等 ${games.length} 个游戏` : '')
 
   /* ---------- 这份导出里都涉及哪些游戏（前端据此按游戏拆成多份） ---------- */
+  // 和上面排小节用的是同一条规则（exportGameKey）：
+  // 单游戏导出时，通用项本来就排在**这一份**里（价格表页面也是这么显示的），
+  // 所以它们算这个游戏的份数，不再单独列成「未指定游戏的通用项」——
+  // 否则 totalServices 和 gameOptions[].count 各说各的，前端显示的数量就是错的。
   const perGame = new Map()
   for (const s of services) {
-    const key = s.game_id && gameById.has(s.game_id) ? String(s.game_id) : ''
+    const key = gameId ? String(gameId) : exportGameKey(s)
     perGame.set(key, (perGame.get(key) || 0) + 1)
   }
-  const orderedKeys = [...games.map((g) => String(g.id)), ''].filter((k) => perGame.has(k))
+  const orderedKeys = [...games.map((g) => String(g.id)), ...archivedKeys, ''].filter((k) => perGame.has(k))
   const gameOptions = orderedKeys.map((k) => ({
     key: k,
-    name: k ? gameById.get(Number(k))?.name || '未知游戏' : '未指定游戏的通用项',
+    name: k ? anyGameById.get(Number(k))?.name || '未知游戏' : '未指定游戏的通用项',
     count: perGame.get(k) || 0,
   }))
 
@@ -307,13 +334,17 @@ export function buildExportModel(opts = {}) {
     format: full ? 'full' : 'card',
     // 提示：整份只面向一个游戏时在最上方显示（图片和 Word 都是）
     notice: topNotice,
-    noticeGameName: focusKey ? gameById.get(Number(focusKey))?.name || '' : '',
+    noticeGameName: focusKey ? anyGameById.get(Number(focusKey))?.name || '' : '',
     groups: trimmed,
     // 只有一张价格表时抬头已经写了游戏名；多张时才在正文里插游戏小标题
     multiGame: new Set(trimmed.map((g) => g.gameName).filter(Boolean)).size > 1,
     gameOptions,
     hiddenCategories,
-    hiddenServices: sections.reduce((n, g) => n + g.more, 0),
+    // 「没展开的服务项」= 这一份里一共有多少项 − 真正排进去的项数。
+    // 以前是 Σ 各节的 more，但那是**裁之前**的全部小节：被 maxCategories 整节砍掉的
+    // 那些小节，它们溢出的项被算进去了、真正显示的那几项反而没算 —— 两个数都错，
+    // 而且 hiddenServices + itemCount 对不上 totalServices。
+    hiddenServices: Math.max(0, totalServices - itemCount),
     totalServices,
     itemCount,
   }

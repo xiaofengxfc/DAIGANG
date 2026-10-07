@@ -32,6 +32,17 @@ const FORM_ID = 'service-form'
 /** 校验失败要聚焦的那个框：默认按字段名拼 id，对不上的在这里点名 */
 const FOCUS_ID = { currency_amount: 'service-currency' }
 
+/**
+ * 计价方式的下拉选项。
+ * SelectInput 认的是 { value, label }，而 shared/domain.js 里的 PRICE_TYPES 是
+ * { key, label, unitLabel } —— 直接把 PRICE_TYPES 传进去，五项的值都会变成字符串
+ * "undefined"：下拉里显示成「（原值：fixed）」，而且一动它就存不进去（服务端 400）。
+ */
+const PRICE_TYPE_OPTIONS = PRICE_TYPES.map(({ key, label }) => ({ value: key, label }))
+
+/** 留空（含只有空格）算没填；填了 0 就是 0 */
+const blank = (value) => value === null || value === undefined || String(value).trim() === ''
+
 export function openServiceForm(values = {}, { games = [], categories = [] } = {}, { quick = false } = {}) {
   return openOverlay(
     (close) => <ServiceForm values={values} games={games} categories={categories} quick={quick} close={close} />,
@@ -78,9 +89,19 @@ function ServiceForm({ values, games, categories, quick, close }) {
     if (!String(form.name).trim()) next.name = '请填写服务名'
     if (String(form.base_price).trim() === '') next.base_price = '请填写基准单价'
     else if (!Number.isFinite(Number(form.base_price))) next.base_price = '请填数字'
+    // 负的单价会一路流进组合报价和开单，算出来的钱是负的 —— 折扣是用增项做的，不该填负数
+    else if (Number(form.base_price) < 0) next.base_price = '单价不能是负数'
     if (String(form.min_qty).trim() !== '' && !Number.isFinite(Number(form.min_qty))) next.min_qty = '请填数字'
+    else if (String(form.min_qty).trim() !== '' && Number(form.min_qty) <= 0) next.min_qty = '起订量要大于 0'
     if (String(form.max_qty).trim() !== '' && !Number.isFinite(Number(form.max_qty))) next.max_qty = '请填数字'
+    else if (String(form.max_qty).trim() !== '' && Number(form.max_qty) <= 0) next.max_qty = '封顶量要大于 0'
+    // 封顶量比起订量还小的话，价格表上会显示成「起订 10 · 上限 5」，
+    // 谁也说不清这单到底接不接 —— 挡在保存前。
+    if (!next.min_qty && !next.max_qty && String(form.min_qty).trim() !== '' && String(form.max_qty).trim() !== '' && Number(form.max_qty) < Number(form.min_qty)) {
+      next.max_qty = '封顶量不能比起订量小'
+    }
     if (String(form.currency_amount).trim() !== '' && !Number.isFinite(Number(form.currency_amount))) next.currency_amount = '请填数字'
+    else if (String(form.currency_amount).trim() !== '' && Number(form.currency_amount) < 0) next.currency_amount = '数量不能是负数'
     setErrors(next)
     setAlert('')
     if (Object.keys(next).length) {
@@ -96,11 +117,13 @@ function ServiceForm({ values, games, categories, quick, close }) {
         ...form,
         name: String(form.name).trim(),
         game_id: form.game_id || null,
-        // 留空才算没填；填了 0 就存 0（以前 || 1 会把界面上的 0 悄悄变成 1）
-        min_qty: String(form.min_qty).trim() === '' ? 1 : Number(form.min_qty),
-        max_qty: form.max_qty === '' || form.max_qty === null ? null : Number(form.max_qty),
+        // 留空（含只敲了空格）才算没填；填了 0 就存 0（以前 || 1 会把界面上的 0 悄悄变成 1）
+        min_qty: blank(form.min_qty) ? 1 : Number(form.min_qty),
+        // 只敲了空格的话 Number(' ') === 0 —— 会被存成「上限 0」，
+        // 下次打开就变成「起订 1 · 上限 0」，还会被上面那条校验挡住存不回去。
+        max_qty: blank(form.max_qty) ? null : Number(form.max_qty),
         // 留空 = 不显示，存 NULL（和「封顶量」一个规矩）
-        currency_amount: form.currency_amount === '' || form.currency_amount === null ? null : Number(form.currency_amount),
+        currency_amount: blank(form.currency_amount) ? null : Number(form.currency_amount),
       }
       const saved = isEdit ? await api.patch(`/api/services/${values.id}`, payload) : await api.post('/api/services/append', payload)
       toast('服务项已保存', 'ok')
@@ -119,7 +142,7 @@ function ServiceForm({ values, games, categories, quick, close }) {
       </Field>
       <GameCategoryFields games={games} categories={categories} gameId={form.game_id} categoryId={form.category_id} gameName={values.game_name || ''} categoryName={values.category_name || ''} onGame={set('game_id')} onCategory={set('category_id')} />
       <Field label="计价方式" required half htmlFor="service-price-type">
-        <SelectInput id="service-price-type" value={form.price_type} onChange={set('price_type')} options={PRICE_TYPES} />
+        <SelectInput id="service-price-type" value={form.price_type} onChange={set('price_type')} options={PRICE_TYPE_OPTIONS} />
       </Field>
       <Field label="单位" half htmlFor="service-unit">
         <TextInput id="service-unit" maxLength={20} value={form.unit_label} onChange={set('unit_label')} placeholder="天 / 次 / 层 / 个 / 套" />
@@ -141,7 +164,7 @@ function ServiceForm({ values, games, categories, quick, close }) {
       </Field>
       <GameCategoryFields games={games} categories={categories} gameId={form.game_id} categoryId={form.category_id} gameName={values.game_name || ''} categoryName={values.category_name || ''} onGame={set('game_id')} onCategory={set('category_id')} />
       <Field label="计价方式" required half htmlFor="service-price-type" hint="按数量会自动用阶梯价（如果配了的话）">
-        <SelectInput id="service-price-type" value={form.price_type} onChange={set('price_type')} options={PRICE_TYPES} />
+        <SelectInput id="service-price-type" value={form.price_type} onChange={set('price_type')} options={PRICE_TYPE_OPTIONS} />
       </Field>
       <Field label="单位" half htmlFor="service-unit">
         <TextInput id="service-unit" maxLength={20} value={form.unit_label} onChange={set('unit_label')} placeholder="天 / 次 / 层 / 个 / 套" />

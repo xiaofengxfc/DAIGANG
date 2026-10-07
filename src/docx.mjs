@@ -75,6 +75,10 @@ const tableBorders =
 const TABLE_WIDTHS = [3000, 1500, 1900, 1500, TEXT_W - 3000 - 1500 - 1900 - 1500]
 
 function gainAmountText(item) {
+  // 模型里 gain 是空串 = 「这一项不显示货币」（数量填了 0，或者游戏没配货币名）。
+  // 这时候不能再把数字单独印出来：会留下一个孤零零的「5」，或者干脆一个「0」。
+  // Excel 那边是整格留空，两边要一致。
+  if (!item.gain) return ''
   if (item.gainAmount !== null && item.gainAmount !== undefined && item.gainAmount !== '') {
     const value = Number(item.gainAmount)
     if (Number.isFinite(value)) return Number.isInteger(value) ? String(value) : String(Math.round(value * 100) / 100)
@@ -82,6 +86,14 @@ function gainAmountText(item) {
   // 兼容旧导出模型：只从「可得 货币 数量」里取最后的数量。
   const match = String(item.gain || '').match(/([0-9]+(?:\.[0-9]+)?)\s*$/)
   return match ? match[1] : ''
+}
+
+/** 表头写的是整组的货币名；这一项不是这个货币时，格里要自己带上名字 */
+function gainCellText(item, groupCurrency) {
+  const amount = gainAmountText(item)
+  if (!amount) return ''
+  const name = String(item.gainName || '').trim()
+  return name && name !== String(groupCurrency || '').trim() ? `${name} ${amount}` : amount
 }
 
 function tableCell(content, width, { bold = false, color = INK, align = 'left' } = {}) {
@@ -131,7 +143,7 @@ function priceTable(group) {
         tableCell(it.name || '', TABLE_WIDTHS[0]),
         tableCell(unitStart, TABLE_WIDTHS[1], { align: 'center' }),
         tableCell(tierLines, TABLE_WIDTHS[2], { bold: true, color: ACCENT, align: 'right' }),
-        tableCell(gainAmountText(it), TABLE_WIDTHS[3], { color: GRAY, align: 'right' }),
+        tableCell(gainCellText(it, group.currency), TABLE_WIDTHS[3], { color: GRAY, align: 'right' }),
         tableCell(notes, TABLE_WIDTHS[4], { color: GRAY }),
       ])
     )
