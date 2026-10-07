@@ -61,6 +61,8 @@ export function register() {
       keyword: clampStr(body.keyword, 80),
       maxVideos,
       minSamples,
+      // 默认复用上次扫过的同一个视频（跳过下载和 OCR）；勾了「重新扫」才强制重来
+      refresh: body.refresh === true,
     })
     if (!result.ok) {
       // 「已有任务在跑」和「依赖没装好」都是可预期的业务分支，用 200 返回让前端好处理

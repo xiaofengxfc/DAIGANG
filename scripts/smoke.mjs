@@ -1500,7 +1500,68 @@ export async function run() {
   section('B站自动比价 · AI 接入的安全边界')
   const { __testing: aiScanTesting, aiTriageVideo, aiMatchUnmatched } = await import('../src/ai-scan.mjs')
   const { __testing: aiTesting, aiStatus, saveAiConfig, aiConfig, aiProbe } = await import('../src/ai.mjs')
+  const { __testing: scanTesting } = await import('../src/bili-scan.mjs')
   const { scopeCompatibility, groupByService } = await import('../src/price-match.mjs')
+
+  /**
+   * 缓存往返。
+   *
+   * 这一组是被一个真 bug 逼出来的：`aiTriageVideo` 返回的 `decisions`/`renames`
+   * 是 Map，而 `JSON.stringify(new Map())` 得到 `{}` —— 写进缓存再读回来就成了
+   * 普通对象，`for (const [k, v] of result.renames)` 直接抛
+   * `object is not iterable`，**四个视频全挂，而且只在第二次扫描时才炸**。
+   * 所以这里必须把「写进去再读出来」整条路走一遍。
+   */
+  const packed = scanTesting.packAiResult({
+    ok: true,
+    model: 'm',
+    decisions: new Map([['1:3', { keep: false, scope: 'total', inclusions: '', why: '噪音' }]]),
+    renames: new Map([['声厘', '声匣']]),
+  })
+  const unpacked = scanTesting.unpackAiResult(packed)
+  ok('缓存往返后 decisions 还是 Map', unpacked.decisions instanceof Map, String(unpacked.decisions))
+  ok('缓存往返后 renames 还是 Map', unpacked.renames instanceof Map, String(unpacked.renames))
+  ok('缓存往返后还能迭代 renames', [...unpacked.renames].length === 1, JSON.stringify([...unpacked.renames]))
+  ok('缓存往返后还能迭代 decisions', [...unpacked.decisions][0][0] === '1:3', JSON.stringify([...unpacked.decisions]))
+  ok('缓存往返不丢判断内容', unpacked.decisions.get('1:3')?.why === '噪音', JSON.stringify(unpacked.decisions.get('1:3')))
+  ok('缓存往返不丢改名', unpacked.renames.get('声厘') === '声匣')
+  ok('缓存往返保住 model', unpacked.model === 'm')
+  // 坏数据不该把扫描搞崩 —— 读缓存那条路上到处都是 try/catch
+  ok('坏 JSON 读缓存不抛', (() => { try { scanTesting.unpackAiResult('{不是 json'); return false } catch { return true } })())
+
+  /**
+   * AI 缓存的签名必须覆盖「模型的判断依赖什么」：模型 + 库内服务名 + 解析版本。
+   * 少一样就会出现「拿着旧库的判断套新库」—— 那是会写错价的。
+   */
+  process.env.XFC_AI_API_KEY = 'sk-signature-test'
+  process.env.XFC_AI_MODEL = '模型甲'
+  const sigNames = (list) => scanTesting.aiSignature(list)
+  ok('配了 AI 时签名有内容', sigNames(['甲']).length > 0, sigNames(['甲']))
+  ok('库内服务项变了，签名就变', sigNames(['甲', '乙']) !== sigNames(['甲', '乙', '丙']))
+  ok('库内服务项顺序变了，签名不变', sigNames(['甲', '乙']) === sigNames(['乙', '甲']), '顺序不该导致重问模型')
+  const sigModelA = sigNames(['甲'])
+  process.env.XFC_AI_MODEL = '模型乙'
+  ok('换模型签名就变', sigNames(['甲']) !== sigModelA, '换了模型就得重新问')
+  delete process.env.XFC_AI_MODEL
+  delete process.env.XFC_AI_API_KEY
+  ok('没配 AI 时签名是空（等于不缓存）', scanTesting.aiSignature(['甲']) === '')
+
+  /**
+   * 重新识别过就必须把 AI 判断的缓存清掉。
+   *
+   * 签名只覆盖「模型 + 库内服务名 + 解析版本」，不覆盖识别结果本身。而 AI 是按
+   * `帧:行` 指认的 —— 行号一挪，旧判断就安到了别的行上，等于随机删价。
+   * 这条断言直接查库：写入新帧之后，ai_sig 必须是空的。
+   */
+  {
+    const { db } = await import('../src/db.mjs')
+    const BV = 'BVtest-cache-clears-ai'
+    db.prepare("INSERT INTO bili_video_cache (bvid, version, ocr_frames, frames, frames_dir, at, ai_sig, ai_result) VALUES (?, 'x', 1, '[]', '', '2020-01-01', 'sig', '{\"ok\":true}') ON CONFLICT(bvid) DO UPDATE SET ai_sig='sig', ai_result='{\"ok\":true}'").run(BV)
+    scanTesting.writeVideoCacheForTest(BV, [{ file: 'f0001.jpg', ok: true, words: [] }], '/tmp')
+    const row = db.prepare('SELECT ai_sig, ai_result FROM bili_video_cache WHERE bvid = ?').get(BV)
+    ok('重扫写回新帧时清掉了 AI 判断缓存', row?.ai_sig === '' && row?.ai_result === '', JSON.stringify(row))
+    db.prepare('DELETE FROM bili_video_cache WHERE bvid = ?').run(BV)
+  }
 
   // —— 字段白名单：模型就算吐了 price，也进不来 ——
   const dirty = aiScanTesting.pickFields({

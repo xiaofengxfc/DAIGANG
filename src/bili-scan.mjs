@@ -25,6 +25,7 @@ import {
   BILI_ENOUGH_ROWS,
   BILI_FRAME_DIR,
   BILI_FRAME_MAX,
+  BILI_FRAME_INTERVAL_S,
   BILI_MAX_VIDEOS,
   BILI_MIN_SAMPLES,
   BILI_MIN_VIDEO_SECONDS,
@@ -165,7 +166,187 @@ export function cleanupOldScans({ ttlMs = BILI_TMP_TTL_MS, keepJobIds = [] } = {
       }
     }
   }
+  pruneVideoCache()
   return { removed }
+}
+
+/* ============================================================
+   视频识别结果缓存
+   ============================================================ */
+
+/**
+ * 缓存版本。**抽帧参数变了，老结果就不等价了**，所以把它们编进版本号里，
+ * 改了配置老缓存自动失效，不用手工清。
+ *
+ * 识别引擎（视觉后端的模型）换了也应该改这个数字 —— 那个没法从配置读出来。
+ */
+const VIDEO_CACHE_VERSION = `v1|每${BILI_FRAME_INTERVAL_S}秒|最多${BILI_FRAME_MAX}帧`
+
+/** 缓存留多久。视频里的价格表会改，留太久不如重扫 */
+const VIDEO_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000
+
+/**
+ * 取这个视频上次的识别结果。没有、版本对不上、或者坏了都返回 null。
+ *
+ * 存的**只有原始识别结果**（每一帧的 words），不含解析后的成品。这是有意的：
+ * 解析结果依赖库内服务项和 AI 配置，存下来就会过期；原始识别只依赖视频本身。
+ */
+function readVideoCache(bvid) {
+  let row
+  try {
+    row = db.prepare('SELECT version, frames, frames_dir, at FROM bili_video_cache WHERE bvid = ?').get(bvid)
+  } catch {
+    return null
+  }
+  if (!row || row.version !== VIDEO_CACHE_VERSION) return null
+  let frames
+  try {
+    frames = JSON.parse(row.frames)
+  } catch {
+    return null
+  }
+  if (!Array.isArray(frames) || !frames.length) return null
+  return { frames, framesDir: row.frames_dir || '', at: row.at }
+}
+
+function writeVideoCache(bvid, frames, framesDir) {
+  try {
+    /**
+     * 重新识别了就**把 AI 那部分缓存一起清掉**。
+     *
+     * 不清会出事：签名只覆盖「模型 + 库内服务名 + 解析版本」，不覆盖识别结果本身。
+     * 强制重扫时 OCR 重新跑了一遍、内容可能已经不同（视频改了，或者识别本身有抖动），
+     * 而旧的 AI 判断是按 `帧:行` 指认的 —— 行号一挪，判断就安到了别的行上，
+     * 等于**随机删价**。实测确实出现了「重扫后未匹配数从 9 变成 12」。
+     */
+    db.prepare(
+      `INSERT INTO bili_video_cache (bvid, version, ocr_frames, frames, frames_dir, at, ai_sig, ai_result)
+       VALUES (?, ?, ?, ?, ?, ?, '', '')
+       ON CONFLICT(bvid) DO UPDATE SET version = excluded.version, ocr_frames = excluded.ocr_frames,
+         frames = excluded.frames, frames_dir = excluded.frames_dir, at = excluded.at,
+         ai_sig = '', ai_result = ''`,
+    ).run(bvid, VIDEO_CACHE_VERSION, frames.length, JSON.stringify(frames), framesDir, stamp())
+  } catch {
+    /* 缓存写不进去不该让这次扫描失败 */
+  }
+}
+
+/** 清掉过期的缓存条目，别让它无限长 */
+export function pruneVideoCache({ ttlMs = VIDEO_CACHE_TTL_MS } = {}) {
+  const cutoff = new Date(Date.now() - ttlMs).toISOString()
+  try {
+    const r = db.prepare('DELETE FROM bili_video_cache WHERE at < ?').run(cutoff)
+    return { removed: Number(r.changes || 0) }
+  } catch {
+    return { removed: 0 }
+  }
+}
+
+/**
+ * AI 判断在什么前提下才作数。
+ *
+ * 模型的判断只依赖三样东西：原始识别结果（缓存里那份）、库内服务名、模型本身。
+ * 前两样加上版本号就是完整的签名 —— 库改了服务项、换了模型，签名变了就重新问，
+ * 所以不会出现「AI 拿着旧库的判断套新库」这种错。
+ *
+ * 服务名排过序：库内顺序变了不该导致重新问一遍。
+ */
+function aiSignature(serviceNames) {
+  const config = aiConfig()
+  if (!config.enabled) return ''
+  return `${VIDEO_CACHE_VERSION}\u0001${config.model}\u0001${[...serviceNames].sort().join('\u0002')}`
+}
+
+/**
+ * 取这个视频上次的 AI 甄别结果。
+ *
+ * 存的是**模型的原始回复**，重放时走的是完全相同的校验、改名、剔除逻辑 ——
+ * 缓存不会绕过任何一道安全闸。
+ */
+/**
+ * `aiTriageVideo` 返回的 `decisions` 和 `renames` 是 **Map**，而 Map 过不了 JSON ——
+ * `JSON.stringify(new Map())` 得到 `{}`，读回来就成了普通对象，一迭代就炸
+ * （实测报的是 `object is not iterable`，而且四个视频全挂）。
+ * 所以存之前转成数组，读之后转回 Map。
+ */
+function packAiResult(result) {
+  return JSON.stringify({
+    ...result,
+    decisions: [...(result.decisions instanceof Map ? result.decisions : new Map()).entries()],
+    renames: [...(result.renames instanceof Map ? result.renames : new Map()).entries()],
+  })
+}
+
+function unpackAiResult(text) {
+  const raw = JSON.parse(text)
+  return {
+    ...raw,
+    decisions: new Map(raw.decisions || []),
+    renames: new Map(raw.renames || []),
+  }
+}
+
+function readCachedAi(bvid, signature) {
+  if (!signature) return null
+  try {
+    const row = db.prepare('SELECT ai_sig, ai_result FROM bili_video_cache WHERE bvid = ?').get(bvid)
+    if (!row || row.ai_sig !== signature || !row.ai_result) return null
+    return unpackAiResult(row.ai_result)
+  } catch {
+    return null
+  }
+}
+
+function writeCachedAi(bvid, signature, result) {
+  if (!signature || !result?.ok) return
+  try {
+    // 只在签名变了才覆盖 —— 同一份输入重问一遍得到的结果可能略有出入，
+    // 但没必要因此把缓存洗掉
+    db.prepare('UPDATE bili_video_cache SET ai_sig = ?, ai_result = ? WHERE bvid = ?')
+      .run(signature, packAiResult(result), bvid)
+  } catch {
+    /* 写不进去不影响这次扫描 */
+  }
+}
+
+/** 手动清空（界面上「重新扫描」之外，也留给排查用） */
+export function clearVideoCache() {
+  try {
+    return { removed: Number(db.prepare('DELETE FROM bili_video_cache').run().changes || 0) }
+  } catch {
+    return { removed: 0 }
+  }
+}
+
+/**
+ * 把缓存里的帧图拷进本任务的目录，缩略图才有出处。
+ *
+ * **拷不动不算失败。** 帧图是中间产物，超过 24 小时会被清掉，而识别结果还在 ——
+ * 这时候照样复用识别结果（省掉下载和 OCR 才是重点），只是没有缩略图可看。
+ */
+function restoreCachedFrames(cached, jobId, bvid) {
+  const target = frameDirOf(jobId, bvid)
+  const out = []
+  let copied = 0
+  for (const frame of cached.frames) {
+    const name = path.basename(String(frame.file || ''))
+    let local = ''
+    if (name && cached.framesDir) {
+      try {
+        const from = path.join(cached.framesDir, name)
+        if (fs.existsSync(from)) {
+          fs.mkdirSync(target, { recursive: true })
+          fs.copyFileSync(from, path.join(target, name))
+          local = name
+          copied += 1
+        }
+      } catch {
+        /* 拷不过去就当这一帧没有图 */
+      }
+    }
+    out.push({ file: name, ok: frame.ok !== false, words: frame.words || [], local })
+  }
+  return { frames: out, copied }
 }
 
 /* ============================================================
@@ -322,7 +503,7 @@ export function defaultKeyword(gameName, extra = '') {
   return `${String(gameName || '').trim()} 代肝 价格表`
 }
 
-export function startScan({ gameId, keyword = '', maxVideos = BILI_MAX_VIDEOS, minSamples = BILI_MIN_SAMPLES, force = false } = {}) {
+export function startScan({ gameId, keyword = '', maxVideos = BILI_MAX_VIDEOS, minSamples = BILI_MIN_SAMPLES, force = false, refresh = false } = {}) {
   const readiness = scanReadiness()
   if (!readiness.ready && !force) {
     return { ok: false, code: 'not_ready', error: readiness.blockers.map((b) => b.message).join('；'), readiness }
@@ -342,7 +523,7 @@ export function startScan({ gameId, keyword = '', maxVideos = BILI_MAX_VIDEOS, m
     keyword: defaultKeyword(game.name, keyword),
     status: 'running',
     stage: '准备中',
-    progress: { videos_found: 0, videos_total: 0, videos_done: 0, frames: 0, ocr_frames: 0, parsed_names: 0 },
+    progress: { videos_found: 0, videos_total: 0, videos_done: 0, frames: 0, ocr_frames: 0, reused_videos: 0, parsed_names: 0 },
     videos: [],
     matched: [],
     unmatched: [],
@@ -357,7 +538,7 @@ export function startScan({ gameId, keyword = '', maxVideos = BILI_MAX_VIDEOS, m
   liveJobs.set(id, job)
   persist(job)
 
-  void runScan(job, { maxVideos, minSamples }).catch((err) => {
+  void runScan(job, { maxVideos, minSamples, refresh }).catch((err) => {
     job.status = 'failed'
     job.error = err?.message || String(err)
     job.stage = '出错了'
@@ -391,7 +572,7 @@ function assertNotCancelled(job) {
   }
 }
 
-async function runScan(job, { maxVideos, minSamples }) {
+async function runScan(job, { maxVideos, minSamples, refresh = false }) {
   fs.mkdirSync(jobDir(job.id), { recursive: true })
 
   /* ---- 1. 搜索 ---- */
@@ -438,7 +619,7 @@ async function runScan(job, { maxVideos, minSamples }) {
     job.stage = '没有可用的视频'
     job.error = `没搜到合适的视频（关键词「${job.keyword}」）。可以换个关键词再试。`
     job.progress.videos_total = 0
-    job.summary = { picked: 0, parsed_names: 0, matched: 0, unmatched: 0 }
+    job.summary = { picked: 0, reused: 0, parsed_names: 0, matched: 0, unmatched: 0 }
     touch(job)
     liveJobs.delete(job.id)
     return
@@ -482,7 +663,7 @@ async function runScan(job, { maxVideos, minSamples }) {
    * 其实没干」比直接报错更坏，所以错误文本要一路带到界面上。
    */
   const aiTotals = {
-    enabled: false, model: '', dropped: 0, renamed: 0, kept: 0, errors: 0, ms: 0,
+    enabled: false, model: '', dropped: 0, renamed: 0, kept: 0, errors: 0, ms: 0, cached: 0,
     dropped_samples: [], renamed_samples: [], rename_rejected_samples: [], last_error: '',
   }
   for (let i = 0; i < job.videos.length; i++) {
@@ -491,7 +672,11 @@ async function runScan(job, { maxVideos, minSamples }) {
     job.stage = `处理视频 ${i + 1}/${job.videos.length}`
     touch(job)
     try {
-      const parsed = await processOneVideo(job, video, { cookieFile, serviceNames: services.map((s) => s.name) })
+      const parsed = await processOneVideo(job, video, {
+        cookieFile,
+        serviceNames: services.map((s) => s.name),
+        refresh,
+      })
       allParsed.push(...parsed.items)
       allSections.push(...parsed.sections)
       if (parsed.ai?.enabled) {
@@ -501,6 +686,7 @@ async function runScan(job, { maxVideos, minSamples }) {
         aiTotals.renamed += parsed.ai.renamed || 0
         aiTotals.kept += parsed.ai.kept || 0
         aiTotals.ms += parsed.ai.ms || 0
+        if (parsed.ai.cached) aiTotals.cached += 1
         for (const sample of parsed.ai.dropped_samples || []) {
           if (aiTotals.dropped_samples.length < 20) aiTotals.dropped_samples.push(sample)
         }
@@ -658,6 +844,9 @@ async function runScan(job, { maxVideos, minSamples }) {
   job.summary = {
     picked: job.videos.length,
     downloaded: job.videos.filter((v) => v.status === 'parsed').length,
+    // 复用上次识别结果的条数。要说出来 —— 用户看到「只花了 5 秒」得知道为什么，
+    // 否则会以为这次扫得特别顺利、结果特别可信。
+    reused: job.videos.filter((v) => v.reused).length,
     failed: job.videos.filter((v) => v.status === 'failed').length,
     parsed_names: allParsed.length,
     matched: job.matched.length,
@@ -676,10 +865,36 @@ async function runScan(job, { maxVideos, minSamples }) {
 }
 
 /**
- * 一个视频走完全程。
- * 失败要抛出带原因的错，让上层记到那个视频上（一个视频挂了不该毁掉整个任务）。
+ * 拿到这个视频每一帧的识别结果。
+ *
+ * 命中缓存就跳过**下载 → 抽帧 → OCR** 三步。这三步占了一个视频十几秒里的绝大部分，
+ * 而且结果只取决于视频本身 —— 跟游戏、库内服务项、AI 配置都无关，所以能安全复用。
+ * 同一个关键词搜出来的视频高度重合，不缓存的话第二次扫大半时间都白花。
+ *
+ * 返回 `{ frames: [{file, ok, words, local}], total }`。`local` 是这一帧的图在
+ * **本任务**目录下的文件名；帧图被清理过时是空串。
  */
-async function processOneVideo(job, video, { cookieFile, serviceNames = [] }) {
+async function ocrVideo(job, video, { cookieFile, refresh }) {
+  if (!refresh) {
+    const cached = readVideoCache(video.bvid)
+    if (cached) {
+      const restored = restoreCachedFrames(cached, job.id, video.bvid)
+      video.reused = true
+      video.status = 'cached'
+      video.frames = restored.frames.length
+      job.stage = `复用上次结果 ${video.bvid}`
+      job.progress.reused_videos = (job.progress.reused_videos || 0) + 1
+      job.progress.frames += restored.frames.length
+      logLine(
+        job,
+        `${video.bvid} 复用上次的识别结果（${restored.frames.length} 帧）` +
+          (restored.copied ? '' : '，帧图已被清理所以这次没有缩略图'),
+      )
+      touch(job)
+      return { frames: restored.frames, total: restored.frames.length }
+    }
+  }
+
   const dir = path.join(jobDir(job.id), video.bvid)
   video.status = 'downloading'
   job.stage = `下载 ${video.bvid}`
@@ -716,6 +931,66 @@ async function processOneVideo(job, video, { cookieFile, serviceNames = [] }) {
   /* ---- OCR：有预算、凑够就停 ---- */
   video.status = 'ocr'
   const started = Date.now()
+  const frames = []
+  /**
+   * 边认边记「已经认出多少个不同的服务名」，用来判断「够了，别再认了」。
+   *
+   * 这里只数名字、不保留解析结果 —— 真正的解析在 parseOcr 里统一做一次。
+   * 多解析一遍的开销是微秒级，跟一次 OCR（约半秒）比可以忽略。
+   */
+  const seenNames = new Set()
+  for (const frame of extracted.frames) {
+    if (job.cancelRequested) break
+    if (Date.now() - started > BILI_OCR_BUDGET_MS) {
+      logLine(job, `${video.bvid} 的 OCR 到时间预算，停在 ${frames.length}/${extracted.frames.length} 帧`)
+      break
+    }
+    let result
+    try {
+      result = await visionOcr(frame, { timeoutMs: BILI_OCR_TIMEOUT_MS })
+    } catch (err) {
+      result = { ok: false, error: err?.message }
+    }
+    if (!result.ok) {
+      logLine(job, `${video.bvid} 第 ${frames.length + 1} 帧识别失败：${result.error}`)
+      continue
+    }
+    const name = path.basename(frame)
+    frames.push({ file: name, ok: true, words: result.words || [], local: name })
+    for (const hit of extractPriceCandidates(result.words || [])) seenNames.add(hit.name)
+
+    video.ocr_frames = frames.length
+    if (frames.length % 5 === 0) {
+      job.stage = `识别 ${video.bvid}（${frames.length}/${extracted.frames.length} 帧）`
+      touch(job)
+    }
+    // 一张价格表找到之后，后面的帧基本是同一张图，再认下去是白花时间
+    if (seenNames.size >= BILI_ENOUGH_ROWS) {
+      logLine(job, `${video.bvid} 已认出 ${seenNames.size} 个服务名，提前收工（省下 ${extracted.frames.length - frames.length} 帧）`)
+      break
+    }
+  }
+  video.ocr_frames = frames.length
+
+  /**
+   * 存下来给下次用。
+   *
+   * 一帧都没认出来就不存 —— 那通常是视觉后端没起来或者视频本身有问题，
+   * 把这种空结果缓存下来，下次连重试的机会都没了。
+   */
+  if (frames.length) writeVideoCache(video.bvid, frames, frameDir)
+
+  return { frames, total: extracted.frames.length }
+}
+
+/**
+ * 从识别结果里解析出候选、分节标题、以及给 AI 看的逐行文本。
+ *
+ * **这一步每次扫描都重跑，不走缓存。** 它依赖库内服务项（名字匹配）和 AI 配置
+ * （甄别、改名），缓存里只存原始识别结果，正是为了让这里永远用最新的规则 ——
+ * 库改了服务项、AI 换了模型，下次扫描立刻生效，不用等缓存过期。
+ */
+function parseOcr(job, video, source) {
   const candidates = []
   const sectionHits = []
   /**
@@ -727,25 +1002,12 @@ async function processOneVideo(job, video, { cookieFile, serviceNames = [] }) {
    */
   const frameLines = []
   let ocrFrames = 0
-  for (const frame of extracted.frames) {
-    if (job.cancelRequested) break
-    if (Date.now() - started > BILI_OCR_BUDGET_MS) {
-      logLine(job, `${video.bvid} 的 OCR 到时间预算，停在 ${ocrFrames}/${extracted.frames.length} 帧`)
-      break
-    }
-    let result
-    try {
-      result = await visionOcr(frame, { timeoutMs: BILI_OCR_TIMEOUT_MS })
-    } catch (err) {
-      result = { ok: false, error: err?.message }
-    }
-    if (!result.ok) {
-      logLine(job, `${video.bvid} 第 ${ocrFrames + 1} 帧识别失败：${result.error}`)
-      continue
-    }
+
+  for (const frame of source.frames) {
+    if (!frame.ok) continue
     ocrFrames += 1
-    job.progress.ocr_frames += 1
-    const hits = extractPriceCandidates(result.words || [])
+    const words = frame.words || []
+    const hits = extractPriceCandidates(words)
 
     const pricedText = new Set(hits.map((h) => String(h.line || '').trim()))
     /**
@@ -759,13 +1021,19 @@ async function processOneVideo(job, video, { cookieFile, serviceNames = [] }) {
       if (!namesByText.has(key)) namesByText.set(key, [])
       namesByText.get(key).push(hit.name)
     }
-    const lines = groupLines(result.words || []).map((line, i) => ({
+    const lines = groupLines(words).map((line, i) => ({
       index: i + 1,
       text: line.text.trim(),
       priced: pricedText.has(line.text.trim()),
       names: namesByText.get(line.text.trim()) || [],
     }))
-    frameLines.push({ frame: ocrFrames, file: path.basename(frame), lines })
+    frameLines.push({ frame: ocrFrames, file: frame.file, lines })
+
+    /**
+     * 帧图被清理过时留空串 —— 前端对空的 frame 就是「不显示缩略图」，
+     * 比给一个必然 404 的地址好。
+     */
+    const framePath = frame.local ? frameRelPath(job.id, video.bvid, frame.local) : ''
 
     /**
      * 候选要记住它出自「第几帧的第几行」。
@@ -778,7 +1046,7 @@ async function processOneVideo(job, video, { cookieFile, serviceNames = [] }) {
     for (const hit of hits) {
       candidates.push({
         ...hit,
-        frame: frameRelPath(job.id, video.bvid, path.basename(frame)),
+        frame: framePath,
         frameIndex: ocrFrames,
         lineIndex: lineIndexByText.get(String(hit.line || '').trim()) || 0,
       })
@@ -791,27 +1059,32 @@ async function processOneVideo(job, video, { cookieFile, serviceNames = [] }) {
      * 大类。认出来先攒着，扫完按名字聚合成候选给用户勾选 —— 不自动建，
      * 因为 `小示地国` 这种 OCR 认歪的名字也会进来，得让人过一眼。
      */
-    for (const section of extractSections(result.words || [], hits)) {
+    for (const section of extractSections(words, hits)) {
       sectionHits.push({
         name: section.name,
         items: section.items || [],
         bvid: video.bvid,
-        frame: frameRelPath(job.id, video.bvid, path.basename(frame)),
+        frame: framePath,
       })
     }
-    // 一张价格表找到之后，后面的帧基本是同一张图，再认下去是白花时间
-    const distinct = new Set(candidates.map((c) => c.name)).size
-    if (distinct >= BILI_ENOUGH_ROWS) {
-      logLine(job, `${video.bvid} 已认出 ${distinct} 个服务名，提前收工（省下 ${extracted.frames.length - ocrFrames} 帧）`)
-      break
-    }
-    video.ocr_frames = ocrFrames
-    if (ocrFrames % 5 === 0) {
-      job.stage = `识别 ${video.bvid}（${ocrFrames}/${extracted.frames.length} 帧）`
-      touch(job)
-    }
   }
+
   video.ocr_frames = ocrFrames
+  return { candidates, frameLines, sectionHits, ocrFrames }
+}
+
+/**
+ * 一个视频走完全程。
+ * 失败要抛出带原因的错，让上层记到那个视频上（一个视频挂了不该毁掉整个任务）。
+ *
+ * 分成两步是有意的：**「拿到识别结果」和「解析识别结果」分开**。
+ * 前者慢（下载 + 抽帧 + OCR，十几秒）且只取决于视频本身，所以能缓存；
+ * 后者快且依赖库内服务项和 AI 配置，所以每次重跑。
+ */
+async function processOneVideo(job, video, { cookieFile, serviceNames = [], refresh = false }) {
+  const source = await ocrVideo(job, video, { cookieFile, refresh })
+  const { candidates, frameLines, sectionHits, ocrFrames } = parseOcr(job, video, source)
+  job.progress.ocr_frames += ocrFrames
 
   /* ---- AI 甄别：哪些行根本不是价格表里的 ---- */
   const ai = await triageCandidates({ job, video, candidates, frameLines, serviceNames })
@@ -867,11 +1140,26 @@ async function triageCandidates({ job, video, candidates, frameLines, serviceNam
   if (!aiConfig().enabled) return base
   if (!candidates.length || !frameLines.length) return base
 
-  let result
-  try {
-    result = await aiTriageVideo({ game: job.game_name || '', serviceNames, frames: frameLines })
-  } catch (err) {
-    result = { ok: false, error: err?.message || String(err) }
+  /**
+   * 同一个视频、同一个模型、同一份库 —— 上次问过就直接用上次的答案。
+   *
+   * 实测复用识别结果的那次扫描总共 40 秒，其中 **AI 占 36 秒**：下载和 OCR 都
+   * 省掉了，AI 反而成了新的重复劳动。缓存的初衷就是「不重复干活」，所以这里也省。
+   *
+   * 存的是**模型的原始回复**，下面那套校验、改名、剔除逻辑照常走一遍 ——
+   * 缓存只是省掉一次网络往返，不绕过任何一道闸。
+   */
+  const signature = aiSignature(serviceNames)
+  let result = readCachedAi(video.bvid, signature)
+  let aiCached = Boolean(result)
+  if (!result) {
+    try {
+      result = await aiTriageVideo({ game: job.game_name || '', serviceNames, frames: frameLines })
+    } catch (err) {
+      result = { ok: false, error: err?.message || String(err) }
+    }
+    // 只缓存成功的结果 —— 把一次超时缓存下来，下次连重试的机会都没了
+    if (result.ok) writeCachedAi(video.bvid, signature, result)
   }
   if (!result.ok) {
     // 失败了要说出来，但只记一行日志 —— 用户不需要知道 AI 为什么挂
@@ -967,7 +1255,12 @@ async function triageCandidates({ job, video, candidates, frameLines, serviceNam
     stats: {
       enabled: true,
       model: result.model || '',
-      ms: result.ms || 0,
+      // 复用判断时耗时记 0 —— 报上次那次调用的耗时会让「第二次扫描只花了 6 秒」
+      // 和「AI 花了 33 秒」同时出现在一个界面上，自相矛盾
+      ms: aiCached ? 0 : result.ms || 0,
+      // 这次是重放上次的答案还是真问了模型。界面上要说清楚 ——
+      // 「秒出结果」如果是因为复用了旧判断，用户有权知道
+      cached: aiCached,
       kept: kept.length,
       dropped,
       renamed,
@@ -1214,4 +1507,4 @@ export function createCategoriesFromScan(id, names = []) {
   return { ok: true, created, skipped, game_id: job.game_id ?? null }
 }
 
-export const __testing = { servicesOfGame, jobDir, frameDirOf, titleBlocked, nameKey, triageCandidates }
+export const __testing = { servicesOfGame, jobDir, frameDirOf, titleBlocked, nameKey, triageCandidates, packAiResult, unpackAiResult, aiSignature, VIDEO_CACHE_VERSION, writeVideoCacheForTest: writeVideoCache }

@@ -92,6 +92,7 @@ function PriceScan({ game, close, onApplied }) {
   const [job, setJob] = useState(null)
   const [keyword, setKeyword] = useState('')
   const [maxVideos, setMaxVideos] = useState(8)
+  const [refresh, setRefresh] = useState(false)
   const [minSamples, setMinSamples] = useState(3)
   const [starting, setStarting] = useState(false)
   const [installing, setInstalling] = useState(null)
@@ -494,6 +495,7 @@ function PriceScan({ game, close, onApplied }) {
         keyword: keyword.trim(),
         max_videos: Number(maxVideos) || 8,
         min_samples: Number(minSamples) || 3,
+        refresh,
       })
       if (!result.ok) {
         toastErr(result.error || '起不来')
@@ -751,6 +753,13 @@ function PriceScan({ game, close, onApplied }) {
                 下载视频、抽帧、逐帧 OCR 认价，再和库内 {game.name} 的服务项对齐，按多个视频取中位数。
                 跑一次通常要一两分钟。认不出的会单列出来，不会瞎猜。
               </p>
+              <label className="ps-foot__opt ps-setup__refresh">
+                <input type="checkbox" checked={refresh} onChange={(event) => setRefresh(event.target.checked)} disabled={running} />
+                <span>
+                  重新扫一遍（默认跳过扫过的视频）
+                  <em>同一个视频的下载和 OCR 结果会留着复用，第二次扫快得多。只有视频里的价格表变了、或者想换一批视频时才需要勾。</em>
+                </span>
+              </label>
 
               {/* ---------- AI 甄别（可选） ---------- */}
               <div className={`ps-ai${ai?.configured ? ' is-on' : ''}`}>
@@ -856,6 +865,7 @@ function PriceScan({ game, close, onApplied }) {
                     关键词「{job.keyword}」 · 视频 {job.progress?.videos_done || 0}/{job.progress?.videos_total || 0}
                     {' '}· 抽帧 {job.progress?.frames || 0} · 已识别 {job.progress?.ocr_frames || 0} 帧
                     {' '}· 认出 {job.progress?.parsed_names || 0} 个名字
+                    {job.progress?.reused_videos ? <>{' '}· <span className="ps-progress__reused">复用 {job.progress.reused_videos} 个（没重新下载）</span></> : null}
                   </span>
                 </div>
                 {job.error ? <div className="ps-error">{job.error}</div> : null}
@@ -869,7 +879,8 @@ function PriceScan({ game, close, onApplied }) {
                         <span className="ps-video__stat">
                           {video.status === 'failed' ? <span className="ps-bad" title={video.error}>{video.error || '失败'}</span>
                             : video.status === 'parsed' ? `认出 ${video.parsed} 项（${video.ocr_frames}/${video.frames} 帧）`
-                              : video.status === 'pending' ? '排队中' : '处理中…'}
+                              : video.status === 'cached' ? <span className="ps-video__reused" title="这个视频上次扫过了，直接用了上次的识别结果，没有重新下载和 OCR">复用上次结果 · 认出 {video.parsed} 项</span>
+                                : video.status === 'pending' ? '排队中' : '处理中…'}
                         </span>
                       </div>
                     ))}
@@ -893,6 +904,7 @@ function PriceScan({ game, close, onApplied }) {
                         {job.ai.renamed ? <>、纠正 <b>{job.ai.renamed}</b> 个认歪的名字</> : null}
                         {job.ai.rescued ? <>、兜底匹上 <b>{job.ai.rescued}</b> 个</> : null}
                         。<em>价格一个字都没动过。</em>
+                        {job.ai.cached ? <em className="ps-aibar__cached">其中 {job.ai.cached} 个视频的判断是复用的（同一个视频、同一个模型、库没变，答案就不会变）。</em> : null}
                       </span>
                     )}
                     {job.ai.dropped_samples?.length ? (

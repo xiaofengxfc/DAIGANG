@@ -398,6 +398,51 @@ const MIGRATIONS = [
   CREATE INDEX IF NOT EXISTS idx_price_scan_jobs_created ON price_scan_jobs (created_at DESC);
   CREATE INDEX IF NOT EXISTS idx_price_scan_jobs_game ON price_scan_jobs (game_id, created_at DESC);
   `,
+
+  /**
+   * 每个视频的**原始识别结果**，用来避免重复扫描同一个视频。
+   *
+   * 扫一次一个视频要花十几秒（下载 → ffmpeg 抽帧 → 逐帧 OCR），而这几步的结果
+   * 只取决于视频本身，跟游戏、库内服务项、AI 配置都无关。同一个关键词搜出来的
+   * 视频高度重合，所以第二次扫的时候大半时间都白花了。
+   *
+   * 存的是 `visionOcr` 的原始 words（不是解析后的成品），这样：
+   *   · 解析规则改了、库内服务项改了、AI 开关变了 —— 都会重新跑一遍，结果永远新鲜；
+   *   · 只有「下载 / 抽帧 / OCR」这三步被跳过，而它们正是耗时的大头。
+   * 8 KB 左右一个视频，很便宜。
+   *
+   * `version` 是失效开关：抽帧参数（间隔、上限）变了、或者识别引擎换了，
+   * 老结果就不再等价，得重扫。
+   */
+  `
+  CREATE TABLE IF NOT EXISTS bili_video_cache (
+    bvid       TEXT PRIMARY KEY,
+    version    TEXT NOT NULL DEFAULT '',
+    ocr_frames INTEGER NOT NULL DEFAULT 0,
+    frames     TEXT NOT NULL DEFAULT '[]',
+    frames_dir TEXT NOT NULL DEFAULT '',
+    at         TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_bili_video_cache_at ON bili_video_cache (at DESC);
+  `,
+
+  /**
+   * AI 甄别的结果也缓存起来。
+   *
+   * 加这一列是因为缓存了识别结果之后，**AI 成了新的耗时大头**：实测复用缓存的那次
+   * 总共 40 秒，其中 AI 占 36 秒（下载和 OCR 只剩 0.9 秒）。既然做缓存是为了
+   * 「不重复干活」，那这 36 秒也得省。
+   *
+   * 存的是**模型的原始回复**而不是加工后的判断，这样重放走的是完全相同的
+   * 校验、改名、剔除逻辑 —— 缓存不会绕过任何一道安全闸。
+   *
+   * `ai_sig` 是「这份回复在什么前提下才作数」：模型名 + 库内服务名 + 解析版本。
+   * 任何一样变了就重新问模型，所以库改了服务项、换了模型都会立刻生效。
+   */
+  `
+  ALTER TABLE bili_video_cache ADD COLUMN ai_sig TEXT NOT NULL DEFAULT '';
+  ALTER TABLE bili_video_cache ADD COLUMN ai_result TEXT NOT NULL DEFAULT '';
+  `,
 ]
 
 export function migrate() {

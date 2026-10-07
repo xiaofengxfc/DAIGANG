@@ -3810,3 +3810,17 @@ button.react-side-row {
 .ps-aibar.is-bad { background: var(--oxblood-bg); color: var(--oxblood-ink); }
 .ps-aibar.is-bad strong { color: inherit; }
 .ps-aibar__err { display: block; margin-top: 4px; padding: 5px 7px; border-radius: 5px; background: var(--surface-solid); color: var(--ink-2); font-style: normal; font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--fs-xs); word-break: break-all; }
+
+/* 「重新扫一遍」勾选：说明文字要能换行，比「补包含内容」那个长 */
+.ps-setup__refresh { align-items: flex-start; margin-top: 8px; }
+.ps-setup__refresh input { margin-top: 3px; flex: none; }
+.ps-setup__refresh span { display: flex; flex-direction: column; gap: 2px; }
+.ps-setup__refresh em { line-height: 1.6; }
+
+/* 复用了上次结果的标记：跟「刚扫出来的」区分开，免得以为这次扫得特别快 */
+.ps-progress__reused { color: var(--moss-ink, var(--ink-2)); }
+.ps-video__reused { color: var(--moss-ink, var(--ink-2)); }
+.ps-video.is-cached { background: var(--moss-bg, var(--surface-2)); }
+
+/* 「这次 AI 判断是复用的」—— 说清楚，免得以为模型秒回 */
+.ps-aibar__cached { display: block; margin-top: 2px; color: var(--ink-3); font-style: normal; }
