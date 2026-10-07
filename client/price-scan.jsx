@@ -95,7 +95,21 @@ function PriceScan({ game, close, onApplied }) {
   const [minSamples, setMinSamples] = useState(3)
   const [starting, setStarting] = useState(false)
   const [installing, setInstalling] = useState(null)
+  /**
+   * AI 甄别的配置。密钥只进不出：服务端从不回明文，这里也不留副本 ——
+   * 保存完就把输入框清空，只显示「已配置 + 尾号」。
+   */
+  const [ai, setAi] = useState(null)
+  const [aiOpen, setAiOpen] = useState(false)
+  const [aiForm, setAiForm] = useState({ base_url: '', model: '', api_key: '' })
+  const [aiSaving, setAiSaving] = useState(false)
+  const [aiTest, setAiTest] = useState(null)
   const [applying, setApplying] = useState(false)
+  /**
+   * 写价时顺便把 AI 抽到的「包含内容」补进 package_items。
+   * 默认关 —— 这是改给客户看的文案，不是改一个数，得用户自己点头。
+   */
+  const [fillInclusions, setFillInclusions] = useState(false)
   const [picked, setPicked] = useState(() => new Set())
   const [edited, setEdited] = useState({})
   const [expanded, setExpanded] = useState(() => new Set())
@@ -145,6 +159,54 @@ function PriceScan({ game, close, onApplied }) {
   const jobId = job?.id
 
   /* ---- 环境检查 + 接上已有任务 ---- */
+  const loadAi = useCallback(async () => {
+    try {
+      const data = await api.get('/api/price-scan/ai')
+      setAi(data)
+      setAiForm((current) => ({
+        base_url: current.base_url || data.base_url || '',
+        model: current.model || data.model || '',
+        api_key: '',
+      }))
+      return data
+    } catch {
+      return null
+    }
+  }, [])
+
+  const saveAi = useCallback(async (patch = {}) => {
+    setAiSaving(true)
+    try {
+      const body = { ...aiForm, ...patch }
+      // 密钥留空表示「不动」—— 界面上点一次保存就抹掉 key 太吓人
+      if (!String(body.api_key || '').trim()) delete body.api_key
+      const data = await api.post('/api/price-scan/ai', body)
+      setAi(data)
+      setAiForm((current) => ({ ...current, api_key: '' }))
+      setAiTest(null)
+      toast(data.configured ? 'AI 配置好了' : '存下了，但还没配全')
+      return data
+    } catch (err) {
+      toastErr(err)
+      return null
+    } finally {
+      setAiSaving(false)
+    }
+  }, [aiForm])
+
+  const probeAi = useCallback(async () => {
+    setAiTest({ pending: true })
+    try {
+      const data = await api.post('/api/price-scan/ai/test', {})
+      setAiTest(data)
+      if (data.ok) toast(`连上了，${data.ms}ms`)
+      else toastErr(data.error || '连不上')
+    } catch (err) {
+      setAiTest({ ok: false, error: String(err) })
+      toastErr(err)
+    }
+  }, [])
+
   const loadReadiness = useCallback(async () => {
     try {
       const data = await api.get('/api/price-scan/readiness')
@@ -201,6 +263,10 @@ function PriceScan({ game, close, onApplied }) {
   useEffect(() => {
     void loadReadiness()
   }, [loadReadiness])
+
+  useEffect(() => {
+    void loadAi()
+  }, [loadAi])
 
   /**
    * 拉这个游戏的服务项清单，供改派用。
@@ -484,7 +550,15 @@ function PriceScan({ game, close, onApplied }) {
         const price = edited[serviceId] !== undefined ? Number(edited[serviceId]) : Number(row.suggested_price)
         if (!Number.isFinite(price) || price < 0) return null
         // 改派过的行写它改到的那个服务项
-        return { service_id: targetOf(row), price }
+        const target = targetOf(row)
+        /**
+         * 包含内容跟着**改派后的那一项**走，而且只在用户勾了「顺便补上」时带。
+         * 从这一行的样本里挑一条有 inclusions 的 —— AI 抽的是视频原文，不加工。
+         */
+        const inclusions = fillInclusions && target === serviceId
+          ? (row.samples || []).find((s) => s.inclusions)?.inclusions || ''
+          : ''
+        return { service_id: target, price, inclusions }
       })
       .filter(Boolean)
     if (!rows.length) {
@@ -493,8 +567,9 @@ function PriceScan({ game, close, onApplied }) {
     }
     setApplying(true)
     try {
-      const result = await api.post(`/api/price-scan/jobs/${jobId}/apply`, { rows })
-      toast(`写入完成：改了 ${result.changed} 项（提交 ${result.applied.length} 项）`)
+      const result = await api.post(`/api/price-scan/jobs/${jobId}/apply`, { rows, fill_inclusions: fillInclusions })
+      const extra = result.filled?.length ? `，补了 ${result.filled.length} 项的包含内容` : ''
+      toast(`写入完成：改了 ${result.changed} 项（提交 ${result.applied.length} 项）${extra}`)
       if (onApplied) onApplied(result)
       close(result)
     } catch (err) {
@@ -559,6 +634,11 @@ function PriceScan({ game, close, onApplied }) {
   }, [rows, tab])
 
   const pickCount = picked.size
+  /** 勾选的行里，有几项的样本带着 AI 抽到的「包含内容」—— 没有就不显示那个勾选框 */
+  const inclusionCount = [...picked].filter((serviceId) => {
+    const row = (job?.matched || []).find((item) => item.service_id === serviceId)
+    return (row?.samples || []).some((s) => s.inclusions)
+  }).length
   const running = job?.status === 'running'
   const done = job?.status === 'done'
   const failed = job?.status === 'failed'
@@ -585,6 +665,13 @@ function PriceScan({ game, close, onApplied }) {
         {conflicts.size
           ? <span className="ps-foot__bad">有 {conflicts.size} 个服务项被两行同时改派到了，先错开</span>
           : <>已勾选 <b>{pickCount}</b> 项，只改<strong>基准价</strong>，不动阶梯价和增项</>}
+        {pickCount && inclusionCount ? (
+          <label className="ps-foot__opt">
+            <input type="checkbox" checked={fillInclusions} onChange={(event) => setFillInclusions(event.target.checked)} />
+            顺便把视频里写的包含内容补进服务项（只追加，不覆盖已有的）
+            <em>{inclusionCount} 项有</em>
+          </label>
+        ) : null}
       </span>
       <div className="ps-foot__actions">
         <button className="refactor-button" type="button" onClick={close}>先不写</button>
@@ -664,6 +751,88 @@ function PriceScan({ game, close, onApplied }) {
                 下载视频、抽帧、逐帧 OCR 认价，再和库内 {game.name} 的服务项对齐，按多个视频取中位数。
                 跑一次通常要一两分钟。认不出的会单列出来，不会瞎猜。
               </p>
+
+              {/* ---------- AI 甄别（可选） ---------- */}
+              <div className={`ps-ai${ai?.configured ? ' is-on' : ''}`}>
+                <button className="ps-ai__head" type="button" onClick={() => setAiOpen((v) => !v)}>
+                  <Sparkles {...iconProps(13)} />
+                  <span className="ps-ai__title">AI 甄别</span>
+                  <span className="ps-ai__state">
+                    {ai?.configured ? `${ai.model}` : '没配（不影响用，配上更准）'}
+                  </span>
+                  <ChevronDown {...iconProps(13)} className={`ps-ai__caret${aiOpen ? ' is-open' : ''}`} />
+                </button>
+                {aiOpen ? (
+                  <div className="ps-ai__body">
+                    <p className="ps-ai__why">
+                      价格表视频里混着主播口播、聊天记录、播放器界面 —— 实测约两成「认出来的价」根本不是价。
+                      规则判不了（<code>改为</code>、<code>星期三</code> 单看都像正常词），接个模型就能判。
+                      <strong>模型碰不到价格</strong>：它只能决定留不留、什么口径、名字要不要改，价格永远来自 OCR 原文。
+                    </p>
+                    <div className="ps-ai__grid">
+                      <label className="ps-field">
+                        <span>接口地址（OpenAI 兼容）</span>
+                        <input
+                          value={aiForm.base_url}
+                          onChange={(event) => setAiForm((f) => ({ ...f, base_url: event.target.value }))}
+                          placeholder="https://api.deepseek.com/v1"
+                          disabled={aiSaving}
+                        />
+                      </label>
+                      <label className="ps-field">
+                        <span>模型名</span>
+                        <input
+                          value={aiForm.model}
+                          onChange={(event) => setAiForm((f) => ({ ...f, model: event.target.value }))}
+                          placeholder="deepseek-chat"
+                          disabled={aiSaving}
+                        />
+                      </label>
+                      <label className="ps-field ps-field--grow">
+                        <span>
+                          API key
+                          {ai?.key_set ? <em className="ps-ai__kept">已配置（尾号 {ai.key_tail}，留空就是不改）</em> : null}
+                        </span>
+                        <input
+                          type="password"
+                          value={aiForm.api_key}
+                          onChange={(event) => setAiForm((f) => ({ ...f, api_key: event.target.value }))}
+                          placeholder={ai?.key_set ? '留空表示不改' : 'sk-…'}
+                          disabled={aiSaving}
+                          autoComplete="off"
+                        />
+                      </label>
+                    </div>
+                    <div className="ps-ai__foot">
+                      <span className="ps-ai__note">
+                        {ai?.key_source === 'env'
+                          ? 'key 来自环境变量 XFC_AI_API_KEY（不会写进数据库）'
+                          : ai?.key_set ? 'key 存在本地数据库里，只在服务端使用，接口从不回明文' : 'key 只在服务端使用'}
+                      </span>
+                      <div className="ps-ai__actions">
+                        {ai?.key_set ? (
+                          <button className="ps-link" type="button" disabled={aiSaving} onClick={() => saveAi({ clear_key: true, api_key: '' })}>清掉 key</button>
+                        ) : null}
+                        <button className="refactor-button" type="button" disabled={aiSaving || !ai?.key_set} onClick={probeAi}>
+                          {aiTest?.pending ? <Loader2 {...iconProps(14)} className="ps-spin" /> : <RefreshCw {...iconProps(14)} />}
+                          测试连接
+                        </button>
+                        <button className="refactor-button refactor-button--primary" type="button" disabled={aiSaving} onClick={() => saveAi()}>
+                          {aiSaving ? <Loader2 {...iconProps(14)} className="ps-spin" /> : null}
+                          保存
+                        </button>
+                      </div>
+                    </div>
+                    {aiTest && !aiTest.pending ? (
+                      <div className={`ps-ai__result${aiTest.ok ? ' is-ok' : ' is-bad'}`}>
+                        {aiTest.ok
+                          ? `连上了：${aiTest.model || ''} 用了 ${aiTest.ms}ms`
+                          : `连不上：${aiTest.error}`}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
             </section>
 
             {/* ---------- 进度 ---------- */}
@@ -704,6 +873,35 @@ function PriceScan({ game, close, onApplied }) {
                         </span>
                       </div>
                     ))}
+                  </div>
+                ) : null}
+
+                {job.ai?.enabled ? (
+                  <div className="ps-aibar">
+                    <Sparkles {...iconProps(12)} />
+                    <span>
+                      <strong>{job.ai.model}</strong> 过了一遍：剔掉 <b>{job.ai.dropped}</b> 行不是价格的
+                      {job.ai.drop_overridden ? <>、拦下 <b>{job.ai.drop_overridden}</b> 行「库内确实有这一项」的误删</> : null}
+                      {job.ai.renamed ? <>、纠正 <b>{job.ai.renamed}</b> 个认歪的名字</> : null}
+                      {job.ai.rescued ? <>、兜底匹上 <b>{job.ai.rescued}</b> 个</> : null}
+                      。<em>价格一个字都没动过。</em>
+                    </span>
+                    {job.ai.dropped_samples?.length ? (
+                      <details className="ps-aibar__detail">
+                        <summary>看剔掉了什么</summary>
+                        <ul>
+                          {job.ai.dropped_samples.map((s) => <li key={s}>{s}</li>)}
+                        </ul>
+                      </details>
+                    ) : null}
+                    {job.ai.drop_overridden_samples?.length ? (
+                      <details className="ps-aibar__detail">
+                        <summary>看拦下了什么</summary>
+                        <ul>
+                          {job.ai.drop_overridden_samples.map((s) => <li key={s}>{s}</li>)}
+                        </ul>
+                      </details>
+                    ) : null}
                   </div>
                 ) : null}
 
@@ -793,6 +991,16 @@ function PriceScan({ game, close, onApplied }) {
 /* ============================================================
    一行建议
    ============================================================ */
+
+/** AI 判出来的口径，翻成人话显示在样本上 */
+const SCOPE_TEXT = Object.freeze({
+  per_day: '每天',
+  per_week: '每周',
+  per_month: '每月',
+  per_period: '每期',
+  per_unit: '按个数',
+  total: '一次性',
+})
 
 function PreviewRow({ row, jobId, services, serviceMap, targetId, conflict, applied, picked, edited, expanded, onTogglePick, onToggleExpand, onEdit, onReassign }) {
   const noSuggestion = row.suggested_price === null
@@ -893,8 +1101,15 @@ function PreviewRow({ row, jobId, services, serviceMap, targetId, conflict, appl
                     {sample.video} <ExternalLink {...iconProps(11)} />
                   </a>
                   <span className="ps-sample__score" title={`匹配分 ${sample.score}（${sample.signal}）`}>{sample.score}</span>
+                  {sample.matched_by === 'ai' ? (
+                    <span className="ps-tag ps-tag--ai" title={`AI 兜底匹上的（把握：${sample.ai_confidence || '?'}）${sample.ai_why ? ` · ${sample.ai_why}` : ''}`}>AI 匹的</span>
+                  ) : null}
+                  {sample.scope ? (
+                    <span className="ps-tag" title="AI 判出来的计价口径">{SCOPE_TEXT[sample.scope] || sample.scope}</span>
+                  ) : null}
                   {sample.frame ? <FrameThumb jobId={jobId} frame={sample.frame} /> : null}
                   {sample.line ? <span className="ps-sample__line" title="OCR 认出来的整行原文">「{sample.line}」</span> : null}
+                  {sample.inclusions ? <span className="ps-sample__inc" title="视频里说明的包含内容">含：{sample.inclusions}</span> : null}
                 </div>
               ))}
             </div>

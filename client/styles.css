@@ -3764,3 +3764,44 @@ button.react-side-row {
 .ps-section__items { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-top: 5px; color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.9; }
 .ps-chip--sm { padding: 1px 7px; font-size: var(--fs-xs); }
 .ps-section__more { color: var(--ink-3); }
+
+/* ---------- AI 甄别 ---------- */
+.ps-ai { margin-top: 10px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface-solid); overflow: hidden; }
+.ps-ai.is-on { border-color: var(--jade-line); }
+.ps-ai__head { display: flex; align-items: center; gap: 7px; width: 100%; padding: 8px 11px; border: 0; background: transparent; color: var(--ink-2); font: inherit; font-size: var(--fs-xs); cursor: pointer; text-align: left; }
+.ps-ai__head:hover { background: var(--surface-2); }
+.ps-ai.is-on .ps-ai__head { color: var(--jade-ink); }
+.ps-ai__title { font-weight: 600; }
+.ps-ai__state { flex: 1; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ps-ai__caret { transition: transform .16s ease; }
+.ps-ai__caret.is-open { transform: rotate(180deg); }
+.ps-ai__body { padding: 4px 11px 11px; border-top: 1px solid var(--line); }
+.ps-ai__why { margin: 8px 0 10px; color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.8; }
+.ps-ai__why code { padding: 1px 5px; border-radius: 4px; background: var(--surface-inset); color: var(--ink-2); }
+.ps-ai__why strong { color: var(--ink-2); }
+.ps-ai__grid { display: flex; gap: 8px; flex-wrap: wrap; }
+.ps-ai__grid .ps-field { min-width: 150px; }
+.ps-ai__kept { margin-left: 6px; color: var(--jade-ink); font-style: normal; font-weight: 400; }
+.ps-ai__foot { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.ps-ai__note { flex: 1; min-width: 180px; color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.6; }
+.ps-ai__actions { display: flex; align-items: center; gap: 8px; }
+.ps-ai__result { margin-top: 8px; padding: 6px 9px; border-radius: var(--r-ctl); font-size: var(--fs-xs); }
+.ps-ai__result.is-ok { background: var(--jade-bg); color: var(--jade-ink); }
+.ps-ai__result.is-bad { background: var(--oxblood-bg); color: var(--oxblood-ink); }
+
+/* 扫描结果里的 AI 账本 */
+.ps-aibar { display: flex; align-items: flex-start; gap: 7px; margin: 10px 0 0; padding: 7px 10px; border-radius: var(--r-ctl); background: var(--surface-inset); color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.75; }
+.ps-aibar > span { flex: 1; min-width: 0; }
+.ps-aibar b { color: var(--ink-2); }
+.ps-aibar em { color: var(--jade-ink); font-style: normal; }
+.ps-aibar__detail { flex: none; }
+.ps-aibar__detail summary { cursor: pointer; color: var(--ink-2); }
+.ps-aibar__detail ul { margin: 6px 0 0; padding-left: 16px; max-height: 160px; overflow: auto; }
+.ps-aibar__detail li { line-height: 1.8; }
+.ps-tag--ai { background: var(--jade-bg); color: var(--jade-ink); }
+.ps-sample__inc { color: var(--ink-3); font-size: var(--fs-xs); }
+
+/* 写价时「顺便补包含内容」的勾选 */
+.ps-foot__opt { display: flex; align-items: center; gap: 6px; margin-top: 5px; color: var(--ink-2); font-size: var(--fs-xs); cursor: pointer; }
+.ps-foot__opt input { margin: 0; }
+.ps-foot__opt em { color: var(--ink-3); font-style: normal; }

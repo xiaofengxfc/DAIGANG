@@ -1490,6 +1490,239 @@ export async function run() {
   ok('空页不炸', extractSections([]).length === 0)
   ok('只有一行不炸', extractSections(pageOf(['地图探索'])).length === 0)
 
+  /* ---------------------------------------------------------------
+     AI 接入的安全属性。
+
+     这一组测的不是「AI 判得准不准」（那取决于模型，没法在这里测），
+     而是**即使模型乱来，它也碰不到价格**。这是整个接入里最不能出错的地方：
+     价格错了会开错单，而且在界面上看不出来。
+     --------------------------------------------------------------- */
+  section('B站自动比价 · AI 接入的安全边界')
+  const { __testing: aiScanTesting, aiTriageVideo, aiMatchUnmatched } = await import('../src/ai-scan.mjs')
+  const { __testing: aiTesting, aiStatus, saveAiConfig, aiConfig } = await import('../src/ai.mjs')
+  const { scopeCompatibility, groupByService } = await import('../src/price-match.mjs')
+
+  // —— 字段白名单：模型就算吐了 price，也进不来 ——
+  const dirty = aiScanTesting.pickFields({
+    frame: 1, line: 3, keep: true, name: '全图全收集',
+    price: 99999, prices: [1, 2], suggested_price: 88888, delta: -500,
+  })
+  ok('白名单丢掉模型给的 price 字段', !('price' in dirty) && !('prices' in dirty) && !('suggested_price' in dirty) && !('delta' in dirty),
+    Object.keys(dirty))
+  ok('白名单丢掉模型给的名字（改名走 renames，不混在行判断里）', !('name' in dirty), Object.keys(dirty))
+  ok('白名单只留该留的', JSON.stringify(Object.keys(dirty).sort()) === JSON.stringify(['frame', 'keep', 'line']), Object.keys(dirty))
+
+  /**
+   * 改名守卫。这是拿假端点试出来的洞：让模型把**整行原文**当名字返回，
+   * `精托：日常体力+活动：238包月` 就成了「服务名」，匹配率从 34 项掉到 15 项，
+   * 而且界面上看不出来是 AI 干的。
+   */
+  const { acceptRename } = await import('../src/ai-scan.mjs')
+  const vocab = new Set(['声匣', '日常托管'])
+  ok('库里有的写法：接受', acceptRename('声厘', '声匣', vocab) === true)
+  ok('只差一个字：接受', acceptRename('声厘', '声匣', new Set()) === true)
+  ok('黎娜西塔→黎那汐塔：接受', acceptRename('黎娜西塔', '黎那汐塔', new Set()) === true)
+  ok('整行抄回来当名字：拒绝', acceptRename('精托', '精托：日常体力+活动：238包月', new Set()) === false)
+  ok('把好几个价拼一起当名字：拒绝', acceptRename('云陵谷', '云陵谷20 今州城20 中曲台地50 荒石高地50', new Set()) === false)
+  ok('超长名字：拒绝', acceptRename('深渊', '深'.repeat(30), new Set()) === false)
+  ok('空名字：拒绝', acceptRename('声厘', '', vocab) === false)
+  ok('名字没变：不算改名', acceptRename('声厘', '声厘', vocab) === false)
+  ok('毫无关系的名字：拒绝', acceptRename('深渊', '每日委托', new Set()) === false)
+  ok('库里有的就算不像也接受', acceptRename('深渊', '日常托管', vocab) === true)
+  /**
+   * 「原名 + 一堆别的」是最阴的一种：相似度够高，但它其实是整行抄回来的。
+   * 实测就是 `黑海岸群岛` 被改成了 `黑海岸群岛、泰缇斯之底`（一行两个候选挤在一起）。
+   */
+  ok('原名后面挂一串别的：拒绝', acceptRename('黑海岸群岛', '黑海岸群岛、泰缇斯之底', new Set()) === false)
+  ok('原名前面挂一串别的：拒绝', acceptRename('泰缇斯之底', '黑海岸群岛、泰缇斯之底', new Set()) === false)
+  ok('库里真有的长名字仍然接受', acceptRename('深渊', '深渊满星', new Set(['深渊满星'])) === true)
+
+  // —— JSON 抽取：对方不一定听话 ——
+  const J = aiTesting.extractJson
+  ok('能剥 ```json 围栏', JSON.stringify(J('```json\n{"a":1}\n```')) === '{"a":1}')
+  ok('能剥没标语言的围栏', JSON.stringify(J('```\n{"a":1}\n```')) === '{"a":1}')
+  ok('能跳过前面的客套话', JSON.stringify(J('好的，结果如下：\n{"a":1}')) === '{"a":1}')
+  ok('字符串里的花括号不会骗到它', JSON.stringify(J('{"a":"}"}')) === '{"a":"}"}')
+  ok('数组也能抽', JSON.stringify(J('前言[1,2]后语')) === '[1,2]')
+  ok('真不是 JSON 就返回 null', J('我觉得这个价格挺合理的') === null)
+  ok('空字符串返回 null', J('') === null)
+
+  // —— 密钥脱敏 ——
+  process.env.XFC_AI_API_KEY = 'sk-abcdefghijklmnopqrstuvwxyz'
+  ok('报错正文里的密钥会被打码', !aiTesting.redact('your key sk-abcdefghijklmnopqrstuvwxyz is invalid').includes('sk-abcdefghijklmnopqrstuvwxyz'),
+    aiTesting.redact('your key sk-abcdefghijklmnopqrstuvwxyz is invalid'))
+  const st = aiStatus()
+  ok('状态接口不回密钥', !JSON.stringify(st).includes('sk-abcdefghijklmnopqrstuvwxyz'), JSON.stringify(st))
+  ok('状态接口只给尾号', st.key_tail === 'wxyz' && st.key_set === true, st.key_tail)
+  delete process.env.XFC_AI_API_KEY
+
+  /**
+   * 密钥不能从别的口子漏出去。
+   *
+   * key 存在 settings 表里，而 `/api/settings` 是公开的读接口 —— 如果它把
+   * settings 表整个吐出来，key 就跟着出去了。`readSettings()` 是按
+   * `SETTING_KEYS` 白名单取的，所以只要 AI 那几个键不在白名单里就安全。
+   * 这条断言就是钉住这件事：以后谁往白名单里加键，加错地方会红。
+   */
+  const { readSettings, SETTING_KEYS, updateSettings } = await import('../src/modules/settings/settings-service.mjs')
+  saveAiConfig({ base_url: 'https://example.invalid/v1', model: 'leak-model', api_key: 'sk-leak-test-0123456789' })
+  const settingsOut = JSON.stringify(readSettings())
+  ok('设置接口吐不出密钥', !settingsOut.includes('sk-leak-test-0123456789'), settingsOut.slice(0, 160))
+  ok('设置接口吐不出接口地址和模型名', !settingsOut.includes('example.invalid') && !settingsOut.includes('leak-model'))
+  ok('白名单里没有 AI 的键', !SETTING_KEYS.some((k) => k.startsWith('ai_')))
+  // 反向也不行：不能靠往设置接口写 ai_api_key 来塞一个密钥进去
+  updateSettings({ ai_api_key: 'sk-via-settings-endpoint' })
+  const after = JSON.stringify(readSettings())
+  ok('设置接口也写不进密钥', !after.includes('sk-via-settings-endpoint'), after.slice(0, 160))
+  saveAiConfig({ clear_key: true })
+
+  // —— 口径判断是不对称的：一次性总价永远放行，带周期的要对得上 ——
+  ok('total 永远放行', scopeCompatibility('total', '').ok && scopeCompatibility('total', '30天').ok)
+  ok('per_day 撞上「30天」要挡', scopeCompatibility('per_day', '30天').ok === false)
+  ok('per_day 撞上「天」放行', scopeCompatibility('per_day', '天').ok === true)
+  ok('per_month 撞上「30天」放行', scopeCompatibility('per_month', '30天').ok === true)
+  ok('per_month 撞上空单位要挡', scopeCompatibility('per_month', '').ok === false)
+  ok('没有口径时不拦', scopeCompatibility('', '30天').ok === true && scopeCompatibility(undefined, '天').ok === true)
+
+  /**
+   * 口径冲突的样本**只在还剩得下别的样本时才剔**。
+   * 整组都冲突时一条都不剔 —— 全剔掉等于这一项不给建议，用户连「有这么个价」
+   * 都看不到，损失比给一个口径可能不对的价更大。
+   */
+  const mkRow = (over) => ({
+    service_id: 1, service_name: '日常托管', service_unit: '30天', current_price: 300,
+    parsed_name: '日常托管', price: 300, unit: '', score: 0.9, video: 'BV1', ...over,
+  })
+  const mixed = groupByService([
+    mkRow({ price: 300, video: 'BV1' }),
+    mkRow({ price: 320, video: 'BV2' }),
+    mkRow({ price: 3, video: 'BV3', scope: 'per_day', parsed_name: '基础日常：一天' }),
+  ], { minSamples: 1 })
+  ok('每天价不会混进一次性价里',
+    mixed[0].prices.length === 2 && !mixed[0].prices.includes(3),
+    `prices=${JSON.stringify(mixed[0].prices)} excluded=${JSON.stringify(mixed[0].excluded.map((e) => e.reason))}`)
+  ok('被挡掉的每天价给出了理由', mixed[0].excluded.some((e) => e.reason.includes('每天')), mixed[0].excluded.map((e) => e.reason))
+
+  const allBad = groupByService([mkRow({ price: 3, scope: 'per_day', video: 'BV9' })], { minSamples: 1 })
+  ok('整组口径都对不上时仍然给建议', allBad[0].prices.length === 1 && allBad[0].scope_unresolved === true,
+    `prices=${JSON.stringify(allBad[0].prices)} unresolved=${allBad[0].scope_unresolved}`)
+
+  /* —— 端到端：拿一个假的 OpenAI 端点跑一遍，验证价格一个字都没被动过 —— */
+  section('B站自动比价 · AI 端到端（假端点）')
+  process.env.XFC_AI_BASE_URL = 'http://127.0.0.1:5999/v1'
+  process.env.XFC_AI_API_KEY = 'sk-test-key-for-smoke'
+  process.env.XFC_AI_MODEL = 'fake-model'
+
+  const realFetch = globalThis.fetch
+  /** 记下我们发出去的请求，用来验证 prompt 里没有价格数字 */
+  const sent = []
+  globalThis.fetch = async (url, init) => {
+    const body = JSON.parse(init.body)
+    sent.push({ url, body })
+    // 这个回复是**故意使坏**的：带了 price / suggested_price 想改价
+    const reply = {
+      rows: [
+        { frame: 1, line: 2, keep: false, why: '主播在说话', price: 1, suggested_price: 99999 },
+        { frame: 1, line: 3, keep: true, scope: 'total', inclusions: '星声4.5w', price: 0 },
+        { frame: 1, line: 4, keep: true, scope: 'per_day', price: 88888 },
+      ],
+      // 改名是按名字给的，不是按行 —— 一行两个候选时才不会互相串
+      renames: [{ from: '声厘', to: '声匣' }, { from: '声厘', to: '声厘' }, { from: '', to: '空的' }],
+    }
+    return {
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify({ choices: [{ message: { content: JSON.stringify(reply) } }], model: 'fake-model', usage: { total_tokens: 42 } }),
+    }
+  }
+
+  try {
+    const triage = await aiTriageVideo({
+      game: '鸣潮',
+      serviceNames: ['声匣', '日常托管'],
+      frames: [{
+        frame: 1,
+        lines: [
+          { index: 1, text: '鸣潮代肝价格表', priced: false, names: [] },
+          { index: 2, text: '半年个人全职小代直播录屏价格良心', priced: true, names: ['半年个人全职小代直播录屏价格良心'] },
+          { index: 3, text: '声厘60（星声4.5w）', priced: true, names: ['声厘'] },
+          { index: 4, text: '基础日常：一天 3', priced: true, names: ['基础日常'] },
+        ],
+      }],
+    })
+    ok('假端点跑通了', triage.ok === true, triage.error)
+    ok('三行都有判断', triage.decisions.size === 3, triage.decisions.size)
+    ok('判定剔掉的拿得到', triage.decisions.get('1:2')?.keep === false && triage.decisions.get('1:2')?.why === '主播在说话')
+    ok('改名按名字给', triage.renames.get('声厘') === '声匣', JSON.stringify([...triage.renames]))
+    ok('名字没变的不进改名表', !triage.renames.has('声厘 '), JSON.stringify([...triage.renames.keys()]))
+    ok('空名字的改名被丢掉', [...triage.renames.values()].every((v) => v), JSON.stringify([...triage.renames]))
+    ok('口径判断生效', triage.decisions.get('1:4')?.scope === 'per_day')
+    ok('包含内容带回来了', triage.decisions.get('1:3')?.inclusions === '星声4.5w')
+
+    // 最关键的两条
+    const allDecisionKeys = [...triage.decisions.values()].flatMap((d) => Object.keys(d))
+    ok('判断结果里没有任何价格字段', !allDecisionKeys.some((k) => /price|价/.test(k)), [...new Set(allDecisionKeys)].join(','))
+    ok('判断结果里也没有名字字段（改名单独走 renames）', !allDecisionKeys.includes('name'), [...new Set(allDecisionKeys)].join(','))
+    /**
+     * 这里测的是**标记**不带金额，不是「prompt 里没有数字」。
+     *
+     * OCR 原文本身就含数字（`声厘60`），不写进 prompt 模型就没法判断那行是什么，
+     * 所以数字必然在。真正要保证的是：不告诉模型「程序认出来的价是 60」——
+     * 说了它就会在回复里复述，而我们要的是它永远不产出数字。
+     * 它碰不到价的最终保障在输出侧（白名单），这条只是减少诱导。
+     */
+    const sentText = sent.map((s) => JSON.stringify(s.body)).join('\n')
+    ok('发给模型的 prompt 里确实有价格标记', sentText.includes('[价→'))
+    ok('标记里带了程序认成的名字（模型才能纠正而不是重猜）', sentText.includes('[价→声厘]') || sentText.includes('[价→基础日常]'), (sentText.match(/\[价→[^\]]*\]/g) || []).join(' '))
+    ok('标记里不带金额', !/\[价→[^\]]*\d/.test(sentText), (sentText.match(/\[价→[^\]]*\]/g) || []).join(' '))
+
+    // 非法口径要落回 unknown 而不是照抄
+    ok('口径白名单挡住乱填的值', triage.decisions.get('1:2')?.scope === 'unknown', triage.decisions.get('1:2')?.scope)
+  } finally {
+    globalThis.fetch = realFetch
+  }
+
+  // —— 兜底匹配：模型不能编出库里没有的 id ——
+  globalThis.fetch = async () => ({
+    ok: true,
+    status: 200,
+    text: async () => JSON.stringify({
+      choices: [{ message: { content: JSON.stringify({ picks: [
+        { name: '声厘', service_id: 7, confidence: 'high' },
+        { name: '不存在的东西', service_id: 99999, confidence: 'high' },
+        { name: '另一个', service_id: null, confidence: 'low' },
+      ] }) } }],
+    }),
+  })
+  try {
+    const services = [{ id: 7, name: '声匣' }, { id: 8, name: '日常托管' }]
+    const picked = await aiMatchUnmatched({ game: '鸣潮', services, names: [{ name: '声厘' }, { name: '不存在的东西' }, { name: '另一个' }] })
+    ok('兜底匹配跑通', picked.ok === true, picked.error)
+    ok('库内存在的 id 保留', picked.picks.find((p) => p.name === '声厘')?.service_id === 7)
+    ok('库内不存在的 id 被拒掉', picked.picks.find((p) => p.name === '不存在的东西')?.service_id === null,
+      JSON.stringify(picked.picks.find((p) => p.name === '不存在的东西')))
+    ok('模型说没有就是没有', picked.picks.find((p) => p.name === '另一个')?.service_id === null)
+  } finally {
+    globalThis.fetch = realFetch
+    delete process.env.XFC_AI_BASE_URL
+    delete process.env.XFC_AI_API_KEY
+    delete process.env.XFC_AI_MODEL
+  }
+
+  // —— AI 挂了必须降级，不能少给结果 ——
+  globalThis.fetch = async () => { throw new Error('connection refused') }
+  try {
+    const dead = await aiTriageVideo({ game: '鸣潮', serviceNames: [], frames: [{ frame: 1, lines: [{ index: 1, text: '深渊35', priced: true }] }] })
+    ok('AI 连不上时返回失败而不是抛异常', dead.ok === false && typeof dead.error === 'string', dead.error)
+    const deadMatch = await aiMatchUnmatched({ game: '鸣潮', services: [{ id: 1, name: '深渊' }], names: [{ name: '深塔' }] })
+    ok('兜底匹配连不上时也返回失败', deadMatch.ok === false, deadMatch.error)
+  } finally {
+    globalThis.fetch = realFetch
+  }
+  ok('AI 没配置时 aiConfig 说没启用', (() => { const c = aiConfig(); return c.enabled === false })())
+  saveAiConfig({ clear_key: true })
+
+
 
   section('B站自动比价 · 名字匹配')
   // 拿几个真实形状的服务项当靶子

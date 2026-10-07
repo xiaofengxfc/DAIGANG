@@ -215,6 +215,79 @@ try {
   check('任务里记了已写入的行', (stored.data?.applied || []).length > 0, `${(stored.data?.applied || []).length} 条`)
   check('留痕带 before/after', stored.data?.applied?.[0]?.before !== undefined && stored.data?.applied?.[0]?.after !== undefined, JSON.stringify(stored.data?.applied?.[0] || {}).slice(0, 140))
 
+  /* ---------- 把 AI 抽到的「包含内容」补进去（默认不开） ---------- */
+  section('补包含内容')
+  /**
+   * 这条路径改的是**给客户看的文案**，不是价格，所以规矩更紧：
+   * 默认不开、只追加不覆盖、不合法就整条放弃。
+   *
+   * 这条要跑通得先有 AI 抽出来的包含内容 —— 也就是这个脚本要在配了模型的情况下跑
+   * （见 README 里的假端点用法）。没配也不会假绿：会明确报「没抽到，测不了」。
+   */
+  const inclRow = (stored.data?.matched || []).find((r) => (r.samples || []).some((s) => s.inclusions))
+  if (!inclRow) {
+    check('有样本带着 AI 抽到的包含内容', false, '这次扫描一条都没抽到（脚本没配 AI？）—— 这条路径没被验证')
+  } else {
+    const incl = inclRow.samples.find((s) => s.inclusions).inclusions
+    const dbPath = path.join(app.dir, 'console.db')
+    const readItems = (serviceId) => {
+      const db = new DatabaseSync(dbPath, { readOnly: true })
+      const row = db.prepare('select package_items from services where id = ?').get(serviceId)
+      db.close()
+      try { return JSON.parse(row?.package_items || '[]') } catch { return null }
+    }
+    const before = readItems(inclRow.service_id)
+
+    // 不传 fill_inclusions 时，一个字都不该动
+    const quiet = await call('POST', `/api/price-scan/jobs/${jobId}/apply`, {
+      rows: [{ service_id: inclRow.service_id, price: inclRow.suggested_price, inclusions: incl }],
+    })
+    check('不勾选时不碰包含内容', JSON.stringify(readItems(inclRow.service_id)) === JSON.stringify(before),
+      JSON.stringify(readItems(inclRow.service_id)))
+    check('不勾选时返回里也没有 filled', (quiet.data?.filled || []).length === 0, JSON.stringify(quiet.data?.filled || []))
+
+    // 勾了才写，而且是追加
+    const filled = await call('POST', `/api/price-scan/jobs/${jobId}/apply`, {
+      rows: [{ service_id: inclRow.service_id, price: inclRow.suggested_price, inclusions: incl }],
+      fill_inclusions: true,
+    })
+    const after = readItems(inclRow.service_id)
+    check('勾选后补进去了', (filled.data?.filled || []).length === 1, JSON.stringify(filled.data?.filled || []))
+    check('补的是追加不是覆盖', after.length === before.length + 1, `${JSON.stringify(before)} → ${JSON.stringify(after)}`)
+    check('原有的内容一个字没动', before.every((x, i) => after[i] === x), JSON.stringify(after))
+    check('补进去的就是视频里那句', after[after.length - 1] === incl, `${after[after.length - 1]} vs ${incl}`)
+
+    // 再来一次不该重复加
+    const again = await call('POST', `/api/price-scan/jobs/${jobId}/apply`, {
+      rows: [{ service_id: inclRow.service_id, price: inclRow.suggested_price, inclusions: incl }],
+      fill_inclusions: true,
+    })
+    check('同一句不会重复补', JSON.stringify(readItems(inclRow.service_id)) === JSON.stringify(after), JSON.stringify(readItems(inclRow.service_id)))
+    check('重复时 filled 是空的', (again.data?.filled || []).length === 0, JSON.stringify(again.data?.filled || []))
+
+    /**
+     * 更长的写法：先补进去，再拿短的那句来补就该被挡住 ——
+     * 去重防的是「新句子已经被库里已有的覆盖」，不是反过来。
+     * 库里已经有「星声1.5w（含每日）」时再补一句「星声1.5w」是纯冗余。
+     */
+    const longer = await call('POST', `/api/price-scan/jobs/${jobId}/apply`, {
+      rows: [{ service_id: inclRow.service_id, price: inclRow.suggested_price, inclusions: `${incl}（含每日）` }],
+      fill_inclusions: true,
+    })
+    check('更长的写法是新的，该补', (longer.data?.filled || []).length === 1, JSON.stringify(longer.data?.filled || []))
+    const afterLonger = readItems(inclRow.service_id)
+
+    const subset = await call('POST', `/api/price-scan/jobs/${jobId}/apply`, {
+      rows: [{ service_id: inclRow.service_id, price: inclRow.suggested_price, inclusions: incl }],
+      fill_inclusions: true,
+    })
+    check('已有的覆盖了它就不重复补', (subset.data?.filled || []).length === 0, JSON.stringify(subset.data?.filled || []))
+    check('挡下来时库里没变', JSON.stringify(readItems(inclRow.service_id)) === JSON.stringify(afterLonger), JSON.stringify(readItems(inclRow.service_id)))
+
+    // 价格照写
+    check('补包含内容不影响写价', subset.data?.applied?.length === 1, JSON.stringify(subset.data?.applied || []))
+  }
+
   console.log(`\n  副本目录留在 ${app.dir}，想核对可以直接开它的库；不要了删掉即可。`)
 } finally {
   await app.stop()

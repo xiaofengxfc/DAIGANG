@@ -38,8 +38,10 @@ import {
 import { BiliClient, biliAuthStatus, resolveBiliCookieFile, storageStateToNetscape } from './bili-api.mjs'
 import { biliDependencyStatus, ytDlpInvocation } from './bili-deps.mjs'
 import { downloadVideo, extractFrames } from './bili-video.mjs'
-import { collapseWithinVideo, extractPriceCandidates, extractSections, median, spread } from './price-parse.mjs'
+import { collapseWithinVideo, extractPriceCandidates, extractSections, groupLines, median, spread } from './price-parse.mjs'
 import { groupByService, matchServices } from './price-match.mjs'
+import { aiConfig } from './ai.mjs'
+import { acceptRename, aiMatchUnmatched, aiTriageVideo, isKnownServiceName, normalizeServiceName } from './ai-scan.mjs'
 import { ensureVisionStarted, visionOcr } from './vision-python.mjs'
 import { enqueueERPNextChange } from './outbox.mjs'
 import { bad, nextSortOrder, notFound } from './util.mjs'
@@ -184,7 +186,7 @@ function persist(job) {
     job.keyword || '',
     job.status,
     job.stage || '',
-    JSON.stringify({ progress: job.progress, videos: job.videos, matched: job.matched, unmatched: job.unmatched, sections: job.sections, applied: job.applied, summary: job.summary }),
+    JSON.stringify({ progress: job.progress, videos: job.videos, matched: job.matched, unmatched: job.unmatched, sections: job.sections, applied: job.applied, summary: job.summary, ai: job.ai }),
     job.error || '',
     job.created_at,
     now,
@@ -204,6 +206,7 @@ function publicJob(job) {
     matched: job.matched,
     unmatched: job.unmatched,
     sections: job.sections || [],
+    ai: job.ai || null,
     applied: job.applied,
     summary: job.summary,
     log: job.log.slice(-60),
@@ -237,6 +240,7 @@ export function getScanJob(id) {
     matched: parsed.matched || [],
     unmatched: parsed.unmatched || [],
     sections: parsed.sections || [],
+    ai: parsed.ai || null,
     applied: parsed.applied || [],
     summary: parsed.summary || null,
     log: [],
@@ -465,15 +469,34 @@ async function runScan(job, { maxVideos, minSamples }) {
 
   const allParsed = []
   const allSections = []
+  /**
+   * AI 甄别的累计账。放在任务上给用户看：
+   * 「这次剔掉了 37 行不是价格的、纠正了 5 个认歪的名字」——
+   * 不说的话用户会以为解析器变强了，而实际上是他配的模型在干活。
+   */
+  const aiTotals = { enabled: false, model: '', dropped: 0, renamed: 0, kept: 0, errors: 0, ms: 0, dropped_samples: [] }
   for (let i = 0; i < job.videos.length; i++) {
     const video = job.videos[i]
     assertNotCancelled(job)
     job.stage = `处理视频 ${i + 1}/${job.videos.length}`
     touch(job)
     try {
-      const parsed = await processOneVideo(job, video, { cookieFile })
+      const parsed = await processOneVideo(job, video, { cookieFile, serviceNames: services.map((s) => s.name) })
       allParsed.push(...parsed.items)
       allSections.push(...parsed.sections)
+      if (parsed.ai?.enabled) {
+        aiTotals.enabled = true
+        aiTotals.model = parsed.ai.model || aiTotals.model
+        aiTotals.dropped += parsed.ai.dropped || 0
+        aiTotals.renamed += parsed.ai.renamed || 0
+        aiTotals.kept += parsed.ai.kept || 0
+        aiTotals.ms += parsed.ai.ms || 0
+        for (const sample of parsed.ai.dropped_samples || []) {
+          if (aiTotals.dropped_samples.length < 20) aiTotals.dropped_samples.push(sample)
+        }
+      } else if (parsed.ai?.error) {
+        aiTotals.errors += 1
+      }
     } catch (err) {
       if (err?.cancelled) throw err
       video.status = 'failed'
@@ -489,8 +512,66 @@ async function runScan(job, { maxVideos, minSamples }) {
   job.stage = '匹配服务项并计算中位数'
   touch(job)
 
-  const { matched, unmatched } = matchServices(allParsed, services, {})
+  let { matched, unmatched } = matchServices(allParsed, services, {})
+
+  /**
+   * 规则匹不上的，让模型从库内候选里挑一遍。
+   *
+   * 这是兜底不是主力：字符串相似度能匹上的已经匹上了，这里只处理剩下的。
+   * 模型只能从我们给的候选 id 里选（`aiMatchUnmatched` 会校验），
+   * 所以它编不出一个库里不存在的服务项。
+   */
+  if (aiConfig().enabled && unmatched.length && services.length) {
+    const names = [...new Map(unmatched.map((u) => [u.parsed_name, u])).values()].map((u) => ({ name: u.parsed_name, line: u.line }))
+    job.stage = `AI 兜底匹配 ${names.length} 个没匹上的名字`
+    touch(job)
+    let picked
+    try {
+      picked = await aiMatchUnmatched({ game: job.game_name || '', services, names })
+    } catch (err) {
+      picked = { ok: false, error: err?.message || String(err) }
+    }
+    if (picked.ok) {
+      const byId = new Map(services.map((s) => [Number(s.id), s]))
+      const rescued = []
+      const stillUnmatched = []
+      const pickByName = new Map(picked.picks.filter((p) => p.service_id).map((p) => [p.name, p]))
+      for (const item of unmatched) {
+        const pick = pickByName.get(item.parsed_name)
+        const service = pick ? byId.get(Number(pick.service_id)) : null
+        if (!service) {
+          stillUnmatched.push(item)
+          continue
+        }
+        rescued.push(item.parsed_name)
+        matched.push({
+          ...item,
+          service_id: service.id,
+          service_name: service.name,
+          service_unit: service.unit_label || '',
+          current_price: service.base_price,
+          score: pick.confidence === 'high' ? 0.9 : pick.confidence === 'medium' ? 0.75 : 0.6,
+          exact: false,
+          // 标记来源，界面上要能区分「字符串匹上的」和「AI 判的」
+          matched_by: 'ai',
+          ai_confidence: pick.confidence,
+          ai_why: pick.why,
+        })
+      }
+      unmatched = stillUnmatched
+      aiTotals.enabled = true
+      aiTotals.rescued = rescued.length
+      aiTotals.rescued_names = rescued.slice(0, 20)
+      aiTotals.match_ms = picked.ms || 0
+      if (rescued.length) logLine(job, `AI 兜底匹上 ${rescued.length} 个：${rescued.slice(0, 10).join('、')}`)
+    } else {
+      aiTotals.errors += 1
+      logLine(job, `AI 兜底匹配跳过：${picked.error}`)
+    }
+  }
+
   const groups = groupByService(matched, { minSamples: Number(minSamples) })
+  job.ai = aiTotals
 
   job.matched = groups.map((group) => {
     const values = group.prices
@@ -580,7 +661,7 @@ async function runScan(job, { maxVideos, minSamples }) {
  * 一个视频走完全程。
  * 失败要抛出带原因的错，让上层记到那个视频上（一个视频挂了不该毁掉整个任务）。
  */
-async function processOneVideo(job, video, { cookieFile }) {
+async function processOneVideo(job, video, { cookieFile, serviceNames = [] }) {
   const dir = path.join(jobDir(job.id), video.bvid)
   video.status = 'downloading'
   job.stage = `下载 ${video.bvid}`
@@ -619,6 +700,14 @@ async function processOneVideo(job, video, { cookieFile }) {
   const started = Date.now()
   const candidates = []
   const sectionHits = []
+  /**
+   * 每一帧的原始行，留给 AI 判断用。
+   *
+   * 这里刻意**只记「这行有没有价」，不记价是多少** —— 后面拼 prompt 时也只写
+   * `[价]` 不写数字。把价格放进 prompt，模型就有一半概率在回复里复述它，
+   * 而我们要的是它永远碰不到数字。
+   */
+  const frameLines = []
   let ocrFrames = 0
   for (const frame of extracted.frames) {
     if (job.cancelRequested) break
@@ -639,9 +728,44 @@ async function processOneVideo(job, video, { cookieFile }) {
     ocrFrames += 1
     job.progress.ocr_frames += 1
     const hits = extractPriceCandidates(result.words || [])
+
+    const pricedText = new Set(hits.map((h) => String(h.line || '').trim()))
+    /**
+     * 每一行上程序认出来的服务名。要一起发给模型 ——
+     * 让它**纠正**这个名字，而不是从整行原文里重新猜一个。
+     * 不给它看原名字时，它很容易把整行抄回来当名字（实测匹配率直接腰斩）。
+     */
+    const namesByText = new Map()
     for (const hit of hits) {
-      candidates.push({ ...hit, frame: frameRelPath(job.id, video.bvid, path.basename(frame)) })
+      const key = String(hit.line || '').trim()
+      if (!namesByText.has(key)) namesByText.set(key, [])
+      namesByText.get(key).push(hit.name)
     }
+    const lines = groupLines(result.words || []).map((line, i) => ({
+      index: i + 1,
+      text: line.text.trim(),
+      priced: pricedText.has(line.text.trim()),
+      names: namesByText.get(line.text.trim()) || [],
+    }))
+    frameLines.push({ frame: ocrFrames, file: path.basename(frame), lines })
+
+    /**
+     * 候选要记住它出自「第几帧的第几行」。
+     *
+     * AI 是按 `帧:行` 回话的（它看不到价格，只能按位置指认），所以这个坐标
+     * 必须记准 —— 记错了就会把 A 行的判断安到 B 行上，等于随机删价。
+     */
+    const lineIndexByText = new Map()
+    for (const line of lines) if (!lineIndexByText.has(line.text)) lineIndexByText.set(line.text, line.index)
+    for (const hit of hits) {
+      candidates.push({
+        ...hit,
+        frame: frameRelPath(job.id, video.bvid, path.basename(frame)),
+        frameIndex: ocrFrames,
+        lineIndex: lineIndexByText.get(String(hit.line || '').trim()) || 0,
+      })
+    }
+
     /**
      * 顺手把这一帧的分节标题也认出来（`梦州地图`、`主线：` 这种）。
      *
@@ -671,15 +795,18 @@ async function processOneVideo(job, video, { cookieFile }) {
   }
   video.ocr_frames = ocrFrames
 
+  /* ---- AI 甄别：哪些行根本不是价格表里的 ---- */
+  const ai = await triageCandidates({ job, video, candidates, frameLines, serviceNames })
+
   // 同一个视频内收敛：同名服务只留一个价，并记住它出现在哪一帧
-  const collapsed = collapseWithinVideo(candidates)
+  const collapsed = collapseWithinVideo(ai.candidates)
   video.parsed = collapsed.length
   video.status = 'parsed'
 
   return {
     items: collapsed.map((item) => {
       // 找到这个名字第一次出现的帧，作为「来源帧」
-      const source = candidates.find((c) => c.name === item.name && c.price === item.price)
+      const source = ai.candidates.find((c) => c.name === item.name && c.price === item.price)
       return {
         name: item.name,
         price: item.price,
@@ -690,9 +817,146 @@ async function processOneVideo(job, video, { cookieFile }) {
         line: item.line,
         frame: source?.frame || '',
         video: video.bvid,
+        // AI 的口径判断和包含内容跟着样本走，后面按口径分组、填描述都要用。
+        // 注意 collapseWithinVideo 是「按字段列表建新对象」，这些字段它不带，
+        // 所以必须在这里从收敛前的候选里捞回来。
+        scope: source?.scope || '',
+        inclusions: source?.inclusions || '',
+        nameFrom: source?.nameFrom || '',
+        ai_note: source?.ai_note || '',
       }
     }),
     sections: sectionHits,
+    ai: ai.stats,
+  }
+}
+
+/**
+ * 让模型过一遍这个视频认出来的候选，剔除「不是价格表」的行。
+ *
+ * 这是整个 AI 接入里最值钱的一步。价格表视频里混着主播口播、聊天记录、
+ * 播放器界面、文档工具栏 —— 实测约两成「认出来的价」根本不是价。规则判不了，
+ * 因为判据是语义的：`改为` 是个正常的词，只有知道它出自文档界面才知道是噪音。
+ *
+ * 真正的危险不是垃圾出现在预览里（那看得见），而是**垃圾的名字碰巧撞上库里
+ * 的服务项，把中位数拉垮**：`每日委托 ¥2`（其实是「每天 2 元」）撞上库里的
+ * `每日委托`，建议价就从 300 变成 2 —— 而这种错误在界面上完全看不出来。
+ *
+ * 拿不到 AI 就原样返回，走原来的规则管线。**绝不因为 AI 挂了就少给结果。**
+ */
+async function triageCandidates({ job, video, candidates, frameLines, serviceNames }) {
+  const base = { candidates, stats: { enabled: false, model: '', dropped: 0, renamed: 0, kept: candidates.length, error: '' } }
+  if (!aiConfig().enabled) return base
+  if (!candidates.length || !frameLines.length) return base
+
+  let result
+  try {
+    result = await aiTriageVideo({ game: job.game_name || '', serviceNames, frames: frameLines })
+  } catch (err) {
+    result = { ok: false, error: err?.message || String(err) }
+  }
+  if (!result.ok) {
+    // 失败了要说出来，但只记一行日志 —— 用户不需要知道 AI 为什么挂
+    logLine(job, `${video.bvid} 的 AI 甄别跳过：${result.error}`)
+    return { candidates, stats: { ...base.stats, error: result.error || '调用失败' } }
+  }
+
+  const kept = []
+  let dropped = 0
+  let renamed = 0
+  let renameRejected = 0
+  let dropOverridden = 0
+  const droppedSamples = []
+  const rejectedSamples = []
+  const overriddenSamples = []
+  // 归一化后的库内服务名，用来挡住「把真价当噪音删掉」
+  const vocabulary = new Set(serviceNames.map((n) => normalizeServiceName(n)).filter(Boolean))
+  // acceptRename 期望的是「库里真有的写法」的集合，所以两种键都放进去
+  for (const n of serviceNames) if (n) vocabulary.add(String(n).trim())
+
+  /**
+   * 先把改名定下来：**按名字**，不是按行。
+   *
+   * 同一个认歪的名字可能出现在好几行里，按名字改一次就够；按行改的话，
+   * 一行里有多个候选时会被塞同一个名字（实测就是这么把匹配搞垮的）。
+   * 校验不通过的改名在这里就被拦掉，并记下来给用户看。
+   */
+  const renameMap = new Map()
+  for (const [from, to] of result.renames || []) {
+    if (acceptRename(from, to, vocabulary)) renameMap.set(from, to)
+    else {
+      renameRejected += 1
+      if (rejectedSamples.length < 5) rejectedSamples.push(`${from} → ${to}`)
+    }
+  }
+
+  for (const candidate of candidates) {
+    const decision = result.decisions.get(`${candidate.frameIndex}:${candidate.lineIndex}`)
+    /**
+     * 没有判断结果的（模型漏答、行号对不上）**一律保留**。
+     * 这里的选择是「宁可多留一行垃圾，也不要因为模型漏答就悄悄删掉一个真价」——
+     * 漏留的垃圾用户看得见，删掉的真价用户看不见。
+     */
+    if (!decision) {
+      kept.push(candidate)
+      continue
+    }
+    if (!decision.keep) {
+      /**
+       * 模型说删，但这行和库内某个服务项完全同名 —— 不删。
+       *
+       * 实测过：假端点把 `黑海岸群岛 ¥20`、`虎口山脉 ¥20` 判成噪音，三项因此
+       * 失去建议，而用户**看不到自己失去了什么**。和库内同名是很强的证据，
+       * 这一条覆盖是有把握的。
+       */
+      if (isKnownServiceName(candidate.name, vocabulary)) {
+        dropOverridden += 1
+        if (overriddenSamples.length < 8) overriddenSamples.push(`${candidate.name}（AI 说「${decision.why || '不是价格项'}」，但库内有这一项）`)
+      } else {
+        dropped += 1
+        if (droppedSamples.length < 8) droppedSamples.push(`${candidate.name}（${decision.why || '不是价格项'}）`)
+        continue
+      }
+    }
+    /**
+     * 改名：**只换名字，价格仍是 OCR 原文里那个**。
+     * `candidate.price` 从头到尾没有被 AI 碰过 —— 它的 schema 里没有价格字段。
+     */
+    const proposed = renameMap.get(candidate.name)
+    const name = proposed || candidate.name
+    if (name !== candidate.name) renamed += 1
+    kept.push({
+      ...candidate,
+      name,
+      // 原名字留着：界面上要能显示「OCR 认成 X，AI 改成 Y」
+      nameFrom: name !== candidate.name ? candidate.name : '',
+      scope: decision.scope === 'unknown' ? '' : decision.scope,
+      inclusions: decision.inclusions || '',
+      ai_note: name !== candidate.name ? `AI 纠正：${candidate.name} → ${name}` : '',
+    })
+  }
+
+  if (dropped) logLine(job, `${video.bvid} 的 AI 甄别剔掉 ${dropped} 行不是价格的：${droppedSamples.join('、')}`)
+  if (dropOverridden) logLine(job, `${video.bvid} 的 AI 想删 ${dropOverridden} 行但库内有同名服务项，已保留：${overriddenSamples.join('、')}`)
+  if (renamed) logLine(job, `${video.bvid} 的 AI 纠正了 ${renamed} 个认歪的服务名`)
+  if (renameRejected) logLine(job, `${video.bvid} 的 AI 有 ${renameRejected} 个改名不像纠正，已忽略：${rejectedSamples.join('、')}`)
+
+  return {
+    candidates: kept,
+    stats: {
+      enabled: true,
+      model: result.model || '',
+      ms: result.ms || 0,
+      kept: kept.length,
+      dropped,
+      renamed,
+      drop_overridden: dropOverridden,
+      drop_overridden_samples: overriddenSamples,
+      rename_rejected: renameRejected,
+      rename_rejected_samples: rejectedSamples,
+      dropped_samples: droppedSamples,
+      error: '',
+    },
   }
 }
 
@@ -707,10 +971,46 @@ async function processOneVideo(job, video, { cookieFile }) {
  * 传入的是前端提交的行，服务端仍然要逐条校验（价格范围、服务项是否属于这个游戏），
  * 不能因为「前端已经确认过」就照单全收。
  */
-export function applyScan(id, rows = []) {
+/**
+ * 把 AI 抽出来的「包含内容」补进服务项的 package_items。
+ *
+ * 这个功能**默认不开**，要用户在写价时明确勾一下。理由：
+ *
+ * - 写价格是改一个数，写 package_items 是改**给客户看的内容**。
+ *   两者的风险不是一个量级 —— 价格写错了用户会立刻发现（数字摆在那儿），
+ *   而「包含内容」被塞进一句视频里的原话，可能要等客户来问才发现。
+ * - AI 抽的是视频里的原文（`星声4.5w`），不一定是规范的写法。
+ *   它能帮上忙，但不能替用户做主。
+ *
+ * 只**追加**不覆盖：库内已有的内容一个字都不动。宁可少补，不可改错。
+ */
+function appendInclusions(serviceId, inclusions) {
+  const text = String(inclusions || '').trim().slice(0, 120)
+  if (!text) return null
+  const row = db.prepare('SELECT package_items FROM services WHERE id = ?').get(serviceId)
+  if (!row) return null
+  let items = []
+  try {
+    const parsed = JSON.parse(row.package_items || '[]')
+    if (Array.isArray(parsed)) items = parsed.filter((x) => typeof x === 'string')
+  } catch {
+    // 存进去的不是合法 JSON，那就不动它 —— 猜错了会毁掉用户的数据
+    return null
+  }
+  const norm = (s) => String(s).replace(/\s+/g, '')
+  if (items.some((x) => norm(x) === norm(text))) return null
+  if (items.some((x) => norm(x).includes(norm(text)))) return null
+  const next = [...items, text]
+  db.prepare('UPDATE services SET package_items = ?, updated_at = ? WHERE id = ?')
+    .run(JSON.stringify(next), stamp(), serviceId)
+  return { before: items, after: next }
+}
+
+export function applyScan(id, rows = [], options = {}) {
   const job = getScanJob(id)
   if (!job) throw notFound('这个扫描任务不存在')
   if (!Array.isArray(rows) || !rows.length) throw bad('没有要写入的行', 'no_rows')
+  const fillInclusions = options.fill_inclusions === true
 
   const allowed = new Map(servicesOfGame(job.game_id).map((s) => [s.id, s]))
   /**
@@ -726,13 +1026,20 @@ export function applyScan(id, rows = []) {
     const price = Number(row.price)
     if (!Number.isFinite(serviceId) || !allowed.has(serviceId)) continue
     if (!Number.isFinite(price) || price < 0 || price > 100000) continue
-    byService.set(serviceId, { serviceId, price: Math.round(price * 100) / 100, service: allowed.get(serviceId) })
+    byService.set(serviceId, {
+      serviceId,
+      price: Math.round(price * 100) / 100,
+      service: allowed.get(serviceId),
+      // 只认「这个服务项在这次扫描里真的抽到过」的包含内容，不信任前端传什么
+      inclusions: fillInclusions ? String(row.inclusions || '').trim().slice(0, 120) : '',
+    })
   }
   const updates = [...byService.values()]
   if (!updates.length) throw bad('没有一条能写入（价格或服务项不合法）', 'no_valid_rows')
 
   const now = stamp()
   const applied = []
+  const filled = []
   const run = db.prepare('UPDATE services SET base_price = ?, updated_at = ? WHERE id = ?')
   db.exec('BEGIN')
   try {
@@ -747,6 +1054,10 @@ export function applyScan(id, rows = []) {
         changed: before !== update.price,
         at: now,
       })
+      if (update.inclusions) {
+        const diff = appendInclusions(update.serviceId, update.inclusions)
+        if (diff) filled.push({ service_id: update.serviceId, service_name: update.service.name, added: update.inclusions })
+      }
     }
     db.exec('COMMIT')
   } catch (err) {
@@ -767,6 +1078,7 @@ export function applyScan(id, rows = []) {
         matched: job.matched,
         unmatched: job.unmatched,
         sections: job.sections || [],
+        ai: job.ai || null,
         applied: target.applied,
         summary: job.summary,
       }),
@@ -785,7 +1097,7 @@ export function applyScan(id, rows = []) {
     }
   }
 
-  return { ok: true, applied, changed: applied.filter((a) => a.changed).length }
+  return { ok: true, applied, changed: applied.filter((a) => a.changed).length, filled }
 }
 
 /* ============================================================
@@ -880,4 +1192,4 @@ export function createCategoriesFromScan(id, names = []) {
   return { ok: true, created, skipped, game_id: job.game_id ?? null }
 }
 
-export const __testing = { servicesOfGame, jobDir, frameDirOf, titleBlocked, nameKey }
+export const __testing = { servicesOfGame, jobDir, frameDirOf, titleBlocked, nameKey, triageCandidates }

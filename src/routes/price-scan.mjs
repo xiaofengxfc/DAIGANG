@@ -26,6 +26,7 @@ import {
   startScan,
 } from '../bili-scan.mjs'
 import { biliDependencyInstallStatus, startBiliDependencyInstall, biliDependencyStatus } from '../bili-deps.mjs'
+import { aiProbe, aiStatus, saveAiConfig } from '../ai.mjs'
 
 const FRAME_MIME = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png' }
 
@@ -83,7 +84,11 @@ export function register() {
 
   post('/api/price-scan/jobs/:id/apply', (ctx) => {
     const rows = Array.isArray(ctx.body?.rows) ? ctx.body.rows : []
-    return applyScan(ctx.params.id, rows)
+    /**
+     * `fill_inclusions` 默认关。写价格是改一个数，补「包含内容」是改给客户看的文案，
+     * 风险不是一个量级，所以要用户明确勾。
+     */
+    return applyScan(ctx.params.id, rows, { fill_inclusions: ctx.body?.fill_inclusions === true })
   })
 
   /**
@@ -98,6 +103,30 @@ export function register() {
     const names = Array.isArray(ctx.body?.names) ? ctx.body.names : []
     return createCategoriesFromScan(ctx.params.id, names)
   })
+
+  /* ---------------- AI 配置 ---------------- */
+
+  /**
+   * AI 的开关和配置。
+   *
+   * GET 永远**不回密钥**，只回「配了没」和尾号 —— 这个接口会被前端反复调，
+   * 回一次明文就等于密钥躺在浏览器内存和 devtools 里了。
+   */
+  get('/api/price-scan/ai', () => aiStatus())
+
+  post('/api/price-scan/ai', (ctx) => {
+    const body = ctx.body || {}
+    return saveAiConfig({
+      base_url: body.base_url === undefined ? undefined : clampStr(body.base_url, 300),
+      model: body.model === undefined ? undefined : clampStr(body.model, 120),
+      // 空字符串表示「不动」，不是「清掉」—— 界面上保存一次就抹掉 key 太吓人
+      api_key: body.api_key === undefined ? undefined : String(body.api_key).trim().slice(0, 400),
+      clear_key: body.clear_key === true,
+    })
+  })
+
+  /** 探活：真发一个最小请求，确认地址 / 模型 / key 三者对得上 */
+  post('/api/price-scan/ai/test', async () => aiProbe())
 
   /* ---------------- 来源帧 ---------------- */
 

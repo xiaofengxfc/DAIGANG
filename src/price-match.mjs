@@ -408,6 +408,21 @@ export function matchServices(parsedNames, services, opts = {}) {
         score: Math.round(entry.score * 1000) / 1000,
         signal: entry.signal,
         exact: isExact,
+        /**
+         * AI 的判断要一路带到界面上。
+         *
+         * 这几行很容易漏 —— 中间每过一层（collapseWithinVideo、matchServices、
+         * groupByService）都是「按字段列表建新对象」，不显式带上就悄悄丢了。
+         * 丢了以后界面上看不出「这个口径是 AI 判的」，用户就没法核对，
+         * 而「每个 AI 判断都能核对」是这个功能的底线。
+         */
+        scope: entry.parsed.scope || '',
+        inclusions: entry.parsed.inclusions || '',
+        nameFrom: entry.parsed.nameFrom || '',
+        ai_note: entry.parsed.ai_note || '',
+        matched_by: entry.parsed.matched_by || '',
+        ai_confidence: entry.parsed.ai_confidence || '',
+        ai_why: entry.parsed.ai_why || '',
       })
     }
   }
@@ -422,6 +437,12 @@ export function matchServices(parsedNames, services, opts = {}) {
       reason: p.strictExact ? 'bundle' : '',
       score: 0,
       exact: false,
+      // 兜底匹配要用：AI 的口径和原名字也得跟着走
+      scope: p.scope || '',
+      inclusions: p.inclusions || '',
+      nameFrom: p.nameFrom || '',
+      line: p.line || '',
+      frame: p.frame || '',
     }))
 
   return { matched, unmatched }
@@ -446,6 +467,70 @@ export function matchServices(parsedNames, services, opts = {}) {
  * @param {Array} matchedRows matchServices 的 matched
  * @param {{ minSamples?: number }} options
  */
+/**
+ * 把库内单位翻译成「周期」。**必须区分 `天` 和 `30天`** ——
+ * 前者是「每天」，后者是「包月」。两者都含「天」，用 includes('天') 判断会把
+ * 「每天 3 元」和「300 元/30天」当成一回事，正好放过最该挡的那种错。
+ */
+function unitPeriod(unit) {
+  const u = String(unit || '').trim()
+  if (!u) return { kind: 'none', days: 0 }
+  if (/月/.test(u)) return { kind: 'month', days: 30 }
+  if (/周|星期/.test(u)) return { kind: 'week', days: 7 }
+  if (/期|版本|赛季/.test(u)) return { kind: 'period', days: 0 }
+  if (/个|件|只|份/.test(u)) return { kind: 'unit', days: 0 }
+  const m = u.match(/^(\d+)\s*天$/)
+  if (m) {
+    const days = Number(m[1])
+    // 28~31 天按「包月」算，1 天按「每天」算，别的就是多天套餐
+    if (days === 1) return { kind: 'day', days: 1 }
+    if (days >= 28 && days <= 31) return { kind: 'month', days }
+    return { kind: 'multi_day', days }
+  }
+  if (/^[日天]$/.test(u) || /每天|每日|一天/.test(u)) return { kind: 'day', days: 1 }
+  return { kind: 'other', days: 0 }
+}
+
+/**
+ * 视频里那行的「口径」和库内这一项的单位，是不是一回事。
+ *
+ * 为什么需要这个：`基础日常：一天 3` 里的 3 是**每天** 3 元，而库里 `日常托管`
+ * 的基准价是**一次/一月** 300 元。两个数取中位数毫无意义，但界面上看不出来 ——
+ * 你会看到一个 151 然后觉得「涨得不多」。
+ *
+ * 单位写在行上时（`5R/天`）老规则 `unitCompatibility` 已经能挡；
+ * 挡不住的是**单位只写在名字里**的情况（`基础日常：一天`），这正是 AI 口径判断
+ * 的用武之地。
+ *
+ * 判据刻意做成**不对称**的：
+ *   · `total`（一次性总价）—— 永远放行。基准价本来就是「一次性」的意思。
+ *   · 带周期的（每天/每周/每月/每期/每个）—— 只有库内周期**同一种**才放行。
+ * 这样即使模型把一次性总价误判成 total，也只是「没挡住」，不会误删真价。
+ */
+export function scopeCompatibility(scope, serviceUnit) {
+  if (!scope) return { ok: true, certain: false }
+  if (scope === 'total') return { ok: true, certain: false }
+  const period = unitPeriod(serviceUnit)
+  switch (scope) {
+    case 'per_day': return { ok: period.kind === 'day', certain: true }
+    case 'per_week': return { ok: period.kind === 'week', certain: true }
+    case 'per_month': return { ok: period.kind === 'month', certain: true }
+    case 'per_period': return { ok: period.kind === 'period', certain: true }
+    case 'per_unit': return { ok: period.kind === 'unit', certain: true }
+    default: return { ok: true, certain: false }
+  }
+}
+
+/** 口径的中文说法，用来拼「为什么没用这条」的理由 */
+export const SCOPE_LABEL = Object.freeze({
+  per_day: '每天',
+  per_week: '每周',
+  per_month: '每月',
+  per_period: '每期',
+  per_unit: '按个数',
+  total: '一次性总价',
+})
+
 export function groupByService(matchedRows, { minSamples = 3 } = {}) {
   const map = new Map()
   for (const row of matchedRows) {
@@ -460,12 +545,15 @@ export function groupByService(matchedRows, { minSamples = 3 } = {}) {
         aliases: [],
         samples: [],
         excluded: [],
+        scope_conflicts: [],
+        scope_unresolved: false,
         best_score: 0,
         exact: false,
       })
     }
     const group = map.get(row.service_id)
     const compat = unitCompatibility(row.unit, row.service_unit)
+    const scopeCompat = scopeCompatibility(row.scope, row.service_unit)
     const sample = {
       video: row.video,
       parsed_name: row.parsed_name,
@@ -477,9 +565,18 @@ export function groupByService(matchedRows, { minSamples = 3 } = {}) {
       frame: row.frame || '',
       line: row.line || '',
       unit_certain: compat.certain,
+      scope: row.scope || '',
+      inclusions: row.inclusions || '',
+      matched_by: row.matched_by || '',
+      ai_confidence: row.ai_confidence || '',
+      ai_why: row.ai_why || '',
     }
     if (!compat.ok) {
       group.excluded.push({ ...sample, reason: `单位口径不同（视频是「${row.unit || '未标'}」，库内是「${row.service_unit}」）` })
+      continue
+    }
+    if (!scopeCompat.ok) {
+      group.scope_conflicts.push(sample)
       continue
     }
     if (!group.aliases.some((a) => a.parsed_name === row.parsed_name)) {
@@ -492,6 +589,27 @@ export function groupByService(matchedRows, { minSamples = 3 } = {}) {
 
   const out = []
   for (const group of map.values()) {
+    /**
+     * 口径对不上的样本：**只在还剩得下别的样本时才真的剔掉**。
+     *
+     * 如果整组都是口径冲突的（模型判错了、或者库内单位本来就没填），
+     * 那就一条都不剔 —— 全剔掉等于这一项不给建议，用户连「有这么个价」
+     * 都看不到，损失比给一个口径可能不对的价更大。
+     */
+    if (group.scope_conflicts.length) {
+      if (group.samples.length) {
+        for (const sample of group.scope_conflicts) {
+          group.excluded.push({
+            ...sample,
+            reason: `口径是${SCOPE_LABEL[sample.scope] || sample.scope}，库内这一项的单位是「${group.service_unit || '未标'}」，混在一起算平均没意义`,
+          })
+        }
+      } else {
+        group.samples.push(...group.scope_conflicts)
+        group.scope_unresolved = true
+      }
+      group.scope_conflicts = []
+    }
     /**
      * 置信度分层。**必须排在歧义判断前面**，顺序反了会误伤：
      *
@@ -564,6 +682,9 @@ export function groupByService(matchedRows, { minSamples = 3 } = {}) {
       only_unit_mismatch: samples.length === 0 && group.excluded.some((e) => e.reason.startsWith('单位口径')),
       only_ambiguous: samples.length === 0 && group.excluded.length > 0 && group.excluded.every((e) => e.reason.startsWith('同一个视频')),
       only_low_confidence: samples.length === 0 && group.excluded.length > 0 && group.excluded.every((e) => e.reason.startsWith('匹配分')),
+      only_scope_mismatch: samples.length === 0 && group.excluded.length > 0 && group.excluded.every((e) => e.reason.startsWith('口径是')),
+      // 整组口径都对不上、但还是硬用了（宁可给个可能不对的价，也别什么都不给）
+      scope_unresolved: Boolean(group.scope_unresolved),
     })
   }
   // 样本多的排前面：先看证据足的
