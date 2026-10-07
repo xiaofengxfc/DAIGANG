@@ -1183,8 +1183,18 @@ async function main() {
       await fillField(cdp, `${OPEN_DRAWER} #service-name`, fixture.service)
       await fillField(cdp, `${OPEN_DRAWER} #service-base-price`, '31')
       await fillField(cdp, `${OPEN_DRAWER} #service-currency`, '200')
+      // 保存按钮是 type=submit，靠 form= 属性关联到抽屉里的 <form>。
+      // 万一 submit 没被拦下（没 preventDefault），浏览器会走原生提交 ——
+      // 整个页面重新加载，表单内容跑到地址栏里。留个记号，保存完还在就说明没跳。
+      await cdp.eval(`window.__stay = 'yes'`)
       await cdp.eval(`document.querySelector(${JSON.stringify(SUBMIT)}).click()`)
       ok('保存后抽屉自己关掉', await waitFor(cdp, `!document.querySelector(${JSON.stringify(OPEN_DRAWER)})`, { tries: 40, interval: 200 }))
+      ok('保存服务项不会把整个页面刷掉（原生表单提交）', (await cdp.eval(`window.__stay || ''`)) === 'yes')
+      ok('保存后地址栏还是干干净净的价格表', !(await cdp.eval(`location.hash`)).includes('service-name'), await cdp.eval(`location.hash`))
+      // 保存会触发一次刷新。刷新不能把整棵大类树卸载重建 ——
+      // 那样展开的大类会全部收起、滚动位置弹回顶部，看着就像「保存完页面跳走了」。
+      const openAfter = await cdp.eval(`document.querySelectorAll('.price-category__body').length`)
+      ok('保存后展开的大类还开着（页面不跳）', openAfter > 0, String(openAfter))
 
       const saved = (await pricebookServices(app, fixture.cookie)).find((service) => service.name === fixture.service)
       ok('基准价改成了 31', saved && Number(saved.base_price) === 31, saved && saved.base_price)
@@ -1228,6 +1238,8 @@ async function main() {
       await fillField(cdp, `${OPEN_DRAWER} #service-max-qty`, ' ')
       await cdp.eval(`document.querySelector(${JSON.stringify(SUBMIT)}).click()`)
       ok('保存后抽屉自己关掉', await waitFor(cdp, `!document.querySelector(${JSON.stringify(OPEN_DRAWER)})`, { tries: 40, interval: 200 }))
+      // 刷新不能把大类树卸载重建：展开状态一丢，页面就像跳回了顶部
+      ok('保存后展开的大类还开着（页面不跳）', (await cdp.eval(`document.querySelectorAll('.price-category__body').length`)) > 0)
 
       const after = (await pricebookServices(app, fixture.cookie)).find((service) => service.name === TEMP)
       ok('计价方式真的存成了「按次」', after && after.price_type === 'per_time', after && after.price_type)

@@ -128,6 +128,8 @@ export default function PricePage({ route, navigate, onNewGame, onReload, reload
   const [book, setBook] = useState(null)
   const [search, setSearch] = useState(query.q)
   const [error, setError] = useState('')
+  // 上一次取数用的状态筛选：只有它变了才值得把列表清空重画（见下面那个 effect）
+  const statusRef = useRef(query.status)
   const searchTimer = useRef(null)
   // 定时器里不能直接用当次渲染闭包里的 update：那里面装着**敲字那一刻**的筛选条件。
   // 敲完 260ms 内点了「已归档」或游戏标签，定时器一响会把刚点的筛选条件顶掉。
@@ -137,11 +139,24 @@ export default function PricePage({ route, navigate, onNewGame, onReload, reload
   useEffect(() => () => window.clearTimeout(searchTimer.current), [])
   useEffect(() => {
     let active = true
-    setBook(null)
     setError('')
+    // 切「在架 / 已归档 / 全部」是换一份数据，先落骨架屏是应该的。
+    // 但保存完（以及别的 reloadKey 刷新）那次**不能**清空 —— 清空会让整棵大类树
+    // 卸载重建：展开的大类全部收起、滚动位置弹回顶部，看着就像「保存完页面跳走了」。
+    if (statusRef.current !== query.status) {
+      statusRef.current = query.status
+      setBook(null)
+    }
     // status 是**服务端**过滤的（在架 / 已归档 / 全部），所以它变了必须重新取数 ——
     // 只盯着 reloadKey 的话，点「已归档」页面会一直显示在架的那份数据。
-    api.get('/api/pricebook', { status: query.status }).then((data) => { if (active) setBook(data) }).catch((err) => { if (active) { setBook({ games: [], categories: [], loose: [] }); setError(err.message || '价格表加载失败') } })
+    api.get('/api/pricebook', { status: query.status })
+      .then((data) => { if (active) setBook(data) })
+      .catch((err) => {
+        if (!active) return
+        setError(err.message || '价格表加载失败')
+        // 刷新失败就留着上一次的表（顺手把错误条挂出来），别把用户正在看的东西抹掉
+        setBook((current) => current || { games: [], categories: [], loose: [] })
+      })
     return () => { active = false }
   }, [reloadKey, query.status])
 
