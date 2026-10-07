@@ -9,6 +9,7 @@ import {
   Image as ImageIcon,
   Loader2,
   Play,
+  Plus,
   RefreshCw,
   Search,
   Sparkles,
@@ -107,6 +108,17 @@ function PriceScan({ game, close, onApplied }) {
    * 再下几十兆视频）。结果是存着的，那就该能看。
    */
   const [restored, setRestored] = useState(false)
+  /**
+   * 大类候选：从视频的分节标题里认出来的（`梦州地图`、`主线：`）。
+   * 勾选后批量建成大类 —— 这是「价格表结构对不上」时最省事的一条路：
+   * 不然得先退出比价、去价格表建大类、再回来重新扫一遍。
+   */
+  const [sectionPicked, setSectionPicked] = useState(new Set())
+  /** 这个游戏下已有的大类名，用来在候选里标出「已经有了」 */
+  const [categoryNames, setCategoryNames] = useState([])
+  /** 这一次已经建成的（名字 → 服务端返回的 id），建成后立刻标出来 */
+  const [createdSections, setCreatedSections] = useState({})
+  const [creatingSections, setCreatingSections] = useState(false)
   /**
    * 改派：把某个建议行改到另一个服务项上。
    *
@@ -208,6 +220,32 @@ function PriceScan({ game, close, onApplied }) {
     return () => { stopped = true }
   }, [game.id])
 
+  /**
+   * 拉大类清单，用来在候选里标「已经有了」。
+   *
+   * 只算这个游戏的和通用的（game_id 为空）—— 别的游戏的大类名不该让这里
+   * 以为「已经存在」，否则你会看到一个明明属于别的游戏的名字被标成重复，
+   * 于是该建的没建。
+   */
+  const loadCategories = useCallback(async () => {
+    try {
+      const data = await api.get('/api/categories')
+      const list = Array.isArray(data) ? data : data?.items || []
+      setCategoryNames(
+        list
+          .filter((item) => item.status !== 'archived')
+          .filter((item) => !item.game_id || String(item.game_id) === String(game.id))
+          .map((item) => item.name),
+      )
+    } catch {
+      /* 拉不到就只是不标重复，不影响建 */
+    }
+  }, [game.id])
+
+  useEffect(() => {
+    void loadCategories()
+  }, [loadCategories])
+
   const serviceMap = useMemo(() => new Map(services.map((service) => [service.id, service])), [services])
 
   /**
@@ -221,6 +259,72 @@ function PriceScan({ game, close, onApplied }) {
     for (const item of job?.applied || []) map.set(item.service_id, item)
     return map
   }, [job?.applied])
+
+  /**
+   * 大类候选 + 「库里是不是已经有了」的判断。
+   *
+   * 判断放在前端做，而不是扫的时候一并算好：扫描结果会一直留着（可以恢复上次的
+   * 结果），而这期间你可能已经手动把某个大类建出来了。用建的时候的清单去比，
+   * 才不会出现「界面说没有、点下去报重复」。
+   */
+  const sections = useMemo(() => {
+    const existing = new Map(categoryNames.map((name) => [normalizeName(name), name]))
+    return (job?.sections || []).map((section) => {
+      const key = normalizeName(section.name)
+      const exact = existing.get(key)
+      if (exact) return { ...section, dup: exact, similar: '' }
+      // 没有完全同名的，再看像不像 —— `托管类` 和已有的 `托管` 是同一件事
+      let best = ''
+      let bestScore = 0
+      for (const [existKey, existName] of existing) {
+        if (!existKey) continue
+        const score = Math.max(dice(key, existKey), existKey.includes(key) || key.includes(existKey) ? 0.6 : 0)
+        if (score > bestScore) { bestScore = score; best = existName }
+      }
+      return { ...section, dup: '', similar: bestScore >= 0.5 ? best : '' }
+    })
+  }, [job?.sections, categoryNames])
+
+  /** 勾上「没重复、也不像已有大类」的那些 —— 批量建的时候最常用的一步 */
+  const pickCleanSections = useCallback(() => {
+    setSectionPicked(new Set(sections.filter((s) => !s.dup && !s.similar && !createdSections[s.name]).map((s) => s.name)))
+  }, [sections, createdSections])
+
+  const createSections = useCallback(async () => {
+    const names = [...sectionPicked].filter((name) => !createdSections[name])
+    if (!names.length) {
+      toast('没有要建的大类')
+      return
+    }
+    setCreatingSections(true)
+    try {
+      const result = await api.post(`/api/price-scan/jobs/${job.id}/categories`, { names })
+      const made = result?.created || []
+      const skipped = result?.skipped || []
+      if (made.length) {
+        setCreatedSections((current) => {
+          const next = { ...current }
+          for (const row of made) next[row.name] = row.id
+          return next
+        })
+        setSectionPicked(new Set())
+        await loadCategories()
+      }
+      /**
+       * 跳过的要说清楚为什么。用户勾了 5 个只建出 3 个却只看到一句「建好了」，
+       * 剩下 2 个就得自己一个个去猜 —— 是重名？还是名字不合法？
+       */
+      const dup = skipped.filter((s) => s.reason === 'duplicate')
+      if (made.length && !skipped.length) toast(`建好了 ${made.length} 个大类`)
+      else if (made.length) toast(`建好了 ${made.length} 个，跳过 ${skipped.length} 个（${dup.length ? '已有同名' : skipped[0]?.reason || '不合法'}）`)
+      else if (dup.length) toastErr(`这 ${dup.length} 个大类都已经有了`)
+      else toastErr('一个都没建成，检查一下名字')
+    } catch (err) {
+      toastErr(err)
+    } finally {
+      setCreatingSections(false)
+    }
+  }, [sectionPicked, createdSections, job?.id, loadCategories])
 
   /** 这一行最终会写到哪个服务项上 */
   const targetOf = useCallback((row) => targets[row.service_id] ?? row.service_id, [targets])
@@ -462,7 +566,20 @@ function PriceScan({ game, close, onApplied }) {
 
   /* ---- 渲染 ---- */
 
-  const footer = done && rows.length ? (
+  const footer = done && tab === 'sections' ? (
+    <div className="ps-foot">
+      <span className="ps-foot__note">
+        已勾选 <b>{sectionPicked.size}</b> 个，建成后挂在「{game.name}」下，只建大类、不建服务项
+      </span>
+      <div className="ps-foot__actions">
+        <button className="refactor-button" type="button" onClick={close}>先不建</button>
+        <button className="refactor-button refactor-button--primary" type="button" disabled={!sectionPicked.size || creatingSections} onClick={createSections}>
+          {creatingSections ? <Loader2 {...iconProps(15)} className="ps-spin" /> : <Plus {...iconProps(15)} />}
+          建选中的 {sectionPicked.size} 个大类
+        </button>
+      </div>
+    </div>
+  ) : done && rows.length ? (
     <div className="ps-foot">
       <span className="ps-foot__note">
         {conflicts.size
@@ -600,7 +717,7 @@ function PriceScan({ game, close, onApplied }) {
             ) : null}
 
             {/* ---------- 预览 ---------- */}
-            {done && (rows.length || counts.unmatched) ? (
+            {done && (rows.length || counts.unmatched || sections.length) ? (
               <section className="ps-result">
                 <div className="ps-tabs" role="tablist">
                   <button className={tab === 'all' ? 'is-active' : ''} type="button" onClick={() => setTab('all')}>全部 {counts.all}</button>
@@ -608,13 +725,38 @@ function PriceScan({ game, close, onApplied }) {
                   <button className={tab === 'insufficient' ? 'is-active' : ''} type="button" onClick={() => setTab('insufficient')}>样本不足 {counts.insufficient}</button>
                   <button className={tab === 'none' ? 'is-active' : ''} type="button" onClick={() => setTab('none')}>没给出建议 {counts.none}</button>
                   <button className={tab === 'unmatched' ? 'is-active' : ''} type="button" onClick={() => setTab('unmatched')}>没匹配上 {counts.unmatched}</button>
+                  {sections.length ? (
+                    <button className={tab === 'sections' ? 'is-active' : ''} type="button" onClick={() => setTab('sections')}>大类候选 {sections.length}</button>
+                  ) : null}
                   <div className="ps-tabs__spacer" />
-                  <button className="ps-link" type="button" onClick={() => setPicked(new Set(rows.filter((row) => row.enough && row.suggested_price !== null).map((row) => row.service_id)))}>全选样本够的</button>
-                  <button className="ps-link" type="button" onClick={() => setPicked(new Set())}>清空</button>
+                  {tab === 'sections' ? (
+                    <>
+                      <button className="ps-link" type="button" onClick={pickCleanSections}>勾上不重复的</button>
+                      <button className="ps-link" type="button" onClick={() => setSectionPicked(new Set())}>清空</button>
+                    </>
+                  ) : (
+                    <>
+                      <button className="ps-link" type="button" onClick={() => setPicked(new Set(rows.filter((row) => row.enough && row.suggested_price !== null).map((row) => row.service_id)))}>全选样本够的</button>
+                      <button className="ps-link" type="button" onClick={() => setPicked(new Set())}>清空</button>
+                    </>
+                  )}
                 </div>
 
                 {tab === 'unmatched' ? (
                   <UnmatchedList items={job.unmatched || []} />
+                ) : tab === 'sections' ? (
+                  <SectionList
+                    sections={sections}
+                    existing={categoryNames}
+                    picked={sectionPicked}
+                    created={createdSections}
+                    onToggle={(name) => setSectionPicked((current) => {
+                      const next = new Set(current)
+                      if (next.has(name)) next.delete(name)
+                      else next.add(name)
+                      return next
+                    })}
+                  />
                 ) : (
                   <div className="ps-table">
                     {visibleRows.map((row) => (
@@ -804,6 +946,87 @@ function FrameThumb({ jobId, frame }) {
         </div>
       ) : null}
     </>
+  )
+}
+
+/* ============================================================
+   大类候选
+   ============================================================ */
+
+/**
+ * 比较两个大类名像不像。
+ *
+ * 为什么不直接调后端的 compareNames：那是给「视频里的价 → 库里的服务项」用的，
+ * 阈值和降级策略都是为价格服务的。这里只要一个「会不会是同一个东西」的判断，
+ * 而且要能在渲染里同步算（每条候选都要和所有已有大类比一遍）。
+ */
+function normalizeName(value) {
+  return String(value || '').replace(/[\s（）()【】[\]·、,，.。:：!！?？'"“”‘’—\-_/]/g, '').toLowerCase()
+}
+
+/** Dice 系数（按二元组）—— 比编辑距离更抗「托管 / 托管类」这种包含关系 */
+function dice(a, b) {
+  if (!a || !b) return 0
+  if (a === b) return 1
+  if (a.length < 2 || b.length < 2) return 0
+  const grams = new Map()
+  for (let i = 0; i < a.length - 1; i += 1) {
+    const g = a.slice(i, i + 2)
+    grams.set(g, (grams.get(g) || 0) + 1)
+  }
+  let hit = 0
+  for (let i = 0; i < b.length - 1; i += 1) {
+    const g = b.slice(i, i + 2)
+    const n = grams.get(g) || 0
+    if (n > 0) { hit += 1; grams.set(g, n - 1) }
+  }
+  return (2 * hit) / (a.length - 1 + b.length - 1)
+}
+
+/** 从视频分节标题里认出来的大类候选，勾选后批量建 */
+function SectionList({ sections, picked, created, onToggle }) {
+  if (!sections.length) return <div className="ps-empty">这次没从视频里认出分节标题</div>
+  return (
+    <div className="ps-sections">
+      <p className="ps-sections__hint">
+        价格表视频是按板块排的，板块名（<code>梦州地图</code>、<code>主线：</code>）就是大类。
+        勾几个建出来，这些板块下的服务项下次就能对上号。
+      </p>
+      {sections.map((section) => {
+        const built = created[section.name]
+        return (
+          <label
+            key={section.name}
+            className={`ps-section${picked.has(section.name) ? ' is-picked' : ''}${built ? ' is-done' : ''}`}
+          >
+            <input
+              type="checkbox"
+              checked={Boolean(picked.has(section.name) || built)}
+              disabled={Boolean(built)}
+              onChange={() => onToggle(section.name)}
+            />
+            <div className="ps-section__body">
+              <div className="ps-section__head">
+                <span className="ps-section__name">{section.name}</span>
+                <span className="ps-tag">{section.video_count} 个视频</span>
+                {built ? <span className="ps-tag ps-tag--done">已建好</span> : null}
+                {section.dup && !built ? <span className="ps-tag ps-tag--bad" title="同名的大类已经存在">已有</span> : null}
+                {!section.dup && section.similar && !built ? (
+                  <span className="ps-tag ps-tag--warn" title="和已有的大类很像，可能本来就是同一个">像「{section.similar}」</span>
+                ) : null}
+              </div>
+              {section.items?.length ? (
+                <div className="ps-section__items">
+                  这个板块下面认出来：
+                  {section.items.slice(0, 8).map((item) => <span key={item} className="ps-chip ps-chip--sm">{item}</span>)}
+                  {section.items.length > 8 ? <span className="ps-section__more">等 {section.items.length} 项</span> : null}
+                </div>
+              ) : null}
+            </div>
+          </label>
+        )
+      })}
+    </div>
   )
 }
 

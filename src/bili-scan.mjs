@@ -38,11 +38,12 @@ import {
 import { BiliClient, biliAuthStatus, resolveBiliCookieFile, storageStateToNetscape } from './bili-api.mjs'
 import { biliDependencyStatus, ytDlpInvocation } from './bili-deps.mjs'
 import { downloadVideo, extractFrames } from './bili-video.mjs'
-import { collapseWithinVideo, extractPriceCandidates, median, spread } from './price-parse.mjs'
+import { collapseWithinVideo, extractPriceCandidates, extractSections, median, spread } from './price-parse.mjs'
 import { groupByService, matchServices } from './price-match.mjs'
 import { ensureVisionStarted, visionOcr } from './vision-python.mjs'
 import { enqueueERPNextChange } from './outbox.mjs'
-import { bad, notFound } from './util.mjs'
+import { bad, nextSortOrder, notFound } from './util.mjs'
+import { looksDaily } from '../shared/domain.js'
 
 /** 内存里的活动任务。落库的那份是给「重启后还能看」用的，这份是给进度用的 */
 const liveJobs = new Map()
@@ -183,7 +184,7 @@ function persist(job) {
     job.keyword || '',
     job.status,
     job.stage || '',
-    JSON.stringify({ progress: job.progress, videos: job.videos, matched: job.matched, unmatched: job.unmatched, applied: job.applied, summary: job.summary }),
+    JSON.stringify({ progress: job.progress, videos: job.videos, matched: job.matched, unmatched: job.unmatched, sections: job.sections, applied: job.applied, summary: job.summary }),
     job.error || '',
     job.created_at,
     now,
@@ -202,6 +203,7 @@ function publicJob(job) {
     videos: job.videos,
     matched: job.matched,
     unmatched: job.unmatched,
+    sections: job.sections || [],
     applied: job.applied,
     summary: job.summary,
     log: job.log.slice(-60),
@@ -234,6 +236,7 @@ export function getScanJob(id) {
     videos: parsed.videos || [],
     matched: parsed.matched || [],
     unmatched: parsed.unmatched || [],
+    sections: parsed.sections || [],
     applied: parsed.applied || [],
     summary: parsed.summary || null,
     log: [],
@@ -461,6 +464,7 @@ async function runScan(job, { maxVideos, minSamples }) {
   }
 
   const allParsed = []
+  const allSections = []
   for (let i = 0; i < job.videos.length; i++) {
     const video = job.videos[i]
     assertNotCancelled(job)
@@ -468,7 +472,8 @@ async function runScan(job, { maxVideos, minSamples }) {
     touch(job)
     try {
       const parsed = await processOneVideo(job, video, { cookieFile })
-      allParsed.push(...parsed)
+      allParsed.push(...parsed.items)
+      allSections.push(...parsed.sections)
     } catch (err) {
       if (err?.cancelled) throw err
       video.status = 'failed'
@@ -521,6 +526,36 @@ async function runScan(job, { maxVideos, minSamples }) {
     }
   })
   job.unmatched = unmatched
+
+  /**
+   * 分节标题 → 大类候选，跨视频聚合。
+   *
+   * 同一个标题会在多帧里反复出现，同一帧里也可能重复（OCR 抖动），所以按名字合并，
+   * 记下它出现在几个**不同视频**里 —— 多个视频都有这个名字，说明它是价格表的固定
+   * 板块而不是某一次的误认，这比出现帧数更能说明问题。
+   *
+   * 子项（这个板块下面有哪些服务）也一起攒着，让用户知道建了这个大类之后
+   * 里面该放什么。
+   */
+  const sectionMap = new Map()
+  for (const hit of allSections) {
+    const rec = sectionMap.get(hit.name) || { name: hit.name, videos: new Set(), items: new Set(), frames: 0, frame: '' }
+    rec.videos.add(hit.bvid)
+    rec.frames += 1
+    if (!rec.frame) rec.frame = hit.frame
+    for (const item of hit.items || []) rec.items.add(item)
+    sectionMap.set(hit.name, rec)
+  }
+  job.sections = [...sectionMap.values()]
+    .map((rec) => ({
+      name: rec.name,
+      video_count: rec.videos.size,
+      frame_count: rec.frames,
+      frame: rec.frame,
+      items: [...rec.items],
+    }))
+    .sort((a, b) => b.video_count - a.video_count || b.items.length - a.items.length)
+
   job.summary = {
     picked: job.videos.length,
     downloaded: job.videos.filter((v) => v.status === 'parsed').length,
@@ -583,6 +618,7 @@ async function processOneVideo(job, video, { cookieFile }) {
   video.status = 'ocr'
   const started = Date.now()
   const candidates = []
+  const sectionHits = []
   let ocrFrames = 0
   for (const frame of extracted.frames) {
     if (job.cancelRequested) break
@@ -606,6 +642,21 @@ async function processOneVideo(job, video, { cookieFile }) {
     for (const hit of hits) {
       candidates.push({ ...hit, frame: frameRelPath(job.id, video.bvid, path.basename(frame)) })
     }
+    /**
+     * 顺手把这一帧的分节标题也认出来（`梦州地图`、`主线：` 这种）。
+     *
+     * 这是「建大类」的原料：价格表视频是按板块排的，板块名就是用户价格表里的
+     * 大类。认出来先攒着，扫完按名字聚合成候选给用户勾选 —— 不自动建，
+     * 因为 `小示地国` 这种 OCR 认歪的名字也会进来，得让人过一眼。
+     */
+    for (const section of extractSections(result.words || [], hits)) {
+      sectionHits.push({
+        name: section.name,
+        items: section.items || [],
+        bvid: video.bvid,
+        frame: frameRelPath(job.id, video.bvid, path.basename(frame)),
+      })
+    }
     // 一张价格表找到之后，后面的帧基本是同一张图，再认下去是白花时间
     const distinct = new Set(candidates.map((c) => c.name)).size
     if (distinct >= BILI_ENOUGH_ROWS) {
@@ -625,21 +676,24 @@ async function processOneVideo(job, video, { cookieFile }) {
   video.parsed = collapsed.length
   video.status = 'parsed'
 
-  return collapsed.map((item) => {
-    // 找到这个名字第一次出现的帧，作为「来源帧」
-    const source = candidates.find((c) => c.name === item.name && c.price === item.price)
-    return {
-      name: item.name,
-      price: item.price,
-      unit: item.unit || '',
-      unitKind: item.unitKind || '',
-      hits: item.hits,
-      score: item.score,
-      line: item.line,
-      frame: source?.frame || '',
-      video: video.bvid,
-    }
-  })
+  return {
+    items: collapsed.map((item) => {
+      // 找到这个名字第一次出现的帧，作为「来源帧」
+      const source = candidates.find((c) => c.name === item.name && c.price === item.price)
+      return {
+        name: item.name,
+        price: item.price,
+        unit: item.unit || '',
+        unitKind: item.unitKind || '',
+        hits: item.hits,
+        score: item.score,
+        line: item.line,
+        frame: source?.frame || '',
+        video: video.bvid,
+      }
+    }),
+    sections: sectionHits,
+  }
 }
 
 /* ============================================================
@@ -712,6 +766,7 @@ export function applyScan(id, rows = []) {
         videos: job.videos,
         matched: job.matched,
         unmatched: job.unmatched,
+        sections: job.sections || [],
         applied: target.applied,
         summary: job.summary,
       }),
@@ -733,4 +788,96 @@ export function applyScan(id, rows = []) {
   return { ok: true, applied, changed: applied.filter((a) => a.changed).length }
 }
 
-export const __testing = { servicesOfGame, jobDir, frameDirOf, titleBlocked }
+/* ============================================================
+   大类候选 → 建大类
+   ============================================================ */
+
+/** 名字归一化后比较，避免「梦州地图 」和「梦州地图」被当成两个 */
+const nameKey = (value) => String(value || '').replace(/\s+/g, '').trim()
+
+/**
+ * 把扫描结果里的分节标题批量建成大类，挂在这次扫描的游戏下面。
+ *
+ * 只建大类，不建服务项 —— 服务项要选计价方式、单位、是否每天做，这些
+ * 视频里没有可靠信息（`238包月` 到底算 fixed 还是 daily？），猜错了比不建更麻烦。
+ * 大类没有这些问题：它就是一个名字加一个游戏。
+ *
+ * 跳过的情况都**明确回报**，不静默丢弃：用户勾了 5 个只建出 3 个，必须知道
+ * 另外 2 个为什么没建（重名 / 名字不合法），否则会以为程序漏了。
+ */
+export function createCategoriesFromScan(id, names = []) {
+  const job = getScanJob(id)
+  if (!job) throw notFound('这个扫描任务不存在')
+  if (!Array.isArray(names) || !names.length) throw bad('没有要建的大类', 'no_names')
+
+  /**
+   * 候选名要来自这次扫描的结果，不能由前端随便编。
+   * 接口是公开的，不校验的话就成了「用比价接口建任意名字的大类」。
+   */
+  const candidates = new Map((job.sections || []).map((s) => [nameKey(s.name), s]))
+
+  // 这个游戏下已有的（含通用的）大类名，用来判重
+  const existing = new Map(
+    db
+      .prepare("SELECT id, name, game_id FROM service_categories WHERE status <> 'archived'")
+      .all()
+      .map((row) => [nameKey(row.name), row]),
+  )
+
+  const created = []
+  const skipped = []
+  const now = stamp()
+  let order = nextSortOrder(db, 'service_categories')
+  const insert = db.prepare(
+    'INSERT INTO service_categories (game_id, name, is_daily, status, sort_order, note, notice, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+  )
+
+  db.exec('BEGIN')
+  try {
+    for (const raw of names) {
+      const key = nameKey(raw)
+      if (!key) {
+        skipped.push({ name: String(raw || ''), reason: 'empty' })
+        continue
+      }
+      const candidate = candidates.get(key)
+      if (!candidate) {
+        skipped.push({ name: String(raw), reason: 'not_in_scan' })
+        continue
+      }
+      const dup = existing.get(key)
+      if (dup) {
+        skipped.push({ name: candidate.name, reason: 'duplicate', existing_id: dup.id, existing_name: dup.name })
+        continue
+      }
+      if (key.length > 60) {
+        skipped.push({ name: candidate.name, reason: 'too_long' })
+        continue
+      }
+
+      // 和「新建分类」走同一套推断：名字像日常的大类自动标成每天都做
+      const info = insert.run(job.game_id ?? null, candidate.name, looksDaily(candidate.name) ? 1 : 0, 'active', order, '', '', now, now)
+      const row = { id: Number(info.lastInsertRowid), name: candidate.name, sort_order: order }
+      created.push(row)
+      existing.set(key, { id: row.id, name: row.name, game_id: job.game_id ?? null })
+      order += 10
+    }
+    db.exec('COMMIT')
+  } catch (err) {
+    db.exec('ROLLBACK')
+    throw err
+  }
+
+  // 大类变了，ERPNext 那一侧也要知道
+  for (const row of created) {
+    try {
+      enqueueERPNextChange('service_categories', row.id, 'upsert')
+    } catch {
+      /* 外部队列写不进去不该让建大类失败 */
+    }
+  }
+
+  return { ok: true, created, skipped, game_id: job.game_id ?? null }
+}
+
+export const __testing = { servicesOfGame, jobDir, frameDirOf, titleBlocked, nameKey }

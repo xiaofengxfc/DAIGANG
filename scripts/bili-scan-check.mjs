@@ -99,6 +99,26 @@ try {
     return m.suggested_price >= Math.min(...prices) - 0.01 && m.suggested_price <= Math.max(...prices) + 0.01
   }), multi.map((m) => `${m.service_name}:[${m.samples.map((s) => s.price).join(',')}]=${m.suggested_price}`).join('  '))
 
+  /* ---------- 大类候选 ---------- */
+  section('大类候选')
+  const sections = job?.sections || []
+  check('有 sections', Array.isArray(job?.sections), `${sections.length} 个候选`)
+  /**
+   * 这里只查结构不查内容 —— 视频是活的，B站 上换一批视频标题就变了，
+   * 写死「必须认出梦州地图」这种断言过两天就会红。
+   * 内容准不准靠人工过一遍（见 README 里那条 dump 命令）。
+   */
+  check('候选名都是 2~10 个字', sections.length > 0 && sections.every((s) => {
+    const n = [...String(s.name || '')].length
+    return n >= 2 && n <= 10
+  }), sections.map((s) => s.name).join('、'))
+  check('候选都带来源视频数', sections.every((s) => Number(s.video_count) >= 1), sections.map((s) => `${s.name}:${s.video_count}`).join('、'))
+  check('候选都带子项列表', sections.every((s) => Array.isArray(s.items)), sections.slice(0, 3).map((s) => `${s.name}(${s.items.length})`).join('、'))
+  check('候选名不重复', new Set(sections.map((s) => s.name)).size === sections.length)
+  // 说明句/界面按钮不能混进来 —— 这是这块最容易出的错
+  const junk = sections.filter((s) => /等$|包含|需要|主页|评论|置顶|退出|返回|充电/.test(String(s.name)))
+  check('没有把说明句/界面按钮认成大类', junk.length === 0, junk.map((s) => s.name).join('、'))
+
   /* ---------- 来源帧 ---------- */
   section('来源帧')
   const frame = sample?.samples?.[0]?.frame

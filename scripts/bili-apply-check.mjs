@@ -141,6 +141,74 @@ try {
     }
   }
 
+  /* ---------- 建大类 ---------- */
+  section('从分节标题建大类')
+  const sections = job?.sections || []
+  check('扫描结果里有大类候选', sections.length > 0, sections.map((s) => s.name).join('、'))
+
+  const readCats = () => {
+    const d = new DatabaseSync(dbFile, { readOnly: true })
+    const rows = d.prepare('SELECT id, game_id, name, status, sort_order FROM service_categories').all()
+    d.close()
+    return rows
+  }
+  const catsBefore = readCats()
+  const gameId = Number(game.id)
+
+  // 挑两个「库里还没有」的候选（候选里本来就可能包含已有的大类，比如 `托管`）
+  const existingNames = new Set(catsBefore.map((c) => String(c.name).replace(/\s+/g, '')))
+  const fresh = sections.filter((s) => !existingNames.has(String(s.name).replace(/\s+/g, ''))).slice(0, 2)
+  const already = sections.filter((s) => existingNames.has(String(s.name).replace(/\s+/g, '')))
+
+  if (fresh.length) {
+    const res = await call('POST', `/api/price-scan/jobs/${jobId}/categories`, { names: fresh.map((s) => s.name) })
+    check('建大类返回 ok', res.data?.ok === true, JSON.stringify(res.data).slice(0, 160))
+    check('建出来的条数对', (res.data?.created || []).length === fresh.length, `created=${res.data?.created?.length} 期望 ${fresh.length}`)
+    check('没误报跳过', (res.data?.skipped || []).length === 0, JSON.stringify(res.data?.skipped))
+
+    const catsAfter = readCats()
+    const made = catsAfter.filter((c) => fresh.some((s) => s.name === c.name))
+    check('大类真的落库了', made.length === fresh.length, made.map((c) => `${c.name}(id=${c.id})`).join('、'))
+    check('挂在这次扫描的游戏下', made.every((c) => Number(c.game_id) === gameId), made.map((c) => `${c.name}:game=${c.game_id}`).join('、'))
+    check('状态是启用', made.every((c) => c.status === 'active'))
+    check('sort_order 各不相同', new Set(made.map((c) => c.sort_order)).size === made.length, made.map((c) => `${c.name}:${c.sort_order}`).join('、'))
+
+    // 再建一次：必须报「重名」而不是建出第二份
+    const againCats = await call('POST', `/api/price-scan/jobs/${jobId}/categories`, { names: fresh.map((s) => s.name) })
+    check('重复建会被跳过', (againCats.data?.created || []).length === 0 && (againCats.data?.skipped || []).length === fresh.length, JSON.stringify(againCats.data?.skipped))
+    check('跳过原因写明是重名', (againCats.data?.skipped || []).every((s) => s.reason === 'duplicate'), JSON.stringify((againCats.data?.skipped || []).map((s) => s.reason)))
+    check('重复建没有多出记录', readCats().length === catsAfter.length, `${catsAfter.length} → ${readCats().length}`)
+  } else {
+    console.log('  （这次的候选全都已经存在，跳过新建用例）')
+  }
+
+  if (already.length) {
+    const dup = await call('POST', `/api/price-scan/jobs/${jobId}/categories`, { names: [already[0].name] })
+    check('候选里已有的大类会被判重', (dup.data?.created || []).length === 0 && dup.data?.skipped?.[0]?.reason === 'duplicate', `${already[0].name} → ${JSON.stringify(dup.data?.skipped)}`)
+  }
+
+  /* ---------- 建大类的非法输入 ---------- */
+  section('建大类的非法输入')
+  const catCases = [
+    ['空名单', { names: [] }],
+    ['不是数组', { names: 'nope' }],
+    ['扫描结果里没有的名字', { names: ['这个大类不在视频里'] }],
+    ['空白名字', { names: ['   '] }],
+    ['名字超长', { names: ['超'.repeat(80)] }],
+  ]
+  for (const [label, body] of catCases) {
+    const res = await call('POST', `/api/price-scan/jobs/${jobId}/categories`, body)
+    const built = (res.data?.created || []).length
+    check(`${label}建不出来`, built === 0, `status=${res.status} created=${built} code=${res.data?.code} reasons=${JSON.stringify((res.data?.skipped || []).map((s) => s.reason))}`)
+  }
+  const badJob = await call('POST', '/api/price-scan/jobs/scan-does-not-exist/categories', { names: ['地图探索'] })
+  check('不存在的任务建不了大类', badJob.status === 404, `status=${badJob.status}`)
+
+  /* ---------- 写价不能把大类候选抹掉 ---------- */
+  section('写价之后大类候选还在')
+  const afterApply = await call('GET', `/api/price-scan/jobs/${jobId}`)
+  check('applyScan 没有抹掉 sections', (afterApply.data?.sections || []).length === sections.length, `${sections.length} → ${(afterApply.data?.sections || []).length}`)
+
   /* ---------- 任务留痕 ---------- */
   section('留痕')
   const stored = await call('GET', `/api/price-scan/jobs/${jobId}`)

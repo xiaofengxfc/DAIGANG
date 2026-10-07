@@ -19,6 +19,7 @@ import {
   activeScanJob,
   applyScan,
   cancelScan,
+  createCategoriesFromScan,
   getScanJob,
   listScanJobs,
   scanReadiness,
@@ -83,6 +84,19 @@ export function register() {
   post('/api/price-scan/jobs/:id/apply', (ctx) => {
     const rows = Array.isArray(ctx.body?.rows) ? ctx.body.rows : []
     return applyScan(ctx.params.id, rows)
+  })
+
+  /**
+   * 把视频里的分节标题批量建成大类。
+   *
+   * 一次请求建多个，而不是让前端循环调 `/api/categories/append`：
+   *   · 重复判断要在一个地方做完（同名的大类只建一个，哪怕用户重复提交）；
+   *   · 用户勾了 5 个、第 3 个重名，不该变成「建了 2 个然后报错」这种半成品状态；
+   *   · 前端循环还会并发写 sort_order，撞在一起。
+   */
+  post('/api/price-scan/jobs/:id/categories', (ctx) => {
+    const names = Array.isArray(ctx.body?.names) ? ctx.body.names : []
+    return createCategoriesFromScan(ctx.params.id, names)
   })
 
   /* ---------------- 来源帧 ---------------- */

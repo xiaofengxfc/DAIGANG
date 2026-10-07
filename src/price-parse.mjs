@@ -124,6 +124,12 @@ const GENERIC_NAMES = new Set([
   '封面', '字幕', '配音', '转场', '动画', '画布', '图层', '组件', '元素', '对齐',
   // 价格表里「套餐1/套餐2」是分档的标题，不是服务项本身
   '套餐', '页眉', '页脚', '页码', '样式', '查找', '替换', '选择', '排列', '工具',
+  // 播放器 / 网站 / 编辑器的按钮。这些词也是「没价 + 后面跟着价格表」，
+  // 光看长度和汉字占比会认成大类标题（实测 `退出` 就是这么混进来的）。
+  '退出', '返回', '关闭', '打开', '更多', '全部', '确定', '取消', '刷新', '重置',
+  '上传', '下载', '导入', '新建', '添加', '全选', '开始', '暂停', '继续', '播放',
+  '详情', '简介', '弹幕', '倍速', '全屏', '画质', '清晰度', '投币', '点赞', '关注',
+  '转发', '收藏', '充电', '追番', '投稿', '动态', '直播', '录屏', '倍速播放',
 ])
 /** 行里出现这些词，价格候选要扣分（多半是折扣/优惠说明） */
 const DISCOUNT_WORDS = /(?:减|折|优惠|立减|返现|券|首单|活动价|特价)/
@@ -524,6 +530,148 @@ export function extractPriceCandidates(words, { minScore = null } = {}) {
 }
 
 /* ============================================================
+   分节标题 → 大类候选
+   ============================================================ */
+
+/**
+ * 一句话/一段说明的特征词。价格表视频里到处都是这种行，它们和分节标题一样
+ * 「没有价格」，但它们是句子不是标签。实测踩过的：
+ *   `包含危行任务+探图活动`   —— 紧跟 3 条有价行，光看「后面有价」会认成标题
+ *   `不做危行任务探索度满不了，仅打满探索的话，需要带危行一起做`
+ *   `有需求的板板看主页或评论区置顶`
+ *   `半年个人全职小代直播/录屏价格良心退号视频`
+ */
+const NOTE_WORDS = /(?:包含|需要|需|仅|的话|如果|可以|请|联系|咨询|注意|说明|备注|如下|以上|主页|评论|置顶|同名|直播|录屏|价格|代肝|板板|欢迎|详情|免费|送|退号|良心|已结|百单|全职|小代|接单|下单|秒回|在线)/
+
+/**
+ * 分节标题最多几个字。
+ *
+ * 这个上限是「标题」和「说明」之间最有效的一刀：实测标题是
+ * `地图探索`(4)、`主线`(2)、`世界任务`(4)、`蒙德总贴`(4)、`梦州地图`(4)，
+ * 而说明行是 `包含危行任务+探图活动`(11)、
+ * `有需求的板板看主页或评论区置顶`(14)、`半年个人全职小代直播/录屏价格良心退号视频`(20)。
+ */
+const SECTION_MAX_CHARS = 10
+
+/**
+ * 一行像不像分节标题。
+ *
+ * 判据（都要满足）：
+ *   1. 这一行**没有被认出价格** —— 标题下面才是价格；
+ *   2. 长度 2~10、八成以上是汉字 —— 标题是标签，不是句子；
+ *   3. 冒号只能出现在**结尾**。中间带冒号的是「第二幕：为了没有眼泪的明天」
+ *      这种换行了的服务项（名字太长折到下一行，价在再下一行），
+ *      它后面同样跟着有价行，是这里最容易误判的一类；
+ *   4. 不像说明句（NOTE_WORDS）；
+ *   5. 不是文档界面噪音（NOISE_LINE）。
+ *
+ * 允许三种装饰，都先剥掉再判：
+ *   · 版本前缀  `3.5版本梦州地图` → `梦州地图`（实测这类标题很多）
+ *   · 序号前缀  `一：托管类：`   → `托管类`
+ *   · 结尾箭头  `3.5版本梦州地图←` → 去掉 `←`
+ */
+function looksLikeSection(text) {
+  let raw = toHalfWidth(String(text || '')).trim()
+  if (!raw) return null
+  for (const re of NOISE_LINE) {
+    if (re.test(raw)) return null
+  }
+
+  /**
+   * 版本前缀：只剥「开头那一段不含汉字的、里面有数字的、不超过 12 个字符」的前缀。
+   * 要求里面有数字，是为了不动 `【鸣潮代肝】…` 这种以符号开头的行。
+   */
+  const lead = raw.match(/^[^\u4e00-\u9fa5]*/)
+  if (lead[0] && /\d/.test(lead[0]) && lead[0].length <= 12) {
+    raw = raw.slice(lead[0].length).replace(/^(?:版本|版)\s*/, '')
+  }
+  // 序号前缀
+  raw = raw.replace(/^[一二三四五六七八九十\d]+\s*[：:、.．]\s*/, '')
+  // 结尾的箭头、括号、标点（`梦州地图←`、`主线：`）。
+  // 只剥标点和符号，**不剥字母数字** —— `充电烫TA` 是 B站 的充电按钮，
+  // 把 `TA` 当装饰剥掉会剩个 `充电烫`，长度和汉字占比就都合格了，凭空多一个假标题。
+  raw = raw.replace(/[\s\p{P}\p{S}]+$/u, '')
+  if (!raw) return null
+
+  // 冒号只允许在结尾 —— 剥掉结尾标点后这里就不该再有冒号了
+  if (/[：:]/.test(raw)) return null
+
+  const name = cleanName(raw)
+  if (!name) return null
+  const chars = [...name]
+  if (chars.length < 2 || chars.length > SECTION_MAX_CHARS) return null
+
+  const han = chars.filter((c) => /[\u4e00-\u9fa5]/.test(c)).length
+  if (han / chars.length < 0.8) return null
+  if (han < 2) return null
+
+  /**
+   * 关键词列表不是标题。实测 `探索度 锄地 声骸 地图任务深渊等` 折行后
+   * 下半截 `声骸地图任务深渊等` 长度刚好 9、全汉字、后面紧跟着价格表 ——
+   * 判据 1~3 全部通过，只有结尾这个「等」能把它认出来。
+   */
+  if (/等$/.test(name)) return null
+  // 单独一个界面按钮/排版词没有意义（`退出`、`工具`）—— 和价格候选共用一张表
+  if (GENERIC_NAMES.has(name)) return null
+  // 「套餐一」「套餐1」这种分档编号是标题行的一部分，不是大类
+  if (/^(?:套餐|方案|档位|档)\s*[一二三四五六七八九十\d]?$/.test(name)) return null
+  if (NOTE_WORDS.test(name)) return null
+  return name
+}
+
+/**
+ * 从一页 OCR 里找出分节标题，并把它下面（到下一个标题为止）的有价行当它的子项。
+ *
+ * 「后面要跟着有价行」是核心判据，但**不能要求紧邻**：价格表的服务项名字长了
+ * 会折行，于是标题和它下面第一个价之间可能隔着别的行。实测：
+ *   `主线：` / `第一幕：捕风的异乡人15r` / `第二幕：为了没有眼泪的明天` / `15r`
+ * `主线：` 后面紧跟的第一行有价、第二行没有 —— 严格「连续两行有价」会漏掉它。
+ * 所以改成「往后看 4 行里有 ≥2 个有价行」。
+ *
+ * 代价是 `谷75/区` 这种折行的续行也会落进窗口，靠汉字占比（它只有 2/5）挡掉。
+ */
+export function extractSections(words, candidates = null, { lookahead = 4, minPriced = 2, maxItems = 14 } = {}) {
+  const lines = groupLines(words)
+  if (!lines.length) return []
+
+  const hits = candidates || extractPriceCandidates(words)
+  const priced = new Set(hits.map((h) => String(h.line || '').trim()))
+
+  const sections = []
+  for (let i = 0; i < lines.length; i += 1) {
+    const text = lines[i].text
+    if (priced.has(text.trim())) continue
+    const name = looksLikeSection(text)
+    if (!name) continue
+
+    let pricedCount = 0
+    for (let j = i + 1; j < Math.min(lines.length, i + 1 + lookahead); j += 1) {
+      if (priced.has(lines[j].text.trim())) pricedCount += 1
+    }
+    if (pricedCount < minPriced) continue
+
+    sections.push({ name, line: text.trim(), y: lines[i].cy, index: i })
+  }
+
+  // 每个标题的子项：它之后、下一个标题之前的有价行
+  for (let k = 0; k < sections.length; k += 1) {
+    const from = sections[k].index + 1
+    const to = k + 1 < sections.length ? sections[k + 1].index : lines.length
+    const items = []
+    for (let j = from; j < to && items.length < maxItems; j += 1) {
+      const t = lines[j].text.trim()
+      if (!priced.has(t)) continue
+      for (const hit of hits) {
+        if (String(hit.line || '').trim() === t) items.push(hit.name)
+      }
+    }
+    sections[k].items = [...new Set(items)]
+  }
+
+  return sections
+}
+
+/* ============================================================
    跨帧 / 跨视频聚合
    ============================================================ */
 
@@ -591,6 +739,9 @@ export const __testing = {
   CONTENT_TAIL,
   NOISE_LINE,
   GENERIC_NAMES,
+  NOTE_WORDS,
+  SECTION_MAX_CHARS,
+  looksLikeSection,
   CONTINUATION_NAMES,
   firstBracketIndex,
   buildLine,

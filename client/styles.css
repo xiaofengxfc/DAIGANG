@@ -3748,3 +3748,19 @@ button.react-side-row {
 .ps-restored { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 10px; padding: 8px 11px; border-radius: var(--r-ctl); background: var(--amber-bg); color: var(--amber-ink); font-size: var(--fs-xs); line-height: 1.7; }
 .ps-restored svg { flex: none; margin-top: 2px; }
 .ps-tag--done { background: var(--jade-bg); color: var(--jade-ink); }
+
+/* ---------- 大类候选 ---------- */
+.ps-sections { display: flex; flex-direction: column; gap: 8px; }
+.ps-sections__hint { margin: 0 0 2px; padding: 0 2px; color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.75; }
+.ps-sections__hint code { padding: 1px 5px; border-radius: 4px; background: var(--surface-inset); color: var(--ink-2); font-family: var(--font-fig); font-size: 0.95em; }
+.ps-section { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface-solid); cursor: pointer; }
+.ps-section:hover { border-color: var(--line-strong); }
+.ps-section.is-picked { border-color: var(--cinnabar-line); background: var(--cinnabar-bg); }
+.ps-section.is-done { cursor: default; opacity: 0.72; background: var(--jade-bg); border-color: transparent; }
+.ps-section input { flex: none; margin-top: 2px; }
+.ps-section__body { flex: 1; min-width: 0; }
+.ps-section__head { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.ps-section__name { font-weight: 600; color: var(--ink); }
+.ps-section__items { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-top: 5px; color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.9; }
+.ps-chip--sm { padding: 1px 7px; font-size: var(--fs-xs); }
+.ps-section__more { color: var(--ink-3); }
