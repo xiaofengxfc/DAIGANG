@@ -1339,6 +1339,139 @@ export async function run() {
   r = await api('GET', '/api/auth/me')
   ok('重新登录后状态正常', r.body.authenticated === true, r.body)
 
+  /* ---------- B站自动比价：解析与匹配 ----------
+     这一段全是纯函数，不联网、不下视频、不 OCR —— 所以可以放进冒烟测试里跑。
+     真正要联网的那条路（搜索/下载/抽帧/识别）不适合放进冒烟测试：
+     它慢、依赖 B站 和登录态，而且结果会随视频更新而变。
+
+     这里覆盖的是**从真实实拍帧里踩出来的坑**，每一条都对应一次实际误配：
+     OCR 会把 `黎那汐塔` 认成 `黎娜西塔`，把声骸词条 `43311` 当成价格，
+     把 WPS 功能区的字认成服务名，把「名字：说明」的说明部分当成名字……
+     这些用例就是防止改解析器时把这些坑重新踩一遍。 */
+  section('B站自动比价 · 价格解析')
+  const { groupLines, parseLineCandidates, collapseWithinVideo, median, extractPriceCandidates } = await import('../src/price-parse.mjs')
+  const { matchServices, similarity, effectiveName, expandParsedNames, unitGroup } = await import('../src/price-match.mjs')
+
+  /** 造一行 OCR 词：按空格切开，每个词给个递增的 x，足够 groupLines 分成一行 */
+  const wordsOf = (text) => text.split(/(\s+)/).filter((s) => s.trim()).map((t, i) => ({ text: t, x: i * 40, y: 0, w: 38, h: 20, cx: i * 40 + 19, cy: 10, score: 0.95 }))
+  const parseOne = (text) => {
+    const lines = groupLines(wordsOf(text))
+    return lines.flatMap((line) => parseLineCandidates(line))
+  }
+  const pairs = (text) => parseOne(text).map((c) => [c.name, c.price, c.unit])
+
+  const PARSE_CASES = [
+    // [一行 OCR 原文, 期望的 (名字, 价格, 单位) 列表]
+    ['本体25r 精炼材料15r/个', [['本体', 25, '元'], ['精炼材料', 15, '个']]],
+    ['深塔15/期', [['深塔', 15, '期']]],
+    ['木头2r/100个 翠华木4r/100个', [['木头', 2, '元'], ['翠华木', 4, '元']]],
+    ['满级突破材料168个 25r', [['满级突破材料', 25, '元']]],
+    ['雪山玉髓8级40r', [['雪山玉髓8级', 40, '元']]],
+    ['尘歌壶1-10级100r 七圣召唤1-10级200r', [['尘歌壶1-10级', 100, '元'], ['七圣召唤1-10级', 200, '元']]],
+    ['6.0-6.7满探索480r', [['6.0-6.7满探索', 480, '元']]],
+    ['《白夜国晨昏记》30 《76只活爹（兰那罗）》40', [['白夜国晨昏记', 30, ''], ['活爹兰那罗', 40, '']]],
+    // 加价子句：`+30r包后续《…》` 整条判为加价项丢掉，这是**有意保守** ——
+    // 丢掉一个价用户不会知道，收下一个错价用户会照着开单。
+    // 关键是括号里的 16 / 10 必须一起跳过，否则会漏成两个价格。
+    ['《森林会记住一切》+30r包后续《16石锁机关+静态风景10照片》', []],
+    // 声骸词条 43311 不是价格，后面的 800/月 才是。
+    // 注意名字里保留整个「至尊全托：豪华全托+…」—— 冒号前面才是服务名，
+    // 这一步交给匹配层的 effectiveName 处理，解析器保持忠实。
+    ['至尊全托：豪华全托+刷主c声骸43311小毕业800/月', [['至尊全托：豪华全托+刷主c声骸43311小毕业', 800, '月']]],
+    // `16图` 是 16 张图，400 才是价
+    ['罗伊冰原16图：400', [['罗伊冰原16图', 400, '']]],
+    // 「名字：说明」——冒号后面是解释，不是名字的一部分
+    ['精托：日常体力+活动：238包月', [['精托：日常体力+活动', 238, '']]],
+    // 同一行两个口径：第二个价沿用前一个名字（靠单位区分）
+    ['周常：25r/周90r/月', [['周常', 25, '周'], ['周常', 90, '月']]],
+    // 紧排版：名字价格名字价格，中间没有分隔符，靠第二个数字前的中文断名
+    ['黎乔利群岛20下层金库20 阿维纽林25', [['黎乔利群岛', 20, ''], ['下层金库', 20, ''], ['阿维纽林', 25, '']]],
+    // 加价项：`…需+15` 是附加费，不是基准价
+    ['黎乔利群岛前置钓鱼解除风暴需+15', []],
+    // WPS 功能区整行、字数统计、拼写检查都不能出候选
+    ['格式刷粘贴 标题1 标题2 标题3 页牌 样式集 查找替换 选择 AI排版 公文模式', []],
+    ['页面：1/6 字数：1132 拼写检查：打开', []],
+    ['文 页面 引用 审阅 视图 工具 会员专享 WPSAI 分享', []],
+    // WPS 的字体下拉被 OCR 认错字（等线 → 尊线），旁边那个 48 是字号不是价。
+    // 所以不能只按「等线」这个正确写法挡，得认「正文」这个排版用词本身。
+    ['尊线正文 48', []],
+    ['AA要- 正文 标题 1', []],
+    // 「套餐1：…」里的 1 是分档编号，不是价格
+    ['套餐1：梦州满探索230（100%探索+前置任务+梁鸢）', [['梦州满探索', 230, '']]],
+    // 评论区/买家秀截图
+    ['【购代肝】360贝币冰原全收集得吃炭', []],
+  ]
+  for (const [text, expect] of PARSE_CASES) {
+    const got = pairs(text)
+    ok(`解析「${text.slice(0, 26)}」`, JSON.stringify(got) === JSON.stringify(expect), { got, expect })
+  }
+
+  // 全角数字要能认（OCR 偶尔吐全角）
+  ok('全角数字能认出来', JSON.stringify(pairs('深塔１５/期')) === JSON.stringify([['深塔', 15, '期']]), pairs('深塔１５/期'))
+  // 中位数：偶数个取中间两个的平均
+  ok('中位数（奇数个）', median([400, 450, 350]) === 400, median([400, 450, 350]))
+  ok('中位数（偶数个取平均）', median([400, 450]) === 425, median([400, 450]))
+  ok('中位数（空）', median([]) === null)
+  // 同一视频内同名收敛：取出现次数最多的价
+  const collapsed = collapseWithinVideo([
+    { name: '日体', price: 70, unit: '元', unitKind: 'currency', hits: 3, score: 4, line: 'x' },
+    { name: '日体', price: 80, unit: '元', unitKind: 'currency', hits: 1, score: 5, line: 'y' },
+  ])
+  ok('同视频内同名取出现次数多的价', collapsed.length === 1 && collapsed[0].price === 70, collapsed)
+
+  section('B站自动比价 · 名字匹配')
+  // 拿几个真实形状的服务项当靶子
+  const POOL = [
+    { id: 1, name: '日体', unit_label: '30天', base_price: 70 },
+    { id: 2, name: '精托', unit_label: '30天', base_price: 150 },
+    { id: 3, name: '全托', unit_label: '30天', base_price: 218 },
+    { id: 4, name: '黑海岸', unit_label: '', base_price: 40 },
+    { id: 5, name: '黑海岸群岛', unit_label: '', base_price: 20 },
+    { id: 6, name: '黎那汐塔', unit_label: '', base_price: 350 },
+    { id: 7, name: '罗伊冰原', unit_label: '', base_price: 330 },
+    { id: 8, name: '瑝珑梦州 满探索', unit_label: '', base_price: 90 },
+    { id: 9, name: '周常', unit_label: '', base_price: 18 },
+    { id: 10, name: '中曲台地', unit_label: '', base_price: 50 },
+    { id: 11, name: '荒石高地', unit_label: '', base_price: 50 },
+    { id: 12, name: '下层金库', unit_label: '', base_price: 20 },
+  ]
+  const matchOne = (name, price, unit = '', unitKind = 'bare') =>
+    matchServices([{ name, price, unit, unitKind, video: `v-${name}-${price}` }], POOL).matched.map((m) => m.service_name)
+
+  const MATCH_CASES = [
+    ['精托', 238, '', 'bare', ['精托']],
+    ['精托：日常体力+活动', 238, '', 'bare', ['精托']],
+    // 错别字：那→娜、汐→西，两个字都错，靠编辑距离 + 首字一致救回来
+    ['黎娜西塔全图探索', 400, '', 'bare', ['黎那汐塔']],
+    // 库内名字是解析名的后缀
+    ['梦州满探索', 230, '', 'bare', ['瑝珑梦州 满探索']],
+    // 前缀噪声
+    ['重黎那汐塔', 350, '', 'bare', ['黎那汐塔']],
+    ['通黑海岸', 40, '', 'bare', ['黑海岸']],
+    // 歧义组各归各位
+    ['黑海岸', 40, '', 'bare', ['黑海岸']],
+    ['黑海岸群岛', 20, '', 'bare', ['黑海岸群岛']],
+    // 打包价（不带 /单位）不摊给单项
+    ['黎娜西塔加珑十一图+黑海岸', 800, '', 'bare', []],
+    ['珑十一图+黑海岸全图探索', 400, '', 'bare', []],
+    // 带 /单位 的是单价，可以拆段
+    ['中曲台地、荒石高地', 50, '期', 'slash', ['中曲台地', '荒石高地']],
+    // 首字不同的「同后缀」名字绝不能混
+    ['危行任务', 20, '', 'bare', []],
+  ]
+  for (const [name, price, unit, kind, expect] of MATCH_CASES) {
+    const got = matchOne(name, price, unit, kind).sort()
+    ok(`匹配「${name}」`, JSON.stringify(got) === JSON.stringify([...expect].sort()), { got, expect })
+  }
+
+  ok('effectiveName 取冒号前那段', effectiveName('精托：日常体力+活动') === '精托', effectiveName('精托：日常体力+活动'))
+  ok('effectiveName 不动没有冒号的', effectiveName('日体') === '日体')
+  ok('打包短语能拆段', JSON.stringify(expandParsedNames([{ name: '中曲台地、荒石高地', price: 50, unit: '期', unitKind: 'slash', video: 'x' }]).map((p) => p.name)) === JSON.stringify(['中曲台地', '荒石高地']))
+  ok('单位口径：月 与 30天 同组', unitGroup('月') === unitGroup('30天'), [unitGroup('月'), unitGroup('30天')])
+  ok('单位口径：天 与 30天 不同组', unitGroup('天') !== unitGroup('30天'), [unitGroup('天'), unitGroup('30天')])
+  ok('相似度：错别字能过阈值', similarity('黎娜西塔全图探索', '黎那汐塔') >= 0.5, similarity('黎娜西塔全图探索', '黎那汐塔'))
+  ok('相似度：同后缀不同前缀不该高', similarity('危行任务', '潮汐任务') < 0.62, similarity('危行任务', '潮汐任务'))
+
   /* ---------- 结果 ---------- */
   console.log(`\n${'═'.repeat(52)}`)
   console.log(`  通过 ${pass} 项，失败 ${failures.length} 项`)

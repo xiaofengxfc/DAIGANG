@@ -373,6 +373,31 @@ const MIGRATIONS = [
 
   // v13：媒体账号的 Playwright storage_state 登录态路径。文件只存本机 data/media-cookies。
   `ALTER TABLE media_accounts ADD COLUMN cookie_path TEXT NOT NULL DEFAULT '';`,
+
+  /**
+   * v14：B站自动比价的扫描任务。
+   *
+   * 为什么落库而不是只放内存：一次扫描要下载+抽帧+OCR 好几分钟，结果里带着
+   * 「哪个视频、哪一帧、认出了什么」这些证据。只放内存的话，进程一重启
+   * （改了代码重启是常事）预览就没了，用户得重跑一遍才能接着确认。
+   * result 存整个结果 JSON，字段还会随解析器迭代调整，不适合拆成列。
+   */
+  `
+  CREATE TABLE IF NOT EXISTS price_scan_jobs (
+    id         TEXT PRIMARY KEY,
+    game_id    INTEGER REFERENCES games (id) ON DELETE SET NULL,
+    game_name  TEXT NOT NULL DEFAULT '',
+    keyword    TEXT NOT NULL DEFAULT '',
+    status     TEXT NOT NULL DEFAULT 'running',
+    stage      TEXT NOT NULL DEFAULT '',
+    result     TEXT NOT NULL DEFAULT '{}',
+    error_msg  TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_price_scan_jobs_created ON price_scan_jobs (created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_price_scan_jobs_game ON price_scan_jobs (game_id, created_at DESC);
+  `,
 ]
 
 export function migrate() {

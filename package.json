@@ -16,6 +16,8 @@
     "test": "node scripts/smoke-run.mjs",
     "test:ui": "node scripts/ui-smoke.mjs",
     "test:glass": "node scripts/glass-check.mjs",
+    "test:bili": "node scripts/bili-scan-check.mjs",
+    "test:bili-apply": "node scripts/bili-apply-check.mjs",
     "check": "node scripts/check.mjs && npm run test && npm run build",
     "check:full": "npm run check && npm run test:ui && npm run test:glass",
     "migration:check": "node scripts/migration-check.mjs",

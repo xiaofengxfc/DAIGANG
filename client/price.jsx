@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Archive, ArchiveRestore, ChevronDown, ChevronRight, Copy, Edit3, Eye, FolderPlus, Gamepad2, Layers3, Plus, Search, SlidersHorizontal, Trash2 } from 'lucide-react'
+import { Archive, ArchiveRestore, ChevronDown, ChevronRight, Copy, Edit3, Eye, FolderPlus, Gamepad2, Layers3, Plus, Search, SlidersHorizontal, Sparkles, Trash2 } from 'lucide-react'
 import { api, PRICE_TYPE_LABEL } from './lib/api.js'
 import { fmtMoney, fmtQty } from './lib/formatters.js'
 import { toast, toastErr } from './app/toast-store.js'
@@ -7,6 +7,7 @@ import { confirmDelete } from './app/confirm.jsx'
 import { openCategoryForm } from './category-form.jsx'
 import { openPriceSum } from './price-sum.jsx'
 import { openExporter } from './price-exporter.jsx'
+import { openPriceScan } from './price-scan.jsx'
 import { openServiceForm } from './service-form.jsx'
 import { openServicePeek } from './service-peek.jsx'
 import { unitOf as unitOfShared } from '../shared/pricing.js'
@@ -178,6 +179,8 @@ export default function PricePage({ route, navigate, onNewGame, onReload, reload
   // 看着就像坏了 —— 退回「全部价格表」。数据没回来时先不判定，免得标签闪一下。
   const activeGame = !query.game || query.game === 'generic' || book === null || gameMap.has(query.game) ? query.game : ''
   const gameFilter = activeGame === 'generic' ? '' : activeGame
+  // B站比价是按游戏搜的，得有一个具体的游戏才有意义（「全部」和「通用」都不行）
+  const activeGameObj = activeGame && activeGame !== 'generic' ? gameMap.get(String(activeGame)) || null : null
   const categories = (data.categories || []).filter((category) => {
     if (!activeGame) return true
     if (activeGame === 'generic') return !category.game_id
@@ -330,7 +333,7 @@ export default function PricePage({ route, navigate, onNewGame, onReload, reload
 
   return (
     <div className="price-page">
-      <header className="price-page__head"><div><h2>价格表</h2><p>{data.games.length} 个游戏 · {shownCategoryCount} 个大类 · {shownServiceCount} 个服务项</p></div><div className="price-page__head-actions"><button className="refactor-button" type="button" onClick={() => openExporter(null, { games: data.games || [] })}><Copy {...iconProps(15)} />导出</button><button className="refactor-button" type="button" onClick={onNewGame}><Gamepad2 {...iconProps(15)} />新建价格表</button><button className="refactor-button" type="button" onClick={() => createCategory(activeGame)}><FolderPlus {...iconProps(15)} />新建大类</button><button className="refactor-button refactor-button--primary" type="button" onClick={quickAddService}><Plus {...iconProps(15)} />添加服务</button></div></header>
+      <header className="price-page__head"><div><h2>价格表</h2><p>{data.games.length} 个游戏 · {shownCategoryCount} 个大类 · {shownServiceCount} 个服务项</p></div><div className="price-page__head-actions"><button className="refactor-button" type="button" onClick={() => openExporter(null, { games: data.games || [] })}><Copy {...iconProps(15)} />导出</button><button className="refactor-button" type="button" disabled={!activeGameObj} title={activeGameObj ? `去 B站 搜「${activeGameObj.name} 代肝 价格表」的视频，认出价格后取中位数给你确认` : '先在上面选中一个游戏，比价是按游戏搜的'} onClick={() => openPriceScan(activeGameObj, { onApplied: () => onReload() })}><Sparkles {...iconProps(15)} />B站比价</button><button className="refactor-button" type="button" onClick={onNewGame}><Gamepad2 {...iconProps(15)} />新建价格表</button><button className="refactor-button" type="button" onClick={() => createCategory(activeGame)}><FolderPlus {...iconProps(15)} />新建大类</button><button className="refactor-button refactor-button--primary" type="button" onClick={quickAddService}><Plus {...iconProps(15)} />添加服务</button></div></header>
       <section className="price-toolbar"><div className="price-games"><button className={`price-game${!activeGame ? ' is-active' : ''}`} type="button" onClick={() => update({ game: '' })}>全部价格表</button>{data.games.map((game) => <button key={game.id} className={`price-game${activeGame === String(game.id) ? ' is-active' : ''}`} type="button" onClick={() => update({ game: String(game.id) })}>{game.name}</button>)}<button className={`price-game${activeGame === 'generic' ? ' is-active' : ''}`} type="button" onClick={() => update({ game: 'generic' })}>通用</button></div><div className="price-toolbar__spacer" /><div className="price-status" role="group" aria-label="价格状态"><button className={query.status === 'active' ? 'is-active' : ''} type="button" onClick={() => update({ status: 'active' })}>在架</button><button className={query.status === 'archived' ? 'is-active' : ''} type="button" onClick={() => update({ status: 'archived' })}>已归档</button><button className={query.status === 'all' ? 'is-active' : ''} type="button" onClick={() => update({ status: 'all' })}>全部</button></div><label className="price-search"><Search {...iconProps(15)} /><input type="search" value={search} placeholder="搜大类、服务或说明" onChange={(event) => { const value = event.target.value; setSearch(value); window.clearTimeout(searchTimer.current); searchTimer.current = window.setTimeout(() => updateRef.current({ q: value.trim() }), 260) }} /></label></section>
       {error ? <div className="refactor-alert" role="alert">{error}</div> : null}
       <section className="price-groups">{book === null ? <div className="refactor-loading"><span /><span /><span /></div> : groups.length ? groups.map((group) => <GroupWorkspace key={group.key || 'generic'} group={group} query={query} onNewCategory={createCategory} onService={newService} onEditCategory={editCategory} onSum={(cat) => openPriceSum(cat, cat.allServices || cat.services || [])} onToggleCategory={toggleCategory} onDeleteCategory={deleteCategory} onEditService={editService} onPeekService={peekService} onAdvancedService={peekService} onToggleService={toggleService} onDeleteService={deleteService} />) : <div className="price-empty"><Layers3 {...iconProps(24)} /><b>{emptyHint.title}</b><span>{emptyHint.note}</span>{emptyHint.action === 'game' ? <button className="refactor-button refactor-button--primary" type="button" onClick={onNewGame}><Plus {...iconProps(15)} />新建价格表</button> : null}{emptyHint.action === 'category' ? <button className="refactor-button refactor-button--primary" type="button" onClick={() => createCategory(activeGame)}><Plus {...iconProps(15)} />新建大类</button> : null}</div>}</section>

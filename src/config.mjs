@@ -192,6 +192,76 @@ export const VISION_LOG = path.join(DATA_DIR, 'vision-sidecar.log')
 /** sidecar 的临时目录（和媒体执行器一样，别污染系统 TEMP） */
 export const VISION_TMP = path.join(DATA_DIR, 'vision-tmp')
 
+/* ============================================================
+   B站自动比价
+   ============================================================
+
+   链路：搜视频 → 下视频 → 抽帧 → 本地 OCR → 解析价格 → 跨视频取中位数。
+   只有「下载」这一步需要外部程序（yt-dlp），其余全是项目里已有的能力
+   （ffmpeg 抽帧、vision sidecar 的 OCR）。所以这里只配 yt-dlp 和几个阈值。
+   ============================================================ */
+
+/** 下载的视频和抽出来的帧。属于中间产物，放在 data/ 下（已在 .gitignore 里） */
+export const BILI_DIR = path.join(DATA_DIR, 'bili-tmp')
+/** 抽出来的帧单独一层，方便按任务清理 */
+export const BILI_FRAME_DIR = path.join(BILI_DIR, 'frames')
+/** 中间产物最多留多久，超时的任务目录会被下一次扫描顺手删掉 */
+export const BILI_TMP_TTL_MS = Math.max(60 * 60 * 1000, Number(process.env.XFC_BILI_TMP_TTL_MS || 24 * 60 * 60 * 1000))
+
+/**
+ * yt-dlp 装在哪里。
+ *
+ * 复用视觉后端的那个 venv（data/vision-venv）—— 它已经是「项目自己的 Python 环境」
+ * 这个角色了，再开一个 venv 只会多一份几百 MB 的副本。yt-dlp 是纯 Python 包，
+ * 和 onnxruntime/cv2 互不干扰。
+ */
+export const BILI_YTDLP_PYTHON = process.env.XFC_BILI_YTDLP_PYTHON
+  ? path.resolve(process.env.XFC_BILI_YTDLP_PYTHON)
+  : path.join(VISION_VENV, 'Scripts', process.platform === 'win32' ? 'python.exe' : 'python')
+export const BILI_YTDLP_PACKAGE = String(process.env.XFC_BILI_YTDLP_PACKAGE || 'yt-dlp')
+export const BILI_YTDLP_TIMEOUT_MS = Math.max(60_000, Number(process.env.XFC_BILI_YTDLP_TIMEOUT_MS || 10 * 60 * 1000))
+export const BILI_INSTALL_TIMEOUT_MS = Math.max(60_000, Number(process.env.XFC_BILI_INSTALL_TIMEOUT_MS || 5 * 60 * 1000))
+
+/** 一次扫描最多看几个视频（用户定的是 8） */
+export const BILI_MAX_VIDEOS = Math.max(1, Number(process.env.XFC_BILI_MAX_VIDEOS || 8))
+/** 一个服务项至少要有几个视频给出价格，才敢出中位数 */
+export const BILI_MIN_SAMPLES = Math.max(1, Number(process.env.XFC_BILI_MIN_SAMPLES || 3))
+/** 最多往回翻几页搜索结果（每页 20 条）*/
+export const BILI_SEARCH_PAGES = Math.max(1, Number(process.env.XFC_BILI_SEARCH_PAGES || 2))
+
+/**
+ * 视频时长过滤。
+ *
+ * 太短（<20s）的多半是切片/广告，不会有价格表；太长（>30min）的多半是直播回放，
+ * 下下来又慢又不一定有价格表。区间内的是「专门讲价格」的那类视频。
+ */
+export const BILI_MIN_VIDEO_SECONDS = Math.max(1, Number(process.env.XFC_BILI_MIN_VIDEO_SECONDS || 20))
+export const BILI_MAX_VIDEO_SECONDS = Math.max(60, Number(process.env.XFC_BILI_MAX_VIDEO_SECONDS || 30 * 60))
+
+/** 下载清晰度上限。价格表是文字，720p 足够 OCR，再高只是白等下载 */
+export const BILI_MAX_HEIGHT = Math.max(240, Number(process.env.XFC_BILI_MAX_HEIGHT || 720))
+/** 单个视频最多抽多少帧（去重后）*/
+export const BILI_FRAME_MAX = Math.max(4, Number(process.env.XFC_BILI_FRAME_MAX || 40))
+/** 抽帧的间隔下限：价格表是静态画面，隔几秒取一帧就够，不必逐帧 */
+export const BILI_FRAME_INTERVAL_S = Math.max(1, Number(process.env.XFC_BILI_FRAME_INTERVAL_S || 3))
+/** 单个视频的 OCR 时间预算：超了就带着已抽到的结果收工，不拖垮整个任务 */
+export const BILI_OCR_BUDGET_MS = Math.max(10_000, Number(process.env.XFC_BILI_OCR_BUDGET_MS || 90_000))
+/**
+ * 一个视频里凑够多少条价格就可以不往下扫了。
+ * 价格表基本是一张静态图，找到就找到了；继续 OCR 只是重复读同一张图。
+ */
+export const BILI_ENOUGH_ROWS = Math.max(1, Number(process.env.XFC_BILI_ENOUGH_ROWS || 8))
+
+/** 单次 OCR 的等待上限（sidecar 冷启动时会慢一些）*/
+export const BILI_OCR_TIMEOUT_MS = Math.max(5000, Number(process.env.XFC_BILI_OCR_TIMEOUT_MS || 60_000))
+/** 搜索结果里标题必须命中的关键词之外，还要挡掉这些明显不是价格表的视频 */
+export const BILI_BLOCK_TITLE_WORDS = Object.freeze(
+  String(process.env.XFC_BILI_BLOCK_TITLE_WORDS || '直播回放,招聘,接单群,教程,怎么,如何,教学,新手,避坑,被骗,挂,外挂,脚本,科技,封号,退款,维权,投诉')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+)
+
 export { ORDER_STATUS, PRICE_TYPES }
 
 /** 局域网地址，用来打印手机可访问的网址 */

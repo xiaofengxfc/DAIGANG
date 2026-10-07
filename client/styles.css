@@ -3583,3 +3583,168 @@ button.react-side-row {
 /* ============================================================
    白玻璃覆盖层 · 结束
    ============================================================ */
+
+/* ============================================================
+   B站自动比价 · 开始
+   ============================================================
+
+   这个抽屉里要放的东西比一般表单多：进度、每个视频的状态、几十行建议、
+   每行的来源证据（样本、被剔除的原因、来源帧缩略图）。所以布局上刻意
+   把「一行建议」做成网格，让名字/价格/涨跌/样本数四列对齐，
+   扫一眼就能看出哪些是真正值得看的。
+   ============================================================ */
+
+.ps { display: grid; gap: 14px; padding-bottom: 4px; }
+
+.ps-spin { animation: ps-spin 0.9s linear infinite; }
+@keyframes ps-spin { to { transform: rotate(360deg); } }
+
+.ps-loading { display: flex; align-items: center; gap: 9px; padding: 26px 4px; color: var(--ink-3); font-size: var(--fs-base); }
+
+/* ---------- 环境不满足 ---------- */
+.ps-block { display: grid; gap: 11px; padding: 15px 16px; border: 1px solid var(--amber-line, var(--line-strong)); border-radius: var(--r-card); background: var(--amber-bg); }
+.ps-block__head { display: flex; align-items: center; gap: 8px; color: var(--amber-ink); font-size: var(--fs-base); }
+.ps-block__list { margin: 0; padding-left: 20px; color: var(--ink-2); font-size: var(--fs-sm); line-height: 1.9; }
+.ps-block__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.ps-install { display: grid; gap: 8px; }
+.ps-install__step { display: flex; align-items: center; gap: 7px; color: var(--ink-2); font-size: var(--fs-sm); }
+.ps-install__log { max-height: 150px; margin: 0; overflow: auto; padding: 10px 12px; border-radius: var(--r-ctl); background: var(--surface-inset); color: var(--ink-2); font-family: var(--font-fig); font-size: var(--fs-xs); line-height: 1.65; white-space: pre-wrap; }
+
+/* ---------- 起任务 ---------- */
+.ps-setup { display: grid; gap: 9px; padding: 14px 15px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); }
+.ps-setup__row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+.ps-field { display: grid; gap: 5px; min-width: 0; }
+.ps-field > span:first-child { color: var(--ink-3); font-size: var(--fs-xs); }
+.ps-field--grow { flex: 1 1 240px; }
+.ps-field input { width: 100%; min-height: 34px; padding: 0 11px; border: 1px solid var(--line-strong); border-radius: var(--r-ctl); background: var(--surface-solid); color: var(--ink); font: inherit; font-size: var(--fs-sm); }
+.ps-field input:disabled { opacity: 0.6; }
+.ps-field:not(.ps-field--grow) input { width: 92px; }
+.ps-input { display: flex; align-items: center; gap: 7px; padding: 0 11px; border: 1px solid var(--line-strong); border-radius: var(--r-ctl); background: var(--surface-solid); color: var(--ink-3); }
+.ps-input input { min-height: 32px; padding: 0; border: 0; background: transparent; }
+.ps-input:focus-within { border-color: var(--cinnabar-line); box-shadow: var(--refactor-focus); }
+.ps-setup__go { margin-left: auto; }
+.ps-setup__hint { margin: 0; color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.7; }
+
+/* ---------- 进度 ---------- */
+.ps-progress { display: grid; gap: 9px; padding: 13px 15px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface-2); }
+.ps-progress__head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.ps-status { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: var(--r-pill); background: var(--cinnabar-bg); color: var(--cinnabar); font-size: var(--fs-xs); font-weight: 600; }
+.ps-status--done { background: var(--jade-bg); color: var(--jade-ink); }
+.ps-status--failed { background: var(--oxblood-bg); color: var(--oxblood-ink); }
+.ps-progress__meta { color: var(--ink-3); font-size: var(--fs-xs); }
+.ps-error { padding: 9px 11px; border-radius: var(--r-ctl); background: var(--oxblood-bg); color: var(--oxblood-ink); font-size: var(--fs-sm); }
+
+.ps-videos { display: grid; gap: 3px; }
+.ps-video { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 6px 9px; border-radius: var(--r-ctl); font-size: var(--fs-xs); }
+.ps-video.is-parsed { background: var(--jade-bg); }
+.ps-video.is-failed { background: var(--oxblood-bg); }
+.ps-video__bvid { color: var(--ink-3); font-family: var(--font-fig); }
+.ps-video__title { overflow: hidden; color: var(--ink-2); text-overflow: ellipsis; white-space: nowrap; }
+.ps-video__stat { color: var(--ink-3); white-space: nowrap; }
+.ps-bad { color: var(--oxblood-ink); }
+
+.ps-logbox summary { color: var(--ink-3); cursor: pointer; font-size: var(--fs-xs); }
+.ps-log { max-height: 180px; margin: 7px 0 0; overflow: auto; padding: 10px 12px; border-radius: var(--r-ctl); background: var(--surface-inset); color: var(--ink-2); font-family: var(--font-fig); font-size: var(--fs-xs); line-height: 1.7; white-space: pre-wrap; }
+
+/* ---------- 结果 ---------- */
+.ps-result { display: grid; gap: 9px; }
+.ps-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; padding-bottom: 7px; border-bottom: 1px solid var(--line); }
+.ps-tabs button { padding: 5px 11px; border: 1px solid transparent; border-radius: var(--r-pill); background: transparent; color: var(--ink-2); cursor: pointer; font: inherit; font-size: var(--fs-xs); }
+.ps-tabs button:hover { background: var(--surface-2); }
+.ps-tabs button.is-active { border-color: var(--cinnabar-line); background: var(--cinnabar-bg); color: var(--cinnabar); font-weight: 600; }
+.ps-tabs__spacer { flex: 1 1 12px; }
+.ps-link { border: 0; background: transparent; color: var(--cinnabar); cursor: pointer; font: inherit; font-size: var(--fs-xs); text-decoration: underline; }
+
+.ps-table { display: grid; }
+.ps-empty { padding: 24px 4px; color: var(--ink-3); font-size: var(--fs-sm); text-align: center; }
+
+.ps-row { border-bottom: 1px solid var(--line); }
+.ps-row:last-child { border-bottom: 0; }
+.ps-row.is-picked { background: var(--cinnabar-bg); }
+.ps-row.is-empty { opacity: 0.78; }
+.ps-row__main { display: grid; grid-template-columns: 22px 22px minmax(0, 1fr) auto auto 96px; align-items: center; gap: 10px; padding: 9px 6px; }
+.ps-row__pick { display: flex; justify-content: center; }
+.ps-row__pick input { cursor: pointer; }
+.ps-row__expand { display: flex; padding: 2px; border: 0; border-radius: 6px; background: transparent; color: var(--ink-3); cursor: pointer; }
+.ps-row__expand:hover { background: var(--surface-2); color: var(--ink); }
+.ps-row__name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; min-width: 0; }
+.ps-row__name b { color: var(--ink); font-size: var(--fs-base); }
+.ps-row__name small { color: var(--ink-3); font-size: var(--fs-xs); }
+.ps-row__price { display: flex; align-items: center; gap: 7px; }
+.ps-old { color: var(--ink-3); font-family: var(--font-fig); font-size: var(--fs-sm); text-decoration: line-through; }
+.ps-arrow { color: var(--ink-3); }
+.ps-new { width: 92px; min-height: 30px; padding: 0 9px; border: 1px solid var(--line-strong); border-radius: var(--r-ctl); background: var(--surface-solid); color: var(--ink); font-family: var(--font-fig); font-size: var(--fs-sm); text-align: right; }
+.ps-new:focus { border-color: var(--cinnabar-line); box-shadow: var(--refactor-focus); outline: none; }
+.ps-row__delta { min-width: 74px; font-size: var(--fs-xs); text-align: right; white-space: nowrap; }
+.ps-row__delta.is-up { color: var(--oxblood-ink); }
+.ps-row__delta.is-down { color: var(--jade-ink); }
+.ps-row__delta.is-muted { color: var(--ink-3); }
+.ps-row__delta.is-jade { color: var(--jade-ink); }
+.ps-row__samples { color: var(--ink-3); font-size: var(--fs-xs); text-align: right; white-space: nowrap; }
+.ps-row__samples b { color: var(--ink-2); font-family: var(--font-fig); }
+
+.ps-tag { padding: 1px 7px; border-radius: var(--r-pill); background: var(--surface-2); color: var(--ink-3); font-size: 10px; }
+.ps-tag--warn { background: var(--amber-bg); color: var(--amber-ink); }
+.ps-tag--muted { background: var(--surface-2); color: var(--ink-3); }
+
+/* ---------- 展开的证据 ---------- */
+.ps-detail { display: grid; gap: 10px; padding: 4px 6px 13px 54px; }
+.ps-detail__block { display: grid; gap: 5px; }
+.ps-detail__title { color: var(--ink-3); font-size: var(--fs-xs); font-weight: 600; }
+.ps-detail__note { display: flex; align-items: center; gap: 6px; color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.7; }
+.ps-sample { display: grid; grid-template-columns: 82px minmax(0, 1fr) auto auto auto; align-items: center; gap: 9px; padding: 5px 8px; border-radius: var(--r-ctl); background: var(--surface-2); font-size: var(--fs-xs); }
+.ps-sample.is-excluded { background: transparent; border: 1px dashed var(--line-strong); }
+.ps-sample__price { color: var(--ink); font-family: var(--font-fig); font-weight: 600; }
+.ps-sample__name { overflow: hidden; color: var(--ink-2); text-overflow: ellipsis; white-space: nowrap; }
+.ps-sample__video { display: inline-flex; align-items: center; gap: 3px; color: var(--cinnabar); font-family: var(--font-fig); text-decoration: none; }
+.ps-sample__video:hover { text-decoration: underline; }
+.ps-sample__score { color: var(--ink-3); font-family: var(--font-fig); }
+.ps-sample__why { grid-column: 2 / -1; color: var(--amber-ink); }
+
+.ps-frame { position: relative; width: 56px; height: 32px; overflow: hidden; padding: 0; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface-inset); cursor: zoom-in; }
+.ps-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ps-frame__icon { position: absolute; right: 2px; bottom: 2px; display: flex; padding: 2px; border-radius: 4px; background: rgba(16, 24, 40, 0.6); color: #fff; }
+
+.ps-lightbox { position: fixed; inset: 0; z-index: 90; display: grid; align-content: center; justify-items: center; gap: 12px; padding: 28px; background: var(--veil); cursor: zoom-out; }
+.ps-lightbox img { max-width: min(1180px, 96vw); max-height: 84vh; border-radius: var(--r-card); box-shadow: var(--shadow-pop); }
+.ps-lightbox__hint { color: #fff; font-size: var(--fs-sm); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
+
+/* ---------- 没匹配上的 ---------- */
+.ps-unmatched { display: grid; gap: 13px; }
+.ps-unmatched__group { display: grid; gap: 7px; }
+.ps-unmatched__list { display: flex; flex-wrap: wrap; gap: 6px; }
+.ps-chip { display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 10px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--surface-2); color: var(--ink-2); font-size: var(--fs-xs); }
+.ps-chip b { color: var(--ink); font-family: var(--font-fig); }
+.ps-unmatched__hint { margin: 0; color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.75; }
+
+/* ---------- 底部写入条 ---------- */
+.ps-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.ps-foot__note { color: var(--ink-3); font-size: var(--fs-xs); }
+.ps-foot__note b { color: var(--ink); font-family: var(--font-fig); }
+.ps-foot__note strong { color: var(--ink-2); }
+.ps-foot__actions { display: flex; gap: 8px; margin-left: auto; }
+
+/* ============================================================
+   B站自动比价 · 结束
+   ============================================================ */
+
+/* OCR 认出来的整行原文：核对数字有没有认错，这是最直接的证据 */
+.ps-sample__line { grid-column: 2 / -1; overflow: hidden; color: var(--ink-3); font-family: var(--font-fig); text-overflow: ellipsis; white-space: nowrap; }
+
+/* 帧是中间产物，会过期清理；过期时给一句话，不给碎图 */
+.ps-frame--gone { display: inline-flex; align-items: center; justify-content: center; width: auto; min-width: 56px; height: 32px; padding: 0 7px; border-style: dashed; color: var(--ink-3); cursor: default; font-size: 10px; }
+
+/* ---------- 改派：把认错的行指到正确的服务项上 ---------- */
+.ps-row__select { max-width: 260px; min-height: 28px; padding: 0 6px; border: 1px solid transparent; border-radius: var(--r-ctl); background: transparent; color: var(--ink); cursor: pointer; font: inherit; font-size: var(--fs-base); font-weight: 600; }
+.ps-row__select:hover { border-color: var(--line-strong); background: var(--surface-solid); }
+.ps-row__select:focus { border-color: var(--cinnabar-line); background: var(--surface-solid); box-shadow: var(--refactor-focus); outline: none; }
+.ps-row.is-reassigned { box-shadow: inset 3px 0 0 var(--amber); }
+.ps-row.is-conflict { box-shadow: inset 3px 0 0 var(--oxblood); background: var(--oxblood-bg); }
+.ps-tag--bad { background: var(--oxblood-bg); color: var(--oxblood-ink); }
+.ps-foot__bad { color: var(--oxblood-ink); font-weight: 600; }
+
+/* 恢复历史结果时的提示条：说清楚「这不是刚跑的」，别让人误以为价格是最新的 */
+.ps-restored { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 10px; padding: 8px 11px; border-radius: var(--r-ctl); background: var(--amber-bg); color: var(--amber-ink); font-size: var(--fs-xs); line-height: 1.7; }
+.ps-restored svg { flex: none; margin-top: 2px; }
+.ps-tag--done { background: var(--jade-bg); color: var(--jade-ink); }
