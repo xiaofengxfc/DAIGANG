@@ -8,6 +8,7 @@ import { buildXlsx } from '../xlsx.mjs'
 import { enqueueERPNextChange } from '../outbox.mjs'
 import { transaction } from '../infrastructure/sqlite/transaction.mjs'
 import { looksDaily } from '../../shared/domain.js'
+import { listDrafts } from '../service-drafts.mjs'
 
 // 老位置继续导出，别的地方（含以后新加的代码）照旧能从这里拿
 export { looksDaily }
@@ -360,6 +361,15 @@ export function register() {
             options: [...(optsBy.get(s.id) || []), ...(optsBy.get(0) || [])],
           })),
       })),
+      /**
+       * 「待添加的服务项」—— 从比价结果整理出来、还没决定要不要进价格表的项。
+       *
+       * 单独一个字段，**不混进 `categories[].services`**：那是价格表的正式内容，
+       * 报价、开单、导出都读它。草稿要是混进去，客户就会看到还没定价的东西。
+       *
+       * 状态筛选是 'archived' 时不带草稿 —— 你在看归档内容，不该冒出待添加。
+       */
+      drafts: listStatus === 'archived' ? [] : listDrafts(),
       // 「没有大类」有两种：真的没挂大类，和挂的大类被归档 / 删掉了。
       // 带上大类名字，前端才能说清是哪一种 —— 不然界面会对着一条
       // 明明归过类的服务项说「请编辑服务并选择一个分类」。

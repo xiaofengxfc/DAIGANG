@@ -3860,3 +3860,34 @@ button.react-side-row {
 
 /* 「这次 AI 判断是复用的」—— 说清楚，免得以为模型秒回 */
 .ps-aibar__cached { display: block; margin-top: 2px; color: var(--ink-3); font-style: normal; }
+
+/* ---------- 待添加的服务项（B站比价 → 价格表的中转站） ----------
+
+   这是「比价整理好了，但还没决定要不要进价格表」的东西。摆在大类正文最上面：
+   这个页面上唯一需要你动手的就是它，所以不能埋在已有服务项下面。
+
+   用虚线和淡底色跟正式服务项区分开 —— 它不是价格表内容，报价、开单都看不见它。 */
+
+/* 收起的大类也要能看见「这里还有 3 项等你决定」，否则得一个个点开找 */
+.price-category__drafts { flex: none; margin-left: 6px; padding: 1px 6px; border-radius: 999px; background: var(--jade-bg); color: var(--jade-ink); font-size: var(--fs-xs); font-style: normal; font-weight: 600; }
+
+.price-drafts { margin: 0 0 10px; padding: 8px 9px; border: 1px dashed var(--line-strong); border-radius: 7px; background: var(--surface-inset); }
+.price-drafts__head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 7px; }
+.price-drafts__head b { font-size: var(--fs-sm); }
+.price-drafts__head span { color: var(--ink-3); font-size: var(--fs-xs); }
+.price-drafts__actions { margin-left: auto; display: flex; gap: 10px; }
+
+.price-draft { display: flex; flex-direction: column; gap: 3px; padding: 7px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-solid); }
+.price-draft + .price-draft { margin-top: 5px; }
+.price-draft__main { display: flex; align-items: center; gap: 10px; }
+.price-draft__name { display: flex; align-items: center; gap: 6px; flex: 1 1 auto; min-width: 0; }
+.price-draft__name b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.price-draft__money { flex: none; color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.price-draft__actions { flex: none; display: flex; align-items: center; gap: 6px; }
+/* 「待添加」这个标不能跟正式的「每天」「3 档」长得一样 —— 它不是服务项的属性 */
+.price-tag--draft { background: var(--jade-bg); color: var(--jade-ink); }
+.price-draft__alias { margin: 0; color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.5; word-break: break-all; }
+.price-draft__alias span { color: var(--ink-3); }
+
+/* 没归类的待添加：借「未分类服务」那块的位置，但内容不是服务项，别带它的上边线 */
+.price-loose--drafts { margin-top: 9px; padding: 0; border: 0; }

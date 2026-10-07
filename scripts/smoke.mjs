@@ -1995,7 +1995,7 @@ export async function run() {
    * 打包价摊给单项）。所以短名字**永远**匹不上 —— 除非把原话记下来当别名。
    */
   section('B站自动比价 · 新游戏冷启动（别名与建服务项）')
-  const { serviceNames, unmatchedGroups, createServicesFromScan, proposeServicesFromScan } = await import('../src/price-match.mjs')
+  const { serviceNames, unmatchedGroups, proposeServicesFromScan } = await import('../src/price-match.mjs')
     .then(async (pm) => ({ serviceNames: pm.serviceNames, ...(await import('../src/bili-scan.mjs')) }))
     .catch(() => ({}))
 
@@ -2072,35 +2072,123 @@ export async function run() {
     JSON.stringify({ price: g('丙项').price, dropped: g('丙项').dropped_videos }))
   ok('归并结果里没有价格以外的 AI 字段', groups.every((x) => !('why' in x) && !('category' in x)))
 
-  /** 建服务项的安全边界：名字必须来自这次扫描，价格必须合法 */
+  /**
+   * 存成「待添加」的安全边界，以及「添加」这一步真的进了价格表。
+   *
+   * 这条路上的规矩和以前「直接建服务项」完全一样（名字必须来自这次扫描、价格必须
+   * 合法、重名跳过），只是落点从 `services` 换成了 `service_drafts`。所以边界断言
+   * 照旧，只是看的是草稿表。
+   */
+  section('B站自动比价 · 待添加的服务项（比价与价格表的中转站）')
   {
     const { db } = await import('../src/db.mjs')
+    const { listDrafts, updateDraft, acceptDraft, deleteDraft, clearDrafts, validateProposal } =
+      await import('../src/service-drafts.mjs')
+    const { saveDraftsFromScan } = await import('../src/bili-scan.mjs')
+
+    const jobId = 'scan-smoke-drafts'
     const job = {
-      id: 'scan-smoke-build', game_id: null, game_name: '冒烟游戏', status: 'done',
+      id: jobId, game_id: null, game_name: '冒烟游戏', status: 'done',
       unmatched: [{ parsed_name: '原话写法', price: 88, video: 'v1' }],
       sections: [], matched: [], videos: [], progress: {}, summary: {}, ai: {}, applied: [], log: [],
     }
     db.prepare('INSERT INTO price_scan_jobs (id, game_id, game_name, keyword, status, result, error_msg, created_at, updated_at) VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?)')
       .run(job.id, job.game_name, 'k', 'done', JSON.stringify(job), '', '2020-01-01', '2020-01-01')
 
-    const good = createServicesFromScan(job.id, [{ name: '我的短名字', price: 88, sources: ['原话写法'] }])
-    ok('能建出来', good.created.length === 1, JSON.stringify(good.skipped))
-    ok('建的时候把原话记成了别名', good.created[0]?.aliases === '原话写法', good.created[0]?.aliases)
-    ok('正式名字不会重复写进别名', !String(good.created[0]?.aliases || '').split('\n').includes('我的短名字'))
+    const saved = saveDraftsFromScan(jobId, [{ name: '待添加的项', price: 88, sources: ['原话写法'] }])
+    ok('能存成待添加', saved.created.length === 1, JSON.stringify(saved.skipped))
+    ok('存的时候把原话记成了别名', saved.created[0]?.aliases === '原话写法', saved.created[0]?.aliases)
+    ok('存成待添加时**没有**建服务项',
+      db.prepare("SELECT COUNT(*) AS n FROM services WHERE name = '待添加的项'").get().n === 0)
 
-    const made = db.prepare('SELECT aliases, base_price FROM services WHERE id = ?').get(good.created[0].id)
-    ok('别名真的落库了', made?.aliases === '原话写法', made?.aliases)
-    ok('扫描到的价写成了基准价', Number(made?.base_price) === 88, made?.base_price)
+    const draftId = saved.created[0].id
+    ok('待添加在列表里能查到', listDrafts().some((d) => d.id === draftId))
 
-    ok('来源不在扫描结果里 → 建不出来',
-      createServicesFromScan(job.id, [{ name: '编的', price: 1, sources: ['扫描里没有'] }]).created.length === 0)
-    ok('负价格 → 建不出来',
-      createServicesFromScan(job.id, [{ name: '负数', price: -1, sources: ['原话写法'] }]).created.length === 0)
-    ok('重名 → 不重复建',
-      createServicesFromScan(job.id, [{ name: '我的短名字', price: 1, sources: ['原话写法'] }]).skipped[0]?.reason === 'duplicate')
+    // 来源校验、价格校验和以前一模一样 —— 只是拒绝的是草稿
+    ok('来源不在扫描结果里 → 存不进去',
+      saveDraftsFromScan(jobId, [{ name: '编的', price: 1, sources: ['扫描里没有'] }]).created.length === 0)
+    ok('负价格 → 存不进去',
+      saveDraftsFromScan(jobId, [{ name: '负数', price: -1, sources: ['原话写法'] }]).created.length === 0)
+    ok('超过上限的价格 → 存不进去',
+      saveDraftsFromScan(jobId, [{ name: '天价', price: 1e9, sources: ['原话写法'] }]).created.length === 0)
+    ok('没有来源字段 → 存不进去',
+      saveDraftsFromScan(jobId, [{ name: '空的', price: 5 }]).skipped[0]?.reason === 'not_in_scan')
 
-    db.prepare('DELETE FROM services WHERE id = ?').run(good.created[0].id)
-    db.prepare('DELETE FROM price_scan_jobs WHERE id = ?').run(job.id)
+    /**
+     * 存是**累加**的，不能把上一批冲掉。
+     *
+     * 这是个真实的坑：界面存完一批会把它们从勾选列表里去掉，用户接着勾第二批
+     * 再存 —— 如果实现是「先删掉这个任务的旧草稿再写」，第一批就**悄悄没了**，
+     * 而且不报错。用户会以为是自己没勾上。
+     */
+    const second = saveDraftsFromScan(jobId, [{ name: '第二批', price: 66, sources: ['原话写法'] }])
+    ok('第二批能存进去', second.created.length === 1, JSON.stringify(second.skipped))
+    ok('存第二批**不会**冲掉第一批（真的踩过这个坑）',
+      listDrafts().some((d) => d.id === draftId),
+      `第一批还在？${listDrafts().some((d) => d.id === draftId)}`)
+
+    // 同名的再存一次是「更新那一行」，不是再摆一条
+    const again = saveDraftsFromScan(jobId, [{ name: '第二批', price: 99, sources: ['原话写法'] }])
+    ok('同名的重存是更新，不是再摆一条',
+      again.created.length === 0 && again.updated.length === 1 && again.updated[0].price === 99,
+      JSON.stringify({ created: again.created.length, updated: again.updated.length, price: again.updated[0]?.price }))
+    ok('更新之后库里也只有一条同名的',
+      listDrafts().filter((d) => d.name === '第二批').length === 1)
+
+    const secondId = again.updated[0].id
+
+    // 已经在价格表里的名字不该再摆成「待添加」
+    const { db: _db } = await import('../src/db.mjs')
+    _db.prepare("INSERT INTO services (category_id, game_id, name, price_type, unit_label, base_price, min_qty, package_items, status, sort_order, note, aliases, created_at, updated_at) VALUES (NULL, NULL, '已经有的', 'fixed', '', 10, 1, '[]', 'active', 999, '', '', '2020-01-01', '2020-01-01')").run()
+    ok('价格表里已经有同名的 → 不再摆成待添加',
+      saveDraftsFromScan(jobId, [{ name: '已经有的', price: 10, sources: ['原话写法'] }]).skipped[0]?.reason === 'already_in_pricebook')
+    _db.prepare("DELETE FROM services WHERE name = '已经有的'").run()
+
+    // 改名 / 改价 —— 落库之前还能调
+    const renamed = updateDraft(secondId, { name: '改过的名字', price: 77 })
+    ok('待添加能改名改价', renamed.draft.name === '改过的名字' && renamed.draft.price === 77,
+      JSON.stringify(renamed.draft))
+    ok('空名字被挡住', (() => { try { updateDraft(secondId, { name: '   ' }); return false } catch { return true } })())
+    ok('非法价格被挡住', (() => { try { updateDraft(secondId, { price: -5 }); return false } catch { return true } })())
+
+    // 真正落库
+    const accepted = acceptDraft(secondId)
+    ok('添加后建出了服务项', accepted.ok && accepted.service.id > 0)
+    const made = db.prepare('SELECT name, base_price, aliases FROM services WHERE id = ?').get(accepted.service.id)
+    ok('名字和价都写对了', made?.name === '改过的名字' && Number(made?.base_price) === 77, JSON.stringify(made))
+    ok('别名跟着进了价格表（下次比价才匹得上）', made?.aliases === '原话写法', made?.aliases)
+    ok('添加之后草稿就没了', !listDrafts().some((d) => d.id === secondId))
+    ok('重复添加同一条会报「不在了」',
+      (() => { try { acceptDraft(secondId); return false } catch { return true } })())
+
+    // 删掉 / 清空
+    const third = saveDraftsFromScan(jobId, [{ name: '不要的', price: 12, sources: ['原话写法'] }]).created[0]
+    ok('删掉一条待添加', deleteDraft(third.id).ok && !listDrafts().some((d) => d.id === third.id))
+    ok('删不存在的会报错', (() => { try { deleteDraft(third.id); return false } catch { return true } })())
+
+    saveDraftsFromScan(jobId, [{ name: '清空甲', price: 1, sources: ['原话写法'] }])
+    const cleared = clearDrafts()
+    ok('能一次清空', cleared.ok && !listDrafts().some((d) => d.name === '清空甲'), JSON.stringify(cleared))
+
+    db.prepare('DELETE FROM services WHERE id = ?').run(accepted.service.id)
+    db.prepare('DELETE FROM service_drafts WHERE source_job = ?').run(jobId)
+    db.prepare('DELETE FROM price_scan_jobs WHERE id = ?').run(jobId)
+
+    /**
+     * `validateProposal` 是这条路上**唯一一份**校验。
+     * 以前「直接建服务项」和「存成待添加」各写一份 —— 那种重复正是整包价 bug 的
+     * 成因（两处匹配，一处漏了规矩）。这条断言是在钉住「只有一份」这件事：
+     * 一旦有人再抄一份出去，上面那些边界断言就会有一条不再覆盖新代码。
+     */
+    const known = new Set(['原话写法'])
+    const v = (raw) => validateProposal(raw, { known, existingNames: new Set(), categoryIds: new Set() })
+    ok('校验器：合法输入原样通过', v({ name: '甲', price: 5, sources: ['原话写法'] }).ok)
+    ok('校验器：价格四舍五入到分', v({ name: '甲', price: 5.005, sources: ['原话写法'] }).price === 5.01,
+      v({ name: '甲', price: 5.005, sources: ['原话写法'] }).price)
+    ok('校验器：不认识的 category_id 退回未归类',
+      v({ name: '甲', price: 5, sources: ['原话写法'], category_id: 99999 }).categoryId === null)
+    ok('校验器：别名里不会出现正式名字',
+      v({ name: '原话写法', price: 5, sources: ['原话写法'] }).aliases === '')
   }
 
   /* ---------- 结果 ---------- */

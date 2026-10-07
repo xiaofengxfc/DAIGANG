@@ -462,6 +462,37 @@ const MIGRATIONS = [
   `
   ALTER TABLE services ADD COLUMN aliases TEXT NOT NULL DEFAULT '';
   `,
+
+  /**
+   * 「待添加的服务项」—— 从比价结果里整理出来、但还没决定要不要进价格表的项。
+   *
+   * 为什么不直接在比价面板里点一下就建：
+   *
+   *   比价面板里你看不到**这个大类现在已经有什么**。而「这一项要不要建」恰恰
+   *   要看这个 —— 原神的「主线」下面已经有 7.0、7.1 了，视频里那个「主线」
+   *   是重复的还是新版本？在比价面板里判断不了，得回到价格表里看。
+   *
+   * 所以流程拆成两步：比价面板里勾选 = **存成待添加**（不建）；回价格表，
+   * 在每个大类下面看到它们，一个一个决定加还是删。
+   *
+   * `aliases` 存视频里的原话，和 services.aliases 一个规矩（一行一个）——
+   * 真正建进价格表时要带过去，否则短名字下次还是匹不上。
+   */
+  `
+  CREATE TABLE IF NOT EXISTS service_drafts (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    game_id     INTEGER,
+    category_id INTEGER,
+    name        TEXT NOT NULL,
+    price       REAL NOT NULL DEFAULT 0,
+    aliases     TEXT NOT NULL DEFAULT '',
+    why         TEXT NOT NULL DEFAULT '',
+    source_job  TEXT NOT NULL DEFAULT '',
+    created_at  TEXT NOT NULL,
+    updated_at  TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_service_drafts_game ON service_drafts (game_id, category_id);
+  `,
 ]
 
 export function migrate() {

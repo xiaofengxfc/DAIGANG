@@ -45,6 +45,7 @@ import { aiConfig } from './ai.mjs'
 import { acceptRename, aiMatchUnmatched, aiProposeServices, aiReviewPrices, aiTriageVideo, isKnownServiceName, normalizeServiceName, MAX_REVIEW_ROWS } from './ai-scan.mjs'
 import { ensureVisionStarted, visionOcr } from './vision-python.mjs'
 import { enqueueERPNextChange } from './outbox.mjs'
+import { saveDrafts } from './service-drafts.mjs'
 import { bad, nextSortOrder, notFound } from './util.mjs'
 import { looksDaily } from '../shared/domain.js'
 
@@ -1413,94 +1414,34 @@ export async function reviewPrices(id, { refresh = false } = {}) {
 }
 
 /**
- * 把选中的服务项建进库里。
+ * 把勾选的存成「**待添加**」—— 不直接建服务项。
  *
- * 和「建大类」一样，**名字必须来自这次扫描的结果** —— 接口是公开的，不校验的话
- * 就成了「用比价接口建任意名字的服务项」。但比建大类宽松一点：允许用户改名字
- * （AI 给的是建议，用户改完才建），只要**来源名字在扫描结果里**就行。
+ * 为什么不在这里建：这个面板里看不到「这个大类现在已经有什么」。而「这一项要不要
+ * 建」恰恰要看这个 —— 原神的「主线」下面已经有 7.0、7.1 了，视频里那个「主线」是
+ * 重复的还是新版本？在这儿判断不了，得回价格表里看。
  *
- * 建的时候把**视频里的原话记成别名**。这一步是关键：用户起的短名字
- * （`挪德卡莱满探`）匹不上视频里的长写法（`挪德卡莱满探+前置任务+神瞳`）——
- * 后者含 `+`，算打包价，只认同名。别名就是那个「同名」。
+ * 所以这里只存草稿，真正落库在主界面价格表那边一条一条来。
+ * 校验（名字必须来自这次扫描、价格范围、重名）统一在 `service-drafts.mjs` 的
+ * `validateProposal` 里 —— **只有一份**。以前这里和草稿那边各写一份，
+ * 那种重复正是整包价 bug 的成因（两处匹配，一处漏了规矩）。
  */
-export function createServicesFromScan(id, items = []) {
+export function saveDraftsFromScan(id, items = []) {
   const job = getScanJob(id)
   if (!job) throw notFound('这个扫描任务不存在')
-  if (!Array.isArray(items) || !items.length) throw bad('没有要建的服务项', 'no_items')
+  if (!Array.isArray(items) || !items.length) throw bad('没有要添加的服务项', 'no_items')
 
-  const known = new Map(unmatchedGroups(job).map((g) => [g.name, g]))
-  const categories = new Set(
-    db.prepare("SELECT id FROM service_categories WHERE game_id = ? OR game_id IS NULL").all(job.game_id ?? null).map((r) => Number(r.id)),
+  const known = new Set(unmatchedGroups(job).map((g) => g.name))
+  const categoryIds = new Set(
+    db.prepare("SELECT id FROM service_categories WHERE (game_id = ? OR game_id IS NULL) AND status <> 'archived'")
+      .all(job.game_id ?? null)
+      .map((r) => Number(r.id)),
   )
-  const existing = new Map(
-    // `IS ?` 而不是 `= ?`：SQL 里 `game_id = NULL` 永远不成立，
-    // 任务没挂游戏时重名检查会**静默失效**，同一个名字能建两遍
-    db.prepare('SELECT id, name FROM services WHERE game_id IS ?').all(job.game_id ?? null).map((r) => [nameKey(r.name), r]),
-  )
-
-  const created = []
-  const skipped = []
-  const now = stamp()
-  let order = nextSortOrder(db, 'services')
-  const insert = db.prepare(
-    `INSERT INTO services (category_id, game_id, name, description, price_type, unit_label, base_price,
-       min_qty, max_qty, package_items, status, sort_order, note, aliases, created_at, updated_at)
-     VALUES (?, ?, ?, '', 'fixed', ?, ?, 1, NULL, '[]', 'active', ?, '', ?, ?, ?)`,
-  )
-
-  db.exec('BEGIN')
-  try {
-    for (const raw of items) {
-      const name = String(raw?.name || '').trim().slice(0, 120)
-      const price = Number(raw?.price)
-      if (!name) {
-        skipped.push({ name: '', reason: 'empty' })
-        continue
-      }
-      // 来源必须是这次扫描真的认出来的名字
-      const sources = (Array.isArray(raw?.sources) ? raw.sources : []).map((s) => String(s).trim()).filter((s) => known.has(s))
-      if (!sources.length) {
-        skipped.push({ name, reason: 'not_in_scan' })
-        continue
-      }
-      if (!Number.isFinite(price) || price < 0 || price > 100000) {
-        skipped.push({ name, reason: 'bad_price' })
-        continue
-      }
-      const dup = existing.get(nameKey(name))
-      if (dup) {
-        skipped.push({ name, reason: 'duplicate', existing_id: dup.id, existing_name: dup.name })
-        continue
-      }
-      const categoryId = categories.has(Number(raw?.category_id)) ? Number(raw.category_id) : null
-      /**
-       * 别名 = 视频里的原话。正式名字本身不写进去（`serviceNames` 会自己带上）。
-       * 去重、限长、限条数 —— 这是个会参与匹配的字段，不能让它无限长。
-       */
-      const aliases = [...new Set(sources.filter((s) => s !== name))].slice(0, 20).join('\n')
-
-      const info = insert.run(
-        categoryId,
-        job.game_id ?? null,
-        name,
-        String(raw?.unit || '').trim().slice(0, 20),
-        Math.round(price * 100) / 100,
-        order,
-        aliases,
-        now,
-        now,
-      )
-      created.push({ id: Number(info.lastInsertRowid), name, price: Math.round(price * 100) / 100, category_id: categoryId, aliases })
-      existing.set(nameKey(name), { id: Number(info.lastInsertRowid), name })
-      order += 10
-    }
-    db.exec('COMMIT')
-  } catch (err) {
-    db.exec('ROLLBACK')
-    throw err
-  }
-  if (created.length) logLine(job, `从扫描结果建了 ${created.length} 个服务项`)
-  return { ok: true, created, skipped }
+  const result = saveDrafts(job, items, { known, categoryIds })
+  // 草稿不是任务结果的一部分，所以只在任务还在内存里时记一笔日志
+  // （从库里读回来的任务 `log` 是空数组，写进去也没人看得见）
+  const live = liveJobs.get(String(id))
+  if (live && result.created.length) logLine(live, `存了 ${result.created.length} 个待添加的服务项`)
+  return result
 }
 
 /**

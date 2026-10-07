@@ -4,6 +4,7 @@ import * as orders from './orders.mjs'
 import * as system from './system.mjs'
 import * as media from './media.mjs'
 import * as priceScan from './price-scan.mjs'
+import * as serviceDrafts from './service-drafts.mjs'
 
 export function registerAll() {
   catalog.register()
@@ -12,4 +13,5 @@ export function registerAll() {
   system.register()
   media.register()
   priceScan.register()
+  serviceDrafts.register()
 }

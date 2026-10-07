@@ -20,14 +20,15 @@ import {
   applyScan,
   cancelScan,
   createCategoriesFromScan,
-  createServicesFromScan,
   getScanJob,
   listScanJobs,
   proposeServicesFromScan,
   reviewPrices,
+  saveDraftsFromScan,
   scanReadiness,
   startScan,
 } from '../bili-scan.mjs'
+import { acceptDraft, clearDrafts, deleteDraft, listDrafts, updateDraft } from '../service-drafts.mjs'
 import { biliDependencyInstallStatus, startBiliDependencyInstall, biliDependencyStatus } from '../bili-deps.mjs'
 import { aiProbe, aiStatus, saveAiConfig } from '../ai.mjs'
 
@@ -119,15 +120,19 @@ export function register() {
   post('/api/price-scan/jobs/:id/propose-services', (ctx) => proposeServicesFromScan(ctx.params.id, { refresh: ctx.body?.refresh === true }))
 
   /**
-   * 把选中的建进库。
+   * 把勾选的存成「**待添加**」—— **不直接建服务项**。
    *
-   * 和建大类一样要校验「名字来自这次扫描」，但**允许用户改名字** ——
-   * AI 给的只是建议，用户改完才建。同时把**视频里的原话记成别名**，
-   * 这样短名字下次也能匹上长写法（含 `+` 的打包价只认同名）。
+   * 为什么不在这里建：这个面板里看不到「这个大类现在已经有什么」。而「这一项
+   * 要不要建」恰恰要看这个 —— 原神的「主线」下面已经有 7.0、7.1 了，视频里那个
+   * 「主线」是重复的还是新版本？在这儿判断不了，得回价格表里看。
+   *
+   * 所以这里只存草稿，真正的落库在主界面价格表那边一条一条来（`/api/service-drafts`）。
+   * 校验照旧：名字必须来自这次扫描（接口是公开的，不校验就成了「用比价接口建任意
+   * 服务项」），价格必须合法，已经在价格表里的跳过。
    */
   post('/api/price-scan/jobs/:id/services', (ctx) => {
     const items = Array.isArray(ctx.body?.items) ? ctx.body.items : []
-    return createServicesFromScan(ctx.params.id, items)
+    return saveDraftsFromScan(ctx.params.id, items)
   })
 
   /**

@@ -517,7 +517,14 @@ function PriceScan({ game, close, onApplied }) {
     setProposalEdits((current) => ({ ...current, [key]: { ...(current[key] || {}), [field]: value } }))
   }, [])
 
-  const createServices = useCallback(async () => {
+  /**
+   * 把勾选的存成「待添加」—— **不直接建服务项**。
+   *
+   * 为什么不在这儿建：这个面板里看不到「这个大类现在已经有什么」。而「这一项要不要
+   * 建」恰恰要看这个 —— 原神的「主线」下面已经有 7.0、7.1 了，视频里那个「主线」是
+   * 重复的还是新版本？在这儿判断不了。所以存成草稿，回价格表里一条一条决定。
+   */
+  const saveAsDrafts = useCallback(async () => {
     const items = (proposals || [])
       .filter((item) => proposalPicked.has(item.sources[0]))
       .map((item) => ({
@@ -527,7 +534,7 @@ function PriceScan({ game, close, onApplied }) {
         sources: item.sources,
       }))
     if (!items.length) {
-      toast('没有要建的服务项')
+      toast('没有要添加的服务项')
       return
     }
     setCreatingServices(true)
@@ -536,22 +543,21 @@ function PriceScan({ game, close, onApplied }) {
       const made = result?.created || []
       const skipped = result?.skipped || []
       if (made.length) {
-        // 建完把建过的从清单里去掉 —— 留着的话用户会重复勾，然后被告知「重名」
+        // 存完把存过的从清单里去掉 —— 留着的话用户会重复勾，然后被告知「已经有了」
         setProposals((current) => (current || []).filter((item) => !proposalPicked.has(item.sources[0])))
         setProposalPicked(new Set())
-        await Promise.all([loadServices(), loadCategories()])
-        toast(`建好了 ${made.length} 个服务项，扫描到的价也一起写进去了`)
+        toast(`存了 ${made.length} 个待添加，去「价格表」里对应的分类下逐个添加`)
       }
       if (skipped.length) {
-        const dup = skipped.filter((s) => s.reason === 'duplicate')
-        toastErr(`${skipped.length} 个没建：${dup.length ? '已有同名服务项' : skipped[0]?.reason || '名字或价格不合法'}`)
+        const dup = skipped.filter((s) => s.reason === 'already_in_pricebook')
+        toastErr(`${skipped.length} 个没存：${dup.length ? '价格表里已经有同名服务项了' : skipped[0]?.reason || '名字或价格不合法'}`)
       }
     } catch (err) {
       toastErr(err)
     } finally {
       setCreatingServices(false)
     }
-  }, [proposals, proposalPicked, proposalValue, job?.id, loadServices, loadCategories])
+  }, [proposals, proposalPicked, proposalValue, job?.id])
 
   /** 这一行最终会写到哪个服务项上 */
   const targetOf = useCallback((row) => targets[row.service_id] ?? row.service_id, [targets])
@@ -811,14 +817,15 @@ function PriceScan({ game, close, onApplied }) {
   const footer = done && tab === 'build' && proposals ? (
     <div className="ps-foot">
       <span className="ps-foot__note">
-        已勾选 <b>{proposalPicked.size}</b> 个，建成后挂在「{game.name}」下，
-        <b>扫描到的价会一起写成基准价</b>，视频里的原话会记成别名
+        已勾选 <b>{proposalPicked.size}</b> 个。点下面的按钮**存成待添加**（还不进价格表），
+        回到「价格表」页面，在「{game.name}」对应的大类下面逐个<b>添加</b>或<b>删掉</b> ——
+        那边能看到每个大类现在已经有什么，才好判断重不重复。
       </span>
       <div className="ps-foot__actions">
-        <button className="refactor-button" type="button" onClick={close}>先不建</button>
-        <button className="refactor-button refactor-button--primary" type="button" disabled={!proposalPicked.size || creatingServices} onClick={createServices}>
+        <button className="refactor-button" type="button" onClick={close}>先不弄</button>
+        <button className="refactor-button refactor-button--primary" type="button" disabled={!proposalPicked.size || creatingServices} onClick={saveAsDrafts}>
           {creatingServices ? <Loader2 {...iconProps(15)} className="ps-spin" /> : <Plus {...iconProps(15)} />}
-          建选中的 {proposalPicked.size} 个服务项
+          存成待添加的 {proposalPicked.size} 项
         </button>
       </div>
     </div>
