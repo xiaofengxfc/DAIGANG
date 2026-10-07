@@ -547,7 +547,15 @@ export async function aiProposeServices({ game, names = [], categories = [] }) {
    */
   const stripOurAnnotation = (text) => String(text || '').replace(/[（(]\s*\d+\s*个视频\s*[)）]\s*$/, '').trim()
   const known = new Map(shown.map((item) => [normalizeServiceName(item.name), item.name]))
-  const categoryByName = new Map(categories.map((c) => [String(c.name).trim(), c.name]))
+  /**
+   * 大类要**按 id 回**，不能只回名字。
+   *
+   * 第一版只回了名字，而前端那个下拉框读的是 `category_id` —— 两边对不上，
+   * 于是 AI 明明分好了类，界面上每一条还是显示「不归类」，
+   * 用户得自己一条条重选。名字 → id 的换算必须在**这里**做，
+   * 因为只有这里知道发出去的是哪几个大类；让前端去猜就是把校验丢了。
+   */
+  const categoryByName = new Map(categories.map((c) => [String(c.name).trim(), c]))
 
   const items = []
   for (const raw of Array.isArray(result.data?.items) ? result.data.items : []) {
@@ -560,10 +568,115 @@ export async function aiProposeServices({ game, names = [], categories = [] }) {
     }
     // 一个来源都对不上，说明这一条是编的，整条丢掉
     if (!sources.length) continue
-    const category = categoryByName.get(String(raw?.category || '').trim()) || ''
-    items.push({ name, category, sources, why: String(raw?.why || '').trim().slice(0, 40) })
+    // 模型只能选我们给过的大类；编出来的名字一律当「没归类」
+    const category = categoryByName.get(String(raw?.category || '').trim()) || null
+    items.push({
+      name,
+      category_id: category ? Number(category.id) : null,
+      category: category ? category.name : '',
+      sources,
+      why: String(raw?.why || '').trim().slice(0, 40),
+    })
   }
   return { ok: true, items, ms: result.ms, usage: result.usage, model: result.model }
 }
 
-export const __testing = { buildTranscript, pickFields, cleanAiName, DECISION_FIELDS, SCOPES, MAX_NAME_CHARS }
+export const MAX_REVIEW_ROWS = 30
+
+/**
+ * 复核程序算出来的建议价。
+ *
+ * **这是唯一一个允许模型产出价格数字的地方。** 甄别、兜底匹配、整理清单三处都是
+ * 「只能从给定的东西里挑」，因为「AI 编一个数写进价格表」这件事本身很危险 ——
+ * 写错了在界面上看不出来。这里破例，是因为它确实解决一个真问题：
+ *
+ *   OCR 把 `280` 认成了 `230`，于是程序认认真真地在错的数上取中位数。
+ *   这种错 AI 看得出来（原文行里写着 280），但**它没法从样本里挑** ——
+ *   280 压根没出现在任何样本里。
+ *
+ * 破例的代价用三道闸门抵：
+ *   1. 只标可疑、只给建议，**改不改由用户逐条点**；
+ *   2. 界面上必须同时显示「原价 → 建议」和理由，**不显示就不许用**；
+ *   3. **不能批量套用** —— 没有「全部采用」这种按钮。AI 编的数一个一个过。
+ *
+ * 它也只能看到文字证据（各视频的价 + OCR 原文行）。看不到帧图片 ——
+ * 现在的模型客户端是纯文本的。
+ */
+export async function aiReviewPrices({ game, rows = [] }) {
+  if (!aiConfig().enabled) return { ok: false, error: 'AI 没配置', skipped: true }
+  if (!rows.length) return { ok: false, error: '没有要复核的行', skipped: true }
+
+  const shown = rows.slice(0, MAX_REVIEW_ROWS)
+  const lines = []
+  for (const [i, row] of shown.entries()) {
+    lines.push(`【${i + 1}】${row.service_name}${row.unit ? `（单位：${row.unit}）` : ''}　库内现价 ¥${row.current_price}`)
+    lines.push(`  程序建议价：¥${row.suggested_price}（${row.samples.length} 个样本取中位数）`)
+    lines.push('  各视频认出来的：')
+    for (const sample of row.samples) {
+      lines.push(`    · ${sample.video} ¥${sample.price}${sample.unit ? `/${sample.unit}` : ''}　匹配分 ${sample.score}　原文「${String(sample.line || '').slice(0, 50)}」`)
+    }
+    if (row.excluded?.length) {
+      lines.push('  被程序剔除的：')
+      for (const sample of row.excluded.slice(0, 4)) {
+        lines.push(`    · ${sample.video} ¥${sample.price}　（${String(sample.reason || '').slice(0, 40)}）`)
+      }
+    }
+    lines.push('')
+  }
+
+  const user = [
+    `游戏：${game}`,
+    '',
+    '下面是程序从 B站 价格表视频里认出来、按服务项归拢后取中位数算出的报价建议。',
+    '每一行都带着它依据的原始证据（各个视频认出来的价，以及 OCR 认出来的整行原文）。',
+    '',
+    ...lines,
+  ].join('\n')
+
+  const schemaHint = `只输出 JSON：
+{"reviews":[{"index":1,"verdict":"suspect","suggested_price":240,"why":"不超过 30 个字"}]}
+
+- index：上面每一项前面的编号，原样抄
+- verdict：ok（没问题）/ suspect（可疑）
+- suggested_price：**只有你确信程序算错了才填**。可以填一个样本里没出现过的数字
+  （比如 OCR 把 280 认成了 230，原文行里写着 280）。没问题就填 null
+- why：不超过 30 个字，说清楚哪里可疑
+
+规矩：
+- **只在真的可疑时才标 suspect。** 全都标 suspect 等于没标
+- 可疑的典型情形：同一样东西在不同视频里价差很大；某个价明显是别的口径
+  （比如把「一天」的价混进了「一个月」）；**OCR 原文行里的数字和认出来的价对不上**；
+  这一项看起来是把打包价摊给了单项
+- 不建议改价就填 null。**不要为了「看起来更整齐」凑一个数**`
+
+  const result = await aiChatJson({
+    system: '你在复核一份从视频里自动算出来的报价建议。你只做复核：指出可疑的行、说明理由，必要时给一个修正价。不产出别的东西。',
+    user,
+    schemaHint,
+    maxTokens: Math.min(8000, Math.max(2500, shown.length * 120)),
+  })
+  if (!result.ok) return { ok: false, error: result.error }
+
+  const reviews = new Map()
+  for (const raw of Array.isArray(result.data?.reviews) ? result.data.reviews : []) {
+    const index = Number(raw?.index)
+    // 编号必须是发出去的那几个 —— 模型编一个 99 出来就丢掉
+    if (!Number.isInteger(index) || index < 1 || index > shown.length) continue
+    const row = shown[index - 1]
+    const verdict = String(raw?.verdict || '').toLowerCase() === 'suspect' ? 'suspect' : 'ok'
+    const price = raw?.suggested_price === null || raw?.suggested_price === undefined ? null : Number(raw.suggested_price)
+    /**
+     * 建议价要过和 applyScan 同一套范围校验（0~100000），并且**必须和程序算的不一样** ——
+     * 一样就没有「改价」可言，摆个按钮上去只会让人以为 AI 看出了什么。
+     */
+    const usable = Number.isFinite(price) && price > 0 && price <= 100000 && price !== Number(row.suggested_price)
+    reviews.set(Number(row.service_id), {
+      verdict,
+      suggested_price: usable ? Math.round(price * 100) / 100 : null,
+      why: String(raw?.why || '').trim().slice(0, 60),
+    })
+  }
+  return { ok: true, reviews, ms: result.ms, usage: result.usage, model: result.model, reviewed: shown.length }
+}
+
+export const __testing = { buildTranscript, pickFields, cleanAiName, DECISION_FIELDS, SCOPES, MAX_NAME_CHARS, MAX_REVIEW_ROWS }

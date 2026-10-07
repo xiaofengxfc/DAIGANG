@@ -486,6 +486,14 @@ export function matchServices(parsedNames, services, opts = {}) {
       price: p.price,
       unit: p.unit || '',
       reason: p.strictExact ? 'bundle' : '',
+      /**
+       * 整包价（`黎娜西塔加珑十一图+黑海岸800`）—— 只认同名服务项。
+       *
+       * 这个标记必须**跟着未匹配项一起出去**：AI 兜底匹配也要守同一条规矩。
+       * 只给 `reason: 'bundle'` 那种给人看的字符串不够 —— 调用方会去比字符串，
+       * 而字符串迟早会被改（改文案就悄悄失效）。
+       */
+      strictExact: Boolean(p.strictExact),
       score: 0,
       exact: false,
       // 兜底匹配要用：AI 的口径和原名字也得跟着走

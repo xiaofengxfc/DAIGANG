@@ -123,6 +123,10 @@ function PriceScan({ game, close, onApplied }) {
    * 再下几十兆视频）。结果是存着的，那就该能看。
    */
   const [restored, setRestored] = useState(false)
+  /** AI 复核结果：service_id → {verdict, ai_price, why, suggested_price} */
+  const [reviewMap, setReviewMap] = useState(() => new Map())
+  const [reviewInfo, setReviewInfo] = useState(null)
+  const [reviewing, setReviewing] = useState(false)
   /**
    * 大类候选：从视频的分节标题里认出来的（`梦州地图`、`主线：`）。
    * 勾选后批量建成大类 —— 这是「价格表结构对不上」时最省事的一条路：
@@ -236,9 +240,14 @@ function PriceScan({ game, close, onApplied }) {
        * 「扫完关掉抽屉、想再看一眼」就没了，只能重扫一遍（再等一两分钟、
        * 再下几十兆视频）。结果是存着的，那就该能看。
        *
-       * 只捞**这个游戏**的、最近的、有匹配结果的那一次：别的游戏的结果摆在这儿
+       * 只捞**这个游戏**的、最近的、有东西可看的那一次：别的游戏的结果摆在这儿
        * 只会让人以为扫错了游戏。捞回来的**一律不默认勾选** —— 恢复是「回头看看
        * 上次扫出了什么」，不是「接着写上次的结论」，默认勾上容易手一滑又写一遍。
+       *
+       * 「有东西可看」= 匹配上了 **或** 有没匹上的名字 **或** 认出了大类候选。
+       * 之前只认「匹配上了」—— 于是**新加的游戏永远恢复不出来**：库里没有服务项，
+       * 匹配数必然是 0，明明扫出了几十个名字（正是要拿去建服务项的）却被跳过，
+       * 每次进去都得重扫。鸣潮有 65 个服务项，所以一直没暴露。
        *
        * 这两件事放在同一个函数里顺序做，是因为它们抢同一份状态：
        * 拆成两个 effect 并行跑时，恢复历史结果会把「接上在跑的任务」给覆盖掉
@@ -246,7 +255,8 @@ function PriceScan({ game, close, onApplied }) {
        */
       try {
         const list = await api.get('/api/price-scan/jobs', { game_id: game.id, limit: 8 })
-        const last = (list?.items || []).find((item) => item.status === 'done' && item.match_count > 0)
+        const last = (list?.items || []).find((item) => item.status === 'done'
+          && (item.match_count > 0 || item.unmatched_count > 0 || item.section_count > 0))
         if (last) {
           const full = await api.get(`/api/price-scan/jobs/${last.id}`)
           autoPickRef.current = false
@@ -412,12 +422,13 @@ function PriceScan({ game, close, onApplied }) {
   const [proposalEdits, setProposalEdits] = useState({})
   const [creatingServices, setCreatingServices] = useState(false)
 
-  const loadProposals = useCallback(async () => {
+  const loadProposals = useCallback(async (refresh = false) => {
     if (!job?.id) return
     setProposalLoading(true)
     setProposalError('')
     try {
-      const data = await api.post(`/api/price-scan/jobs/${job.id}/propose-services`, {})
+      // 不传 refresh 时后端会把上次整理好的直接给回来，不会再问一次模型
+      const data = await api.post(`/api/price-scan/jobs/${job.id}/propose-services`, refresh ? { refresh: true } : {})
       setProposals(data?.items || [])
       setProposalAi(data?.ai || null)
       setProposalPicked(new Set())
@@ -428,6 +439,69 @@ function PriceScan({ game, close, onApplied }) {
       setProposalLoading(false)
     }
   }, [job?.id])
+
+  const refreshProposals = useCallback(() => loadProposals(true), [loadProposals])
+
+  /**
+   * 让 AI 复核这次扫描算出来的建议价。
+   *
+   * 结果只填进**复核提示**，**一个数都不写库** —— 要写还得用户点「用这个价」
+   * 填进输入框、勾选、再点「写入价格表」。AI 是唯一会产出价格数字的地方
+   * （它能纠正 OCR 认错的数），所以这里没有「全部采用」。
+   */
+  const runReview = useCallback(async (refresh = false) => {
+    if (!job?.id) return
+    setReviewing(true)
+    try {
+      const data = await api.post(`/api/price-scan/jobs/${job.id}/review-prices`, refresh ? { refresh: true } : {})
+      const next = new Map()
+      for (const row of data?.rows || []) next.set(Number(row.service_id), row)
+      setReviewMap(next)
+      setReviewInfo(data)
+      if (!data?.ai?.enabled) toast('没配 AI，复核用不了（去设置里配一下）', 'warn')
+      else if (data?.ai?.error) toast(`AI 复核没成功：${data.ai.error}`, 'warn')
+      else toast(`复核了 ${data.reviewed} 行，${data.suspect} 行可疑${data.with_price ? `，${data.with_price} 行给了建议价` : ''}`, 'ok')
+    } catch (err) {
+      toastErr(err)
+    } finally {
+      setReviewing(false)
+    }
+  }, [job?.id])
+
+  /** 恢复历史任务时把上次的复核结果也捞回来（不然得重新花钱问一遍模型） */
+  useEffect(() => {
+    const saved = job?.ai_review
+    if (saved?.rows?.length) {
+      const next = new Map()
+      for (const row of saved.rows) next.set(Number(row.service_id), row)
+      setReviewMap(next)
+      setReviewInfo(saved)
+    } else {
+      setReviewMap(new Map())
+      setReviewInfo(null)
+    }
+  }, [job?.id, job?.ai_review])
+
+  /**
+   * 任务里存着整理好的清单就直接显示。
+   *
+   * 整理一次要调一次模型（实测 6~11 秒）。不这么做的话，每次关掉抽屉再进来、
+   * 或者切个标签页回来，都得重新等一遍 —— 而且同样的输入会得到不完全一样的答案，
+   * 用户刚看过的清单自己变了。想重新整理就点面板里的「让 AI 重新整理」。
+   */
+  useEffect(() => {
+    const saved = job?.service_proposals
+    if (saved?.items?.length) {
+      setProposals(saved.items)
+      setProposalAi(saved.ai || null)
+      setProposalError('')
+    } else {
+      setProposals(null)
+      setProposalAi(null)
+    }
+    setProposalPicked(new Set())
+    setProposalEdits({})
+  }, [job?.id, job?.service_proposals])
 
   /** 编辑值：用户没改过就用 AI 给的 */
   const proposalValue = useCallback((item, field) => {
@@ -1078,6 +1152,14 @@ function PriceScan({ game, close, onApplied }) {
                     <>
                       <button className="ps-link" type="button" onClick={() => setPicked(new Set(rows.filter((row) => row.enough && row.suggested_price !== null).map((row) => row.service_id)))}>全选样本够的</button>
                       <button className="ps-link" type="button" onClick={() => setPicked(new Set())}>清空</button>
+                      {/**
+                        * AI 复核。**故意没有「全部采用 AI 建议」这种按钮** ——
+                        * AI 能给出样本里没有的数字（用来纠正 OCR 认错的价），
+                        * 那它编的数就得一个一个过目。
+                        */}
+                      <button className="ps-link" type="button" disabled={reviewing} onClick={() => runReview(false)}>
+                        {reviewing ? 'AI 复核中…' : reviewInfo ? '重新让 AI 复核' : '让 AI 复核一遍'}
+                      </button>
                     </>
                   )}
                 </div>
@@ -1094,7 +1176,8 @@ function PriceScan({ game, close, onApplied }) {
                     categories={categoryOptions}
                     valueOf={proposalValue}
                     onEdit={editProposal}
-                    onReload={loadProposals}
+                    onReload={refreshProposals}
+                    onLoad={loadProposals}
                     onToggle={(key) => setProposalPicked((current) => {
                       const next = new Set(current)
                       if (next.has(key)) next.delete(key)
@@ -1132,6 +1215,7 @@ function PriceScan({ game, close, onApplied }) {
                         picked={picked.has(row.service_id)}
                         edited={edited[row.service_id]}
                         expanded={expanded.has(row.service_id)}
+                        review={reviewMap.get(Number(row.service_id))}
                         onTogglePick={() => togglePick(row.service_id)}
                         onToggleExpand={() => toggleExpand(row.service_id)}
                         onEdit={(value) => setEdited((current) => ({ ...current, [row.service_id]: value }))}
@@ -1164,7 +1248,7 @@ const SCOPE_TEXT = Object.freeze({
   total: '一次性',
 })
 
-function PreviewRow({ row, jobId, services, serviceMap, targetId, conflict, applied, picked, edited, expanded, onTogglePick, onToggleExpand, onEdit, onReassign }) {
+function PreviewRow({ row, jobId, services, serviceMap, targetId, conflict, applied, picked, edited, expanded, review, onTogglePick, onToggleExpand, onEdit, onReassign }) {
   const noSuggestion = row.suggested_price === null
   const reassigned = targetId !== row.service_id
   /**
@@ -1247,6 +1331,39 @@ function PreviewRow({ row, jobId, services, serviceMap, targetId, conflict, appl
           )}
         </div>
       </div>
+
+      {/**
+        * AI 复核的结果。
+        *
+        * **原价和建议必须一起显示** —— 只给一个孤零零的新价，用户没法判断 AI 是
+        * 改对了还是改错了。所以这里是「现在是 ¥350 → 建议改成 ¥280」+ 理由。
+        *
+        * 「用这个价」是**逐行**的，界面上故意没有「全部采用」：AI 是唯一会产出
+        * 价格数字的地方（它能纠正 OCR 认错的数），那就必须一个一个过目。
+        */}
+      {review ? (
+        <div className={`ps-row__review${review.ai_price === null || review.ai_price === undefined ? '' : ' has-price'}`}>
+          <span className={`ps-tag${review.verdict === 'suspect' ? ' ps-tag--warn' : ' ps-tag--muted'}`}>
+            {review.verdict === 'suspect' ? 'AI 觉得可疑' : 'AI 看过，没问题'}
+          </span>
+          {review.why ? <span className="ps-row__review-why">{review.why}</span> : null}
+          {review.ai_price === null || review.ai_price === undefined ? null : (
+            <>
+              <span className="ps-row__review-price">
+                现在是 ¥{fmtMoney(review.suggested_price)}，建议改成 <b>¥{fmtMoney(review.ai_price)}</b>
+              </span>
+              <button
+                className="ps-link"
+                type="button"
+                onClick={() => onEdit(String(review.ai_price))}
+                title="把这个数填进上面的输入框；要写进库还得勾选后点「写入价格表」"
+              >
+                用这个价
+              </button>
+            </>
+          )}
+        </div>
+      ) : null}
 
       {expanded ? (
         <div className="ps-detail">
@@ -1417,13 +1534,13 @@ function SectionList({ sections, picked, created, onToggle }) {
  * 名字改短了也不会丢匹配：建的时候会把**视频里的原话记成别名**，
  * 下次 `套餐①：至东国满探索100%探索+神瞳+前置任务+供奉` 照样能匹到「至东国满探索」。
  */
-function ServiceProposalPanel({ items, ai, loading, error, picked, categories, valueOf, onEdit, onToggle, onReload, onPickAll, onClear }) {
+function ServiceProposalPanel({ items, ai, loading, error, picked, categories, valueOf, onEdit, onToggle, onLoad, onReload, onPickAll, onClear }) {
   if (loading) return <div className="ps-empty">正在让 AI 整理这份清单…（大概十几秒）</div>
   if (error) {
     return (
       <div className="ps-empty">
         整理失败了：{error}
-        <div className="ps-suggest__actions"><button className="ps-link" type="button" onClick={onReload}>再试一次</button></div>
+        <div className="ps-suggest__actions"><button className="ps-link" type="button" onClick={onLoad}>再试一次</button></div>
       </div>
     )
   }
@@ -1436,7 +1553,7 @@ function ServiceProposalPanel({ items, ai, loading, error, picked, categories, v
           让 AI 把这些名字整理成一份可建的清单，你改完勾选，一键建进库里 ——
           <b>下次扫描就能匹上了</b>。
         </p>
-        <button className="refactor-button refactor-button--primary" type="button" onClick={onReload}>
+        <button className="refactor-button refactor-button--primary" type="button" onClick={onLoad}>
           让 AI 整理这份清单
         </button>
       </div>

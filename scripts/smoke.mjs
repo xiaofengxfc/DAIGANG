@@ -1846,6 +1846,78 @@ export async function run() {
     delete process.env.XFC_AI_MODEL
   }
 
+  /**
+   * AI 复核建议价：**唯一允许模型产出价格数字的地方**。
+   *
+   * 所以这里的断言全是「模型说的话不能直接信」—— 它回什么都得先过校验。
+   * 破例的前提是「用户逐条看着原价和建议才点确认」，那建议价本身就必须干净。
+   */
+  section('B站自动比价 · AI 复核建议价')
+  const { aiReviewPrices } = await import('../src/ai-scan.mjs')
+  const REVIEW_ROWS = [1, 2, 3, 4, 5, 6].map((n) => ({
+    service_id: n,
+    service_name: `测试项${n}`,
+    unit: '',
+    current_price: 100,
+    suggested_price: 200 + n,
+    samples: [{ video: 'BV1', price: 200 + n, unit: '', score: 1, line: `测试项${n} ${200 + n}` }],
+    excluded: [],
+  }))
+
+  process.env.XFC_AI_BASE_URL = 'http://127.0.0.1:1/v1'
+  process.env.XFC_AI_API_KEY = 'smoke-key'
+  process.env.XFC_AI_MODEL = 'smoke-model'
+  globalThis.fetch = async () => ({
+    ok: true,
+    status: 200,
+    text: async () => JSON.stringify({
+      choices: [{ message: { content: JSON.stringify({ reviews: [
+        // 正常的：给一个样本里没有的价
+        { index: 1, verdict: 'suspect', suggested_price: 288, why: 'OCR 原文写的是 288' },
+        // 编号越界 / 为零 —— 都得丢掉
+        { index: 99, verdict: 'suspect', suggested_price: 1, why: '越界' },
+        { index: 0, verdict: 'suspect', suggested_price: 1, why: '零' },
+        // 非整数编号 —— 丢掉
+        { index: 2.5, verdict: 'suspect', suggested_price: 1, why: '小数' },
+        // 负数 / 超上限 / 非数字 —— 建议价丢掉
+        { index: 2, verdict: 'suspect', suggested_price: -1, why: '负数' },
+        { index: 3, verdict: 'suspect', suggested_price: 999999, why: '太大' },
+        { index: 4, verdict: 'suspect', suggested_price: '两百', why: '不是数' },
+        // 和程序算的一模一样（第 5 行建议价是 205）—— 一样就没有「改价」可言，丢掉
+        { index: 5, verdict: 'suspect', suggested_price: 205, why: '一样' },
+        // 没见过的 verdict —— 归一成 ok
+        { index: 6, verdict: '也许吧', suggested_price: null, why: '' },
+      ] }) } }],
+    }),
+  })
+  try {
+    const reviewed = await aiReviewPrices({ game: '鸣潮', rows: REVIEW_ROWS })
+    ok('复核跑通', reviewed.ok === true, reviewed.error)
+    ok('发出去几行就复核几行', reviewed.reviewed === REVIEW_ROWS.length, String(reviewed.reviewed))
+    ok('越界编号被丢掉', reviewed.reviews.get(99) === undefined && reviewed.reviews.get(0) === undefined)
+    ok('非整数编号被丢掉', reviewed.reviews.get(3) === undefined || reviewed.reviews.get(3).suggested_price === null)
+    ok('负数建议价被丢掉', reviewed.reviews.get(2)?.suggested_price === null, JSON.stringify(reviewed.reviews.get(2)))
+    ok('超上限建议价被丢掉', reviewed.reviews.get(3)?.suggested_price === null, JSON.stringify(reviewed.reviews.get(3)))
+    ok('非数字建议价被丢掉', reviewed.reviews.get(4)?.suggested_price === null, JSON.stringify(reviewed.reviews.get(4)))
+    ok('和程序算的一样的建议价被丢掉', reviewed.reviews.get(5)?.suggested_price === null, JSON.stringify(reviewed.reviews.get(5)))
+    ok('样本里没有的价可以保留（这是它存在的理由）', reviewed.reviews.get(1)?.suggested_price === 288,
+      JSON.stringify(reviewed.reviews.get(1)))
+    ok('没见过的 verdict 归一成 ok', reviewed.reviews.get(6)?.verdict === 'ok', reviewed.reviews.get(6)?.verdict)
+    ok('复核结果里没有价格以外的杂物',
+      [...reviewed.reviews.values()].every((r) => Object.keys(r).sort().join(',') === 'suggested_price,verdict,why'))
+  } finally {
+    globalThis.fetch = realFetch
+  }
+
+  // 没配 AI 时不许假装复核过
+  delete process.env.XFC_AI_BASE_URL
+  delete process.env.XFC_AI_API_KEY
+  delete process.env.XFC_AI_MODEL
+  const noAi = await aiReviewPrices({ game: '鸣潮', rows: REVIEW_ROWS })
+  ok('没配 AI 时复核直接说没配，不编结果', noAi.ok === false && noAi.skipped === true, JSON.stringify(noAi))
+  const noRows = await aiReviewPrices({ game: '鸣潮', rows: [] })
+  ok('没有要复核的行时也不编结果', noRows.ok === false && noRows.skipped === true, JSON.stringify(noRows))
+
   // —— AI 挂了必须降级，不能少给结果 ——
   globalThis.fetch = async () => { throw new Error('connection refused') }
   try {
@@ -1959,6 +2031,26 @@ export async function run() {
   const fuzzyLabel = matchServices([{ name: '全包：主线+前置+全宝箱+神瞳', price: 400, video: 'v1' }], [{ id: 1, name: '主线', unit_label: '', base_price: 0 }]).matched
   ok('原话只做精确匹配，不会把「全包：主线+…」模糊匹到「主线」', fuzzyLabel.length === 0,
     JSON.stringify(fuzzyLabel.map((m) => m.service_name)))
+
+  /**
+   * 整包价必须**带着 `strictExact` 一起**出现在「没匹上」里。
+   *
+   * AI 兜底匹配要拿这个标记决定「这一条不许送去问模型」——
+   * 实测真出过事：`黎娜西塔加珑十一图+黑海岸800` 被模型热心匹到了
+   * 库里的单项「黎那汐塔」，800 摊成了单项价，建议价从 350 涨到 575。
+   * 界面上只显示「AI 判的，置信度 medium」，看不出那是整包价。
+   */
+  const bundleUnmatched = matchServices(
+    [{ name: '黎娜西塔加珑十一图+黑海岸', price: 800, video: 'v1' }],
+    POOL,
+  ).unmatched
+  ok('整包价落在「没匹上」里', bundleUnmatched.length === 1, JSON.stringify(bundleUnmatched.map((u) => u.parsed_name)))
+  ok('整包价带着 strictExact 标记（AI 兜底靠它决定不许匹）', bundleUnmatched[0]?.strictExact === true,
+    JSON.stringify({ strictExact: bundleUnmatched[0]?.strictExact, reason: bundleUnmatched[0]?.reason }))
+  ok('普通没匹上的项不带这个标记', (() => {
+    const plain = matchServices([{ name: '某个不存在的东西', price: 10, video: 'v1' }], POOL).unmatched
+    return plain.length === 1 && plain[0].strictExact === false
+  })())
 
   /** `unmatchedGroups`：按名字归并 + 算建议价，价格绝不能交给 AI */
   const fakeJob = {

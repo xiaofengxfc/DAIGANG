@@ -24,6 +24,7 @@ import {
   getScanJob,
   listScanJobs,
   proposeServicesFromScan,
+  reviewPrices,
   scanReadiness,
   startScan,
 } from '../bili-scan.mjs'
@@ -115,7 +116,7 @@ export function register() {
    * 不是坏了，是没东西可以匹配。让 AI 把认出来的名字合并、起名、归类，
    * 用户勾选后建进库里，下次扫描就能匹上了。
    */
-  post('/api/price-scan/jobs/:id/propose-services', (ctx) => proposeServicesFromScan(ctx.params.id))
+  post('/api/price-scan/jobs/:id/propose-services', (ctx) => proposeServicesFromScan(ctx.params.id, { refresh: ctx.body?.refresh === true }))
 
   /**
    * 把选中的建进库。
@@ -128,6 +129,15 @@ export function register() {
     const items = Array.isArray(ctx.body?.items) ? ctx.body.items : []
     return createServicesFromScan(ctx.params.id, items)
   })
+
+  /**
+   * 让 AI 复核这次扫描算出来的建议价。
+   *
+   * **这是唯一一个模型可以产出价格数字的地方**，所以它只回「哪一行可疑、
+   * 为什么、建议改成多少」，**一个数都不写库**。写库还是要走 `/apply`，
+   * 而且要用户在界面上逐条点确认（界面上没有「全部采用」）。
+   */
+  post('/api/price-scan/jobs/:id/review-prices', (ctx) => reviewPrices(ctx.params.id, { refresh: ctx.body?.refresh === true }))
 
   /* ---------------- AI 配置 ---------------- */
 

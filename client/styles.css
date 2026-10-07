@@ -3792,6 +3792,15 @@ button.react-side-row {
 .ps-propose__sources .ps-chip { max-width: 46ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ps-propose__actions { display: flex; gap: 8px; margin-top: 10px; }
 
+/* ---------- AI 复核建议价 ---------- */
+/* 复核提示是「这一行下面多出来的一条」，不能挤掉主行的高度对齐 */
+.ps-row__review { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 5px 12px 7px 40px; border-top: 1px dashed var(--line); color: var(--ink-3); font-size: var(--fs-xs); }
+.ps-row__review.has-price { color: var(--ink-2); background: var(--surface-2); }
+.ps-row__review-why { color: var(--ink-2); }
+.ps-row__review-price { margin-left: auto; }
+.ps-row__review-price b { color: var(--ink-1); font-variant-numeric: tabular-nums; }
+.ps-row__review .ps-link:disabled { opacity: .5; cursor: default; }
+
 /* ---------- AI 甄别 ---------- */
 .ps-ai { margin-top: 10px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface-solid); overflow: hidden; }
 .ps-ai.is-on { border-color: var(--jade-line); }

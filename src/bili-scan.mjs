@@ -42,7 +42,7 @@ import { downloadVideo, extractFrames } from './bili-video.mjs'
 import { collapseWithinVideo, extractPriceCandidates, extractSections, groupLines, median, spread } from './price-parse.mjs'
 import { groupByService, matchServices } from './price-match.mjs'
 import { aiConfig } from './ai.mjs'
-import { acceptRename, aiMatchUnmatched, aiProposeServices, aiTriageVideo, isKnownServiceName, normalizeServiceName } from './ai-scan.mjs'
+import { acceptRename, aiMatchUnmatched, aiProposeServices, aiReviewPrices, aiTriageVideo, isKnownServiceName, normalizeServiceName, MAX_REVIEW_ROWS } from './ai-scan.mjs'
 import { ensureVisionStarted, visionOcr } from './vision-python.mjs'
 import { enqueueERPNextChange } from './outbox.mjs'
 import { bad, nextSortOrder, notFound } from './util.mjs'
@@ -353,6 +353,31 @@ function restoreCachedFrames(cached, jobId, bvid) {
    任务读写
    ============================================================ */
 
+/**
+ * 任务结果里到底有哪些字段 —— **只在这一处定义**。
+ *
+ * 以前四个地方（落库、内存快照、从库里读回、写完价回写）各写一份字段清单，
+ * 于是每加一个字段都得改四遍，漏一处就「悄悄丢了」：
+ *   · `sections`（大类候选）漏过一次 —— 写完价，候选就没了
+ *   · `service_proposals`（AI 整理的服务项）又漏过一次 —— 写完价，清单就没了
+ * 这种 bug **不报错**，只是数据不见了，最难查。所以合成一个函数，
+ * 加字段只改这一处。
+ */
+function jobResult(job) {
+  return {
+    progress: job.progress || {},
+    videos: job.videos || [],
+    matched: job.matched || [],
+    unmatched: job.unmatched || [],
+    sections: job.sections || [],
+    ai: job.ai || null,
+    applied: job.applied || [],
+    summary: job.summary || null,
+    service_proposals: job.service_proposals || null,
+    ai_review: job.ai_review || null,
+  }
+}
+
 function persist(job) {
   const now = stamp()
   db.prepare(
@@ -367,7 +392,7 @@ function persist(job) {
     job.keyword || '',
     job.status,
     job.stage || '',
-    JSON.stringify({ progress: job.progress, videos: job.videos, matched: job.matched, unmatched: job.unmatched, sections: job.sections, applied: job.applied, summary: job.summary, ai: job.ai }),
+    JSON.stringify(jobResult(job)),
     job.error || '',
     job.created_at,
     now,
@@ -382,14 +407,7 @@ function publicJob(job) {
     keyword: job.keyword,
     status: job.status,
     stage: job.stage,
-    progress: job.progress,
-    videos: job.videos,
-    matched: job.matched,
-    unmatched: job.unmatched,
-    sections: job.sections || [],
-    ai: job.ai || null,
-    applied: job.applied,
-    summary: job.summary,
+    ...jobResult(job),
     log: job.log.slice(-60),
     error: job.error,
     created_at: job.created_at,
@@ -416,14 +434,7 @@ export function getScanJob(id) {
     keyword: row.keyword,
     status: row.status,
     stage: row.stage,
-    progress: parsed.progress || {},
-    videos: parsed.videos || [],
-    matched: parsed.matched || [],
-    unmatched: parsed.unmatched || [],
-    sections: parsed.sections || [],
-    ai: parsed.ai || null,
-    applied: parsed.applied || [],
-    summary: parsed.summary || null,
+    ...jobResult(parsed),
     log: [],
     error: row.error_msg,
     created_at: row.created_at,
@@ -456,6 +467,16 @@ export function listScanJobs({ gameId = null, limit = 20 } = {}) {
       summary: parsed.summary || null,
       video_count: Array.isArray(parsed.videos) ? parsed.videos.length : 0,
       match_count: Array.isArray(parsed.matched) ? parsed.matched.length : 0,
+      /**
+       * 「没匹上」也要报数。
+       *
+       * 界面靠这几个数判断「这次扫描有没有东西可看」。之前只看 `match_count`，
+       * 于是**新加的游戏永远恢复不出来** —— 库里没有服务项，匹配数必然是 0，
+       * 明明扫出了几十个名字（正是要拿去建服务项的），却被当成「没结果」，
+       * 每次进去都得重扫一遍。鸣潮有 65 个服务项，所以一直没暴露。
+       */
+      unmatched_count: Array.isArray(parsed.unmatched) ? parsed.unmatched.length : 0,
+      section_count: Array.isArray(parsed.sections) ? parsed.sections.length : 0,
     }
   })
 }
@@ -723,9 +744,20 @@ async function runScan(job, { maxVideos, minSamples, refresh = false }) {
    * 这是兜底不是主力：字符串相似度能匹上的已经匹上了，这里只处理剩下的。
    * 模型只能从我们给的候选 id 里选（`aiMatchUnmatched` 会校验），
    * 所以它编不出一个库里不存在的服务项。
+   *
+   * **整包价不送去兜底。** `strictExact` 的项是「好几项串在一起、整包一个价」
+   * （`黎娜西塔加珑十一图+黑海岸800`），规矩是只认同名的服务项 —— 因为 800 是
+   * 这一整套的钱，摊给「黑海岸」就是错价。
+   *
+   * 这条规矩必须对 AI 兜底同样生效：模型只看名字，看到 `黎娜西塔加珑十一图+黑海岸`
+   * 里的「黎娜西塔」很像库里的「黎那汐塔」，就热心地把它们匹上了 —— 实测就是这么
+   * 错的：800 摊到了 350 的单项上，`黎那汐塔` 的建议价从 350 涨到 575，
+   * 而界面上只显示「AI 判的，置信度 medium」，看不出这是整包价。
+   * **规则拦得住字符串匹配，拦不住一个愿意帮忙的模型。**
    */
-  if (aiConfig().enabled && unmatched.length && services.length) {
-    const names = [...new Map(unmatched.map((u) => [u.parsed_name, u])).values()].map((u) => ({ name: u.parsed_name, line: u.line }))
+  const fallbackPool = unmatched.filter((item) => !item.strictExact)
+  if (aiConfig().enabled && fallbackPool.length && services.length) {
+    const names = [...new Map(fallbackPool.map((u) => [u.parsed_name, u])).values()].map((u) => ({ name: u.parsed_name, line: u.line }))
     job.stage = `AI 兜底匹配 ${names.length} 个没匹上的名字`
     touch(job)
     let picked
@@ -740,7 +772,9 @@ async function runScan(job, { maxVideos, minSamples, refresh = false }) {
       const stillUnmatched = []
       const pickByName = new Map(picked.picks.filter((p) => p.service_id).map((p) => [p.name, p]))
       for (const item of unmatched) {
-        const pick = pickByName.get(item.parsed_name)
+        // 整包价压根没送去问模型，所以这里也不该被匹上（双保险：万一以后有人把
+        // fallbackPool 的过滤去掉了，这一层还能兜住）
+        const pick = item.strictExact ? null : pickByName.get(item.parsed_name)
         const service = pick ? byId.get(Number(pick.service_id)) : null
         if (!service) {
           stillUnmatched.push(item)
@@ -1132,10 +1166,20 @@ export function unmatchedGroups(job) {
  *
  * 拿不到 AI 就退回「原样列出」—— 用户照样能勾选建，只是名字得自己改。
  * **绝不因为 AI 挂了就什么都不给。**
+ *
+ * 结果**存在任务上**（`job.service_proposals`）。整理一次要调一次模型（6~11 秒），
+ * 不存的话每次进来都得重等，而且同样的输入会得到不完全一样的答案 ——
+ * 用户刚看过的清单自己变了。想重新整理就传 `refresh: true`。
  */
-export async function proposeServicesFromScan(id) {
+export async function proposeServicesFromScan(id, { refresh = false } = {}) {
   const job = getScanJob(id)
   if (!job) throw notFound('这个扫描任务不存在')
+
+  // 已经有整理好的就直接给，不再问模型
+  if (!refresh && job.service_proposals?.items?.length) {
+    return { ...job.service_proposals, cached: true }
+  }
+
   const groups = unmatchedGroups(job)
   if (!groups.length) {
     return { ok: true, items: [], groups: 0, ai: { enabled: false, error: '' }, note: '这次扫描没有没匹上的名字' }
@@ -1175,6 +1219,9 @@ export async function proposeServicesFromScan(id) {
   /**
    * AI 整理过的：按它给的 `sources` 把原始行聚起来，价格取这些行的中位数。
    * 价格完全来自原始行，AI 一个数字都没碰。
+   *
+   * `category_id` 一路带到界面上 —— 前端那个下拉框读的就是它。
+   * 只带名字的话，AI 明明分好了类，界面上每一条还是显示「不归类」。
    */
   for (const item of items) {
     const sources = item.sources.filter((s) => byName.has(s))
@@ -1183,6 +1230,7 @@ export async function proposeServicesFromScan(id) {
     const picked = sources.map((s) => byName.get(s))
     proposals.push({
       name: item.name,
+      category_id: item.category_id ?? null,
       category: item.category,
       sources,
       why: item.why,
@@ -1198,6 +1246,7 @@ export async function proposeServicesFromScan(id) {
     if (used.has(group.name)) continue
     proposals.push({
       name: group.name,
+      category_id: null,
       category: '',
       sources: [group.name],
       why: '',
@@ -1209,13 +1258,158 @@ export async function proposeServicesFromScan(id) {
   }
 
   proposals.sort((a, b) => b.video_count - a.video_count || b.sample_count - a.sample_count || a.name.localeCompare(b.name, 'zh'))
-  return {
+  const payload = {
     ok: true,
     items: proposals.slice(0, 200),
     groups: groups.length,
     categories: categories.map((c) => ({ id: c.id, name: c.name })),
     ai,
+    at: stamp(),
   }
+
+  /**
+   * 存回任务。
+   *
+   * `ai.ok === false` 时**不存** —— 那只是「原样列出」，下次进来应该再试一次
+   * 模型，而不是把一次失败永久钉在这里。（和 AI 甄别的缓存同一个规矩。）
+   */
+  if (!ai.enabled || !ai.error) {
+    job.service_proposals = payload
+    const live = liveJobs.get(String(id))
+    if (live) {
+      live.service_proposals = payload
+      persist(live)
+    } else {
+      const row = db.prepare('SELECT result FROM price_scan_jobs WHERE id = ?').get(String(id))
+      let parsed = {}
+      try { parsed = JSON.parse(row?.result || '{}') } catch { parsed = {} }
+      parsed.service_proposals = payload
+      db.prepare('UPDATE price_scan_jobs SET result = ?, updated_at = ? WHERE id = ?').run(JSON.stringify(parsed), stamp(), String(id))
+    }
+  }
+
+  return payload
+}
+
+/**
+ * 让 AI 复核这次扫描算出来的建议价。
+ *
+ * 优先复核**最可疑的**那些行：有被剔除的样本、样本价散得厉害、低置信、匹配分低。
+ * 一次最多 30 行 —— 证据全塞进一个 prompt 会挤掉真正需要看的东西，
+ * 而且模型看太多行会开始敷衍（全都标 ok）。
+ *
+ * 结果存在任务上（`job.ai_review`），理由和整理清单一样：要花一次模型调用，
+ * 不存的话每次进来都得重等，而且答案会变。传 `refresh: true` 重新复核。
+ */
+export async function reviewPrices(id, { refresh = false } = {}) {
+  const job = getScanJob(id)
+  if (!job) throw notFound('这个扫描任务不存在')
+
+  if (!refresh && job.ai_review?.rows?.length) return { ...job.ai_review, cached: true }
+
+  const rows = (job.matched || []).filter((row) => row.suggested_price !== null && row.suggested_price !== undefined)
+  if (!rows.length) {
+    return { ok: true, rows: [], reviewed: 0, ai: { enabled: aiConfig().enabled, error: '' }, note: '这次扫描没有算出来的建议价' }
+  }
+
+  /**
+   * 按「有多可疑」排序，只把前 30 行发给模型。
+   * 分数只是个排序依据，不参与任何判断 —— 判断全在模型那边。
+   */
+  const suspicion = (row) => {
+    let score = 0
+    if (row.excluded?.length) score += 3
+    if (row.confidence === 'low') score += 3
+    if (row.only_ambiguous || row.only_low_confidence || row.only_unit_mismatch) score += 2
+    // 样本价散得越开越可疑（四分位距 ÷ 中位数）
+    const ratio = Number(row.dispersion?.ratio)
+    if (Number.isFinite(ratio)) score += Math.min(4, ratio * 4)
+    // 匹配分低
+    score += (1 - Math.min(1, Number(row.best_score) || 0)) * 2
+    return score
+  }
+  const ranked = [...rows].sort((a, b) => suspicion(b) - suspicion(a))
+
+  const ai = { enabled: aiConfig().enabled, error: '', model: '', ms: 0 }
+  let reviews = new Map()
+  // 实际发给模型的行数（不是候选总数）—— 界面上说「复核了 30 行」得是真的发了 30 行
+  let reviewed = Math.min(ranked.length, MAX_REVIEW_ROWS)
+  if (ai.enabled) {
+    let result
+    try {
+      result = await aiReviewPrices({
+        game: job.game_name || '',
+        rows: ranked.map((row) => ({
+          service_id: row.service_id,
+          service_name: row.service_name,
+          unit: row.service_unit || '',
+          current_price: row.current_price,
+          suggested_price: row.suggested_price,
+          samples: (row.samples || []).map((s) => ({ video: s.video, price: s.price, unit: s.unit, score: s.score, line: s.line })),
+          excluded: (row.excluded || []).map((s) => ({ video: s.video, price: s.price, reason: s.reason })),
+        })),
+      })
+    } catch (err) {
+      result = { ok: false, error: err?.message || String(err) }
+    }
+    if (result.ok) {
+      ai.model = result.model || ''
+      ai.ms = result.ms || 0
+      reviews = result.reviews
+      if (Number.isFinite(result.reviewed)) reviewed = result.reviewed
+    } else {
+      ai.error = result.error || '调用失败'
+      logLine(job, `复核建议价时 AI 没成功：${ai.error}`)
+    }
+  }
+
+  /**
+   * 复核结果要**带上那一行的原价和建议价**，不能只存 service_id + 新价。
+   * 界面上必须同时显示「原价 → 建议」才能点确认 —— 只显示一个孤零零的新价，
+   * 用户没法判断 AI 是改对了还是改错了。
+   */
+  const out = []
+  for (const row of ranked) {
+    const review = reviews.get(Number(row.service_id))
+    if (!review) continue
+    out.push({
+      service_id: row.service_id,
+      service_name: row.service_name,
+      current_price: row.current_price,
+      suggested_price: row.suggested_price,
+      ai_price: review.suggested_price,
+      verdict: review.verdict,
+      why: review.why,
+    })
+  }
+  // 有建议价的排前面 —— 那才是要用户动手的
+  out.sort((a, b) => (b.ai_price !== null) - (a.ai_price !== null) || (b.verdict === 'suspect') - (a.verdict === 'suspect'))
+
+  const payload = {
+    ok: true,
+    rows: out,
+    reviewed,
+    suspect: out.filter((r) => r.verdict === 'suspect').length,
+    with_price: out.filter((r) => r.ai_price !== null).length,
+    ai,
+    at: stamp(),
+  }
+  // AI 没成功就不存 —— 下次进来该再试一次，而不是把一次失败永久钉住
+  if (!ai.enabled || !ai.error) {
+    job.ai_review = payload
+    const live = liveJobs.get(String(id))
+    if (live) {
+      live.ai_review = payload
+      persist(live)
+    } else {
+      const row = db.prepare('SELECT result FROM price_scan_jobs WHERE id = ?').get(String(id))
+      let parsed = {}
+      try { parsed = JSON.parse(row?.result || '{}') } catch { parsed = {} }
+      parsed.ai_review = payload
+      db.prepare('UPDATE price_scan_jobs SET result = ?, updated_at = ? WHERE id = ?').run(JSON.stringify(parsed), stamp(), String(id))
+    }
+  }
+  return payload
 }
 
 /**
@@ -1623,16 +1817,7 @@ export function applyScan(id, rows = [], options = {}) {
   if (live) persist(live)
   else {
     db.prepare('UPDATE price_scan_jobs SET result = ?, updated_at = ? WHERE id = ?').run(
-      JSON.stringify({
-        progress: job.progress,
-        videos: job.videos,
-        matched: job.matched,
-        unmatched: job.unmatched,
-        sections: job.sections || [],
-        ai: job.ai || null,
-        applied: target.applied,
-        summary: job.summary,
-      }),
+      JSON.stringify(jobResult({ ...job, applied: target.applied })),
       now,
       String(id),
     )
