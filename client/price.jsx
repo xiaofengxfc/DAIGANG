@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Archive, ArchiveRestore, ChevronDown, ChevronRight, Copy, Edit3, Eye, FolderPlus, Gamepad2, Layers3, Plus, Search, SlidersHorizontal, Sparkles, Trash2 } from 'lucide-react'
+import { Archive, ArchiveRestore, ChevronDown, ChevronRight, Copy, Edit3, Eye, FolderPlus, Gamepad2, GripVertical, Layers3, Plus, Search, SlidersHorizontal, Sparkles, Trash2 } from 'lucide-react'
 import { api, PRICE_TYPE_LABEL } from './lib/api.js'
 import { fmtMoney, fmtQty } from './lib/formatters.js'
 import { toast, toastErr } from './app/toast-store.js'
@@ -11,8 +11,119 @@ import { openPriceScan } from './price-scan.jsx'
 import { openServiceForm } from './service-form.jsx'
 import { openServicePeek } from './service-peek.jsx'
 import { unitOf as unitOfShared } from '../shared/pricing.js'
+import { moveId, nudgeId, reorderInPlace as reorderInPlacePure } from './lib/sortable.js'
 
 const iconProps = (size = 15) => ({ size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true })
+
+/**
+ * 一个可拖拽排序的列表（大类之间、大类下的服务项之间都用它）。
+ *
+ * 为什么收成一个 hook 而不是每处写一遍：拖拽这套东西真正麻烦的是**边界**——
+ * 拖到自己身上、拖到列表外、落下时数据已经刷新过（id 找不到了）、
+ * 位置没变不该发请求。复制三份的话，改一处忘两处是迟早的事。
+ *
+ * 为什么是原生 HTML5 拖拽而不是引一个库：这个项目只有 React 和 lucide 两个
+ * 运行时依赖，为「挪个位置」装一整套 dnd-kit 不划算。
+ *
+ * 两个细节是刻意的：
+ *
+ *   1. **按下把手才允许拖**（`armed`）。整行直接 `draggable` 的话，在行里选文字、
+ *      按按钮都会变成「开始拖拽」，按钮点不动。
+ *   2. **键盘也能排**（把手是 `<button>`，↑ ↓ 挪一格）。原生拖拽在触屏上不生效，
+ *      而且没有键盘通路就没法用 —— 顺手补上，成本很低。
+ */
+function useSortable(ids, onReorder) {
+  const [dragId, setDragId] = useState(null)
+  /** 落点：{ id, after }。after 决定插在目标的前面还是后面 */
+  const [dropAt, setDropAt] = useState(null)
+  const [armed, setArmed] = useState(null)
+
+  const reset = () => { setDragId(null); setDropAt(null); setArmed(null) }
+
+  /**
+   * 松手就解除「可拖」。
+   *
+   * 监听的是 **window** 而不是把手自己：在把手上按下、把鼠标移到别处再松开时，
+   * 把手上的 `mouseup` 根本不会触发 —— 那一行就会一直停在 `draggable` 状态，
+   * 之后在它上面选文字、点按钮全变成「开始拖拽」。
+   */
+  useEffect(() => {
+    if (armed === null) return undefined
+    const clear = () => setArmed(null)
+    window.addEventListener('mouseup', clear)
+    return () => window.removeEventListener('mouseup', clear)
+  }, [armed])
+
+  /** 把 `id` 挪到列表里第 `to` 位。位置没变就不发请求 */
+  const commit = (next) => {
+    if (!next || next.join(',') === ids.join(',')) return
+    onReorder(next)
+  }
+
+  /** 键盘：往上 / 往下挪一格 */
+  const nudge = (id, delta) => {
+    const next = nudgeId(ids, id, delta)
+    if (next === ids) return
+    commit(next)
+  }
+
+  const drop = () => {
+    const target = dropAt
+    if (dragId === null || !target) return reset()
+    const next = moveId(ids, dragId, target.id, target.after)
+    reset()
+    if (next === ids) return
+    commit(next)
+  }
+
+  return {
+    dragId,
+    /** 行上要挂的类名：拖拽中 / 落点在它前面 / 落点在它后面 */
+    classOf: (id) => [
+      dragId === id ? 'is-dragging' : '',
+      dropAt?.id === id ? (dropAt.after ? 'is-drop-after' : 'is-drop-before') : '',
+    ].filter(Boolean).join(' '),
+    /** 给整行 */
+    rowProps: (id) => ({
+      draggable: armed === id,
+      onDragStart: (event) => {
+        setDragId(id)
+        event.dataTransfer.effectAllowed = 'move'
+        // 有些浏览器（Firefox）不 setData 就不触发拖拽
+        event.dataTransfer.setData('text/plain', String(id))
+      },
+      onDragEnd: reset,
+      onDragOver: (event) => {
+        if (dragId === null || dragId === id) return
+        event.preventDefault()
+        event.dataTransfer.dropEffect = 'move'
+        // 落在上半部分就插到它前面，下半部分插到后面 —— 和指示线的位置一致
+        const rect = event.currentTarget.getBoundingClientRect()
+        setDropAt({ id, after: event.clientY > rect.top + rect.height / 2 })
+      },
+      onDrop: (event) => { event.preventDefault(); drop() },
+    }),
+    /** 给把手 */
+    handleProps: (id) => ({
+      onMouseDown: () => setArmed(id),
+      onKeyDown: (event) => {
+        if (event.key === 'ArrowUp') { event.preventDefault(); nudge(id, -1) }
+        else if (event.key === 'ArrowDown') { event.preventDefault(); nudge(id, 1) }
+      },
+    }),
+  }
+}
+
+/**
+ * 一个拖拽把手。看着小，但它是「这一行能挪」的唯一提示 —— 没有它没人知道能拖。
+ */
+function DragHandle({ label, ...rest }) {
+  return (
+    <button className="price-grip" type="button" title={`按住拖动改顺序（也可以选中后按 ↑ ↓）· ${label}`} aria-label={`调整「${label}」的顺序`} {...rest}>
+      <GripVertical {...iconProps(14)} />
+    </button>
+  )
+}
 
 const unitOf = (service) => unitOfShared(service)
 
@@ -47,13 +158,16 @@ function optionSummary(options) {
   return `${options.length} 个${items.length ? ` · ${items.join('、')}${options.length > items.length ? '…' : ''}` : ''}`
 }
 
-function ServiceRow({ service, currency = '', orphan = false, onEdit, onPeek, onAdvanced, onToggle, onDelete }) {
+function ServiceRow({ service, currency = '', orphan = false, sortable = null, onEdit, onPeek, onAdvanced, onToggle, onDelete }) {
   const tiers = service.tiers || []
   const options = service.options || []
   const unit = unitOf(service)
+  // 没传 sortable 就是这一层不支持排序（比如「未分类服务」那块），那时不画把手 ——
+  // 画一个拖不动的把手比不画更让人困惑
   return (
-    <div className={`price-service${service.status === 'archived' ? ' is-archived' : ''}`}>
+    <div className={`price-service${service.status === 'archived' ? ' is-archived' : ''}${sortable ? ` ${sortable.classOf(service.id)}` : ''}`} {...(sortable ? sortable.rowProps(service.id) : {})}>
       <div className="price-service__main">
+        {sortable ? <DragHandle label={service.name} {...sortable.handleProps(service.id)} /> : null}
         <div className="price-service__name"><b>{service.name}</b>{service.is_daily ? <span className="price-tag price-tag--jade">每天</span> : null}{tiers.length ? <span className="price-tag">{tiers.length} 档</span> : null}{options.length ? <span className="price-tag">{options.length} 个增项</span> : null}{orphan ? <span className="price-tag" title="它原来挂的大类不在当前这份列表里（多半是归档了）。重新选一个分类就能归位。">{`原大类：${service.category_name || '已删除'}`}</span> : null}</div>
         {service.description ? <p title={service.description}>{service.description}</p> : <p className="price-service__muted">暂无说明</p>}
         {service.package_items?.length ? <small title={service.package_items.join(' · ')}>套餐含：{service.package_items.join(' · ')}</small> : null}
@@ -120,25 +234,33 @@ function DraftBlock({ drafts, busy, onAccept, onDelete, onAcceptAll, onClearAll 
   )
 }
 
-function CategoryBlock({ category, currency = '', open, drafts = [], draftBusy = false, onOpenChange, onEdit, onService, onSum, onToggle, onDelete, onEditService, onPeekService, onAdvancedService, onToggleService, onDeleteService, onAcceptDraft, onDeleteDraft, onAcceptAllDrafts, onClearAllDrafts }) {
+function CategoryBlock({ category, currency = '', open, drafts = [], draftBusy = false, sortable = null, onOpenChange, onEdit, onService, onSum, onToggle, onDelete, onEditService, onPeekService, onAdvancedService, onToggleService, onDeleteService, onAcceptDraft, onDeleteDraft, onAcceptAllDrafts, onClearAllDrafts, onReorderService }) {
   const services = category.services || []
   // 搜索命中的那几条 vs 这个大类一共几条：标题要写「5 项（命中 2）」，
   // 空的时候也要分清「这个筛选下没有」和「这个大类下真的还没有」——
   // 不然一搜索，满员的分类会说自己「还没有服务项」。
   const all = category.allServices || services
+  /**
+   * 服务项的排序句柄。
+   *
+   * **只在「全部展开看某一类」之外的时候也照常给** —— 拖的是 `services` 这一份
+   * （当前筛选下看得见的那些），因为你看不见的东西没法拖到它旁边。
+   */
+  const rowSort = useSortable(services.map((service) => service.id), (ids) => onReorderService(category, ids))
   return (
-    <section className={`price-category${category.status === 'archived' ? ' is-archived' : ''}`} id={`price-category-${category.id}`}>
+    <section className={`price-category${category.status === 'archived' ? ' is-archived' : ''}${sortable ? ` ${sortable.classOf(category.id)}` : ''}`} id={`price-category-${category.id}`} {...(sortable ? sortable.rowProps(category.id) : {})}>
       <header className="price-category__head">
+        {sortable ? <DragHandle label={category.name} {...sortable.handleProps(category.id)} /> : null}
         <button className="price-category__toggle" type="button" aria-expanded={open} onClick={() => onOpenChange(!open)}>{open ? <ChevronDown {...iconProps(16)} /> : <ChevronRight {...iconProps(16)} />}<span><b>{category.name}</b><small>{all.length} 项{services.length !== all.length ? `（命中 ${services.length}）` : ''}{services.length ? ` · ${priceRange(services)}` : ''}</small>{/* 收起时也要能看见「这里还有 3 项等着你决定」 */}{drafts.length ? <em className="price-category__drafts">{drafts.length} 项待添加</em> : null}</span></button>
         {category.notice ? <p title={category.notice}>{category.notice}</p> : null}
         <div className="price-category__actions"><button className="react-mini-button react-mini-button--label" type="button" title="在此分类添加服务" onClick={() => onService(category)}><Plus {...iconProps(14)} /><span>添加服务</span></button><button className="react-mini-button" type="button" title="组合报价" onClick={() => onSum(category)} disabled={!all.length}><Copy {...iconProps(14)} /></button><button className="react-mini-button" type="button" title="编辑大类" onClick={() => onEdit(category)}><Edit3 {...iconProps(14)} /></button><button className="react-mini-button" type="button" title={category.status === 'active' ? '归档大类' : '恢复大类'} onClick={() => onToggle(category)}>{category.status === 'active' ? <Archive {...iconProps(14)} /> : <ArchiveRestore {...iconProps(14)} />}</button><button className="react-mini-button price-danger" type="button" title="删除大类" onClick={() => onDelete(category)}><Trash2 {...iconProps(14)} /></button></div>
       </header>
-      {open ? <div className="price-category__body"><DraftBlock drafts={drafts} busy={draftBusy} onAccept={onAcceptDraft} onDelete={onDeleteDraft} onAcceptAll={onAcceptAllDrafts} onClearAll={onClearAllDrafts} /><div className="price-service__labels"><span>服务项目</span><span>计价方式</span><span>基准价</span><span>阶梯与增项</span><span>操作</span></div>{services.length ? services.map((service) => <ServiceRow key={service.id} service={service} currency={currency} onEdit={onEditService} onPeek={onPeekService} onAdvanced={onAdvancedService} onToggle={onToggleService} onDelete={onDeleteService} />) : <div className="price-category__empty">{category.rawTotal ? '这个筛选下没有服务项。' : '还没有服务项，点“添加服务”即可使用当前游戏和分类。'}</div>}</div> : null}
+      {open ? <div className="price-category__body"><DraftBlock drafts={drafts} busy={draftBusy} onAccept={onAcceptDraft} onDelete={onDeleteDraft} onAcceptAll={onAcceptAllDrafts} onClearAll={onClearAllDrafts} /><div className="price-service__labels"><span>服务项目</span><span>计价方式</span><span>基准价</span><span>阶梯与增项</span><span>操作</span></div>{services.length ? services.map((service) => <ServiceRow key={service.id} service={service} currency={currency} sortable={services.length > 1 ? rowSort : null} onEdit={onEditService} onPeek={onPeekService} onAdvanced={onAdvancedService} onToggle={onToggleService} onDelete={onDeleteService} />) : <div className="price-category__empty">{category.rawTotal ? '这个筛选下没有服务项。' : '还没有服务项，点“添加服务”即可使用当前游戏和分类。'}</div>}</div> : null}
     </section>
   )
 }
 
-function GroupWorkspace({ group, query, drafts = [], draftBusy = false, onNewCategory, onService, onEditCategory, onSum, onToggleCategory, onDeleteCategory, onEditService, onPeekService, onAdvancedService, onToggleService, onDeleteService, onAcceptDraft, onDeleteDraft, onAcceptAllDrafts, onClearAllDrafts }) {
+function GroupWorkspace({ group, query, drafts = [], draftBusy = false, onNewCategory, onService, onEditCategory, onSum, onToggleCategory, onDeleteCategory, onEditService, onPeekService, onAdvancedService, onToggleService, onDeleteService, onAcceptDraft, onDeleteDraft, onAcceptAllDrafts, onClearAllDrafts, onReorderCategory, onReorderService }) {
   const categories = group.categories || []
   const [selected, setSelected] = useState('all')
   // 默认全部收起：一屏先看完整棵树（有几个大类、各多少项、价格区间），想展开哪个点哪个。
@@ -166,6 +288,13 @@ function GroupWorkspace({ group, query, drafts = [], draftBusy = false, onNewCat
     requestAnimationFrame(() => document.getElementById(`price-category-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }))
   }
   const setAllOpen = () => setOpenMap(new Map(categories.map((category) => [String(category.id), !allOpen])))
+  /**
+   * 大类的排序句柄。
+   *
+   * 拖的是**当前筛选下看得见的那些**大类（搜索时只有命中的几个），顺序按它们在
+   * 列表里的相对位置算 —— 没显示的（被搜索筛掉的）留在原地不动，不会被挤走。
+   */
+  const categorySort = useSortable(visible.map((category) => category.id), (ids) => onReorderCategory(group, ids))
 
   /**
    * 待添加按大类分组。没归类（`category_id` 是空）的单独一堆 —— 那多半是 AI
@@ -190,7 +319,7 @@ function GroupWorkspace({ group, query, drafts = [], draftBusy = false, onNewCat
       <header className="price-group__head"><div><h3>{group.game?.name || '通用价格'}</h3><span>{categories.length} 个大类{group.loose.length ? ` · ${group.loose.length} 个未分类服务` : group.looseTotal ? ` · 另有 ${group.looseTotal} 个未分类服务没被筛出来` : ' · 服务均已归类'}{groupDraftCount ? ` · ${groupDraftCount} 项待添加` : ''}</span></div><div className="price-group__head-actions">{group.game?.currency ? <em>{group.game.currency}</em> : null}<button className="refactor-button refactor-button--compact" type="button" onClick={() => onNewCategory(group.key || '')}><FolderPlus {...iconProps(14)} />新建大类</button></div></header>
       <div className="price-workspace">
         <aside className="price-directory" aria-label={`${group.game?.name || '通用价格'}分类目录`}><div className="price-directory__head"><b>分类目录</b><span>{categories.length}</span></div><button className={`price-directory__item${current === 'all' ? ' is-active' : ''}`} type="button" onClick={() => selectCategory('all')}><span>全部分类</span><small>{categories.reduce((count, category) => count + (category.services || []).length, 0)} 项</small></button>{categories.map((category) => <button className={`price-directory__item${current === String(category.id) ? ' is-active' : ''}`} type="button" key={category.id} onClick={() => selectCategory(String(category.id))}><span>{category.name}</span><small>{(category.services || []).length}</small></button>)}{!categories.length ? <p className="price-directory__empty">{query.q ? '这个筛选下没有分类' : '还没有分类'}</p> : null}<button className="price-directory__add" type="button" onClick={() => onNewCategory(group.key || '')}><Plus {...iconProps(14)} />新建分类</button></aside>
-        <div className="price-catalog"><div className="price-catalog__tools"><span>{current === 'all' ? '全部分类' : categories.find((category) => String(category.id) === current)?.name}</span><div><button className="refactor-button refactor-button--compact" type="button" onClick={setAllOpen} disabled={!categories.length}>{allOpen ? <ChevronDown {...iconProps(14)} /> : <ChevronRight {...iconProps(14)} />}{allOpen ? '全部收起' : '全部展开'}</button>{current !== 'all' ? <button className="refactor-button refactor-button--compact" type="button" onClick={() => onService(categories.find((category) => String(category.id) === current))}><Plus {...iconProps(14)} />添加服务</button> : null}</div></div>{visible.map((category) => <CategoryBlock key={category.id} category={category} currency={group.game?.currency || ''} open={!!openMap.get(String(category.id))} drafts={draftsByCategory.get(Number(category.id)) || []} draftBusy={draftBusy} onOpenChange={(value) => setCategoryOpen(category.id, value)} onEdit={onEditCategory} onService={onService} onSum={onSum} onToggle={onToggleCategory} onDelete={onDeleteCategory} onEditService={onEditService} onPeekService={onPeekService} onAdvancedService={onAdvancedService} onToggleService={onToggleService} onDeleteService={onDeleteService} onAcceptDraft={onAcceptDraft} onDeleteDraft={onDeleteDraft} onAcceptAllDrafts={onAcceptAllDrafts} onClearAllDrafts={onClearAllDrafts} />)}{looseDrafts.length ? <div className="price-loose price-loose--drafts"><DraftBlock drafts={looseDrafts} busy={draftBusy} onAccept={onAcceptDraft} onDelete={onDeleteDraft} onAcceptAll={onAcceptAllDrafts} onClearAll={onClearAllDrafts} /></div> : null}{group.loose.length ? <div className="price-loose"><div className="price-loose__head"><b>未分类服务</b><span>{group.loose.some((service) => service.category_name) ? '它原来那个大类不在当前列表里（多半是归档了），重新选一个分类就能归位' : '请编辑服务并选择一个分类'}</span></div>{group.loose.map((service) => <ServiceRow key={service.id} service={service} currency={group.game?.currency || ''} orphan={Boolean(service.category_name)} onEdit={onEditService} onPeek={onPeekService} onAdvanced={onAdvancedService} onToggle={onToggleService} onDelete={onDeleteService} />)}</div> : null}{!visible.length && !group.loose.length ? <div className="price-category__empty price-category__empty--large">还没有分类，先新建一个分类再添加服务。</div> : null}</div>
+        <div className="price-catalog"><div className="price-catalog__tools"><span>{current === 'all' ? '全部分类' : categories.find((category) => String(category.id) === current)?.name}</span><div><button className="refactor-button refactor-button--compact" type="button" onClick={setAllOpen} disabled={!categories.length}>{allOpen ? <ChevronDown {...iconProps(14)} /> : <ChevronRight {...iconProps(14)} />}{allOpen ? '全部收起' : '全部展开'}</button>{current !== 'all' ? <button className="refactor-button refactor-button--compact" type="button" onClick={() => onService(categories.find((category) => String(category.id) === current))}><Plus {...iconProps(14)} />添加服务</button> : null}</div></div>{visible.map((category) => <CategoryBlock key={category.id} category={category} currency={group.game?.currency || ''} open={!!openMap.get(String(category.id))} drafts={draftsByCategory.get(Number(category.id)) || []} draftBusy={draftBusy} sortable={visible.length > 1 ? categorySort : null} onOpenChange={(value) => setCategoryOpen(category.id, value)} onEdit={onEditCategory} onService={onService} onSum={onSum} onToggle={onToggleCategory} onDelete={onDeleteCategory} onEditService={onEditService} onPeekService={onPeekService} onAdvancedService={onAdvancedService} onToggleService={onToggleService} onDeleteService={onDeleteService} onAcceptDraft={onAcceptDraft} onDeleteDraft={onDeleteDraft} onAcceptAllDrafts={onAcceptAllDrafts} onClearAllDrafts={onClearAllDrafts} onReorderService={onReorderService} />)}{looseDrafts.length ? <div className="price-loose price-loose--drafts"><DraftBlock drafts={looseDrafts} busy={draftBusy} onAccept={onAcceptDraft} onDelete={onDeleteDraft} onAcceptAll={onAcceptAllDrafts} onClearAll={onClearAllDrafts} /></div> : null}{group.loose.length ? <div className="price-loose"><div className="price-loose__head"><b>未分类服务</b><span>{group.loose.some((service) => service.category_name) ? '它原来那个大类不在当前列表里（多半是归档了），重新选一个分类就能归位' : '请编辑服务并选择一个分类'}</span></div>{group.loose.map((service) => <ServiceRow key={service.id} service={service} currency={group.game?.currency || ''} orphan={Boolean(service.category_name)} onEdit={onEditService} onPeek={onPeekService} onAdvanced={onAdvancedService} onToggle={onToggleService} onDelete={onDeleteService} />)}</div> : null}{!visible.length && !group.loose.length ? <div className="price-category__empty price-category__empty--large">还没有分类，先新建一个分类再添加服务。</div> : null}</div>
       </div>
     </section>
   )
@@ -337,6 +466,55 @@ export default function PricePage({ route, navigate, onNewGame, onReload, reload
   /** 这个游戏下的待添加。用全量那份（没被搜索筛过），见 `drafts` 的定义处 */
   const draftsOfGroup = (group) => drafts.filter((draft) => String(draft.game_id ?? '') === group.key)
 
+  /**
+   * 拖拽排序：先把界面改了，再发请求；失败了**退回去**并说一声。
+   *
+   * 为什么乐观更新：拖完等一个来回才动，手感是「没反应，我又拖了一次」——
+   * 那会拖出第二个请求，把顺序弄乱。所以本地立刻生效，服务端只是确认。
+   *
+   * 为什么必须回滚：顺序是**存下来的**数据，不是界面状态。失败了还不退，
+   * 用户看到的就是一个「下次刷新就变了」的假顺序，而且他不会知道要重来一次。
+   */
+  const reorder = async (resource, ids, applyLocal) => {
+    const before = book
+    setBook((current) => (current ? applyLocal(current) : current))
+    try {
+      await api.post(`/api/reorder/${resource}`, { ids })
+    } catch (err) {
+      setBook(before)
+      toastErr(err)
+    }
+  }
+
+  /**
+   * 把 `list` 里符合 `match` 的那些元素，按 `orderedIds` 的顺序填回**原来的位置**。
+   *
+   * 大类那一份是**所有游戏混在一起**的扁平数组（服务端按 sort_order 出，界面再按
+   * 游戏分组）。所以「重排某个游戏的大类」不能重排整个数组 —— 只能挑出这个游戏的
+   * 那几个位置，把新顺序填回去，别的游戏的位置一动不动。
+   *
+   * 算法本身在 `./lib/sortable.js`（纯函数，冒烟测试直接 import 它）。
+   */
+  const reorderInPlace = reorderInPlacePure
+
+  const reorderCategory = (group, orderedIds) => reorder('categories', orderedIds, (current) => ({
+    ...current,
+    categories: reorderInPlace(
+      current.categories || [],
+      (category) => String(category.game_id ?? '') === group.key,
+      orderedIds,
+    ),
+  }))
+
+  const reorderService = (category, orderedIds) => reorder('services', orderedIds, (current) => ({
+    ...current,
+    categories: (current.categories || []).map((item) => (
+      item.id === category.id
+        ? { ...item, services: reorderInPlace(item.services || [], () => true, orderedIds) }
+        : item
+    )),
+  }))
+
   const createCategory = async (gameId = '') => { try { if (await openCategoryForm({}, data.games || [], gameId && gameId !== 'generic' ? gameId : null)) await onReload() } catch (err) { toastErr(err) } }
   const editCategory = async (category) => { try { if (await openCategoryForm(category, data.games || [])) await onReload() } catch (err) { toastErr(err) } }
   const newService = async (category) => {
@@ -480,7 +658,7 @@ export default function PricePage({ route, navigate, onNewGame, onReload, reload
       <header className="price-page__head"><div><h2>价格表</h2><p>{data.games.length} 个游戏 · {shownCategoryCount} 个大类 · {shownServiceCount} 个服务项</p></div><div className="price-page__head-actions"><button className="refactor-button" type="button" onClick={() => openExporter(null, { games: data.games || [] })}><Copy {...iconProps(15)} />导出</button><button className="refactor-button" type="button" disabled={!activeGameObj} title={activeGameObj ? `去 B站 搜「${activeGameObj.name} 代肝 价格表」的视频，认出价格后取中位数给你确认` : '先在上面选中一个游戏，比价是按游戏搜的'} onClick={() => openPriceScan(activeGameObj, { onApplied: () => onReload() })}><Sparkles {...iconProps(15)} />B站比价</button><button className="refactor-button" type="button" onClick={onNewGame}><Gamepad2 {...iconProps(15)} />新建价格表</button><button className="refactor-button" type="button" onClick={() => createCategory(activeGame)}><FolderPlus {...iconProps(15)} />新建大类</button><button className="refactor-button refactor-button--primary" type="button" onClick={quickAddService}><Plus {...iconProps(15)} />添加服务</button></div></header>
       <section className="price-toolbar"><div className="price-games"><button className={`price-game${!activeGame ? ' is-active' : ''}`} type="button" onClick={() => update({ game: '' })}>全部价格表</button>{data.games.map((game) => <button key={game.id} className={`price-game${activeGame === String(game.id) ? ' is-active' : ''}`} type="button" onClick={() => update({ game: String(game.id) })}>{game.name}</button>)}<button className={`price-game${activeGame === 'generic' ? ' is-active' : ''}`} type="button" onClick={() => update({ game: 'generic' })}>通用</button></div><div className="price-toolbar__spacer" /><div className="price-status" role="group" aria-label="价格状态"><button className={query.status === 'active' ? 'is-active' : ''} type="button" onClick={() => update({ status: 'active' })}>在架</button><button className={query.status === 'archived' ? 'is-active' : ''} type="button" onClick={() => update({ status: 'archived' })}>已归档</button><button className={query.status === 'all' ? 'is-active' : ''} type="button" onClick={() => update({ status: 'all' })}>全部</button></div><label className="price-search"><Search {...iconProps(15)} /><input type="search" value={search} placeholder="搜大类、服务或说明" onChange={(event) => { const value = event.target.value; setSearch(value); window.clearTimeout(searchTimer.current); searchTimer.current = window.setTimeout(() => updateRef.current({ q: value.trim() }), 260) }} /></label></section>
       {error ? <div className="refactor-alert" role="alert">{error}</div> : null}
-      <section className="price-groups">{book === null ? <div className="refactor-loading"><span /><span /><span /></div> : groups.length ? groups.map((group) => <GroupWorkspace key={group.key || 'generic'} group={group} query={query} drafts={draftsOfGroup(group)} draftBusy={draftBusy} onNewCategory={createCategory} onService={newService} onEditCategory={editCategory} onSum={(cat) => openPriceSum(cat, cat.allServices || cat.services || [])} onToggleCategory={toggleCategory} onDeleteCategory={deleteCategory} onEditService={editService} onPeekService={peekService} onAdvancedService={peekService} onToggleService={toggleService} onDeleteService={deleteService} onAcceptDraft={acceptDraft} onDeleteDraft={removeDraft} onAcceptAllDrafts={acceptAllDrafts} onClearAllDrafts={clearAllDrafts} />) : <div className="price-empty"><Layers3 {...iconProps(24)} /><b>{emptyHint.title}</b><span>{emptyHint.note}</span>{emptyHint.action === 'game' ? <button className="refactor-button refactor-button--primary" type="button" onClick={onNewGame}><Plus {...iconProps(15)} />新建价格表</button> : null}{emptyHint.action === 'category' ? <button className="refactor-button refactor-button--primary" type="button" onClick={() => createCategory(activeGame)}><Plus {...iconProps(15)} />新建大类</button> : null}</div>}</section>
+      <section className="price-groups">{book === null ? <div className="refactor-loading"><span /><span /><span /></div> : groups.length ? groups.map((group) => <GroupWorkspace key={group.key || 'generic'} group={group} query={query} drafts={draftsOfGroup(group)} draftBusy={draftBusy} onNewCategory={createCategory} onService={newService} onEditCategory={editCategory} onSum={(cat) => openPriceSum(cat, cat.allServices || cat.services || [])} onToggleCategory={toggleCategory} onDeleteCategory={deleteCategory} onEditService={editService} onPeekService={peekService} onAdvancedService={peekService} onToggleService={toggleService} onDeleteService={deleteService} onAcceptDraft={acceptDraft} onDeleteDraft={removeDraft} onAcceptAllDrafts={acceptAllDrafts} onClearAllDrafts={clearAllDrafts} onReorderCategory={reorderCategory} onReorderService={reorderService} />) : <div className="price-empty"><Layers3 {...iconProps(24)} /><b>{emptyHint.title}</b><span>{emptyHint.note}</span>{emptyHint.action === 'game' ? <button className="refactor-button refactor-button--primary" type="button" onClick={onNewGame}><Plus {...iconProps(15)} />新建价格表</button> : null}{emptyHint.action === 'category' ? <button className="refactor-button refactor-button--primary" type="button" onClick={() => createCategory(activeGame)}><Plus {...iconProps(15)} />新建大类</button> : null}</div>}</section>
     </div>
   )
 }

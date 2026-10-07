@@ -1260,6 +1260,56 @@ export async function run() {
   r = await api('GET', '/api/games')
   ok('排序生效', r.body.items?.[0]?.name === '绝区零', r.body.items?.map((g) => g.name))
 
+  /**
+   * 大类和服务项的排序（界面上是拖拽把手，接口是同一个）。
+   *
+   * 这里只验**接口**这一层：ids 的顺序真的落成 sort_order、读回来顺序跟着变。
+   * 「拖到哪儿」那段算法在 `client/lib/sortable.js` 里，下面单独有一节测它 ——
+   * 那才是最容易错的地方（先删后插的下标位移），而且是纯函数，好测。
+   */
+  section('排序：大类与服务项')
+  r = await api('POST', '/api/categories', { game_id: gameId, name: '排序甲' })
+  const sortCatA = r.body.id
+  r = await api('POST', '/api/categories', { game_id: gameId, name: '排序乙' })
+  const sortCatB = r.body.id
+  r = await api('POST', '/api/reorder/categories', { ids: [sortCatB, sortCatA] })
+  ok('大类排序接口返回条数', r.body.count === 2, r.body)
+  r = await api('GET', `/api/categories?game_id=${gameId}`)
+  const catOrder = (r.body.items || []).map((c) => c.id)
+  ok('大类顺序按 ids 落库', catOrder.indexOf(sortCatB) < catOrder.indexOf(sortCatA), catOrder)
+
+  // 服务项：排完读回来，同一个大类里顺序要跟着变
+  r = await api('POST', '/api/services', { category_id: sortCatA, game_id: gameId, name: '排序服务甲', price_type: 'fixed', base_price: 10 })
+  const sortSvcA = r.body.id
+  r = await api('POST', '/api/services', { category_id: sortCatA, game_id: gameId, name: '排序服务乙', price_type: 'fixed', base_price: 20 })
+  const sortSvcB = r.body.id
+  r = await api('POST', '/api/reorder/services', { ids: [sortSvcB, sortSvcA] })
+  ok('服务项排序接口返回条数', r.body.count === 2, r.body)
+  r = await api('GET', `/api/services?category_id=${sortCatA}`)
+  const svcOrder = (r.body.items || []).map((s) => s.id)
+  ok('服务项顺序按 ids 落库', svcOrder.indexOf(sortSvcB) < svcOrder.indexOf(sortSvcA), svcOrder)
+
+  // 排序不会顺手改别的东西 —— 价格、大类归属、别名都得不受影响
+  r = await api('GET', `/api/services/${sortSvcA}`)
+  ok('排序没动价格和归属',
+    Number(r.body.base_price) === 10 && r.body.category_id === sortCatA,
+    { price: r.body.base_price, category: r.body.category_id })
+
+  r = await api('POST', '/api/reorder/nonsense', { ids: [1] })
+  ok('不认识的对象被拒', r.status === 400, r.body)
+  r = await api('POST', '/api/reorder/services', { ids: [] })
+  ok('空 ids 被拒', r.status === 400, r.body)
+
+  // 收摊：这几条是刚造的，不删掉会把下面「游戏用量统计」的数字顶高。
+  // `hard` 是 **query 参数**（`?hard=1`），不是 body —— 不传就是「归档」，
+  // 归档的照样被用量统计数进去。
+  await api('DELETE', `/api/services/${sortSvcA}?hard=1`)
+  await api('DELETE', `/api/services/${sortSvcB}?hard=1`)
+  await api('DELETE', `/api/categories/${sortCatA}?hard=1`)
+  await api('DELETE', `/api/categories/${sortCatB}?hard=1`)
+  r = await api('GET', `/api/services?category_id=${sortCatA}`)
+  ok('收摊干净了（不然后面的用例会被这几条污染）', (r.body.items || []).length === 0, r.body.items?.length)
+
   r = await api('GET', `/api/games/${gameId}/usage`)
   ok('游戏用量统计（2 个服务 / 2 张单）', r.body.services === 2 && r.body.orders === 2, r.body)
 
@@ -2189,6 +2239,84 @@ export async function run() {
       v({ name: '甲', price: 5, sources: ['原话写法'], category_id: 99999 }).categoryId === null)
     ok('校验器：别名里不会出现正式名字',
       v({ name: '原话写法', price: 5, sources: ['原话写法'] }).aliases === '')
+  }
+
+  /**
+   * 拖拽排序的**纯算法**。
+   *
+   * 这段是最容易写错、又最难看出来的地方：拖完顺序不对，用户只会觉得「没拖准」，
+   * 不会怀疑是代码算错了。所以它被抽到 `client/lib/sortable.js`（没有 React、没有
+   * JSX），在这里直接 import 进来测。
+   */
+  section('拖拽排序的算法')
+  {
+    const { moveId, nudgeId, reorderInPlace } = await import('../client/lib/sortable.js')
+
+    ok('往前拖：c 落到 a 前面', JSON.stringify(moveId([1, 2, 3, 4], 3, 1, false)) === JSON.stringify([3, 1, 2, 4]),
+      moveId([1, 2, 3, 4], 3, 1, false))
+    ok('往后拖：a 落到 c 后面', JSON.stringify(moveId([1, 2, 3, 4], 1, 3, true)) === JSON.stringify([2, 3, 1, 4]),
+      moveId([1, 2, 3, 4], 1, 3, true))
+
+    /**
+     * 这条是**先删后插**那个坑的钉子。
+     *
+     * 把 a 拿掉之后 c 的下标从 2 变成 1。如果沿用删除前的下标去插，
+     * 结果会是 [b, c, a, d] 之外的东西 —— 往右拖永远差一格。
+     */
+    ok('往右拖不会差一格（先删后插的下标位移）',
+      JSON.stringify(moveId(['a', 'b', 'c', 'd'], 'a', 'c', false)) === JSON.stringify(['b', 'a', 'c', 'd']),
+      moveId(['a', 'b', 'c', 'd'], 'a', 'c', false))
+    ok('往左拖不会差一格',
+      JSON.stringify(moveId(['a', 'b', 'c', 'd'], 'd', 'b', false)) === JSON.stringify(['a', 'd', 'b', 'c']),
+      moveId(['a', 'b', 'c', 'd'], 'd', 'b', false))
+
+    ok('拖到自己身上：原样返回（界面上也不会走到这儿，这是兜底）',
+      JSON.stringify(moveId([1, 2, 3], 2, 2, false)) === JSON.stringify([1, 2, 3]),
+      moveId([1, 2, 3], 2, 2, false))
+    ok('找不到 id 时原样返回（拖的过程中数据被刷新过）',
+      JSON.stringify(moveId([1, 2, 3], 99, 1, false)) === JSON.stringify([1, 2, 3]),
+      moveId([1, 2, 3], 99, 1, false))
+    ok('目标找不到时原样返回', JSON.stringify(moveId([1, 2, 3], 1, 99, false)) === JSON.stringify([1, 2, 3]))
+    // 接口回来的是数字，DOM 上是字符串 —— 比的时候一律按字符串比，
+    // 但放回去的是**原来那个对象**，类型不能顺手改掉
+    ok('数字和字符串混着也能对上',
+      moveId(['1', '2', '3'], 3, '1', false).map(String).join(',') === '3,1,2',
+      moveId(['1', '2', '3'], 3, '1', false))
+
+    ok('键盘下移一格', JSON.stringify(nudgeId([1, 2, 3], 1, 1)) === JSON.stringify([2, 1, 3]))
+    ok('键盘上移一格', JSON.stringify(nudgeId([1, 2, 3], 3, -1)) === JSON.stringify([1, 3, 2]))
+    // 到头了要原样返回**同一个引用** —— useSortable 靠 `next === ids` 判断「没动就不发请求」
+    ok('已经在头 / 尾就不动，而且是同一个引用（不然会白发一次请求）', (() => {
+      const list = [1, 2, 3]
+      return nudgeId(list, 1, -1) === list && nudgeId(list, 3, 1) === list && moveId(list, 1, 1, false) === list
+    })())
+
+    /**
+     * `reorderInPlace`：大类那一份是**所有游戏混在一起**的扁平数组。
+     * 重排某个游戏的大类时，别的游戏的位置一动不能动 —— 这是这段存在的全部理由。
+     */
+    const flat = [
+      { id: 1, game_id: 10, name: '甲-1' }, { id: 2, game_id: 20, name: '乙-1' },
+      { id: 3, game_id: 10, name: '甲-2' }, { id: 4, game_id: 20, name: '乙-2' },
+      { id: 5, game_id: 10, name: '甲-3' },
+    ]
+    const onlyGame10 = (item) => item.game_id === 10
+    const after = reorderInPlace(flat, onlyGame10, [5, 1, 3])
+    ok('重排游戏 10 的大类：它自己的顺序变了',
+      after.filter(onlyGame10).map((c) => c.id).join(',') === '5,1,3',
+      after.filter(onlyGame10).map((c) => c.id))
+    ok('重排游戏 10 的大类：**别的游戏一动没动**',
+      after.filter((c) => c.game_id === 20).map((c) => c.id).join(',') === '2,4',
+      after.filter((c) => c.game_id === 20).map((c) => c.id))
+    ok('重排游戏 10 的大类：占的还是原来那几个位置',
+      after.map((c) => c.id).join(',') === '5,2,1,4,3',
+      after.map((c) => c.id))
+
+    ok('条数对不上就原样返回（拖的过程中数据刷新过）',
+      reorderInPlace(flat, onlyGame10, [5, 1]) === flat)
+    ok('有条数对得上但 id 不存在时也原样返回',
+      reorderInPlace(flat, onlyGame10, [5, 1, 999]) === flat)
+    ok('空列表不炸', Array.isArray(reorderInPlace([], onlyGame10, [])))
   }
 
   /* ---------- 结果 ---------- */

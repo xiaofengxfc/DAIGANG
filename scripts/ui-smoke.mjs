@@ -1158,8 +1158,10 @@ async function main() {
       checkFormShape(ok, await measureForm(cdp), {
         title: '改服务项',
         wide: true,
-        fields: ['服务名｜整', '属于哪个游戏｜整', '放在哪个大类下｜整', '计价方式', '单位', '基准单价（元）', '起订量', '封顶量（留空不限）', '可获得货币（星声）', '说明｜整', '每天都做', '套餐包含内容｜整', '状态', '内部备注'],
-        controls: ['INPUT', 'SELECT', 'SELECT', 'SELECT', 'INPUT', 'INPUT', 'INPUT', 'INPUT', 'INPUT', 'TEXTAREA', 'SELECT', 'INPUT', 'SELECT', 'INPUT'],
+        // 「别名（可选）」是 B站比价那条链路加的：视频里的原话记在这儿，
+        // 下次比价短名字才匹得上长写法。它在「说明」后面。
+        fields: ['服务名｜整', '属于哪个游戏｜整', '放在哪个大类下｜整', '计价方式', '单位', '基准单价（元）', '起订量', '封顶量（留空不限）', '可获得货币（星声）', '说明｜整', '别名（可选）｜整', '每天都做', '套餐包含内容｜整', '状态', '内部备注'],
+        controls: ['INPUT', 'SELECT', 'SELECT', 'SELECT', 'INPUT', 'INPUT', 'INPUT', 'INPUT', 'INPUT', 'TEXTAREA', 'TEXTAREA', 'SELECT', 'INPUT', 'SELECT', 'INPUT'],
         foot: ['取消', '保存'],
       }, '服务项表单：')
 
@@ -1380,6 +1382,134 @@ async function main() {
 
       // 收尾：别把归档的服务项留给后面的用例
       await api(app.base, 'DELETE', `/api/services/${made.body.id}?hard=1`, undefined, fixture.cookie)
+    }
+
+    /* ---- 价格表：拖拽排序（大类之间、大类下的服务项之间）----
+       真浏览器里验这条链路，是因为它整条都只有点下去才知道通不通：
+       把手渲染出来没有、按住才 `draggable` 的逻辑对不对、方向键有没有接到
+       React 的事件上、拖完有没有真发请求、刷新之后顺序还在不在。
+       接口那层冒烟里已经验过了（`排序：大类与服务项`），这里验的是**界面接上了没有**。 */
+    section('价格表 · 拖拽排序')
+    {
+      const before = cdp.errors.length
+      const CAT_A = 'UI排序甲'
+      const CAT_B = 'UI排序乙'
+      const SVC_A = 'UI排序服务甲'
+      const SVC_B = 'UI排序服务乙'
+
+      const catA = await api(app.base, 'POST', '/api/categories', { name: CAT_A, game_id: fixture.gameId }, fixture.cookie)
+      const catB = await api(app.base, 'POST', '/api/categories', { name: CAT_B, game_id: fixture.gameId }, fixture.cookie)
+      // 造的时候就故意让乙排在甲前面，这样「往上挪一格」才有得挪
+      await api(app.base, 'POST', '/api/reorder/categories', { ids: [catB.body.id, catA.body.id] }, fixture.cookie)
+      const svcA = await api(app.base, 'POST', '/api/services/append', { name: SVC_A, category_id: catA.body.id, game_id: fixture.gameId, price_type: 'fixed', base_price: 11 }, fixture.cookie)
+      const svcB = await api(app.base, 'POST', '/api/services/append', { name: SVC_B, category_id: catA.body.id, game_id: fixture.gameId, price_type: 'fixed', base_price: 22 }, fixture.cookie)
+      // append 是「排到末尾」，所以刚造完是甲在前。翻过来，才有得往上挪
+      await api(app.base, 'POST', '/api/reorder/services', { ids: [svcB.body.id, svcA.body.id] }, fixture.cookie)
+      ok('造了排序用的两个大类两个服务项',
+        [catA, catB, svcA, svcB].every((r) => r.status === 200 && r.body.id > 0),
+        [catA.status, catB.status, svcA.status, svcB.status])
+
+      // 造数据走的是接口，页面不会自己知道 —— 价格表是按 hash 挂载的，
+      // 地址没变就不重新取数，所以必须绕一圈回来让它重新挂载
+      await reloadPricePage(cdp)
+      await expandPriceTree(cdp)
+      ok('大类标题上有拖拽把手（没把手就没人知道能拖）',
+        await waitFor(cdp, `Boolean([...document.querySelectorAll('.price-category')].find((s) => s.innerText.includes(${JSON.stringify(CAT_A)}))?.querySelector('.price-category__head .price-grip'))`, { tries: 40, interval: 200 }))
+      ok('服务项行上也有拖拽把手',
+        await waitFor(cdp, `Boolean([...document.querySelectorAll('.price-service')].find((s) => s.innerText.includes(${JSON.stringify(SVC_A)}))?.querySelector('.price-grip'))`, { tries: 40, interval: 200 }))
+
+      /** 页面上某个大类下，服务项的名字顺序 */
+      const svcOrderOnPage = (catName) => cdp.eval(`(() => {
+        const block = [...document.querySelectorAll('.price-category')].find((s) => s.querySelector('.price-category__toggle')?.innerText.includes(${JSON.stringify(catName)}))
+        if (!block) return null
+        return [...block.querySelectorAll('.price-service__name b')].map((b) => b.textContent).filter((n) => n.startsWith('UI排序服务'))
+      })()`)
+      /** 页面上 UI 这几个大类的顺序 */
+      const catOrderOnPage = () => cdp.eval(`[...document.querySelectorAll('.price-category__toggle b')].map((b) => b.textContent).filter((n) => n.startsWith('UI排序'))`)
+
+      ok('一开始乙在甲前面', JSON.stringify(await catOrderOnPage()) === JSON.stringify([CAT_B, CAT_A]), await catOrderOnPage())
+
+      /**
+       * 按住把手之前，整行**不能**是 draggable。
+       * 整行无条件 draggable 的话，在行里选文字、按「编辑」按钮都会变成「开始拖拽」——
+       * 按钮就点不动了。所以这条是必须守住的。
+       */
+      const draggableNow = (name) => cdp.eval(`(() => {
+        const row = [...document.querySelectorAll('.price-service')].find((s) => s.innerText.includes(${JSON.stringify(name)}))
+        return Boolean(row?.draggable)
+      })()`)
+      ok('没按把手时，服务行不是可拖拽的（不然按钮点不动）', (await draggableNow(SVC_A)) === false)
+
+      const pressGrip = (scope, name) => cdp.eval(`(() => {
+        const row = [...document.querySelectorAll(${JSON.stringify(scope)})].find((s) => s.innerText.includes(${JSON.stringify(name)}))
+        const grip = row?.querySelector('.price-grip')
+        if (!grip) return false
+        grip.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+        return true
+      })()`)
+      const releaseGrip = () => cdp.eval(`window.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))`)
+
+      ok('按得到服务项的把手', await pressGrip('.price-service', SVC_A))
+      await sleep(150)
+      ok('按住把手之后整行才变成可拖拽的', (await draggableNow(SVC_A)) === true)
+      await releaseGrip()
+      await sleep(150)
+      ok('松手之后又变回不可拖拽（不然那一行会一直卡在拖拽态）', (await draggableNow(SVC_A)) === false)
+
+      /**
+       * 方向键排序：`useSortable` 里 `handleProps.onKeyDown` 接的是 React 的合成事件，
+       * 所以这里必须发一个**会冒泡的真 KeyboardEvent** —— 直接调 `el.onkeydown()` 测不到
+       * 「React 有没有接上」这件事。
+       */
+      const pressArrow = (scope, name, key) => cdp.eval(`(() => {
+        const row = [...document.querySelectorAll(${JSON.stringify(scope)})].find((s) => s.innerText.includes(${JSON.stringify(name)}))
+        const grip = row?.querySelector('.price-grip')
+        if (!grip) return false
+        grip.dispatchEvent(new KeyboardEvent('keydown', { key: ${JSON.stringify(key)}, bubbles: true, cancelable: true }))
+        return true
+      })()`)
+
+      // 服务项：甲往上挪一格（乙在甲前面）
+      const svcBefore = await svcOrderOnPage(CAT_A)
+      ok('服务项初始顺序是乙在前', JSON.stringify(svcBefore) === JSON.stringify([SVC_B, SVC_A]), svcBefore)
+      await pressArrow('.price-service', SVC_A, 'ArrowUp')
+      ok('按 ↑ 之后页面上顺序立刻变了（乐观更新，不等服务端）',
+        await waitFor(cdp, `(() => {
+          const block = [...document.querySelectorAll('.price-category')].find((s) => s.querySelector('.price-category__toggle')?.innerText.includes(${JSON.stringify(CAT_A)}))
+          return JSON.stringify([...block.querySelectorAll('.price-service__name b')].map((b) => b.textContent).filter((n) => n.startsWith('UI排序服务'))) === ${JSON.stringify(JSON.stringify([SVC_A, SVC_B]))}
+        })()`, { tries: 30, interval: 150 }),
+        await svcOrderOnPage(CAT_A))
+
+      // 真的落库了吗
+      const book1 = await api(app.base, 'GET', '/api/pricebook?status=all', undefined, fixture.cookie)
+      const cat1 = (book1.body.categories || []).find((c) => c.id === catA.body.id)
+      ok('服务项的新顺序真的落库了（不是只改了界面）',
+        JSON.stringify((cat1?.services || []).map((s) => s.name)) === JSON.stringify([SVC_A, SVC_B]),
+        (cat1?.services || []).map((s) => s.name))
+
+      // 大类：甲往上挪一格（乙在甲前面）
+      await pressArrow('.price-category', CAT_A, 'ArrowUp')
+      ok('大类按 ↑ 之后页面上顺序也变了',
+        await waitFor(cdp, `JSON.stringify([...document.querySelectorAll('.price-category__toggle b')].map((b) => b.textContent).filter((n) => n.startsWith('UI排序'))) === ${JSON.stringify(JSON.stringify([CAT_A, CAT_B]))}`, { tries: 30, interval: 150 }),
+        await catOrderOnPage())
+      const book2 = await api(app.base, 'GET', '/api/pricebook?status=all', undefined, fixture.cookie)
+      const order2 = (book2.body.categories || []).filter((c) => c.id === catA.body.id || c.id === catB.body.id).map((c) => c.id)
+      ok('大类的新顺序也真的落库了', JSON.stringify(order2) === JSON.stringify([catA.body.id, catB.body.id]), order2)
+
+      // 刷新之后顺序还在（这条才说明「存下来了」，而不是界面自己记着）
+      await reloadPricePage(cdp)
+      await expandPriceTree(cdp)
+      ok('重新进页面，顺序还是刚拖的那样',
+        await waitFor(cdp, `JSON.stringify([...document.querySelectorAll('.price-category__toggle b')].map((b) => b.textContent).filter((n) => n.startsWith('UI排序'))) === ${JSON.stringify(JSON.stringify([CAT_A, CAT_B]))}`, { tries: 40, interval: 200 }),
+        await catOrderOnPage())
+
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+
+      // 收尾
+      await api(app.base, 'DELETE', `/api/services/${svcA.body.id}?hard=1`, undefined, fixture.cookie)
+      await api(app.base, 'DELETE', `/api/services/${svcB.body.id}?hard=1`, undefined, fixture.cookie)
+      await api(app.base, 'DELETE', `/api/categories/${catA.body.id}?hard=1`, undefined, fixture.cookie)
+      await api(app.base, 'DELETE', `/api/categories/${catB.body.id}?hard=1`, undefined, fixture.cookie)
     }
 
     /* ---- 价格表：服务项详情抽屉（浮层能叠三层）---- */

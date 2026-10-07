@@ -3891,3 +3891,38 @@ button.react-side-row {
 
 /* 没归类的待添加：借「未分类服务」那块的位置，但内容不是服务项，别带它的上边线 */
 .price-loose--drafts { margin-top: 9px; padding: 0; border: 0; }
+
+/* ---------- 拖拽排序（大类之间、大类下的服务项之间） ----------
+
+   拖拽这套东西全靠**视觉反馈**才用得下去：不给出「能拖」「正在拖」「会落在哪」
+   这三样，用户根本不知道有这个功能，也不知道松手会变成什么样。
+
+   所以：把手常驻（能拖的提示）、拖动的那行淡出（正在拖）、
+   落点画一条实线（会落在哪 —— 线在上面就是插到它前面）。 */
+
+.price-grip { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 22px; margin-right: 2px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--ink-3); cursor: grab; }
+.price-grip:hover { background: var(--surface-3); color: var(--ink-2); }
+.price-grip:active { cursor: grabbing; }
+.price-grip:focus-visible { outline: 2px solid var(--jade-ink); outline-offset: 1px; }
+
+/* 正在拖的那行：淡掉，让「它已经离开原位」这件事看得出来 */
+.price-service.is-dragging, .price-category.is-dragging { opacity: .4; }
+
+/* 落点指示线。用 ::before / ::after 而不是 border —— 加 border 会让整行高度跳一下，
+   拖动时下面所有行跟着抖，看着像卡住了。 */
+.price-service.is-drop-before, .price-service.is-drop-after,
+.price-category.is-drop-before, .price-category.is-drop-after { position: relative; }
+.price-service.is-drop-before::before, .price-service.is-drop-after::after,
+.price-category.is-drop-before::before, .price-category.is-drop-after::after {
+  content: ''; position: absolute; left: 0; right: 0; height: 2px; border-radius: 1px;
+  background: var(--jade-ink); pointer-events: none;
+}
+.price-service.is-drop-before::before, .price-category.is-drop-before::before { top: -1px; }
+.price-service.is-drop-after::after, .price-category.is-drop-after::after { bottom: -1px; }
+
+/* 大类标题里那个把手：标题本身有 min-height，把手跟着垂直居中就行 */
+.price-category__head .price-grip { align-self: center; }
+
+/* 只有一条的时候不画把手（拖了也没地方去）。用 :only-of-type 做不到 ——
+   同行还有别的 div，所以交给 JS 决定要不要传 sortable，这里只兜个底。 */
+.price-category__body .price-service:only-of-type .price-grip { display: none; }

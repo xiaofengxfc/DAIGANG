@@ -383,6 +383,22 @@ async function checkTheme(cdp, theme, expectDark) {
 
 async function checkPricePage(cdp) {
   await cdp.eval(`location.hash = '#/price'`)
+  /**
+   * 价格表**默认全部收起**（一屏先看完整棵大类树），服务行要点开才渲染。
+   * 所以这里必须先点一次「全部展开」，不然永远等不到 `.price-service` ——
+   * 这条断言在改成默认收起之后就一直是红的（`npm run check` 不含 glass，
+   * 所以没人发现）。
+   */
+  const expanded = await cdp.eval(`(() => {
+    const button = [...document.querySelectorAll('.price-catalog__tools button')].find((b) => b.textContent.includes('全部展开'))
+    if (!button) return false
+    button.click()
+    return true
+  })()`)
+  if (!expanded) {
+    ok('价格表：找得到「全部展开」', false, (await cdp.eval(`document.querySelector('.price-catalog__tools')?.innerText || ''`)).slice(0, 120))
+    return
+  }
   const ready = await waitFor(cdp, `Boolean(document.querySelector('.price-service'))`, { tries: 40, interval: 200 })
   ok('价格表：服务项渲染出来了', ready)
   if (!ready) return
