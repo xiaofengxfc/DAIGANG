@@ -57,3 +57,15 @@ export const LOGIN_TYPE_LABEL = Object.freeze({
 })
 
 export const canTransitionOrder = (from, to) => from === to || (ORDER_TRANSITIONS[from] || []).includes(to)
+
+/**
+ * 名字看起来是不是「每天都要做」的那种大类（日常 / 日体 / 包天 / 每日 / 托管）。
+ *
+ * 前后端共用同一条规则：
+ *  · 后端在新建大类、且没显式传 is_daily 时拿它自动认一次（老数据、接口调用都能兼容）；
+ *  · 前端「新建大类」表单里，用户没自己动过勾选框时，也跟着它自动勾上 ——
+ *    不然界面上看着没勾，存下去却是勾上的，谁也说不清。
+ */
+export function looksDaily(name) {
+  return /日常|日体|包天|每日|托管/.test(String(name || ''))
+}

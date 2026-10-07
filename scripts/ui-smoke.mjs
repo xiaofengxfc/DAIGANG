@@ -1183,6 +1183,57 @@ async function main() {
       ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
     }
 
+    /* ---- 价格表：在架 / 已归档 / 全部（状态是服务端过滤的，切了必须重新取数）---- */
+    section('价格表 · 状态筛选')
+    {
+      const before = cdp.errors.length
+      const ARCHIVED = 'UI归档服务'
+      const made = await api(app.base, 'POST', '/api/services/append', {
+        name: ARCHIVED,
+        category_id: fixture.categoryId,
+        game_id: fixture.gameId,
+        price_type: 'fixed',
+        base_price: 7,
+      }, fixture.cookie)
+      ok('造了一个待归档的服务项', made.status === 200 && made.body.id > 0, `${made.status}`)
+      await api(app.base, 'PATCH', `/api/services/${made.body.id}`, { status: 'archived' }, fixture.cookie)
+
+      const pageText = () => cdp.eval(`document.querySelector('.price-page')?.innerText || ''`)
+      const statsText = () => cdp.eval(`document.querySelector('.price-page__head p')?.textContent || ''`)
+      const countIs = (n) =>
+        `(() => { const m = /(\\d+) 个服务项/.exec(document.querySelector('.price-page__head p')?.textContent || ''); return Boolean(m) && Number(m[1]) === ${n} })()`
+      const countOf = async () => {
+        const m = /(\d+) 个服务项/.exec(await statsText())
+        return m ? Number(m[1]) : -1
+      }
+      const clickStatus = (label) => cdp.eval(`(() => {
+        const btn = [...document.querySelectorAll('.price-status button')].find((b) => b.textContent.trim() === ${JSON.stringify(label)})
+        if (!btn) return false
+        btn.click()
+        return true
+      })()`)
+
+      await gotoHash(cdp, '/price')
+      ok('默认停在「在架」', await waitFor(cdp, `[...document.querySelectorAll('.price-status button')].some((b) => b.classList.contains('is-active') && b.textContent.trim() === '在架')`, { tries: 25, interval: 200 }))
+      const activeCount = await countOf()
+      ok('在架视图里看不到已归档的服务项', activeCount > 0 && !(await pageText()).includes(ARCHIVED), `${activeCount} 项 · 含归档=${(await pageText()).includes(ARCHIVED)}`)
+
+      await clickStatus('已归档')
+      ok('切到「已归档」后列表真的换了（不是还留着在架那份）', await waitFor(cdp, `(document.querySelector('.price-page')?.innerText || '').includes(${JSON.stringify(ARCHIVED)})`, { tries: 40, interval: 200 }), (await pageText()).replace(/\s+/g, ' ').slice(0, 200))
+      const archivedCount = await countOf()
+      ok('已归档视图只剩归档的那一个', archivedCount === 1, String(archivedCount))
+
+      await clickStatus('全部')
+      ok('「全部」= 在架 + 已归档', await waitFor(cdp, countIs(activeCount + archivedCount), { tries: 40, interval: 200 }), `${await countOf()} vs ${activeCount + archivedCount}`)
+
+      await clickStatus('在架')
+      ok('切回「在架」后归档的那个又消失了', await waitFor(cdp, `!((document.querySelector('.price-page')?.innerText || '').includes(${JSON.stringify(ARCHIVED)})) && ${countIs(activeCount)}`, { tries: 40, interval: 200 }), `${await countOf()} · ${(await pageText()).includes(ARCHIVED)}`)
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+
+      // 收尾：别把归档的服务项留给后面的用例
+      await api(app.base, 'DELETE', `/api/services/${made.body.id}?hard=1`, undefined, fixture.cookie)
+    }
+
     /* ---- 价格表：服务项详情抽屉（浮层能叠三层）---- */
     section('价格表 · 服务项详情抽屉')
     {
@@ -1228,10 +1279,16 @@ async function main() {
       ok('关掉一层后只剩详情抽屉', await waitFor(cdp, `${drawerCountText} === 1`, { tries: 25, interval: 200 }), await drawerCount(cdp))
 
       // 套餐与增项：列表要真的拉出来（旧版这里漏过 load()，打开永远是空的）
+      // 通用增项是照 service_id=__none__ 在服务端拉的：先造一个，
+      // 它必须出现在「全局通用增项」那一段里（以前是拉 400 条再前端筛，通用项一多就漏）。
+      const globalOption = await api(app.base, 'POST', '/api/options', { service_id: null, kind: 'addon', name: 'UI通用增项', price: 9 }, fixture.cookie)
+      ok('造了一个通用增项', globalOption.status === 200 && globalOption.body.id > 0, `${globalOption.status}`)
+
       await clickTopDrawer(cdp, '套餐与增项')
       ok('套餐与增项抽屉打开了', await waitFor(cdp, `${drawerCountText} === 2`, { tries: 25, interval: 200 }), await drawerCount(cdp))
       ok('列表拉出来了（不是空的加载态）', await waitFor(cdp, `((${TOP_DRAWER})?.innerText || '').includes('这个服务项专属')`, { tries: 30, interval: 200 }))
       ok('全局通用增项那一段也在', (await topText(cdp)).includes('全局通用增项'), (await topText(cdp)).slice(0, 240))
+      ok('通用增项真的列在里面', (await topText(cdp)).includes('UI通用增项'), (await topText(cdp)).slice(0, 300))
 
       // 加一个增项，看它出现在列表里
       await clickTopDrawer(cdp, '加增项')
@@ -1242,6 +1299,27 @@ async function main() {
       ok('存完只剩两层', await waitFor(cdp, `${drawerCountText} === 2`, { tries: 40, interval: 200 }), await drawerCount(cdp))
       ok('列表里出现了新增加项', await waitFor(cdp, `((${TOP_DRAWER})?.innerText || '').includes('UI加急')`, { tries: 30, interval: 200 }), (await topText(cdp)).slice(0, 240))
       ok('增项加价写的是 ¥5', (await topText(cdp)).includes('加 ¥5'), (await topText(cdp)).slice(0, 240))
+
+      // 删掉它：这个按钮写的是「删掉」，不能只是归档 ——
+      // 列表是照 service_id 拉的、不看状态，归档完它还会挂在原地，
+      // 用户会以为按钮坏了。
+      ok('找到新增加项那一行的删除按钮', await cdp.eval(`(() => {
+        const top = ${TOP_DRAWER}
+        const row = [...top.querySelectorAll('.item')].find((r) => r.innerText.includes('UI加急'))
+        const btn = row && [...row.querySelectorAll('button')].find((b) => b.title === '删掉这个增项')
+        if (!btn) return false
+        btn.click()
+        return true
+      })()`))
+      ok('删除确认框叠在抽屉上', await waitFor(cdp, `${modalCountText} === 1`, { tries: 25, interval: 200 }), await modalCount(cdp))
+      await cdp.eval(`[...document.querySelectorAll('dialog.modal[open] .modal__foot button')].find((b) => b.textContent.trim() === '删除').click()`)
+      ok('确认后增项从列表里消失', await waitFor(cdp, `!((${TOP_DRAWER})?.innerText || '').includes('UI加急')`, { tries: 40, interval: 200 }), (await topText(cdp)).slice(0, 200))
+      const leftOptions = await api(app.base, 'GET', '/api/options?limit=400', undefined, fixture.cookie)
+      ok('接口里也真的没了（不是只把它归档）', !(leftOptions.body.items || []).some((o) => o.name === 'UI加急'), JSON.stringify((leftOptions.body.items || []).filter((o) => o.name === 'UI加急')))
+      // 收尾：把造出来的通用增项清掉，别留给后面的用例
+      await api(app.base, 'DELETE', `/api/options/${globalOption.body.id}?hard=1`, undefined, fixture.cookie)
+      const leftGlobals = await api(app.base, 'GET', '/api/options?service_id=__none__&status=active&limit=400', undefined, fixture.cookie)
+      ok('通用增项也清干净了', !(leftGlobals.body.items || []).some((o) => o.name === 'UI通用增项'), JSON.stringify(leftGlobals.body.items))
 
       await closeTopDrawer(cdp)
       await closeTopDrawer(cdp)
@@ -1278,6 +1356,57 @@ async function main() {
 
       const gone = (await pricebookServices(app, fixture.cookie)).find((service) => service.name === fixture.doomed)
       ok('接口里也查不到了（hard 删除）', !gone, gone && gone.status)
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+    }
+
+    /* ---- 价格表：详情抽屉里改完价，抽屉自己得跟着变（复制价款是直接发给客户的）---- */
+    section('价格表 · 详情抽屉改价')
+    {
+      const before = cdp.errors.length
+      await gotoHash(cdp, '/price')
+      await expandPriceTree(cdp)
+      ok('找得到要改价的那条服务', await waitFor(cdp, `(document.querySelector('.price-page')?.innerText || '').includes(${JSON.stringify(fixture.service)})`, { tries: 30, interval: 200 }))
+      await cdp.eval(`[...document.querySelectorAll('button[title="查看服务详情"]')].find((b) => b.closest('.price-service')?.innerText.includes(${JSON.stringify(fixture.service)})).click()`)
+      ok('详情抽屉打开了', await waitFor(cdp, `${drawerCountText} === 1`, { tries: 25, interval: 200 }), await drawerCount(cdp))
+
+      // 在抽屉里点「改价格和说明」改价：存完这一层必须重新取数。
+      // 以前抽屉拿着的是「打开那一刻」的快照，改完还显示旧价，
+      // 而「复制价款」就是拿这个价直接发给客户的。
+      await clickTopDrawer(cdp, '改价格和说明')
+      ok('服务项表单叠在详情上面', await waitFor(cdp, `${drawerCountText} === 2`, { tries: 25, interval: 200 }), await drawerCount(cdp))
+      await fillTopField(cdp, '#service-base-price', '46')
+      await submitTopDrawer(cdp)
+      ok('存完表单自己关掉', await waitFor(cdp, `${drawerCountText} === 1`, { tries: 40, interval: 200 }), await drawerCount(cdp))
+      ok('详情抽屉里的价跟着变了', await waitFor(cdp, `((${TOP_DRAWER})?.innerText || '').includes('¥46')`, { tries: 40, interval: 200 }), (await topText(cdp)).slice(0, 200))
+
+      await captureClipboard(cdp)
+      await clickTopDrawer(cdp, '复制价款')
+      await sleep(400)
+      ok('复制价款拿到的是改完的新价', String(await readClipboard(cdp)).includes('¥46/'), JSON.stringify(await readClipboard(cdp)))
+
+      await closeTopDrawer(cdp)
+      await waitFor(cdp, `${drawerCountText} === 0`, { tries: 25, interval: 200 })
+      // 收尾：改回 31，别影响后面的用例
+      const target = (await pricebookServices(app, fixture.cookie)).find((service) => service.name === fixture.service)
+      await api(app.base, 'PATCH', `/api/services/${target.id}`, { base_price: 31 }, fixture.cookie)
+      ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+    }
+
+    /* ---- 价格表：全局搜索点「服务」跳过来（/price?s=<id>）要真的打开详情 ---- */
+    section('价格表 · 搜索跳转')
+    {
+      const before = cdp.errors.length
+      const target = (await pricebookServices(app, fixture.cookie)).find((service) => service.name === fixture.service)
+      await gotoHash(cdp, `/price?s=${target.id}`)
+      ok(
+        '带 ?s= 跳过来会自动打开这条服务的详情',
+        await waitFor(cdp, `${drawerCountText} === 1 && ((${TOP_DRAWER})?.innerText || '').includes(${JSON.stringify(fixture.service)})`, { tries: 40, interval: 200 }),
+        (await topText(cdp)).slice(0, 160)
+      )
+      // 参数用完要抹掉：留着的话再点一次同一个搜索结果，地址没变，抽屉不会再开
+      ok('地址里的 s= 已经抹掉', await waitFor(cdp, `!window.location.hash.includes('s=')`, { tries: 25, interval: 200 }), await cdp.eval('window.location.hash'))
+      await closeTopDrawer(cdp)
+      ok('全部关掉后一层不剩', await waitFor(cdp, `${drawerCountText} === 0`, { tries: 25, interval: 200 }), await drawerCount(cdp))
       ok('这一串操作没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
     }
 

@@ -837,6 +837,15 @@ export async function run() {
   ok('增项被写进说明', (addonItem?.notes || []).some((n) => n.includes('增项')), JSON.stringify(addonItem?.notes))
   ok('套餐内容被写进说明', (addonItem?.notes || []).some((n) => n.startsWith('含 ')), JSON.stringify(addonItem?.notes))
 
+  // 联系方式 / 页脚：不传就跟着设置走，传空串就是「真的不要这一行」。
+  // 导出抽屉里把输入框清空后走的就是后面这条 —— 预览和真下载都得是同一个结果。
+  const settings = await api('GET', '/api/settings')
+  const settingModel = await api('GET', '/api/pricebook/export-model')
+  ok('不传 contact 时用设置里的联系方式', settingModel.body.contact === settings.body.contact, `${JSON.stringify(settingModel.body.contact)} vs ${JSON.stringify(settings.body.contact)}`)
+  const blankModel = await api('GET', '/api/pricebook/export-model?contact=&footer=')
+  ok('contact 传空串就是真的清掉（不是回落到设置）', blankModel.body.contact === '', JSON.stringify(blankModel.body.contact))
+  ok('footer 传空串也真的清掉', blankModel.body.footer === '', JSON.stringify(blankModel.body.footer))
+
   // 按游戏拆开：单独导一个游戏，不能混进别的游戏
   const gameKeys = (r.body.gameOptions || []).filter((g) => g.key)
   if (gameKeys.length) {
@@ -924,6 +933,38 @@ export async function run() {
   const styleColors = [...partText('xl/styles.xml').matchAll(/rgb="([0-9A-Fa-f]{6,8})"/g)].map((m) => m[1])
   ok('Excel 调色板是纯灰阶', styleColors.length > 0 && styleColors.every(isNeutral), styleColors.join(', '))
   ok('Excel 里没有底纹填充（只有 none / gray125）', (partText('xl/styles.xml').match(/patternType="([a-z0-9]+)"/g) || []).join(',') === 'patternType="none",patternType="gray125"')
+
+  /* 通用项（没绑游戏的服务项）单独一份导出：
+     「每个游戏各出一份」里那份通用表是照 generic=1 单独取模型的 ——
+     以前是拿整份模型顶替，文件名写着通用、内容却是所有游戏拼在一起的。 */
+  const genCat = await api('POST', '/api/categories/append', { name: '冒烟通用大类' })
+  const genSvc = await api('POST', '/api/services/append', { name: '冒烟通用服务项', category_id: genCat.body.id, base_price: 6 })
+  ok('建得出通用大类 / 通用服务项', genCat.status === 200 && genSvc.status === 200, `${genCat.status}/${genSvc.status}`)
+
+  const genModel = await api('GET', '/api/pricebook/export-model?generic=1')
+  const genNames = (genModel.body.groups || []).flatMap((g) => (g.items || []).map((i) => i.name))
+  ok('generic=1 里只有通用服务项', genNames.includes('冒烟通用服务项') && !genNames.includes('每日委托'), genNames.join(' / '))
+  ok('generic=1 的每个大类都不挂游戏', (genModel.body.groups || []).every((g) => !g.gameName), JSON.stringify((genModel.body.groups || []).map((g) => g.gameName)))
+  ok('generic=1 的抬头写的是通用', genModel.body.subtitle === '未指定游戏的通用项', genModel.body.subtitle)
+  ok('generic=1 不会把某个游戏的提示顶到最上面', !genModel.body.notice, JSON.stringify(genModel.body.notice))
+  ok(
+    'generic=1 的可导出目标只剩通用那一项',
+    (genModel.body.gameOptions || []).length === 1 && genModel.body.gameOptions[0].key === '',
+    JSON.stringify(genModel.body.gameOptions)
+  )
+
+  const genRes = await fetch(`${BASE}/api/pricebook/export.docx?generic=1`, { headers: cookie ? { cookie } : {} })
+  const genXml =
+    readZip(Buffer.from(await genRes.arrayBuffer()))
+      ?.find((e) => e.name === 'word/document.xml')
+      ?.data.toString('utf8') || ''
+  const genTexts = [...genXml.matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)].map((m) => m[1])
+  ok('通用 Word 里也只有通用服务项', genTexts.includes('冒烟通用服务项') && !genTexts.includes('每日委托'), genTexts.join(' | ').slice(0, 200))
+
+  await api('DELETE', `/api/services/${genSvc.body.id}?hard=1`)
+  await api('DELETE', `/api/categories/${genCat.body.id}?hard=1`)
+  const genAfter = await api('GET', '/api/pricebook/export-model?generic=1')
+  ok('通用项用完清理干净', (genAfter.body.groups || []).length === 0, JSON.stringify((genAfter.body.groups || []).map((g) => g.name)))
 
   /* 公告：每个游戏一条，导出时放在最上方（图片和 Word 共用一个模型） */
   const NOTICE = '冒烟测试公告：周一到周五下单送一天'

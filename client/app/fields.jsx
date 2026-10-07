@@ -1,4 +1,4 @@
-﻿import React, { useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { Upload } from 'lucide-react'
 import { api } from '../lib/api.js'
 import { toast } from './toast-store.js'
@@ -47,9 +47,13 @@ export function TextInput({ value, onChange, numeric = false, money = false, max
       maxLength={maxLength}
       value={value ?? ''}
       onChange={(event) => onChange(event.target.value)}
-      // 金额框失焦时收成两位小数，和旧引擎的 money 字段一样
+      // 金额框失焦时收成两位小数，和旧引擎的 money 字段一样。
+      // 但只有真是数字才收：以前输入「100元」这种会被 Number() 判成 NaN，
+      // 然后 || 0 把它整个改成 0 —— 看着像自己变 0，存下去的也是 0。
+      // 留着原文，交给提交时的「请填数字」去拦。
       onBlur={(event) => {
-        if (money && event.target.value !== '') onChange(String(Math.round((Number(event.target.value) || 0) * 100) / 100))
+        const raw = event.target.value
+        if (money && raw !== '' && Number.isFinite(Number(raw))) onChange(String(Math.round(Number(raw) * 100) / 100))
         if (onBlur) onBlur(event)
       }}
     />

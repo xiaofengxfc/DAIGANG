@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react'
+import React, { useState } from 'react'
 import { api, PRICE_TYPES } from './lib/api.js'
 import { toast } from './app/toast-store.js'
 import Drawer from './app/drawer.jsx'
@@ -29,6 +29,9 @@ import { openOverlay } from './app/overlay-host.jsx'
 
 const FORM_ID = 'service-form'
 
+/** 校验失败要聚焦的那个框：默认按字段名拼 id，对不上的在这里点名 */
+const FOCUS_ID = { currency_amount: 'service-currency' }
+
 export function openServiceForm(values = {}, { games = [], categories = [] } = {}, { quick = false } = {}) {
   return openOverlay(
     (close) => <ServiceForm values={values} games={games} categories={categories} quick={quick} close={close} />,
@@ -38,11 +41,6 @@ export function openServiceForm(values = {}, { games = [], categories = [] } = {
 
 function ServiceForm({ values, games, categories, quick, close }) {
   const isEdit = Boolean(values.id)
-  // 货币名字填在游戏上，这里只填数量。先按服务项当前所属的游戏找一下名字，
-  // 这样标签上就能直接写「（星声）」而不是干巴巴一个「可获得货币」。
-  const gameIdOf = values.game_id || categories.find((category) => String(category.id) === String(values.category_id))?.game_id || ''
-  const currency = games.find((game) => String(game.id) === String(gameIdOf))?.currency || ''
-
   const [form, setForm] = useState(() => ({
     name: values.name || '',
     game_id: values.game_id === null || values.game_id === undefined ? '' : String(values.game_id),
@@ -64,6 +62,11 @@ function ServiceForm({ values, games, categories, quick, close }) {
   const [busy, setBusy] = useState(false)
   const set = (key) => (value) => setForm((current) => ({ ...current, [key]: value }))
 
+  // 货币名字填在游戏上，这里只填数量。跟着**当前选中的**游戏走（而不是打开表单时的那一个），
+  // 这样换游戏 / 换大类时标签上的「（星声）」会跟着变，不会指着一个已经换掉的游戏。
+  const gameIdOf = form.game_id || categories.find((category) => String(category.id) === String(form.category_id))?.game_id || ''
+  const currency = games.find((game) => String(game.id) === String(gameIdOf))?.currency || ''
+
   async function submit(event) {
     event.preventDefault()
     // 自定义块报的错（还没选大类）优先于其他校验 —— 和旧引擎的顺序一样
@@ -81,7 +84,9 @@ function ServiceForm({ values, games, categories, quick, close }) {
     setErrors(next)
     setAlert('')
     if (Object.keys(next).length) {
-      document.getElementById(`service-${Object.keys(next)[0]}`)?.focus()
+      // 「可获得货币」那个框的 id 是 service-currency（不是 service-currency_amount），
+      // 照 key 直接拼会找不到元素、焦点不动。
+      document.getElementById(FOCUS_ID[Object.keys(next)[0]] || `service-${Object.keys(next)[0]}`)?.focus()
       return
     }
 
@@ -91,7 +96,8 @@ function ServiceForm({ values, games, categories, quick, close }) {
         ...form,
         name: String(form.name).trim(),
         game_id: form.game_id || null,
-        min_qty: Number(form.min_qty) || 1,
+        // 留空才算没填；填了 0 就存 0（以前 || 1 会把界面上的 0 悄悄变成 1）
+        min_qty: String(form.min_qty).trim() === '' ? 1 : Number(form.min_qty),
         max_qty: form.max_qty === '' || form.max_qty === null ? null : Number(form.max_qty),
         // 留空 = 不显示，存 NULL（和「封顶量」一个规矩）
         currency_amount: form.currency_amount === '' || form.currency_amount === null ? null : Number(form.currency_amount),
@@ -109,14 +115,14 @@ function ServiceForm({ values, games, categories, quick, close }) {
   const fields = quick ? (
     <>
       <Field label="服务名" required htmlFor="service-name" error={errors.name}>
-        <TextInput id="service-name" value={form.name} onChange={set('name')} placeholder="例：每日委托 / 深渊 12 层 / 活动全包" aria-invalid={errors.name ? 'true' : undefined} />
+        <TextInput id="service-name" maxLength={120} value={form.name} onChange={set('name')} placeholder="例：每日委托 / 深渊 12 层 / 活动全包" aria-invalid={errors.name ? 'true' : undefined} />
       </Field>
-      <GameCategoryFields games={games} categories={categories} gameId={form.game_id} categoryId={form.category_id} onGame={set('game_id')} onCategory={set('category_id')} />
+      <GameCategoryFields games={games} categories={categories} gameId={form.game_id} categoryId={form.category_id} gameName={values.game_name || ''} categoryName={values.category_name || ''} onGame={set('game_id')} onCategory={set('category_id')} />
       <Field label="计价方式" required half htmlFor="service-price-type">
         <SelectInput id="service-price-type" value={form.price_type} onChange={set('price_type')} options={PRICE_TYPES} />
       </Field>
       <Field label="单位" half htmlFor="service-unit">
-        <TextInput id="service-unit" value={form.unit_label} onChange={set('unit_label')} placeholder="天 / 次 / 层 / 个 / 套" />
+        <TextInput id="service-unit" maxLength={20} value={form.unit_label} onChange={set('unit_label')} placeholder="天 / 次 / 层 / 个 / 套" />
       </Field>
       <Field label="基准单价" required half suffix="元" htmlFor="service-base-price" error={errors.base_price}>
         <TextInput id="service-base-price" money value={form.base_price} onChange={set('base_price')} aria-invalid={errors.base_price ? 'true' : undefined} />
@@ -125,20 +131,20 @@ function ServiceForm({ values, games, categories, quick, close }) {
         <TextInput id="service-min-qty" numeric value={form.min_qty} onChange={set('min_qty')} />
       </Field>
       <Field label="说明（可选）" htmlFor="service-description">
-        <TextArea id="service-description" rows={2} value={form.description} onChange={set('description')} placeholder="客户问到时需要说明的内容" />
+        <TextArea id="service-description" rows={2} maxLength={2000} value={form.description} onChange={set('description')} placeholder="客户问到时需要说明的内容" />
       </Field>
     </>
   ) : (
     <>
       <Field label="服务名" required htmlFor="service-name" error={errors.name}>
-        <TextInput id="service-name" value={form.name} onChange={set('name')} placeholder="例：每日委托 / 深渊 12 层 / 活动全包" aria-invalid={errors.name ? 'true' : undefined} />
+        <TextInput id="service-name" maxLength={120} value={form.name} onChange={set('name')} placeholder="例：每日委托 / 深渊 12 层 / 活动全包" aria-invalid={errors.name ? 'true' : undefined} />
       </Field>
-      <GameCategoryFields games={games} categories={categories} gameId={form.game_id} categoryId={form.category_id} onGame={set('game_id')} onCategory={set('category_id')} />
+      <GameCategoryFields games={games} categories={categories} gameId={form.game_id} categoryId={form.category_id} gameName={values.game_name || ''} categoryName={values.category_name || ''} onGame={set('game_id')} onCategory={set('category_id')} />
       <Field label="计价方式" required half htmlFor="service-price-type" hint="按数量会自动用阶梯价（如果配了的话）">
         <SelectInput id="service-price-type" value={form.price_type} onChange={set('price_type')} options={PRICE_TYPES} />
       </Field>
       <Field label="单位" half htmlFor="service-unit">
-        <TextInput id="service-unit" value={form.unit_label} onChange={set('unit_label')} placeholder="天 / 次 / 层 / 个 / 套" />
+        <TextInput id="service-unit" maxLength={20} value={form.unit_label} onChange={set('unit_label')} placeholder="天 / 次 / 层 / 个 / 套" />
       </Field>
       <Field label="基准单价" required half suffix="元" htmlFor="service-base-price" error={errors.base_price}>
         <TextInput id="service-base-price" money value={form.base_price} onChange={set('base_price')} aria-invalid={errors.base_price ? 'true' : undefined} />
@@ -164,7 +170,7 @@ function ServiceForm({ values, games, categories, quick, close }) {
         <TextInput id="service-currency" numeric value={form.currency_amount} onChange={set('currency_amount')} placeholder="例：200" />
       </Field>
       <Field label="说明" htmlFor="service-description">
-        <TextArea id="service-description" rows={3} value={form.description} onChange={set('description')} placeholder="客户问的时候你能直接念出来的一段话" />
+        <TextArea id="service-description" rows={3} maxLength={2000} value={form.description} onChange={set('description')} placeholder="客户问的时候你能直接念出来的一段话" />
       </Field>
       <Field label="每天都做" half htmlFor="service-is-daily" hint="默认跟着大类走 —— 往「日常」大类里加的服务项自动就算每天做">
         <SelectInput
@@ -227,7 +233,7 @@ function ServiceForm({ values, games, categories, quick, close }) {
 }
 
 /** 游戏 ↔ 大类 联动的那两个下拉（自定义块，占满一行） */
-function GameCategoryFields({ games, categories, gameId, categoryId, onGame, onCategory }) {
+function GameCategoryFields({ games, categories, gameId, categoryId, gameName = '', categoryName = '', onGame, onCategory }) {
   // 只在打开表单时保留「当前这条」的大类（万一它和游戏对不上，也不能悄悄改掉它）。
   // 用户一旦手动换游戏，就不再保留 —— 否则换了游戏还看得到别的游戏的大类，很迷惑。
   const [keepCurrent, setKeepCurrent] = useState(Boolean(categoryId))
@@ -238,6 +244,12 @@ function GameCategoryFields({ games, categories, gameId, categoryId, onGame, onC
     if (!gameId) return true
     return !category.game_id || String(category.game_id) === String(gameId)
   })
+
+  // 原值不在候选里（游戏 / 大类被归档了）时，这两个裸 select 不会像 SelectInput 那样
+  // 自己补一个「（原值：X）」的占位项 —— 那样浏览器会默认选中第一项，
+  // 界面上看着已经是「通用 / 没选大类」，state 里却还是老的外键，一保存就对不上。
+  const gameKnown = !gameId || games.some((game) => String(game.id) === String(gameId))
+  const categoryKnown = Boolean(categoryId) && list.some((category) => String(category.id) === String(categoryId))
 
   return (
     // field--full 不能省：旧引擎对自定义块会补一个
@@ -260,6 +272,7 @@ function GameCategoryFields({ games, categories, gameId, categoryId, onGame, onC
           }}
         >
           <option value="">通用（不属于某个游戏）</option>
+          {gameKnown ? null : <option value={String(gameId)}>{gameName ? `${gameName}（已归档）` : `（原值：${gameId}）`}</option>}
           {games.map((game) => (
             <option key={game.id} value={String(game.id)}>
               {game.name}
@@ -276,7 +289,7 @@ function GameCategoryFields({ games, categories, gameId, categoryId, onGame, onC
         <select
           id="service-category"
           className="sel"
-          value={list.some((category) => String(category.id) === String(categoryId)) ? categoryId : ''}
+          value={categoryId}
           onChange={(event) => {
             const next = event.target.value
             onCategory(next)
@@ -286,6 +299,7 @@ function GameCategoryFields({ games, categories, gameId, categoryId, onGame, onC
           }}
         >
           <option value="">{list.length ? '— 选一个大类 —' : '这个游戏下还没有大类'}</option>
+          {categoryKnown || !categoryId ? null : <option value={String(categoryId)}>{categoryName ? `${categoryName}（已归档）` : `（原值：${categoryId}）`}</option>}
           {list.map((category) => {
             const foreign = category.game_id && String(category.game_id) !== String(gameId)
             return (

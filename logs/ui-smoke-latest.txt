@@ -1,0 +1,758 @@
+﻿
+  界面冒烟实例：http://127.0.0.1:50490（数据目录 D:\github_xm\代肝价格查询\data-smoke-run）
+   200 POST   /api/setup 116ms
+   200 POST   /api/games 3ms
+   200 POST   /api/categories 3ms
+   200 POST   /api/services 3ms
+   200 POST   /api/services 3ms
+   200 POST   /api/services/2/tiers 2ms
+   200 POST   /api/services/2/tiers 2ms
+   200 POST   /api/services 2ms
+   200 POST   /api/customers 2ms
+   200 POST   /api/services 2ms
+   200 POST   /api/orders 3ms
+   200 POST   /api/orders 2ms
+
+── 登录 ────────────────────────────────────────────
+  ✓ 未登录时停在登录页
+   200 POST   /api/auth/login 39ms
+  ✓ 登录接口返回 200
+  ✓ 登录后进入工作台外壳
+
+── 页面渲染 ──────────────────────────────────────────
+  ✓ 总览：页面渲染出来（.react-shell）
+  ✓ 总览：内容里有「待确认」
+  ✓ 总览：没有页面报错
+   200 GET    /api/orders 1ms
+  ✓ 订单：页面渲染出来（.orders-page）
+  ✓ 订单：内容里有「UI客户」
+  ✓ 订单：没有页面报错
+   200 GET    /api/customers 1ms
+  ✓ 客户：页面渲染出来（.customers-page）
+  ✓ 客户：内容里有「UI客户」
+  ✓ 客户：没有页面报错
+   200 GET    /api/pricebook 1ms
+  ✓ 价格表：页面渲染出来（.price-page）
+  ✓ 价格表：内容里有「UI服务项」
+  ✓ 价格表：没有页面报错
+   200 GET    /api/games 0ms
+  ✓ 游戏：页面渲染出来（.games-page）
+  ✓ 游戏：内容里有「UI冒烟游戏」
+  ✓ 游戏：没有页面报错
+   200 GET    /api/payments 1ms
+   200 GET    /api/finance/summary 1ms
+  ✓ 财务：页面渲染出来（.finance-page）
+  ✓ 财务：内容里有「财务」
+  ✓ 财务：没有页面报错
+   200 GET    /api/quotes 1ms
+  ✓ 报价单：页面渲染出来（.quotes-page）
+  ✓ 报价单：内容里有「报价单」
+  ✓ 报价单：没有页面报错
+   200 GET    /api/media/bootstrap 1ms
+   200 GET    /api/media/dependencies 1616ms
+  ✓ 自媒体：页面渲染出来（.media-page）
+  ✓ 自媒体：内容里有「自媒体」
+  ✓ 自媒体：没有页面报错
+   200 GET    /api/credentials 1ms
+   200 GET    /api/customers 1ms
+   200 GET    /api/games 0ms
+  ✓ 保险箱：页面渲染出来（.vault-page）
+  ✓ 保险箱：内容里有「保险箱」
+  ✓ 保险箱：没有页面报错
+   200 GET    /api/settings 0ms
+   200 GET    /api/backup/counts 0ms
+   200 GET    /api/ocr/status 10ms
+   200 GET    /api/ocr/backend 457ms
+   200 GET    /api/ocr/install 419ms
+  ✓ 设置：页面渲染出来（.settings-page）
+  ✓ 设置：内容里有「设置」
+  ✓ 设置：没有页面报错
+  ✓ 乱敲地址给的是兜底页
+  ✓ 兜底页说清了「没有这一页」
+  ✓ 兜底页把地址也写出来了
+  ✓ 点「回工作台」能回到总览
+  ✓ 兜底页也没有页面报错
+
+── 点开抽屉 ──────────────────────────────────────────
+   200 GET    /api/pricebook 1ms
+  ✓ 价格表 · 看服务详情：按钮在（button[title="查看服务详情"]）
+  ✓ 价格表 · 看服务详情：抽屉打开了（dialog.drawer[open]）
+  ✓ 价格表 · 看服务详情：抽屉里有「UI服务项」
+  ✓ 价格表 · 看服务详情：打开过程没有报错
+  ✓ 价格表 · 看服务详情：关掉后没有残留浮层
+   200 GET    /api/orders 1ms
+  ✓ 订单 · 记收款：按钮在（button[title="记收款"]）
+  ✓ 订单 · 记收款：抽屉打开了（dialog.drawer[open]）
+  ✓ 订单 · 记收款：抽屉里有「应收」
+  ✓ 订单 · 记收款：打开过程没有报错
+  ✓ 订单 · 记收款：关掉后没有残留浮层
+  ✓ 订单 · 记进度：按钮在（button[title="记进度"]）
+   200 GET    /api/orders/2 2ms
+   200 GET    /api/ocr/status 1ms
+  ✓ 订单 · 记进度：抽屉打开了（dialog.drawer[open]）
+  ✓ 订单 · 记进度：抽屉里有「这次做了什么」
+  ✓ 订单 · 记进度：打开过程没有报错
+  ✓ 订单 · 记进度：关掉后没有残留浮层
+   200 GET    /api/quotes 1ms
+  ✓ 报价单 · 做报价单（顶部动作）：按钮在（.refactor-top-action）
+   200 GET    /api/pricebook 1ms
+   200 GET    /api/customers 0ms
+   200 GET    /api/games 1ms
+  ✓ 报价单 · 做报价单（顶部动作）：抽屉打开了（dialog[open]）
+  ✓ 报价单 · 做报价单（顶部动作）：打开过程没有报错
+  ✓ 报价单 · 做报价单（顶部动作）：关掉后没有残留浮层
+
+── 订单 · 记进度 / 记收款 ────────────────────────────────
+   200 GET    /api/orders 1ms
+  ✓ 订单行上有「记进度」
+   200 GET    /api/orders/1 1ms
+   200 GET    /api/ocr/status 0ms
+  ✓ React「记一条进度」抽屉打开了
+  ✓ 记进度：量到了表单
+  ✓ 记进度：标题是「记一条进度」
+  ✓ 记进度：抽屉宽窄对（wide=false）
+  ✓ 记进度：字段顺序和半宽/整宽对
+  ✓ 记进度：控件类型对
+  ✓ 记进度：页脚按钮对
+  ✓ 资源对比两排都在
+  ✓ 三个资源框都在
+  ✓ 两个识别按钮都在
+  ✓ 还没有上一条进度时不写来历
+  ✓ 「本次消耗」自己算出来了
+   200 POST   /api/orders/1/progress 12ms
+   200 GET    /api/orders 2ms
+  ✓ 记完抽屉自己关掉
+   200 GET    /api/orders/1 1ms
+  ✓ 进度落库了（做之前 100/50）
+  ✓ 进度落库了（做之后 80/20）
+  ✓ 进度内容也存对了
+  ✓ 订单行上的进度条数跟着变了
+   200 GET    /api/orders/1 1ms
+   200 GET    /api/ocr/status 0ms
+  ✓ 「做之前」自动带上了上一条的「做之后」
+  ✓ 并且说清了来历
+  ✓ React「记一笔收款」抽屉打开了
+  ✓ 记收款：量到了表单
+  ✓ 记收款：标题是「记一笔收款」
+  ✓ 记收款：抽屉宽窄对（wide=false）
+  ✓ 记收款：字段顺序和半宽/整宽对
+  ✓ 记收款：控件类型对
+  ✓ 记收款：页脚按钮对
+  ✓ 金额默认填「还差」的数
+  ✓ 类型默认「全款」
+  ✓ 收款方式默认微信
+  ✓ 空金额被拦住
+   200 POST   /api/payments 2ms
+   200 GET    /api/orders 1ms
+  ✓ 记完抽屉自己关掉
+   200 GET    /api/orders/1 1ms
+  ✓ 订单上已收 5 元
+  ✓ 还差 7 元
+  ✓ 列表上的欠款跟着变了
+  ✓ 这一串操作没有页面报错
+
+── 开单台 · 挑服务算钱 ───────────────────────────────────
+   200 GET    /api/pricebook 0ms
+   200 GET    /api/customers 0ms
+   200 GET    /api/games 1ms
+  ✓ React 开单台打开了
+  ✓ 开单台：量到了表单
+  ✓ 开单台：标题是「开一张新单」
+  ✓ 开单台：抽屉宽窄对（wide=true）
+  ✓ 开单台：字段顺序和半宽/整宽对
+  ✓ 开单台：控件类型对
+  ✓ 开单台：页脚按钮对
+  ✓ 没挑服务时游戏格写着自动填
+  ✓ 按游戏筛选后大类自动选中了那一个
+  ✓ 按游戏筛完还能搜到服务项
+  ✓ 搜出 1 行服务项
+  ✓ 勾上了这一行
+  ✓ 合计按基准价 ¥12
+  ✓ 勾完服务项，游戏自动显示出来了
+  ✓ 行上写清了按什么算
+  ✓ 数量 3 → ¥36
+  ✓ 改价 10 → ¥30
+  ✓ 清掉改价 → 回到 ¥36
+  ✓ 非数字的改价标红了
+  ✓ 非数字时仍按基准价算 ¥36（不会变 ¥0）
+  ✓ 8 层按阶梯价 ¥25 算
+  ✓ 两项合计 ¥236（36 + 200）
+  ✓ 交付日期自动填上了
+  ✓ 说清了是自动填的
+  ✓ 还剩几天也算出来了
+  ✓ 扣掉折扣 → ¥232
+  ✓ 汇总四行都对
+  ✓ 没选客户被拦住
+  ✓ 被拦住时抽屉不关
+   200 POST   /api/orders 3ms
+   200 GET    /api/orders/3 1ms
+  ✓ 开完单抽屉自己关掉
+  ✓ 跳到了新单详情
+   200 GET    /api/orders/3 1ms
+  ✓ 新单合计 ¥232
+  ✓ 折扣 6 记下了
+  ✓ 订单的游戏是按服务项自动推出来的
+  ✓ 详情页上也写着这个游戏
+  ✓ 三条明细都在
+  ✓ UI服务项 3 单 × ¥12
+  ✓ UI阶梯服务 8 层 × ¥25（服务端算的阶梯价和界面对得上）
+  ✓ UI日体 1 × ¥2
+  ✓ 这一串操作没有页面报错
+
+── 报价单 · 做一张 ─────────────────────────────────────
+   200 GET    /api/quotes 0ms
+  ✓ 报价单页有「做报价单」
+   200 GET    /api/pricebook 1ms
+   200 GET    /api/customers 1ms
+   200 GET    /api/games 0ms
+  ✓ React 报价单抽屉打开了
+  ✓ 报价单：量到了表单
+  ✓ 报价单：标题是「做一张报价单」
+  ✓ 报价单：抽屉宽窄对（wide=true）
+  ✓ 报价单：字段顺序和半宽/整宽对
+  ✓ 报价单：控件类型对
+  ✓ 报价单：页脚按钮对
+  ✓ 空着的时候右边写着「勾几个服务项」
+  ✓ 搜出 1 行
+  ✓ 勾上了
+  ✓ 报价单里出现这一行
+  ✓ 数量 3 → 合计 ¥36
+  ✓ 底部写着已选 1 项
+  ✓ 文字版出来了
+  ✓ 文字版里有抬头和序号
+  ✓ 复制到剪贴板了
+  ✓ 复制成功还说了句
+   200 POST   /api/quotes 2ms
+   200 GET    /api/quotes 1ms
+  ✓ 存完抽屉自己关掉
+   200 GET    /api/quotes 0ms
+  ✓ 接口里落了这张报价单
+  ✓ 合计和服务端算的一样（¥36）
+  ✓ 列表里也能看到
+   200 GET    /api/quotes/1/text 0ms
+  ✓ 文字版弹窗打开了
+  ✓ 弹窗里是那张报价单的文字
+  ✓ 弹窗里也能复制
+  ✓ 弹窗关掉了
+  ✓ 这一串操作没有页面报错
+
+── 填表提交 · 新的 React 表单（新建游戏） ──────────────────────
+   200 GET    /api/games 0ms
+  ✓ 游戏页有「新建游戏」顶部按钮
+  ✓ React 抽屉打开了
+  ✓ 抽屉标题是「新建游戏」
+  ✓ 空游戏名被校验拦住
+  ✓ 被拦住时抽屉不关
+   200 POST   /api/games 2ms
+   200 GET    /api/games 1ms
+  ✓ 保存后抽屉自己关掉
+  ✓ 列表里出现了新游戏（保存后自动刷新）
+   200 GET    /api/games 2ms
+  ✓ 接口里确实落了这条游戏
+  ✓ 区服按逗号拆成了数组
+  ✓ 货币名称也存进去了
+  ✓ 这一串操作没有页面报错
+
+── 游戏表单 · 形状 ─────────────────────────────────────
+  ✓ React 游戏表单打开了
+  ✓ 游戏表单：量到了表单
+  ✓ 游戏表单：标题是「新建游戏」
+  ✓ 游戏表单：抽屉宽窄对（wide=true）
+  ✓ 游戏表单：字段顺序和半宽/整宽对
+  ✓ 游戏表单：控件类型对
+  ✓ 游戏表单：页脚按钮对
+
+── 客户表单 · 形状与提交 ──────────────────────────────────
+   200 GET    /api/customers 0ms
+  ✓ React 客户表单打开了
+  ✓ 客户表单：量到了表单
+  ✓ 客户表单：标题是「新客户」
+  ✓ 客户表单：抽屉宽窄对（wide=false）
+  ✓ 客户表单：字段顺序和半宽/整宽对
+  ✓ 客户表单：控件类型对
+  ✓ 客户表单：页脚按钮对
+  ✓ 空昵称被校验拦住
+  ✓ 被拦住时抽屉不关
+   200 POST   /api/customers 2ms
+   200 GET    /api/customers 1ms
+  ✓ 保存后抽屉自己关掉
+  ✓ 列表里出现了新客户（保存后自动刷新）
+   200 GET    /api/customers 0ms
+  ✓ 接口里确实落了这位客户
+  ✓ 标签按逗号拆成了数组
+  ✓ 来源存的是下拉里选的那项
+  ✓ 微信也存进去了
+  ✓ 这一串操作没有页面报错
+
+── 客户档案 · 详情页 ────────────────────────────────────
+   200 GET    /api/customers/1/profile 2ms
+  ✓ 客户档案页渲染出来了
+  ✓ 抬头是这位客户
+  ✓ 五个面板都在
+  ✓ 联系方式里露了手机号
+  ✓ 账目里有累计订单额
+  ✓ 有「给 TA 开单」
+  ✓ 改资料打开了 React 客户表单
+  ✓ 标题是「改客户资料」
+  ✓ 改资料时字段还是那八个
+   200 GET    /api/customers/1/profile 1ms
+  ✓ 三选一确认框打开了
+  ✓ 确认框里说清了名下有多少东西
+  ✓ 有「归档客户」也有「彻底删除」
+  ✓ 还提醒了删掉之后订单会怎样
+  ✓ 取消后确认框关掉
+  ✓ 客户还好端端在档案页上
+   200 GET    /api/orders/3 1ms
+  ✓ 点订单跳到了订单详情
+  ✓ 这一串操作没有页面报错
+
+── 确认框 · 归档游戏 ────────────────────────────────────
+   200 GET    /api/games 1ms
+  ✓ 找到要归档的那一行
+   200 GET    /api/games/2/usage 0ms
+  ✓ 确认框弹出来了（React 的 dialog.modal）
+  ✓ 确认框标题带上了游戏名
+  ✓ 取消后确认框关掉
+  ✓ 取消之后游戏还是上架状态
+   200 GET    /api/games/2/usage 1ms
+   200 PATCH  /api/games/2 4ms
+  ✓ 确认后确认框关掉
+   200 GET    /api/games 1ms
+  ✓ 列表里那行变成已归档
+   200 GET    /api/games 0ms
+  ✓ 接口里状态也变成 archived 了
+  ✓ 这一串操作没有页面报错
+
+── 价格表 · 大类表单 ────────────────────────────────────
+   200 GET    /api/pricebook 1ms
+  ✓ React 大类表单打开了
+  ✓ 大类表单：量到了表单
+  ✓ 大类表单：标题是「新建大类」
+  ✓ 大类表单：抽屉宽窄对（wide=true）
+  ✓ 大类表单：字段顺序和半宽/整宽对
+  ✓ 大类表单：控件类型对
+  ✓ 大类表单：页脚按钮对
+  ✓ 空大类名被校验拦住
+   200 POST   /api/categories/append 1ms
+   200 GET    /api/pricebook 1ms
+  ✓ 保存后抽屉自己关掉
+  ✓ 价格表里出现了新大类（保存后自动刷新）
+   200 GET    /api/categories 1ms
+  ✓ 接口里确实落了这个大类
+  ✓ 没绑游戏就存成 null（通用）
+  ✓ 大类提示也存进去了
+  ✓ 这一串操作没有页面报错
+
+── 价格表 · 组合报价 ────────────────────────────────────
+  ✓ 大类上有「组合报价」按钮
+  ✓ 组合报价弹窗打开了
+  ✓ 没勾之前「复制报价」是灰的
+  ✓ 合计一开始是 ¥0
+  ✓ 勾上带阶梯价的服务项
+  ✓ 勾 1 层时按第一档 ¥30 算
+  ✓ 勾上之后「复制报价」可以点了
+  ✓ 把阶梯服务那一行的数量改成 8
+  ✓ 改成 8 层自动套第二档，合计 ¥200
+  ✓ 行内提示写清了单价
+  ✓ 再勾一个固定价服务项
+  ✓ 两项合计 ¥212
+  ✓ 合计旁边显示已选几项
+  ✓ 复制出去的报价单和旧版格式一致
+  ✓ 复制完弹窗不关（方便接着调数量）
+  ✓ 复制后弹出了吐司
+  ✓ 吐司带上了 ok 色调
+  ✓ 页面上只有一个吐司容器（新旧共用一份，不会弹两遍）
+  ✓ 关掉之后弹窗没了
+  ✓ 这一串操作没有页面报错
+
+── 价格表 · 服务项表单 ───────────────────────────────────
+  ✓ 价格表默认全部收起（服务行还没渲染）
+  ✓ 右上角点得到「全部展开」
+  ✓ 展开之后服务行才出现
+  ✓ React 服务项表单打开了
+  ✓ 服务项表单：量到了表单
+  ✓ 服务项表单：标题是「改服务项」
+  ✓ 服务项表单：抽屉宽窄对（wide=true）
+  ✓ 服务项表单：字段顺序和半宽/整宽对
+  ✓ 服务项表单：控件类型对
+  ✓ 服务项表单：页脚按钮对
+  ✓ 没选大类时被拦住
+  ✓ 被拦住时抽屉不关
+  ✓ 空服务名被校验拦住
+   200 PATCH  /api/services/1 3ms
+   200 GET    /api/pricebook 1ms
+  ✓ 保存后抽屉自己关掉
+   200 GET    /api/pricebook 1ms
+  ✓ 基准价改成了 31
+  ✓ 可获得货币存成了 200
+  ✓ 这一串操作没有页面报错
+
+── 价格表 · 服务项详情抽屉 ─────────────────────────────────
+  ✓ 服务行上有「查看服务详情」
+  ✓ 详情抽屉打开了
+  ✓ 详情里有可获得货币
+  ✓ 详情里列出了两档阶梯价
+  ✓ 详情里有四个动作按钮
+  ✓ 复制价款复制的是「名字 ¥单价/单位」
+   200 GET    /api/services/2/tiers 1ms
+  ✓ 阶梯价抽屉叠上来了
+  ✓ 最上面那层标题是「阶梯价」
+  ✓ 加一档表单叠成了第三层
+  ✓ 最上面那层标题是「加一档阶梯价」
+   200 POST   /api/services/2/tiers 2ms
+   200 GET    /api/services/2/tiers 0ms
+  ✓ 存完第三层自己关掉
+  ✓ 阶梯价列表里出现了新的一档
+   200 GET    /api/pricebook 1ms
+  ✓ 新阶梯落到了接口里（13 层起 20 元）
+  ✓ 关掉一层后只剩详情抽屉
+   200 GET    /api/options 0ms
+   200 GET    /api/options 0ms
+  ✓ 套餐与增项抽屉打开了
+  ✓ 列表拉出来了（不是空的加载态）
+  ✓ 全局通用增项那一段也在
+  ✓ 加增项表单叠上来了
+   200 POST   /api/options/append 1ms
+   200 GET    /api/options 1ms
+   200 GET    /api/options 0ms
+  ✓ 存完只剩两层
+  ✓ 列表里出现了新增加项
+  ✓ 增项加价写的是 ¥5
+  ✓ 全部关掉后一层不剩
+  ✓ 这一串操作没有页面报错
+
+── 价格表 · 删服务项 ────────────────────────────────────
+  ✓ 待删服务在列表里
+  ✓ 详情抽屉打开了
+   200 GET    /api/services/3/usage 0ms
+  ✓ 确认框叠在抽屉上面
+  ✓ 确认框问的是这个服务项
+  ✓ 取消后确认框关掉
+  ✓ 取消后详情抽屉还在
+   200 GET    /api/services/3/usage 0ms
+   200 DELETE /api/services/3 1ms
+   200 GET    /api/pricebook 1ms
+  ✓ 删完抽屉自己关掉（删掉的东西不该还挂在屏幕上）
+  ✓ 列表里也没有它了
+   200 GET    /api/pricebook 0ms
+  ✓ 接口里也查不到了（hard 删除）
+  ✓ 这一串操作没有页面报错
+
+── 价格表 · 导出 ──────────────────────────────────────
+  ✓ React 导出抽屉打开了
+  ✓ 导出器：量到了表单
+  ✓ 导出器：标题是「导出价格表」
+  ✓ 导出器：抽屉宽窄对（wide=true）
+  ✓ 导出器：字段顺序和半宽/整宽对
+  ✓ 导出器：控件类型对
+  ✓ 导出器：页脚按钮对
+   200 GET    /api/pricebook/export-model 3ms
+   200 GET    /api/pricebook/export-model 1ms
+  ✓ 预览图画出来了
+  ✓ 预览下面写清了会生成几份、多少项
+   200 GET    /api/pricebook/export-model 1ms
+  ✓ 换范围后预览重新算
+  ✓ 点「生成图片」触发了下载
+  ✓ 图片文件名是「店铺-游戏-日期.png」
+  ✓ 下载的是 blob 地址
+   200 GET    /api/pricebook/export.docx 5ms
+  ✓ 点「生成 Word 文档」触发了下载
+  ✓ Word 文件名是「店铺-价目表-日期.docx」（合并模式不带游戏名）
+   200 GET    /api/pricebook/export.xlsx 2ms
+  ✓ 点「生成 Excel 表格」触发了下载
+  ✓ Excel 文件名是「店铺-价目表-日期.xlsx」
+  ✓ 导出抽屉关掉后没有残留
+  ✓ 这一串操作没有页面报错
+
+── 订单详情 · 记进度 / 记收款 / 推进状态 / 分享进度 ────────────────
+   200 GET    /api/orders/1 1ms
+  ✓ 详情页出来了（单号在抬头）
+  ✓ 抬头写了客户和游戏
+  ✓ 五步状态轨在
+  ✓ 服务明细里有 UI服务项
+  ✓ 钱那一栏有合计 / 已收 / 利润
+  ✓ 收款记录那栏在
+   200 GET    /api/orders/1 1ms
+   200 GET    /api/orders/1 1ms
+  ✓ 点开了记进度抽屉
+   200 GET    /api/ocr/status 1ms
+  ✓ React 记进度抽屉打开了
+   200 POST   /api/orders/1/progress 2ms
+   200 GET    /api/orders/1 1ms
+   200 GET    /api/orders/1 1ms
+  ✓ 提交后抽屉关掉
+  ✓ 时间线上出现了这条
+   200 GET    /api/orders/1 1ms
+  ✓ 进度落库了
+  ✓ 时间线头部条数跟着变了
+  ✓ 时间线上有编辑按钮
+   200 GET    /api/ocr/status 1ms
+  ✓ 改进度抽屉打开了
+   200 PATCH  /api/progress/1 3ms
+   200 GET    /api/orders/1 1ms
+   200 GET    /api/orders/1 1ms
+  ✓ 改完时间线上是新的内容
+  ✓ 点开了记收款抽屉
+  ✓ React 记收款抽屉打开了
+   200 POST   /api/payments 2ms
+   200 GET    /api/orders/1 1ms
+   200 GET    /api/orders/1 1ms
+  ✓ 收完钱抽屉关掉
+  ✓ 已收变成 ¥12（5 + 7）
+  ✓ 抬头写着「已结清」
+  ✓ 收款记录里两笔都在
+  ✓ 点开了分享进度
+   200 GET    /api/orders/1/progress-report 24ms
+  ✓ 分享弹窗打开了
+  ✓ 预览图是现画的 PNG（data URL）
+  ✓ 文字里有单号
+  ✓ 文字里有刚记的那条进度
+  ✓ 复制文字进了剪贴板
+  ✓ 存图用的文件名是「店铺-进度-单号.png」
+  ✓ 文件名对得上
+  ✓ 分享弹窗关掉了
+  ✓ 点开了推进状态
+  ✓ React 推进状态抽屉打开了
+   200 POST   /api/orders/1/status 2ms
+   200 GET    /api/orders/1 1ms
+   200 GET    /api/orders/1 0ms
+  ✓ 推进后抽屉关掉
+   200 GET    /api/orders/1 1ms
+  ✓ 状态真的推进了
+  ✓ 状态轨上「进行中」变成当前步
+  ✓ 收款记录里有两笔可删
+  ✓ 删之前问了
+   200 DELETE /api/payments/1 2ms
+   200 GET    /api/orders/1 1ms
+   200 GET    /api/orders/1 1ms
+  ✓ 删完剩一笔
+   200 GET    /api/orders/1 1ms
+  ✓ 库里也只剩一笔
+   200 GET    /api/orders/2 1ms
+  ✓ 待删的单打开了
+  ✓ 删单前问了
+   200 DELETE /api/orders/2 2ms
+   200 GET    /api/orders 1ms
+  ✓ 删完回订单列表
+ ! 404 GET    /api/orders/2 1ms
+  ✓ 这张单真的没了
+  ✓ 这一串操作没有页面报错
+
+── 财务 · 区间与对账 ────────────────────────────────────
+   200 GET    /api/finance/summary 3ms
+   200 GET    /api/payments 0ms
+  ✓ 财务页渲染出来了
+  ✓ 抬头写着区间和订单数
+  ✓ 区间按钮是这五个
+  ✓ 「今年」是选中态
+   200 GET    /api/finance/summary 3ms
+  ✓ 区间账单列了八项
+  ✓ 「订单额」和接口一致
+  ✓ 「总收款」和接口一致
+  ✓ 「退款」和接口一致
+  ✓ 「净收」和接口一致
+  ✓ 「应收余额」和接口一致
+  ✓ 「利润」和接口一致
+   200 GET    /api/payments 1ms
+  ✓ 收款流水的笔数和接口一致
+   200 GET    /api/finance/summary 2ms
+   200 GET    /api/payments 0ms
+  ✓ 点「本月」换了 URL
+  ✓ 「本月」变成选中态
+   200 GET    /api/finance/summary 1ms
+  ✓ 换区间后订单额跟着重算
+  ✓ 本月的区间确实比今年短
+  ✓ 点「自定义」走 custom 区间
+  ✓ 自定义的 from/to 就是刚才那两个
+   200 GET    /api/finance/summary 3ms
+   200 GET    /api/payments 1ms
+  ✓ 收款流水里有能点的一行
+   200 GET    /api/orders/1 1ms
+  ✓ 点一行跳到了那张订单
+  ✓ 跳过去的正是这一单
+  ✓ 这一串操作没有页面报错
+
+── 保险箱 · 登记与取用 ───────────────────────────────────
+   200 POST   /api/vault/lock 1ms
+   200 GET    /api/credentials 1ms
+   200 GET    /api/customers 0ms
+   200 GET    /api/games 1ms
+  ✓ 保险箱页渲染出来了
+  ✓ 默认是锁着的
+  ✓ 空的时候给出「保险箱是空的」
+  ✓ 门禁弹窗打开了
+  ✓ 门禁上写着「解开保险箱」
+  ✓ 门禁里有个密码框
+ ! 400 POST   /api/vault/unlock 76ms
+  ✓ 密码错了会当场报错
+  ✓ 错了还留在门禁上
+   200 POST   /api/vault/unlock 80ms
+  ✓ 解开后门禁自己关掉
+  ✓ 解锁后接着弹出登记表单
+  ✓ 顶上那行也变成已解开
+  ✓ 凭证表单：量到了表单
+  ✓ 凭证表单：标题是「新登记一条登录凭证」
+  ✓ 凭证表单：抽屉宽窄对（wide=true）
+  ✓ 凭证表单：控件类型对
+  ✓ 凭证表单：页脚按钮对
+   200 POST   /api/credentials 5ms
+   200 GET    /api/credentials 1ms
+   200 GET    /api/customers 0ms
+   200 GET    /api/games 1ms
+   200 GET    /api/credentials 0ms
+   200 GET    /api/customers 1ms
+   200 GET    /api/games 0ms
+  ✓ 存完表单自己关掉
+  ✓ 列表里出现这条凭证
+  ✓ 列表里没漏出明文账号
+   200 POST   /api/vault/lock 2ms
+   200 GET    /api/credentials 1ms
+   200 GET    /api/customers 1ms
+   200 GET    /api/games 0ms
+   200 GET    /api/credentials 1ms
+   200 GET    /api/customers 0ms
+   200 GET    /api/games 1ms
+  ✓ 落锁后变回锁定状态
+  ✓ 落锁后内容重新封上
+  ✓ 又要了一次密码
+   200 POST   /api/vault/unlock 75ms
+   200 POST   /api/credentials/1/reveal 2ms
+  ✓ 明文弹窗出来了
+  ✓ 明文里也有密码
+  ✓ 提示这次取用记了审计
+   200 POST   /api/credentials/1/reveal 2ms
+  ✓ 复制到了账号
+  ✓ 明文弹窗关掉
+   200 GET    /api/vault/audit 1ms
+  ✓ 审计抽屉打开了
+  ✓ 审计里记了查看
+  ✓ 审计里也记了复制
+  ✓ 审计里有操作人
+  ✓ 审计抽屉关掉了
+  ✓ 删除前会问一句
+   200 DELETE /api/credentials/1 1ms
+   200 GET    /api/credentials 1ms
+   200 GET    /api/customers 0ms
+   200 GET    /api/games 1ms
+   200 GET    /api/credentials 1ms
+   200 GET    /api/customers 0ms
+   200 GET    /api/games 1ms
+  ✓ 删完列表里没有它了
+   200 GET    /api/credentials 1ms
+  ✓ 接口里也删干净了
+  ✓ 这一串操作没有页面报错
+
+── 设置 · 店铺 / 安全 / 数据 ─────────────────────────────
+   200 GET    /api/settings 0ms
+   200 GET    /api/backup/counts 1ms
+   200 GET    /api/ocr/status 0ms
+   200 GET    /api/ocr/backend 2ms
+   200 GET    /api/ocr/install 3ms
+  ✓ 设置页渲染出来了
+  ✓ 五块都在：店铺信息 / 安全 / 屏幕识别 / 数据 / 安全须知
+  ✓ 店铺名是种下去那个
+  ✓ 安全须知读了要花一分钟
+  ✓ 数据量那行把几样都数了一遍
+  ✓ 店铺信息表单打开了
+  ✓ 店铺信息：量到了表单
+  ✓ 店铺信息：标题是「店铺信息」
+  ✓ 店铺信息：抽屉宽窄对（wide=false）
+  ✓ 店铺信息：字段顺序和半宽/整宽对
+  ✓ 店铺信息：控件类型对
+  ✓ 店铺信息：页脚按钮对
+  ✓ 空招牌名被拦住
+  ✓ 拦住时抽屉不关
+   200 PATCH  /api/settings 4ms
+   200 GET    /api/settings 0ms
+   200 GET    /api/backup/counts 1ms
+   200 GET    /api/ocr/status 0ms
+   200 GET    /api/settings 0ms
+   200 GET    /api/backup/counts 1ms
+   200 GET    /api/ocr/status 0ms
+  ✓ 保存后抽屉自己关掉
+  ✓ 页面上换成新的联系方式
+   200 GET    /api/settings 0ms
+  ✓ 接口里也存下了
+  ✓ 招牌名没被改坏
+  ✓ 改密码表单打开了
+  ✓ 改密码：量到了表单
+  ✓ 改密码：标题是「改登录密码」
+  ✓ 改密码：抽屉宽窄对（wide=false）
+  ✓ 改密码：字段顺序和半宽/整宽对
+  ✓ 改密码：控件类型对
+  ✓ 改密码：页脚按钮对
+  ✓ 先说清了别的设备会退出
+ ! 400 POST   /api/auth/password 38ms
+  ✓ 当前密码不对时显示服务端报错
+  ✓ 报错时抽屉不关
+  ✓ 取消后关掉
+  ✓ 改保险箱密码表单打开了
+  ✓ 改保险箱密码：量到了表单
+  ✓ 改保险箱密码：标题是「改保险箱密码」
+  ✓ 改保险箱密码：抽屉宽窄对（wide=false）
+  ✓ 改保险箱密码：字段顺序和半宽/整宽对
+  ✓ 改保险箱密码：控件类型对
+  ✓ 改保险箱密码：页脚按钮对
+  ✓ 先提醒了要重新加密一遍
+  ✓ 新密码那句提示还在
+  ✓ 改保险箱密码取消后关掉
+  ✓ 屏幕识别面板有说法（引擎状态 / 降级说明）
+  ✓ 屏幕识别里有「重新检测」
+  ✓ 图标模板那行把数量写出来了
+  ✓ Python 后端那张卡画出来了
+  ✓ 后端卡给出了状态（在线/没启动/依赖没装）
+  ✓ 后端卡上有可操作的按钮
+  ✓ 后端卡说明了它排在最前面且能降级
+  ✓ 保险箱那行写着已解开
+   200 GET    /api/backup/export 2ms
+  ✓ 备份文件下载下来了
+  ✓ 导出后还说了句导了多少
+  ✓ 清空前弹了确认框
+  ✓ 确认框说清了不可撤销
+  ✓ 取消后什么都没清
+   200 GET    /api/backup/counts 0ms
+  ✓ 数据还在
+  ✓ 这一串操作没有页面报错
+
+── 客户档案 · 归档与彻底删除 ────────────────────────────────
+   200 POST   /api/customers 2ms
+  ✓ 建了一个一次性客户
+   200 GET    /api/customers/3/profile 0ms
+  ✓ 一次性客户的档案页打开了
+   200 GET    /api/customers/3/profile 0ms
+  ✓ 确认框打开了
+  ✓ 名下没东西时不提「归档」这一项
+  ✓ 直说删了不影响别的数据
+   200 DELETE /api/customers/3 2ms
+   200 GET    /api/customers 1ms
+  ✓ 删完回到客户列表
+ ! 404 GET    /api/customers/3 0ms
+  ✓ 这位客户真的没了（硬删）
+  ✓ 列表里也没留下
+   200 GET    /api/customers/1/profile 1ms
+  ✓ 有订单那位档案页打开了
+   200 GET    /api/customers/1/profile 1ms
+  ✓ 有订单那位也弹了确认框
+  ✓ 名下有订单时给的是「归档客户」
+  ✓ 说了订单凭证原地不动
+   200 PATCH  /api/customers/1 2ms
+   200 GET    /api/customers 1ms
+  ✓ 归档后回到客户列表
+   200 GET    /api/customers/1 0ms
+  ✓ 接口里状态变成 archived
+   200 GET    /api/orders/1 0ms
+  ✓ 订单没被连坐
+   200 PATCH  /api/customers/1 1ms
+  ✓ 归档能还原（接口层）
+   200 GET    /api/orders 2ms
+   200 GET    /api/customers 1ms
+  ✓ 还原后列表里又有这位客户
+  ✓ 这一串操作没有页面报错
+
+── 收尾 ────────────────────────────────────────────
+  ✓ 全程没有页面报错
+
+════════════════════════════════════════════════════
+  通过 498 项，失败 0 项
+════════════════════════════════════════════════════
+

@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Download, FileSpreadsheet, FileText } from 'lucide-react'
-import { api } from './lib/api.js'
 import { toast, toastErr } from './app/toast-store.js'
 import Drawer from './app/drawer.jsx'
 import { Field, SelectInput, TextInput } from './app/fields.jsx'
@@ -57,6 +56,30 @@ function PriceExporter({ games, close }) {
     return { ...query, ...extra }
   }
 
+  // 预览和真正导出的必须是**同一个请求**。
+  // 以前预览走 api.get，而 api.get 会把空字符串的参数悄悄丢掉
+  // （client/lib/api.js 的 buildURL）：把「联系方式」清空后，预览还显示服务端默认的那行，
+  // 真导出的文件里却真的没有 —— 抽屉上写着「这就是生成出来的图片」，那就不能骗人。
+  const modelURL = (extra) => {
+    const query = new URLSearchParams(baseQuery())
+    for (const [key, value] of Object.entries(extra || {})) query.set(key, String(value))
+    return `/api/pricebook/export-model?${query.toString()}`
+  }
+  const fetchModel = async (extra) => {
+    const res = await fetch(modelURL(extra), { credentials: 'same-origin' })
+    if (!res.ok) {
+      let message = `导出预览失败（${res.status}）`
+      try {
+        const body = await res.json()
+        if (body && body.error) message = body.error
+      } catch {
+        /* 不是 JSON 就用默认那句 */
+      }
+      throw new Error(message)
+    }
+    return res.json()
+  }
+
   /** 这次导出会产出哪几份 */
   const targets = (source) => {
     if (!source) return []
@@ -75,7 +98,7 @@ function PriceExporter({ games, close }) {
     const token = ++tokenRef.current
     let all
     try {
-      all = await api.get('/api/pricebook/export-model', baseQuery())
+      all = await fetchModel()
     } catch (err) {
       setSummary('预览生成失败：' + (err.message || ''))
       return
@@ -94,12 +117,10 @@ function PriceExporter({ games, close }) {
     if (scope !== 'merged' && jobs.length) {
       const first = jobs[0]
       previewName = first.name
-      if (first.key) {
-        try {
-          preview = await api.get('/api/pricebook/export-model', baseQuery({ game_id: first.key }))
-        } catch {
-          preview = all
-        }
+      try {
+        preview = await fetchModel(first.key ? { game_id: first.key } : { generic: '1' })
+      } catch {
+        preview = all
       }
     }
     if (token !== tokenRef.current) return
@@ -138,7 +159,20 @@ function PriceExporter({ games, close }) {
     return `${safeName(source.shopName)}-${safeName(game || '价目表')}-${source.date}.${ext}`
   }
 
-  /** 逐个游戏取模型；合并模式就取一次 */
+  // 「只要某一个」的选项按导出模型里**真正有内容**的那些来列：
+  // 空游戏选了也导不出东西（按钮全灰），列出来只会让人以为坏了。
+  // 模型还没回来时退回价格表给的游戏列表，免得下拉一时是空的。
+  const scopeOptions = [
+    { value: 'per-game', label: '每个游戏各出一份（推荐 · 分开的文件）' },
+    { value: 'merged', label: '全部游戏合并成一份' },
+    ...(model?.gameOptions?.length
+      ? model.gameOptions.map((game) => ({ value: `game:${game.key}`, label: game.key ? `只要「${game.name}」这一份` : '只要「未指定游戏的通用项」这一份' }))
+      : (games || []).map((game) => ({ value: `game:${game.id}`, label: `只要「${game.name}」这一份` }))),
+  ]
+
+  /** 逐个游戏取模型；合并模式就取一次。
+   *  注意「未指定游戏的通用项」（key 为空）也要单独取 —— 拿整份模型顶替的话，
+   *  文件名写着通用、内容却是所有游戏拼在一起的。 */
   async function eachModel() {
     const jobs = targets(model)
     const out = []
@@ -146,7 +180,7 @@ function PriceExporter({ games, close }) {
       if (scope === 'merged') {
         out.push({ target, model })
       } else {
-        const one = target.key ? await api.get('/api/pricebook/export-model', baseQuery({ game_id: target.key })) : model
+        const one = await fetchModel(target.key ? { game_id: target.key } : { generic: '1' })
         out.push({ target, model: one })
       }
     }
@@ -205,7 +239,10 @@ function PriceExporter({ games, close }) {
       let count = 0
       for (const job of jobs) {
         const query = new URLSearchParams(baseQuery())
-        if (scope !== 'merged' && job.target.key) query.set('game_id', job.target.key)
+        if (scope !== 'merged') {
+          if (job.target.key) query.set('game_id', job.target.key)
+          else query.set('generic', '1')
+        }
         const res = await fetch(`/api/pricebook/export.${spec.url}?${query.toString()}`, { credentials: 'same-origin' })
         if (!res.ok) {
           let message = '生成文件失败'
@@ -242,15 +279,17 @@ function PriceExporter({ games, close }) {
             关闭
           </button>
           <div style={{ flex: '1' }} />
-          <button className="btn" type="button" disabled={!list.length || busy === 'xls'} data-loading={busy === 'xls' ? '1' : undefined} onClick={() => exportFile('xlsx')}>
+          {/* 只要有一个在导，三个按钮一起禁用：几个任务并排跑会互相把 busy 清掉，
+              界面上看着「没在忙」，其实还有一份文件在生成。 */}
+          <button className="btn" type="button" disabled={!list.length || Boolean(busy)} data-loading={busy === 'xls' ? '1' : undefined} onClick={() => exportFile('xlsx')}>
             <FileSpreadsheet {...iconProps()} />
             生成 Excel 表格
           </button>
-          <button className="btn" type="button" disabled={!list.length || busy === 'doc'} data-loading={busy === 'doc' ? '1' : undefined} onClick={() => exportFile('docx')}>
+          <button className="btn" type="button" disabled={!list.length || Boolean(busy)} data-loading={busy === 'doc' ? '1' : undefined} onClick={() => exportFile('docx')}>
             <FileText {...iconProps()} />
             生成 Word 文档
           </button>
-          <button className="btn btn--primary" type="button" disabled={!list.length || busy === 'img'} data-loading={busy === 'img' ? '1' : undefined} onClick={exportImages}>
+          <button className="btn btn--primary" type="button" disabled={!list.length || Boolean(busy)} data-loading={busy === 'img' ? '1' : undefined} onClick={exportImages}>
             <Download {...iconProps()} />
             生成图片
           </button>
@@ -264,11 +303,7 @@ function PriceExporter({ games, close }) {
               id="export-scope"
               value={scope}
               onChange={setScope}
-              options={[
-                { value: 'per-game', label: '每个游戏各出一份（推荐 · 分开的文件）' },
-                { value: 'merged', label: '全部游戏合并成一份' },
-                ...(games || []).map((game) => ({ value: `game:${game.id}`, label: `只要「${game.name}」这一份` })),
-              ]}
+              options={scopeOptions}
             />
           </Field>
 

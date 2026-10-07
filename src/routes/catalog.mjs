@@ -7,6 +7,10 @@ import { buildDocx } from '../docx.mjs'
 import { buildXlsx } from '../xlsx.mjs'
 import { enqueueERPNextChange } from '../outbox.mjs'
 import { transaction } from '../infrastructure/sqlite/transaction.mjs'
+import { looksDaily } from '../../shared/domain.js'
+
+// 老位置继续导出，别的地方（含以后新加的代码）照旧能从这里拿
+export { looksDaily }
 
 export const games = makeDef({
   table: 'games',
@@ -29,12 +33,6 @@ export const games = makeDef({
     notice: { type: 'text', label: '顶部提示', max: 600 },
   },
 })
-
-/** 名字看起来是不是「每天都要做」的那种大类。
- *  新建大类时拿它自动勾上，以后新加的「日常 / 每日委托」也能认出来，不用手动设。 */
-export function looksDaily(name) {
-  return /日常|日体|包天|每日|托管/.test(String(name || ''))
-}
 
 export const categories = makeDef({
   table: 'service_categories',
@@ -366,6 +364,10 @@ export function register() {
 
   const exportOpts = (query) => ({
     gameId: query.game_id ? int(query.game_id) : null,
+    // generic=1：只要「没有绑定游戏」的那些内容（通用价格表）。
+    // 前端「每个游戏各出一份」时，通用项是单独一份，不能拿整份模型顶替 ——
+    // 那样文件名写着通用、内容却是所有游戏的。
+    genericOnly: query.generic === '1',
     perCategory: query.per_category ? int(query.per_category, 6) : 6,
     maxCategories: query.max_categories ? int(query.max_categories, 8) : 8,
     withDesc: query.with_desc !== '0',

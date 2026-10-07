@@ -89,6 +89,8 @@ export function buildExportModel(opts = {}) {
   const maxCategories = full ? 10000 : Math.max(1, Math.min(80, num(opts.maxCategories, 8)))
   const withDesc = opts.withDesc !== false
   const gameId = opts.gameId ? num(opts.gameId) : null
+  // 只要通用内容（没绑游戏的服务项和大类）。和 gameId 互斥：同时传时以 gameId 为准。
+  const genericOnly = opts.genericOnly === true && !gameId
 
   const setting = (k) => db.prepare('SELECT value FROM settings WHERE key = ?').get(k)?.value || ''
 
@@ -110,17 +112,20 @@ export function buildExportModel(opts = {}) {
     if (t) noticeByGame.set(String(g.id), t)
   }
   let focusKey = ''
-  if (gameId && gameById.has(gameId)) focusKey = String(gameId)
+  if (genericOnly) focusKey = ''
+  else if (gameId && gameById.has(gameId)) focusKey = String(gameId)
   else if (!gameId && games.length === 1) focusKey = String(games[0].id)
   const topNotice = focusKey ? clampStr(noticeByGame.get(focusKey) || '', 600) : ''
 
   let cats = db
     .prepare("SELECT * FROM service_categories WHERE status = 'active' ORDER BY sort_order ASC, id ASC")
     .all()
-  if (gameId) cats = cats.filter((c) => !c.game_id || c.game_id === gameId)
+  if (genericOnly) cats = cats.filter((c) => !c.game_id)
+  else if (gameId) cats = cats.filter((c) => !c.game_id || c.game_id === gameId)
 
   let services = db.prepare("SELECT * FROM services WHERE status = 'active' ORDER BY sort_order ASC, id ASC").all()
-  if (gameId) services = services.filter((s) => !s.game_id || s.game_id === gameId)
+  if (genericOnly) services = services.filter((s) => !s.game_id)
+  else if (gameId) services = services.filter((s) => !s.game_id || s.game_id === gameId)
 
   const tiersBy = new Map()
   for (const t of db.prepare('SELECT * FROM service_tiers ORDER BY sort_order ASC, min_qty ASC').all()) {
@@ -234,7 +239,9 @@ export function buildExportModel(opts = {}) {
     })
   }
 
-  const gameKeys = gameId ? [String(gameId)] : games.map((g) => String(g.id))
+  // genericOnly 时 gameKeys 留空：通用大类 / 通用未分类由下面那两段专门处理，
+  // 在这里再走一遍会重复出块。
+  const gameKeys = genericOnly ? [] : gameId ? [String(gameId)] : games.map((g) => String(g.id))
   const emitted = new Set()
   for (const key of gameKeys) {
     for (const c of cats) {
@@ -268,7 +275,8 @@ export function buildExportModel(opts = {}) {
   const dateStr = `${today.getFullYear()}-${p(today.getMonth() + 1)}-${p(today.getDate())}`
 
   let subtitle = ''
-  if (gameId) subtitle = gameById.get(gameId)?.name || ''
+  if (genericOnly) subtitle = '未指定游戏的通用项'
+  else if (gameId) subtitle = gameById.get(gameId)?.name || ''
   else if (games.length === 1) subtitle = games[0].name
   else if (games.length > 1) subtitle = games.map((g) => g.name).slice(0, 3).join(' / ') + (games.length > 3 ? ` 等 ${games.length} 个游戏` : '')
 

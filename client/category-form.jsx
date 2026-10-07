@@ -1,9 +1,10 @@
-﻿import React, { useState } from 'react'
+import React, { useState } from 'react'
 import { api } from './lib/api.js'
 import { toast } from './app/toast-store.js'
 import Drawer from './app/drawer.jsx'
 import { CheckField, Field, SelectInput, TextArea, TextInput } from './app/fields.jsx'
 import { openOverlay } from './app/overlay-host.jsx'
+import { looksDaily } from '../shared/domain.js'
 
 /* ============================================================
    大类（分类）表单（React 版）
@@ -43,6 +44,16 @@ function CategoryForm({ values, games, presetGameId, close }) {
   const [serverError, setServerError] = useState('')
   const [busy, setBusy] = useState(false)
   const set = (key) => (value) => setForm((current) => ({ ...current, [key]: value }))
+
+  // 「每天都做」用户自己动过没有。没动过时，名字里带「日常 / 每日」就自动勾上 ——
+  // 后端本来就按名字自动认（shared/domain.js 的 looksDaily），界面得让人看见这个结果，
+  // 不然会出现「看着没勾、存下去是勾的」。编辑时以库里的值为准，不自动改。
+  const [dailyTouched, setDailyTouched] = useState(isEdit)
+  const changeName = (value) => setForm((current) => ({ ...current, name: value, is_daily: dailyTouched ? current.is_daily : looksDaily(value) }))
+  const changeDaily = (value) => {
+    setDailyTouched(true)
+    set('is_daily')(value)
+  }
 
   async function submit(event) {
     event.preventDefault()
@@ -90,7 +101,7 @@ function CategoryForm({ values, games, presetGameId, close }) {
           <div className="hint">价格表的结构是三层：游戏 → 大类 → 服务项。先建大类（日常 / 周常 / 深渊 / 活动 / 材料…），再往大类里加具体的服务项。</div>
           <div className="formgrid">
             <Field label="大类名称" required htmlFor="category-name" error={errors.name}>
-              <TextInput id="category-name" name="name" value={form.name} onChange={set('name')} aria-invalid={errors.name ? 'true' : undefined} placeholder="例：日常 / 周常 / 深渊 / 活动" />
+              <TextInput id="category-name" name="name" maxLength={60} value={form.name} onChange={changeName} aria-invalid={errors.name ? 'true' : undefined} placeholder="例：日常 / 周常 / 深渊 / 活动" />
             </Field>
 
             <Field label="属于哪个游戏" htmlFor="category-game" hint="选「通用」就是一个所有游戏都能用的大类">
@@ -106,13 +117,13 @@ function CategoryForm({ values, games, presetGameId, close }) {
             <CheckField
               id="category-is-daily"
               checked={form.is_daily}
-              onChange={set('is_daily')}
+              onChange={changeDaily}
               label="每天都做（日常 / 日体 / 包天这种天天要做的）"
               hint="勾上之后，开单时会标出来，标「今日已完成」时也会提醒你这张单里是不是还夹着别的活"
             />
 
             <Field label="备注" htmlFor="category-note">
-              <TextInput id="category-note" name="note" value={form.note} onChange={set('note')} placeholder="选填" />
+              <TextInput id="category-note" name="note" maxLength={1000} value={form.note} onChange={set('note')} placeholder="选填" />
             </Field>
 
             <Field

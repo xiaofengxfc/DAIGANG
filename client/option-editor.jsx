@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { api } from './lib/api.js'
 import { fmtMoney } from './lib/formatters.js'
@@ -53,7 +53,9 @@ function OptionEditor({ service, close }) {
     try {
       const [own, all] = await Promise.all([
         api.get('/api/options', { service_id: service.id, limit: 200 }),
-        api.get('/api/options', { limit: 400 }),
+        // 通用增项（service_id 为空）在服务端过滤：service_id=__none__ 就是 IS NULL。
+        // 以前是「拉 400 条再在前端筛」，通用增项一多就会被截断，列表里凭空少几条。
+        api.get('/api/options', { service_id: '__none__', status: 'active', limit: 400 }),
       ])
       setMine(own.items || [])
       setGlobals((all.items || []).filter((option) => !option.service_id && option.status !== 'archived'))
@@ -73,7 +75,9 @@ function OptionEditor({ service, close }) {
   async function remove(option) {
     if (!(await confirmDelete({ title: '删掉这个增项？', message: option.name }))) return
     try {
-      await api.del(`/api/options/${option.id}`)
+      // hard=1：这个按钮写的是「删掉」。不传的话后端只把它归档，
+      // 而下面这个列表是照 service_id 拉的、不看状态，删完它还挂在原地。
+      await api.del(`/api/options/${option.id}`, { hard: 1 })
       toast('已删除', 'ok')
       load()
     } catch (err) {
