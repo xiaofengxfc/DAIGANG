@@ -3805,3 +3805,8 @@ button.react-side-row {
 .ps-foot__opt { display: flex; align-items: center; gap: 6px; margin-top: 5px; color: var(--ink-2); font-size: var(--fs-xs); cursor: pointer; }
 .ps-foot__opt input { margin: 0; }
 .ps-foot__opt em { color: var(--ink-3); font-style: normal; }
+
+/* AI 这一步失败时的账本：要显眼，不能让人以为它在干活 */
+.ps-aibar.is-bad { background: var(--oxblood-bg); color: var(--oxblood-ink); }
+.ps-aibar.is-bad strong { color: inherit; }
+.ps-aibar__err { display: block; margin-top: 4px; padding: 5px 7px; border-radius: 5px; background: var(--surface-solid); color: var(--ink-2); font-style: normal; font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--fs-xs); word-break: break-all; }

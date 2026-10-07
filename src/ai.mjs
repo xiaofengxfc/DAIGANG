@@ -153,6 +153,99 @@ function tryParse(text) {
 }
 
 /**
+ * 从回复里取正文。
+ *
+ * 各家的字段名不一样，而且**推理模型会把内容放在 `reasoning_content` 里**：
+ * 实测 `deepseek-v4.1-flash` 这类模型是 `content` 放答案、`reasoning_content` 放思考，
+ * 但思考把额度吃光时 `content` 就是空的。所以取正文要按顺序试几个字段，
+ * 取不到再让调用方去报「为什么空」。
+ */
+export function readMessageText(payload) {
+  const choice = payload?.choices?.[0]
+  const message = choice?.message || {}
+  const candidates = [
+    ['content', message.content],
+    ['reasoning_content', message.reasoning_content],
+    ['text', choice?.text],
+    ['response', payload?.response],
+  ]
+  for (const [field, value] of candidates) {
+    let text = ''
+    if (typeof value === 'string') text = value
+    // 新版 OpenAI 的 content 是分片数组：[{type:'text', text:'…'}]
+    else if (Array.isArray(value)) text = value.map((part) => (typeof part === 'string' ? part : part?.text || '')).join('')
+    if (text.trim()) return { text, field }
+  }
+  return { text: '', field: '' }
+}
+
+/**
+ * 说不出「为什么没 JSON」的错误信息等于没说。
+ *
+ * 这条是被一次真实故障逼出来的：探活只给 32 个 token，推理模型把额度花在思考上，
+ * 返回 `content: ""` + `finish_reason: "length"`，而我当时的报错是
+ * 「模型没给出能解析的 JSON：」—— 冒号后面空的，用户完全无从下手。
+ */
+export function explainNoJson({ payload, content, finish }) {
+  const choice = payload?.choices?.[0]
+  const reasoning = String(choice?.message?.reasoning_content || '')
+  const parts = []
+
+  if (!choice) {
+    const keys = Object.keys(payload || {}).join('、')
+    return `返回里没有 choices 字段（顶层只有：${keys || '空'}）—— 这个地址可能不是 OpenAI 兼容的 /chat/completions`
+  }
+  if (finish === 'length') {
+    parts.push('模型话没说完就被 max_tokens 截断了')
+    if (reasoning) parts.push('它把额度花在「思考」上了，这是推理模型的常见毛病')
+    parts.push('把 max_tokens 调大，或换一个非推理模型')
+  }
+  if (!content && reasoning) parts.push(`正文是空的，内容全在 reasoning_content 里（${reasoning.length} 字）`)
+  if (!content && !reasoning) parts.push('正文和思考过程都是空的')
+  if (content) parts.push(`正文（${content.length} 字）：${redact(content).slice(0, 160)}`)
+  parts.push(`finish_reason=${finish || '无'}`)
+  return parts.join('；')
+}
+
+/**
+ * 关掉「思考」的参数。
+ *
+ * **这是被一次真实故障逼出来的。** 用户配的 `deepseek-v4.1-flash` 是推理模型，
+ * 甄别一个视频时它把 2500 个 token 全花在思考上（`reasoning_tokens: 2500`），
+ * 正文返回空字符串、`finish_reason: "length"`，整批判断作废。那段思考还是散文式的
+ * 逐行纠结，甚至开始揣测「出题人想看到什么」—— 对结构化抽取这种任务，思考纯粹是负担。
+ *
+ * 各家关思考的叫法不一样，所以**一起发**：
+ *   - OpenAI 系：`reasoning_effort: 'none'`
+ *   - 火山 / Anthropic 系：`thinking: {type:'disabled'}`
+ *   - vLLM / SGLang 系：`chat_template_kwargs: {enable_thinking:false}`
+ * 认得的会照做，不认的通常直接忽略；哪个网关不认到 400 的，会被下面按报错里的
+ * 字段名剔掉再试一次。实测这三种在本机那个网关上都能把推理 token 压到 0。
+ */
+const THINKING_OFF_PARAMS = Object.freeze({
+  reasoning_effort: 'none',
+  thinking: Object.freeze({ type: 'disabled' }),
+  chat_template_kwargs: Object.freeze({ enable_thinking: false }),
+})
+
+/** 这几个是请求的骨架，报错里提到它们不代表「这个字段该删」 */
+const NEVER_DROP = new Set(['model', 'messages', 'temperature'])
+
+/**
+ * 从网关的 400 正文里认出「是哪个字段不被接受」，好把它剔掉重试。
+ *
+ * 认字段名就够了：实测这类报错都会点名，比如
+ * `Extra inputs are not permitted, field: 'enable_thinking'`。
+ */
+export function findRejectedField(detail, body) {
+  for (const key of Object.keys(body)) {
+    if (NEVER_DROP.has(key)) continue
+    if (new RegExp(`['"\`]?${key}['"\`]?`, 'i').test(detail)) return key
+  }
+  return ''
+}
+
+/**
  * 发一次对话请求，要求模型返回 JSON。
  *
  * `schemaHint` 只是一段说明文字，**不做真正的 schema 校验** ——
@@ -163,20 +256,27 @@ export async function aiChatJson({ system, user, schemaHint = '', maxTokens = nu
   const config = aiConfig()
   if (!config.enabled) return { ok: false, error: config.disabled ? 'AI 已关闭' : 'AI 没配置（缺 API key）', skipped: true }
 
-  const body = {
+  let tokensField = 'max_tokens'
+  let body = {
     model: config.model,
     temperature,
-    max_tokens: maxTokens || config.maxTokens,
+    [tokensField]: maxTokens || config.maxTokens,
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: schemaHint ? `${user}\n\n${schemaHint}` : user },
     ],
     // 认这个参数的会照做，不认的会忽略（忽略也不会报错，所以是安全的加分项）
     response_format: { type: 'json_object' },
+    ...THINKING_OFF_PARAMS,
   }
 
   let lastError = ''
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+  let swappedTokensField = false
+  let bumpedBudget = false
+  const dropped = new Set()
+  // 除了重试，还要留出「换参数名 / 剔掉不认的参数 / 加大额度」的额度
+  const maxCalls = MAX_ATTEMPTS + 6
+  for (let attempt = 1; attempt <= maxCalls; attempt += 1) {
     const started = Date.now()
     try {
       const res = await fetch(`${config.baseUrl}/chat/completions`, {
@@ -187,30 +287,78 @@ export async function aiChatJson({ system, user, schemaHint = '', maxTokens = nu
       })
       const text = await res.text()
       if (!res.ok) {
-        lastError = `HTTP ${res.status}：${redact(text).slice(0, 200)}`
+        const detail = redact(text)
+        lastError = `HTTP ${res.status}：${detail.slice(0, 200)}`
+        /**
+         * 400 大多是「参数写法对不上」，不是配置错。逐条降级：
+         *   1. `max_tokens` 在新版 OpenAI 上被 `max_completion_tokens` 取代 —— 换名
+         *   2. 其余不认的参数（`response_format`、关思考的那几个）—— 剔掉
+         */
+        if (res.status === 400) {
+          if (!swappedTokensField && /max_completion_tokens/i.test(detail)) {
+            swappedTokensField = true
+            body = { ...body, max_completion_tokens: body[tokensField] }
+            delete body[tokensField]
+            tokensField = 'max_completion_tokens'
+            continue
+          }
+          const rejected = findRejectedField(detail, body)
+          if (rejected && !dropped.has(rejected)) {
+            dropped.add(rejected)
+            body = { ...body }
+            delete body[rejected]
+            continue
+          }
+        }
         // 4xx 里只有 429 值得重试，其它（401 key 错、400 参数错）重试没意义
         if (res.status !== 429 && res.status < 500) break
-      } else {
-        let payload
-        try {
-          payload = JSON.parse(text)
-        } catch {
-          lastError = `返回的不是 JSON：${redact(text).slice(0, 200)}`
-          continue
-        }
-        const content = payload?.choices?.[0]?.message?.content
-        const data = extractJson(content)
-        if (data === null) {
-          lastError = `模型没给出能解析的 JSON：${redact(String(content || '')).slice(0, 200)}`
-          continue
-        }
-        return {
-          ok: true,
-          data,
-          ms: Date.now() - started,
-          usage: payload?.usage || null,
-          model: payload?.model || config.model,
-        }
+        continue
+      }
+
+      let payload
+      try {
+        payload = JSON.parse(text)
+      } catch {
+        lastError = `返回的不是 JSON：${redact(text).slice(0, 200)}`
+        continue
+      }
+      const finish = payload?.choices?.[0]?.finish_reason || ''
+      const { text: content } = readMessageText(payload)
+      let data = extractJson(content)
+      /**
+       * 正文挖不出 JSON 时，去 `reasoning_content` 里再挖一次。
+       *
+       * 有的模型（或有的网关）会把答案只写在思考过程里，正文留空。
+       * 这是白捡的一次机会，挖到了就用；挖不到才报错。
+       */
+      if (data === null) {
+        const reasoning = String(payload?.choices?.[0]?.message?.reasoning_content || '')
+        if (reasoning && reasoning !== content) data = extractJson(reasoning)
+      }
+      /**
+       * 被额度截断了：**加大额度再来一次**，别直接放弃。
+       *
+       * 关思考的参数多数网关认，但万一不认（被剔掉了），推理模型就会把额度吃掉。
+       * 这种时候失败一次太可惜 —— 重跑一次的代价远小于「整批判断作废」。
+       */
+      if (data === null && finish === 'length' && !bumpedBudget) {
+        bumpedBudget = true
+        body = { ...body, [tokensField]: Math.min(32000, (Number(body[tokensField]) || 4000) * 3) }
+        continue
+      }
+      if (data === null) {
+        lastError = `模型没给出能解析的 JSON：${explainNoJson({ payload, content, finish })}`
+        if (finish === 'length') break
+        continue
+      }
+      return {
+        ok: true,
+        data,
+        ms: Date.now() - started,
+        usage: payload?.usage || null,
+        model: payload?.model || config.model,
+        // 哪个参数被网关拒了 —— 这个信息对排查「为什么这台机器上不一样」很有用
+        dropped_params: [...dropped],
       }
     } catch (err) {
       lastError = err?.name === 'TimeoutError' ? `超时（${timeoutMs || config.timeoutMs}ms）` : redact(err?.message || String(err))
@@ -219,15 +367,22 @@ export async function aiChatJson({ system, user, schemaHint = '', maxTokens = nu
   return { ok: false, error: lastError || '调用失败' }
 }
 
-/** 探活：发一个最小请求，确认地址 / 模型 / key 都对得上 */
+/**
+ * 探活：发一个最小请求，确认地址 / 模型 / key 都对得上。
+ *
+ * `max_tokens` **不能给小**。这里踩过一次坑：原来给 32，而推理模型光「想」就要
+ * 13～32 个 token，想多一点就整个额度用光、`content` 返回空字符串，
+ * 于是探活偶发失败，报错还是一句没有信息量的「没给出能解析的 JSON」。
+ * 探活只花一次调用，给宽点不心疼。
+ */
 export async function aiProbe() {
   const config = aiConfig()
   if (!config.enabled) return { ok: false, error: aiStatus().message }
   const result = await aiChatJson({
     system: '你是一个只输出 JSON 的助手。',
     user: '返回 {"ok":true}',
-    maxTokens: 32,
-    timeoutMs: Math.min(config.timeoutMs, 20000),
+    maxTokens: Math.max(1024, Math.min(config.maxTokens, 2048)),
+    timeoutMs: Math.min(config.timeoutMs, 30000),
   })
   if (!result.ok) return { ok: false, error: result.error }
   return { ok: true, ms: result.ms, model: result.model, reply: result.data }
@@ -246,7 +401,7 @@ function redact(text) {
   return out
 }
 
-export const __testing = { extractJson, redact, DEFAULT_BASE_URL, DEFAULT_MODEL }
+export const __testing = { extractJson, redact, readMessageText, explainNoJson, findRejectedField, THINKING_OFF_PARAMS, DEFAULT_BASE_URL, DEFAULT_MODEL }
 
 /* ------------------------------------------------------------------
    落盘位置说明（给「key 到底存哪了」留个线索）

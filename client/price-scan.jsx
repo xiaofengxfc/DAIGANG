@@ -876,16 +876,25 @@ function PriceScan({ game, close, onApplied }) {
                   </div>
                 ) : null}
 
-                {job.ai?.enabled ? (
-                  <div className="ps-aibar">
-                    <Sparkles {...iconProps(12)} />
-                    <span>
-                      <strong>{job.ai.model}</strong> 过了一遍：剔掉 <b>{job.ai.dropped}</b> 行不是价格的
-                      {job.ai.drop_overridden ? <>、拦下 <b>{job.ai.drop_overridden}</b> 行「库内确实有这一项」的误删</> : null}
-                      {job.ai.renamed ? <>、纠正 <b>{job.ai.renamed}</b> 个认歪的名字</> : null}
-                      {job.ai.rescued ? <>、兜底匹上 <b>{job.ai.rescued}</b> 个</> : null}
-                      。<em>价格一个字都没动过。</em>
-                    </span>
+                {job.ai?.enabled || job.ai?.errors ? (
+                  <div className={`ps-aibar${job.ai?.errors ? ' is-bad' : ''}`}>
+                    {job.ai.errors ? <AlertTriangle {...iconProps(12)} /> : <Sparkles {...iconProps(12)} />}
+                    {job.ai.errors ? (
+                      <span>
+                        <strong>AI 这一步没成功</strong>（{job.ai.errors} 次），所以这次的结果是**纯规则**跑出来的。
+                        {job.ai.last_error ? <em className="ps-aibar__err">{job.ai.last_error}</em> : null}
+                        <br />
+                        价格表照样能用，只是少了一道甄别。去上面「AI 甄别」里点一下「测试连接」看看。
+                      </span>
+                    ) : (
+                      <span>
+                        <strong>{job.ai.model}</strong> 过了一遍：剔掉 <b>{job.ai.dropped}</b> 行不是价格的
+                        {job.ai.drop_overridden ? <>、拦下 <b>{job.ai.drop_overridden}</b> 行「库内确实有这一项」的误删</> : null}
+                        {job.ai.renamed ? <>、纠正 <b>{job.ai.renamed}</b> 个认歪的名字</> : null}
+                        {job.ai.rescued ? <>、兜底匹上 <b>{job.ai.rescued}</b> 个</> : null}
+                        。<em>价格一个字都没动过。</em>
+                      </span>
+                    )}
                     {job.ai.dropped_samples?.length ? (
                       <details className="ps-aibar__detail">
                         <summary>看剔掉了什么</summary>
@@ -894,11 +903,27 @@ function PriceScan({ game, close, onApplied }) {
                         </ul>
                       </details>
                     ) : null}
+                    {job.ai.renamed_samples?.length ? (
+                      <details className="ps-aibar__detail">
+                        <summary>看纠正了哪些名字</summary>
+                        <ul>
+                          {job.ai.renamed_samples.map((s) => <li key={s}>{s}</li>)}
+                        </ul>
+                      </details>
+                    ) : null}
                     {job.ai.drop_overridden_samples?.length ? (
                       <details className="ps-aibar__detail">
                         <summary>看拦下了什么</summary>
                         <ul>
                           {job.ai.drop_overridden_samples.map((s) => <li key={s}>{s}</li>)}
+                        </ul>
+                      </details>
+                    ) : null}
+                    {job.ai.rename_rejected_samples?.length ? (
+                      <details className="ps-aibar__detail">
+                        <summary>看拒了哪些改名</summary>
+                        <ul>
+                          {job.ai.rename_rejected_samples.map((s) => <li key={s}>{s}</li>)}
                         </ul>
                       </details>
                     ) : null}

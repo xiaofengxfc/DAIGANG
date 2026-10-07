@@ -102,8 +102,8 @@ export function isKnownServiceName(name, vocabulary) {
  * 界面上只会显示一堆奇怪的服务名。
  *
  * 改名是**纠正**，不是重写。所以只接受两种：
- *   · 新名字是库内已有的服务名（这是最有价值的纠正：把 OCR 认歪的写法
- *     换成库里的写法）；
+ *   · 新名字是库内已有的服务名，**而且和原名字对得上**（要么原名字里就含它，
+ *     要么足够像）—— 这是最有价值的纠正：把 OCR 认歪的写法换成库里的写法；
  *   · 新名字和原名字足够像（`声厘`→`声匣`、`黎娜西塔`→`黎那汐塔`）。
  * 其余一律拒绝，保留原名字 —— 宁可少纠一个，也不能把匹配搞垮。
  */
@@ -115,19 +115,40 @@ export function acceptRename(oldName, newName, vocabulary = new Set()) {
   if (to.length > MAX_NAME_CHARS) return false
   // 明显是「把整行抄回来了」：比原名长出一大截
   if (to.length > from.length + 8) return false
-  // 库里真有这个名字，接受（放在「包含原名」检查之前 ——
-  // `深渊` → 库里的 `深渊满星` 是合法纠正，而 `深渊` → `深渊20 满星30` 不是）
-  if (vocabulary.has(to)) return true
   if (!from) return false
+
+  const nFrom = normalizeServiceName(from)
+  const nTo = normalizeServiceName(to)
+  const inVocab = vocabulary.has(to) || vocabulary.has(nTo)
+
   /**
-   * 「原名 + 一堆别的」是整行抄回来的典型样子，一律拒。
+   * 「原名 + 一堆别的」是整行抄回来的典型样子，一律拒 —— **但库内已有的名字除外**。
    *
-   * 实测：一行里有两个候选时，模型把 `黑海岸群岛、泰缇斯之底` 当成
-   * `黑海岸群岛` 的修正名返回，字符级相似度 0.59 够高，被放行了 ——
-   * 结果这一项的匹配直接垮掉。相似度看不出「多出来一截」这件事，包含关系能。
+   * 实测两次，方向相反：
+   *   · `黑海岸群岛` → `黑海岸群岛、泰缇斯之底`（一行两个候选挤在一起）：库内没有
+   *     这个名字，是纯粹的整行抄回，必须拒。
+   *   · `梦州满探索` → `瑝珑梦州 满探索`：库内真有 `瑝珑梦州 满探索`，是**正确**的
+   *     纠正（OCR 只抓到了后半截）。
+   * 相似度分不开这两种（0.59 / 0.83 都挺高），「库里有没有这个名字」能分开。
    */
-  if (to.includes(from)) return false
-  // 否则要求「像」—— 复用匹配那套相似度，阈值放低（OCR 纠错往往只差一个字）
+  if (!inVocab && nTo.includes(nFrom) && nTo.length > nFrom.length) return false
+
+  /**
+   * OCR 抓了一整行、库内是短名字：`精托套餐：日体套餐+期间活动+千道门扉+电台满级` → `精托`。
+   *
+   * 这是托管类最常见的一种，而且**很可靠** —— 库里的名字原样出现在 OCR 名字里，
+   * 不是「像不像」的问题。它也是唯一能救回这类改名的规则：这种名字长短差太多，
+   * 字符相似度只有 0.2，按相似度会被拒掉。
+   */
+  if (inVocab && nFrom.includes(nTo) && nFrom.length > nTo.length) return true
+
+  /**
+   * 剩下的都要求「像」。
+   *
+   * **「库里有没有」不能单独当作放行理由** —— 这是实测踩出来的：
+   * 库里有 `瑝珑梦州 满探索`，模型就把 `梦州全收集` 和 `梦州全包` 也改成了它，
+   * 三个不同套餐挤成一项。库里有这个名字只说明**目标合法**，不说明**这次改得对**。
+   */
   return nameSimilarity(from, to) >= RENAME_SIMILARITY
 }
 
@@ -179,7 +200,14 @@ function charDice(a, b) {
 }
 
 /** 改名相似度阈值。低一点没关系 —— 改名是给用户看的，不是自动写库的 */
-const RENAME_SIMILARITY = 0.34
+/**
+ * 改名时的相似度门槛。比匹配用的低 —— OCR 纠错往往只差一个字。
+ *
+ * 定在 0.4 而不是更低，是被一个真实误判顶上去的：库里有 `瑝珑梦州 满探索`，
+ * 模型把 `梦州全包` 也改成它（相似度 0.36）。0.36 和「只差一个字」的 0.5
+ * 之间需要一个界线，0.4 正好把这类「共享前缀但其实是两个套餐」的挡在外面。
+ */
+const RENAME_SIMILARITY = 0.4
 
 /**
  * 把视频的 OCR 结果整理成模型能读的文本。
@@ -306,7 +334,19 @@ renames —— **只放认歪了的名字**，没有就给空数组：
 
 **不要输出价格。** 价格由程序自己从原文取，你只需要判断留不留、什么口径、名字要不要改。`
 
-  const result = await aiChatJson({ system: TRIAGE_SYSTEM, user, schemaHint })
+  /**
+   * 额度要跟着行数走，不能固定给一个值。
+   *
+   * 一行判断（frame/line/keep/scope/inclusions/why）大概是几十个 token，
+   * 而**推理模型还要先花一笔在「思考」上**（实测 deepseek-v4.1-flash 想一次
+   * 要 13～32 个 token，长文本会更多）。固定给 4000 时，几百行的视频会把额度
+   * 用光、回复被截断，JSON 就不完整了 —— 那整批判断全废（虽然会安全降级成
+   * 「全部保留」，但等于白跑一趟还多花一次调用）。
+   */
+  const pricedCount = (text.match(/\[价→/g) || []).length
+  const maxTokens = Math.min(8000, Math.max(2500, pricedCount * 45))
+
+  const result = await aiChatJson({ system: TRIAGE_SYSTEM, user, schemaHint, maxTokens })
   if (!result.ok) return { ok: false, error: result.error }
 
   const rows = Array.isArray(result.data?.rows) ? result.data.rows : []
@@ -410,6 +450,8 @@ export async function aiMatchUnmatched({ game, services = [], names = [] }) {
     system: '你在把视频里的服务名对应到工作室价格表里已有的服务项。只做对应关系判断，不产出任何价格。',
     user,
     schemaHint,
+    // 一个名字一条，同上：额度跟着条数走，别让推理模型把额度吃光
+    maxTokens: Math.min(8000, Math.max(2000, names.length * 60)),
   })
   if (!result.ok) return { ok: false, error: result.error }
 

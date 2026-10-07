@@ -1499,7 +1499,7 @@ export async function run() {
      --------------------------------------------------------------- */
   section('B站自动比价 · AI 接入的安全边界')
   const { __testing: aiScanTesting, aiTriageVideo, aiMatchUnmatched } = await import('../src/ai-scan.mjs')
-  const { __testing: aiTesting, aiStatus, saveAiConfig, aiConfig } = await import('../src/ai.mjs')
+  const { __testing: aiTesting, aiStatus, saveAiConfig, aiConfig, aiProbe } = await import('../src/ai.mjs')
   const { scopeCompatibility, groupByService } = await import('../src/price-match.mjs')
 
   // —— 字段白名单：模型就算吐了 price，也进不来 ——
@@ -1518,7 +1518,7 @@ export async function run() {
    * 而且界面上看不出来是 AI 干的。
    */
   const { acceptRename } = await import('../src/ai-scan.mjs')
-  const vocab = new Set(['声匣', '日常托管'])
+  const vocab = new Set(['声匣', '日常托管', '精托', '日体', '全托'])
   ok('库里有的写法：接受', acceptRename('声厘', '声匣', vocab) === true)
   ok('只差一个字：接受', acceptRename('声厘', '声匣', new Set()) === true)
   ok('黎娜西塔→黎那汐塔：接受', acceptRename('黎娜西塔', '黎那汐塔', new Set()) === true)
@@ -1528,7 +1528,26 @@ export async function run() {
   ok('空名字：拒绝', acceptRename('声厘', '', vocab) === false)
   ok('名字没变：不算改名', acceptRename('声厘', '声厘', vocab) === false)
   ok('毫无关系的名字：拒绝', acceptRename('深渊', '每日委托', new Set()) === false)
-  ok('库里有的就算不像也接受', acceptRename('深渊', '日常托管', vocab) === true)
+  /**
+   * 「库里有这个名字」**不能单独当作放行理由**。
+   *
+   * 实测：库里有 `瑝珑梦州 满探索`，模型把 `梦州全收集`、`梦州全包` 也改成了它 ——
+   * 三个不同套餐挤成一项。库里有只说明目标合法，不说明这次改得对。
+   */
+  ok('库里有的名字、但完全不像：拒绝', acceptRename('深渊', '日常托管', vocab) === false)
+  /**
+   * OCR 抓了一整行、库内是短名字：这是托管类最常见的一种，而且很可靠 ——
+   * 库里的名字原样出现在 OCR 名字里。也是唯一能救回这类改名的规则，
+   * 因为长短差太多，字符相似度只有 0.2。
+   */
+  ok('OCR 抓了整行、库内是短名字：接受', acceptRename('精托套餐：日体套餐+期间活动+千道门扉', '精托', vocab) === true)
+  ok('库内名字出现在原名开头也接受', acceptRename('日体套餐：每日活跃+每日体力', '日体', vocab) === true)
+  ok('库内名字出现在原名中间也接受', acceptRename('3.6版本精托套餐', '精托', vocab) === true)
+  // 库里有 `瑝珑梦州 满探索`：短名字被补全是对的，但共享前缀的两个套餐不是
+  const mengzhou = new Set(['瑝珑梦州 满探索'])
+  ok('OCR 只抓到后半截、库内是全名：接受', acceptRename('梦州满探索', '瑝珑梦州 满探索', mengzhou) === true)
+  ok('共享前缀但其实是另一个套餐：拒绝', acceptRename('梦州全包', '瑝珑梦州 满探索', mengzhou) === false)
+  ok('同理 `梦州全收集` 也要拒', acceptRename('梦州全收集', '瑝珑梦州 满探索', mengzhou) === false)
   /**
    * 「原名 + 一堆别的」是最阴的一种：相似度够高，但它其实是整行抄回来的。
    * 实测就是 `黑海岸群岛` 被改成了 `黑海岸群岛、泰缇斯之底`（一行两个候选挤在一起）。
@@ -1546,6 +1565,63 @@ export async function run() {
   ok('数组也能抽', JSON.stringify(J('前言[1,2]后语')) === '[1,2]')
   ok('真不是 JSON 就返回 null', J('我觉得这个价格挺合理的') === null)
   ok('空字符串返回 null', J('') === null)
+
+  /**
+   * —— 取正文：各家的字段名不一样 ——
+   *
+   * 这一段是被一次真实故障逼出来的：探活只给 32 个 token，推理模型把额度花在
+   * 「思考」上，返回 `content: ""` + `finish_reason: "length"`，而当时的报错是
+   * 「模型没给出能解析的 JSON：」—— 冒号后面空的，用户完全无从下手。
+   */
+  const readText = aiTesting.readMessageText
+  ok('普通回复取 content', readText({ choices: [{ message: { content: '{"a":1}' } }] }).field === 'content')
+  ok('content 是分片数组也能取', readText({ choices: [{ message: { content: [{ type: 'text', text: '{"a"' }, { type: 'text', text: ':1}' }] } }] }).text === '{"a":1}')
+  ok('正文空时退回 reasoning_content', readText({ choices: [{ message: { content: '', reasoning_content: '{"a":1}' } }] }).field === 'reasoning_content')
+  ok('正文是空白串也算空', readText({ choices: [{ message: { content: '   ', reasoning_content: 'x' } }] }).field === 'reasoning_content')
+  ok('全空就返回空', readText({ choices: [{ message: {} }] }).text === '')
+  ok('没有 choices 也不炸', readText({ error: 'nope' }).text === '')
+
+  const explain = aiTesting.explainNoJson
+  const truncMsg = explain({ payload: { choices: [{ message: { content: '', reasoning_content: '想了很久' }, finish_reason: 'length' }] }, content: '', finish: 'length' })
+  ok('截断的错要说清是被截断', truncMsg.includes('截断'), truncMsg)
+  ok('截断的错要提到 max_tokens', truncMsg.includes('max_tokens'), truncMsg)
+  ok('截断的错要点出推理模型这个原因', truncMsg.includes('推理模型'), truncMsg)
+  ok('正文空但推理非空要说清', truncMsg.includes('reasoning_content'), truncMsg)
+  const emptyMsg = explain({ payload: { choices: [{ message: {} }] }, content: '', finish: 'stop' })
+  ok('两边都空要说清', emptyMsg.includes('都是空的'), emptyMsg)
+  ok('两边都空时不谎报截断', !emptyMsg.includes('截断'), emptyMsg)
+  const noChoice = explain({ payload: { error: 'bad gateway' }, content: '', finish: '' })
+  ok('没有 choices 时提示地址可能不对', noChoice.includes('OpenAI 兼容'), noChoice)
+  const garbage = explain({ payload: { choices: [{ message: { content: '我觉得可以' }, finish_reason: 'stop' }] }, content: '我觉得可以', finish: 'stop' })
+  ok('有正文但解析不了要把正文带出来', garbage.includes('我觉得可以'), garbage)
+  // 有 choices 的那几种都要报 finish_reason；「没有 choices」那种本来就没有，不算
+  ok('有 choices 的诊断都带 finish_reason', [truncMsg, emptyMsg, garbage].every((m) => m.includes('finish_reason')), emptyMsg)
+
+  /**
+   * —— 探活的额度不能饿死推理模型 ——
+   *
+   * 这条是这次故障的回归测试：断言真的发出去的请求里 max_tokens 够大，
+   * 而不是去 grep 源码。实测 `deepseek-v4.1-flash` 光思考就要 13～32 个 token，
+   * 给 32 就会返回空 content。
+   */
+  const probeRealFetch = globalThis.fetch
+  const seenBodies = []
+  globalThis.fetch = async (url, init) => {
+    seenBodies.push(JSON.parse(init.body))
+    return {
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify({ choices: [{ message: { content: '{"ok":true}' }, finish_reason: 'stop' }], model: 'probe-test' }),
+    }
+  }
+  process.env.XFC_AI_API_KEY = 'sk-probe-budget-test'
+  const probeResult = await aiProbe()
+  ok('探活能成功', probeResult.ok === true, probeResult.error)
+  ok('探活真的发出去了请求', seenBodies.length === 1, seenBodies.length)
+  ok('探活的 max_tokens 够推理模型思考', Number(seenBodies[0]?.max_tokens) >= 1024, String(seenBodies[0]?.max_tokens))
+  ok('探活仍然要 JSON', seenBodies[0]?.response_format?.type === 'json_object', JSON.stringify(seenBodies[0]?.response_format))
+  delete process.env.XFC_AI_API_KEY
+  globalThis.fetch = probeRealFetch
 
   // —— 密钥脱敏 ——
   process.env.XFC_AI_API_KEY = 'sk-abcdefghijklmnopqrstuvwxyz'

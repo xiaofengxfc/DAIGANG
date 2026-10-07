@@ -474,7 +474,17 @@ async function runScan(job, { maxVideos, minSamples }) {
    * 「这次剔掉了 37 行不是价格的、纠正了 5 个认歪的名字」——
    * 不说的话用户会以为解析器变强了，而实际上是他配的模型在干活。
    */
-  const aiTotals = { enabled: false, model: '', dropped: 0, renamed: 0, kept: 0, errors: 0, ms: 0, dropped_samples: [] }
+  /**
+   * `last_error` 不只是给日志看的。
+   *
+   * AI 调用失败时管线会安全降级（全部保留，结果照样出），但**用户看不见**——
+   * 界面上写着「AI 甄别 deepseek-xxx」，实际它一次都没成功。这种「看起来在干活
+   * 其实没干」比直接报错更坏，所以错误文本要一路带到界面上。
+   */
+  const aiTotals = {
+    enabled: false, model: '', dropped: 0, renamed: 0, kept: 0, errors: 0, ms: 0,
+    dropped_samples: [], renamed_samples: [], rename_rejected_samples: [], last_error: '',
+  }
   for (let i = 0; i < job.videos.length; i++) {
     const video = job.videos[i]
     assertNotCancelled(job)
@@ -494,8 +504,15 @@ async function runScan(job, { maxVideos, minSamples }) {
         for (const sample of parsed.ai.dropped_samples || []) {
           if (aiTotals.dropped_samples.length < 20) aiTotals.dropped_samples.push(sample)
         }
+        for (const sample of parsed.ai.renamed_samples || []) {
+          if (aiTotals.renamed_samples.length < 20) aiTotals.renamed_samples.push(sample)
+        }
+        for (const sample of parsed.ai.rename_rejected_samples || []) {
+          if (aiTotals.rename_rejected_samples.length < 10) aiTotals.rename_rejected_samples.push(sample)
+        }
       } else if (parsed.ai?.error) {
         aiTotals.errors += 1
+        if (!aiTotals.last_error) aiTotals.last_error = String(parsed.ai.error).slice(0, 300)
       }
     } catch (err) {
       if (err?.cancelled) throw err
@@ -566,6 +583,7 @@ async function runScan(job, { maxVideos, minSamples }) {
       if (rescued.length) logLine(job, `AI 兜底匹上 ${rescued.length} 个：${rescued.slice(0, 10).join('、')}`)
     } else {
       aiTotals.errors += 1
+      if (!aiTotals.last_error) aiTotals.last_error = String(picked.error).slice(0, 300)
       logLine(job, `AI 兜底匹配跳过：${picked.error}`)
     }
   }
@@ -882,9 +900,12 @@ async function triageCandidates({ job, video, candidates, frameLines, serviceNam
    * 校验不通过的改名在这里就被拦掉，并记下来给用户看。
    */
   const renameMap = new Map()
+  const renamedSamples = []
   for (const [from, to] of result.renames || []) {
-    if (acceptRename(from, to, vocabulary)) renameMap.set(from, to)
-    else {
+    if (acceptRename(from, to, vocabulary)) {
+      renameMap.set(from, to)
+      if (renamedSamples.length < 20) renamedSamples.push(`${from} → ${to}`)
+    } else {
       renameRejected += 1
       if (rejectedSamples.length < 5) rejectedSamples.push(`${from} → ${to}`)
     }
@@ -954,6 +975,7 @@ async function triageCandidates({ job, video, candidates, frameLines, serviceNam
       drop_overridden_samples: overriddenSamples,
       rename_rejected: renameRejected,
       rename_rejected_samples: rejectedSamples,
+      renamed_samples: renamedSamples,
       dropped_samples: droppedSamples,
       error: '',
     },
