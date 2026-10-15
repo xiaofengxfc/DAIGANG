@@ -19,8 +19,39 @@ try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false) } 
 $foreground = [GameKeyInput]::GetForegroundWindow()
 $foregroundProcessId = [uint32]0
 [void][GameKeyInput]::GetWindowThreadProcessId($foreground, [ref]$foregroundProcessId)
+
+# 焦点在「切过去」和「发按键」之间可能已经掉了（游戏自己的启动动画、UAC 提示、
+# 输入法窗口、后台程序抢焦点…）。以前这里直接放弃并返回 game_not_foreground，
+# 于是用户看到的现象是「窗口切过去了，但界面没翻开」—— 因为 B 根本没发出去。
+# 现在：先试着自己重新抢一次焦点（和 focus-game.ps1 同一套办法），再发。
 if ($foreground.ToInt64() -ne $WindowHandle -or $foregroundProcessId -ne $ProcessId) {
-  [Console]::Out.WriteLine((@{ ok = $false; code = 'game_not_foreground' } | ConvertTo-Json -Compress))
+  $hwnd = [IntPtr]::new([Int64]$WindowHandle)
+  try {
+    # 合成一次 ALT：Windows 的前台锁会据此认为「调用方刚收到过用户输入」
+    try { [GameKeyFocus]::TapAlt() } catch { }
+    Start-Sleep -Milliseconds 30
+    [void][GameKeyFocus]::ShowWindowAsync($hwnd, 9) # SW_RESTORE
+    [void][GameKeyFocus]::SetForegroundWindow($hwnd)
+    Start-Sleep -Milliseconds 120
+  } catch { }
+
+  $foreground = [GameKeyInput]::GetForegroundWindow()
+  $foregroundProcessId = [uint32]0
+  [void][GameKeyInput]::GetWindowThreadProcessId($foreground, [ref]$foregroundProcessId)
+}
+
+if ($foreground.ToInt64() -ne $WindowHandle -or $foregroundProcessId -ne $ProcessId) {
+  # 还是抢不过去就老实说：**不盲发按键**。打到别的窗口上（浏览器、聊天框）
+  # 比报错危险得多 —— B 会变成往别人的输入框里打字。
+  [Console]::Out.WriteLine((@{
+    ok = $false
+    code = 'game_not_foreground'
+    # 把「期望的」和「实际的」都报出来：只报一句 not_foreground 的话，
+    # 排查时分不清是窗口句柄过期，还是焦点被别人抢了。
+    want = $WindowHandle
+    got = $foreground.ToInt64()
+    gotProcessId = $foregroundProcessId
+  } | ConvertTo-Json -Compress))
   exit 2
 }
 

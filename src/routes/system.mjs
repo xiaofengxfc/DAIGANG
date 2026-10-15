@@ -547,10 +547,15 @@ export function register() {
     return r
   })
 
-  /** 流程只用 B / M 打开对应界面，再用 ESC 返回；后端也限制为这三个按键。 */
+  /**
+   * 流程只用 B / M 打开对应界面，再用 ESC 返回；截图那条路用 F2 / F12。
+   * 白名单要和 src/game-window.mjs 的 sendGameKey 保持一致 —— 两边不一致的话，
+   * 前端能点的动作会被这里 400 挡掉，而报错只说「只允许 B、M 或 ESC」，
+   * 看不出是白名单漏了。
+   */
   post('/api/ocr/screen/key', async (ctx) => {
     const key = clampStr(ctx.body.key, 4).toUpperCase()
-    if (!['B', 'M', 'ESC'].includes(key)) fail(400, '只允许发送 B、M 或 ESC。', 'bad_game_key')
+    if (!['B', 'M', 'ESC', 'F2', 'F12'].includes(key)) fail(400, '只允许发送 B、M、ESC、F2 或 F12。', 'bad_game_key')
     const r = await sendGameKey(key)
     if (!r.ok) fail(400, r.error || '没有向鸣潮发送按键', 'game_key_failed')
     return r

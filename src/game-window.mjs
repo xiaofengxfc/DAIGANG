@@ -233,11 +233,15 @@ export function findGameWindow({ timeoutMs = 8000, game = '' } = {}) {
       let result = null
       try { result = JSON.parse(stdout.trim().replace(/^\uFEFF/, '')) } catch { /* report below */ }
       if (code !== 0 || !result?.ok) {
+        // 报「哪个游戏」而不是写死鸣潮：两个游戏共用这条路径，写死会误导。
+        const label = activeWindow?.title || activeWindow?.process || '游戏'
         const knownErrors = {
-          game_not_foreground: '鸣潮窗口已不在前台，已停止发送按键。',
-          game_window_closed: '鸣潮窗口已经关闭。',
+          game_not_foreground: `没能把焦点保持在${label}窗口上，按键没有发出去（不会盲发，免得打到别的窗口上）。`,
+          game_window_closed: `${label}窗口已经关闭。`,
         }
-        return finish({ ok: false, error: knownErrors[result?.code] || stderr.trim() || '没有向鸣潮发送按键。' })
+        // 把实际的前台窗口报出来：只说「不在前台」的话，分不清是句柄过期还是被别人抢了
+        const detail = result && result.got ? `（当前前台窗口 0x${Number(result.got).toString(16)}，期望 0x${Number(result.want).toString(16)}）` : ''
+        return finish({ ok: false, code: result?.code, error: (knownErrors[result?.code] || stderr.trim() || `没有向${label}发送按键。`) + detail })
       }
       finish({ ok: true, key: normalized })
     })

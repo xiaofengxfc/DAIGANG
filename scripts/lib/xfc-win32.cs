@@ -141,8 +141,32 @@ public static class WindowCapture {
 // Sending one whitelisted key, used by game-key.ps1. Its
 // GetWindowThreadProcessId overload differs from the one above on purpose: this
 // script needs the process id back, so it takes an out parameter.
+//
+// The focus calls here are for RE-ASSERTING focus right before sending: focus can
+// drop between "the caller activated the game" and "we send the key" (game's own
+// intro animation, an IME window, another app stealing focus). Without a retry the
+// user sees "the window came forward but the bag never opened" -- the key was
+// never sent because this script used to give up immediately.
 public static class GameKeyInput {
   [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
   [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
   [DllImport("user32.dll", SetLastError = true)] public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
+  [DllImport("user32.dll", SetLastError = true)] public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+  [DllImport("user32.dll", SetLastError = true)] public static extern bool SetForegroundWindow(IntPtr hWnd);
+}
+
+// Re-asserting focus from game-key.ps1 needs the same ALT trick as focus-game.ps1,
+// but with an out-parameter GetWindowThreadProcessId (see above). These live in a
+// separate class because a type cannot declare the same method twice.
+public static class GameKeyFocus {
+  [DllImport("user32.dll", SetLastError = true)] public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+  [DllImport("user32.dll", SetLastError = true)] public static extern bool SetForegroundWindow(IntPtr hWnd);
+  [DllImport("user32.dll")] public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
+  public const byte VK_MENU = 0x12; // ALT
+  public const uint KEYEVENTF_KEYUP = 0x2;
+
+  public static void TapAlt() {
+    keybd_event(VK_MENU, 0, 0, UIntPtr.Zero);
+    keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
+  }
 }
