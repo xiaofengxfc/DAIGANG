@@ -4,6 +4,7 @@ import { api } from './lib/api.js'
 import { fmtQty } from './lib/formatters.js'
 import { RES_KEYS, buildResources, deltaText, joinResourceSections, parseResources, sectionText } from '../shared/resources.js'
 import { profileForGame, profileKeys } from '../shared/game-profiles.js'
+import { rememberFrameToken } from './lib/screen-frames.js'
 import { toast, toastErr } from './app/toast-store.js'
 
 /* ============================================================
@@ -54,7 +55,7 @@ export default function ResourceField(props) {
  * 里面所有状态都只属于**这一个游戏** —— 这是「按游戏分开记」最省事的做法：
  * 换游戏只是换一块，不用把已有的识别流程拆开重写。
  */
-function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', onChange }) {
+function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', orderId = '', onChange }) {
   // 订单上选的游戏 → 这张表：记哪几个资源、按什么键打开哪些界面
   const profile = profileForGame(game)
   const keys = profileKeys(profile)
@@ -138,11 +139,16 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
       })
       // 手工截图不知道截的是哪一屏，所以这个游戏名下所有资源一起找（和后端默认一致）；
       // 只是把「本游戏有哪几个」讲明白，省得后端拿整份模板表去扫。
-      const result = await api.post('/api/ocr', {
-        data_url: dataUrl,
-        game: gameName,
-        keys: [...new Set(stages.flatMap((s) => s.resources))],
-      })
+      // deep=1 额外要一份「每个图标模板各匹配多少分」的体检 —— 认不出来时靠它定位。
+      const result = await api.post(
+        '/api/ocr',
+        {
+          data_url: dataUrl,
+          game: gameName,
+          keys: [...new Set(stages.flatMap((s) => s.resources))],
+        },
+        { deep: 1 }
+      )
       const got = result.resources || {}
       const found = keys.filter((key) => got[key] !== undefined && got[key] !== null)
       fill(side, got)
@@ -155,6 +161,16 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
         .filter((seen) => (seen.value === undefined || seen.value === null) && !gotKeys.has(seen.key))
         .map((seen) => `${seen.key}${seen.score ? `(分${seen.score})` : ''}`)
       const fallback = (result.hits || []).filter((hit) => hit.source === 'ocr-layout').map((hit) => hit.key)
+
+      /* 图标体检：每个模板在这张图顶栏上的最好分数。
+         认不出来的时候这一行就是答案 —— 分数都低说明模板跟画面不是一个版本，
+         某个分数高但没进结果说明是阈值或取数字那一步的事。 */
+      const probe = result.icon_probe && !result.icon_probe.error ? result.icon_probe : null
+      const probeLine = probe
+        ? probe.items.map((it) => `${it.key} ${it.score}${it.passes ? '' : '(没过)'}`).join(' · ')
+        : result.icon_probe && result.icon_probe.error
+          ? result.icon_probe.error
+          : ''
 
       setNotes((prev) => ({
         ...prev,
@@ -169,6 +185,7 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
             ) : null}
             {fallback.length ? <div className="tiny tone-amber" style={amberStyle}>{`${fallback.join('、')} 是按数字格式补出的，请对照截图核对。`}</div> : null}
             {weak.length ? <div className="tiny" style={tinyStyle}>{`没配上数字的：${weak.join('、')}`}</div> : null}
+            {probeLine ? <div className="tiny" style={tinyTopStyle}>{`图标体检（阈值 ${probe.min_score}）：${probeLine}`}</div> : null}
             {lines.length ? <div className="tiny" style={tinyTopStyle}>{`识别到的原文：${lines.join(' ｜ ')}`}</div> : null}
           </>
         ),
@@ -265,8 +282,11 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
         paintProgress(stage)
         await new Promise((resolve) => setTimeout(resolve, stage.openDelay))
 
+        // 这一阶段「认全了」的那一帧的凭据。内层循环一认满就 break，
+        // 所以这里留下的就是那次真正被采纳的画面。
+        let keeperToken = ''
         for (let attempt = 0; attempt < MAX_SCREEN_FRAMES && !token.stop; attempt++) {
-          const result = await api.post('/api/ocr/screen', { session, min_votes: 2, game: gameName, keys: stage.resources })
+          const result = await api.post('/api/ocr/screen', { session, stage: stage.id, min_votes: 2, game: gameName, keys: stage.resources })
           if (result.engine) engine = result.engine
           if (Array.isArray(result.hits)) {
             for (const hit of result.hits) {
@@ -287,7 +307,10 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
           const missing = stage.resources.filter((key) => got[key] === undefined)
           progressHint = `${stage.title}画面扫描 ${attempt + 1}/${MAX_SCREEN_FRAMES} 次${missing.length ? `，还差${missing.join('、')}` : ''}`
           paintProgress(stage)
-          if (!missing.length) break
+          if (!missing.length) {
+            keeperToken = result.frame_token || ''
+            break
+          }
           if (attempt + 1 < MAX_SCREEN_FRAMES) await new Promise((resolve) => setTimeout(resolve, 850))
         }
 
@@ -297,6 +320,11 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
           stoppedReason = `${stage.title}连续识别 ${MAX_SCREEN_FRAMES} 帧后仍缺少：${missing.join('、')}。流程已停止。`
           break
         }
+
+        /* 认全了就记下这一帧的凭据（不取走）。
+           真正的图还在服务端暂存着，等用户点保存时再去取；用户不保存就自己过期，
+           所以不会在 uploads 里留下没人引用的孤儿截图。 */
+        if (keeperToken) rememberFrameToken(orderId, side, keeperToken)
 
         // ESC after each successful page, and the finally block handles every failure path.
         await api.post('/api/ocr/screen/key', { key: 'ESC' })
@@ -452,7 +480,7 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
  * 哪一段是哪一块的，靠 game 名对；用户只填了一块也没关系 ——
  * 空的那段拼接时会整段丢掉，不会留一个光秃秃的【异环】在库里。
  */
-function MultiGameField({ games, before = '', after = '', beforeFrom = '', onChange }) {
+function MultiGameField({ games, before = '', after = '', beforeFrom = '', orderId = '', onChange }) {
   // 初始值从分段文本里各取自己那一段；之后每一块自己维护自己的正文
   const [parts, setParts] = useState(() => {
     const init = {}
@@ -476,6 +504,7 @@ function MultiGameField({ games, before = '', after = '', beforeFrom = '', onCha
         <SingleGameField
           key={game}
           game={game}
+          orderId={orderId}
           before={(parts[game] && parts[game].before) || ''}
           after={(parts[game] && parts[game].after) || ''}
           // 「做之前」带上一条的提示只在第一块说一次，不然两块都挂一句很吵

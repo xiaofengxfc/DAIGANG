@@ -9,7 +9,8 @@ import { ocrImage, extractResources, probeEnginesStatus, ensureEnginesProbed, oc
 import { ensureVisionStarted, probeVisionHealth, resetVisionBlock, stopVisionSidecar, visionBackendStatus, visionHealthCheck, visionLogTail, visionOcrCrop } from '../vision-python.mjs'
 import { startVisionDependencyInstall, visionDependencyInstallStatus, visionDependencyStatus } from '../vision-deps.mjs'
 import { installOptions, installEngine, installStatus, extractorStatus, releasePage, INSTALL_SPECS, engineHealth, cleanupTmp } from '../ocr-install.mjs'
-import { recognizeScreenOnce, recognizeImageFile, resetVotes, screenAvailable, templateStatus, loadTemplates, extractIconTemplate, screenResourcesFor, templateFileFor, SCREEN_RESOURCES, MIN_SCORE } from '../screen.mjs'
+import { recognizeScreenOnce, recognizeImageFile, resetVotes, screenAvailable, templateStatus, loadTemplates, extractIconTemplate, screenResourcesFor, templateFileFor, SCREEN_RESOURCES, MIN_SCORE, probeIcons } from '../screen.mjs'
+import { takeFrame } from '../screen-stash.mjs'
 import { profileForGame } from '../../shared/game-profiles.js'
 import { focusGameWindow, returnToPreviousWindow, sendGameKey } from '../game-window.mjs'
 import { decodePNG, encodePNG } from '../imgmatch.mjs'
@@ -22,6 +23,7 @@ import { listOutbox, outboxSummary, retryOutbox } from '../outbox.mjs'
 import { buildERPNextOutboxPlan, syncERPNextOutbox } from '../erpnext-outbox.mjs'
 import { erpNextScopeSummary } from '../erpnext-scope.mjs'
 import { resticStatus, listResticSnapshots, createResticBackup } from '../restic.mjs'
+import { streamArchive, archiveFilename } from '../backup-archive.mjs'
 import { readSettings, updateSettings, SETTING_KEYS } from '../modules/settings/settings-service.mjs'
 import { transaction } from '../infrastructure/sqlite/transaction.mjs'
 
@@ -460,9 +462,29 @@ export function register() {
       const r = await recognizeImageFile(tmp, {
         lang: clampStr(ctx.body.lang, 20) || 'zh-Hans-CN',
         game,
+        // 「识别截图」也能说是哪个界面（前端目前不传，传了就能复用对的那次定标）
+        stage: clampStr(ctx.body.stage, 20),
         keys: screenKeysWanted(game, ctx.body.keys),
       })
       if (!r.ok) fail(400, r.error || '识别失败', 'ocr_failed')
+      /**
+       * 体检模式（?deep=1）：除了识别结果，再把**每个**图标模板在这张图顶栏上的
+       * 最好分数报出来，不管过没过阈值。
+       *
+       * 为什么需要：识别失败时用户只看到「还差体力」，但这句话背后可能是
+       * 「模板根本对不上」「对得上但差一点没阈值」「找到了但数字没取到」三种
+       * 完全不同的毛病，光看那句提示没法区分。把分数摆出来，用户（和我）才能
+       * 知道该换模板、调阈值，还是根本没救。
+       */
+      let iconProbe = null
+      if (String(ctx.query.deep || '') === '1') {
+        try {
+          const png = decodePNG(buf)
+          iconProbe = probeIcons(png, { profile: profileForGame(game), keys: screenKeysWanted(game, ctx.body.keys) })
+        } catch (err) {
+          iconProbe = { error: `这张图解不了像素，体检做不了：${err.message}` }
+        }
+      }
       return {
         game: r.game,
         resources: r.resources,
@@ -475,6 +497,8 @@ export function register() {
         size: r.size,
         engine: r.engine,
         ms: r.ms,
+        // 只在 ?deep=1 时有值；默认不带，免得每次识别都白花几百毫秒
+        icon_probe: iconProbe,
         word_count: (r.candidates || []).length,
         template: templateStatus(game),
       }
@@ -555,6 +579,7 @@ export function register() {
     const r = await recognizeScreenOnce({
       id: clampStr(ctx.body.session, 40) || 'default',
       game,
+      stage: clampStr(ctx.body.stage, 20),
       keys: screenKeysWanted(game, ctx.body.keys),
       minVotes: Math.max(1, Math.min(6, int(ctx.body.min_votes, 2) || 2)),
       minScore: num(ctx.body.min_score, MIN_SCORE) || MIN_SCORE,
@@ -575,6 +600,8 @@ export function register() {
       size: r.size,
       engine: r.engine,
       ms: r.ms,
+      // 这一帧暂存的凭据：前端拿着它在保存进度时取回原图（见 /api/ocr/screen/frame）
+      frame_token: r.frame_token || null,
       want: screenResourcesFor(game),
       min_votes: Math.max(1, Math.min(6, int(ctx.body.min_votes, 2) || 2)),
     }
@@ -624,6 +651,32 @@ export function register() {
 
   /** 清掉一次「看屏幕」的投票记录（换了一张单、或者用户点了重来） */
   post('/api/ocr/screen/reset', (ctx) => resetVotes(clampStr(ctx.body.session, 40) || 'default'))
+
+  /**
+   * 取走识别时暂存的那一帧原始截图（见 src/screen-stash.mjs）。
+   *
+   * 给谁用：用户在进度表单上点保存时，前端把这一阶段最终采纳的那一帧取回来，
+   * 在浏览器里压缩（browser-image-compression，压到 1MB 以内）再上传到
+   * /api/uploads，最后挂到这条进度的 media 上 —— 于是时间线上就能看到、
+   * 也能随时下载。
+   *
+   * 为什么不在识别时就存进 uploads：识别一轮最多 6 帧，用户很可能看完就走，
+   * 那样会留下永远没人引用的孤儿图片。暂存的帧**取走即删**，没取就过期。
+   */
+  get('/api/ocr/screen/frame', (ctx) => {
+    const token = clampStr(ctx.query.token, 60)
+    if (!token) bad('缺少 token', 'missing_token')
+    const frame = takeFrame(token)
+    if (!frame) fail(404, '这一帧已经过期或已被取走，请重新识别画面', 'frame_gone')
+    ctx.res.writeHead(200, {
+      'Content-Type': 'image/png',
+      'Content-Length': frame.buf.length,
+      'Cache-Control': 'no-store',
+      // 帧里有游戏画面，别让它进任何中间缓存
+      'X-Content-Type-Options': 'nosniff',
+    })
+    ctx.res.end(frame.buf)
+  })
 
   /* ============================================================
      Python 视觉后端（屏幕识别的 OCR 那一层）
@@ -841,6 +894,72 @@ export function register() {
     const out = {}
     for (const t of BACKUP_TABLES) out[t] = db.prepare(`SELECT COUNT(*) AS c FROM ${t}`).get().c
     return out
+  })
+
+  /**
+   * 整包备份：数据库快照 + 上传文件，打包成 .tar.gz 直接下载。
+   *
+   * 和上面 /api/backup/export 的分工：
+   *   · export  → JSON，**只搬业务数据**，用来「导入」覆盖现有库；
+   *   · archive → tar.gz，**连图片素材一起**，用来「整机还原」。
+   * 截图现在会留在时间线上，图片成了业务数据的一部分，
+   * 所以只导 JSON 已经不算完整备份了 —— 这就是这个接口存在的理由。
+   *
+   * 数据一致性：数据库不走文件拷贝（WAL 模式下正在写时拷出来可能是半旧的页），
+   * 而是 db.serialize() 让 SQLite 自己给一份含 WAL 的一致性快照。
+   */
+  get('/api/backup/archive', async (ctx) => {
+    let snapshot
+    try {
+      snapshot = db.serialize()
+    } catch (err) {
+      fail(500, `拿不到数据库快照：${err.message}`, 'snapshot_failed')
+    }
+    const { stream, tarBytes, uploads, skipped } = streamArchive({ dbSnapshot: snapshot })
+
+    const filename = archiveFilename()
+    // 中文文件名必须同时给 filename*（RFC 5987）：老写法的 filename= 只有 ASCII 能表达，
+    // 浏览器拿到中文会变成乱码或被丢掉。
+    ctx.res.writeHead(200, {
+      'Content-Type': 'application/gzip',
+      'Content-Disposition': `attachment; filename="backup.tar.gz"; filename*=UTF-8''${encodeURIComponent(filename)}`,
+      'Cache-Control': 'no-store',
+      // 长度要压完才知道，所以不发 Content-Length，走 chunked
+    })
+
+    ctx.res.on('close', () => {
+      // 用户中途取消下载：把流收掉，别让 gzip 还在往一个断掉的 socket 里写
+      stream.destroy()
+    })
+
+    // 等到响应真的写完（'finish'）或者连接断了（'close'）才收工。
+    // 只等 stream 的 'end' 是不够的：那只是 gzip 读完了 tar，字节还堆在 socket 缓冲里，
+    // 这时候处理器返回就会去写 JSON —— 而那里写着「如果响应已结束就别再写」，
+    // 于是要么抢写要么静默丢掉。等 'finish' 语义才对。
+    // 'close' 也要resolve：客户端取消时 'finish' 不会来，只等它会把这次请求永远挂住。
+    await new Promise((resolve) => {
+      let settled = false
+      const settle = () => {
+        if (settled) return
+        settled = true
+        resolve()
+      }
+      stream.on('error', (err) => {
+        console.error('[backup] 归档流出错：', err.message)
+        ctx.res.destroy()
+        settle()
+      })
+      ctx.res.on('finish', settle)
+      ctx.res.on('close', settle)
+      // 挂监听之前就已经结束了的情况（客户端一发起就断开），上面两个事件不会再触发
+      if (ctx.res.writableFinished || ctx.res.destroyed) settle()
+      stream.pipe(ctx.res)
+    })
+
+    console.log(
+      `  归档完成：tar ${tarBytes} 字节 · 上传件 ${uploads.length} 个` +
+        (skipped.length ? ` · 跳过 ${skipped.length} 个（见归档内 README.txt）` : '')
+    )
   })
 
   /* ===== 清空业务数据（保留登录与保险箱设置） ===== */

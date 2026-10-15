@@ -6,6 +6,8 @@ import { toast } from './app/toast-store.js'
 import Drawer from './app/drawer.jsx'
 import { Field, TagsInput, TextArea } from './app/fields.jsx'
 import ResourceField from './resource-field.jsx'
+import { takeFrameTokens } from './lib/screen-frames.js'
+import { saveScreenshots } from './lib/screenshot.js'
 import { openOverlay } from './app/overlay-host.jsx'
 
 /* ============================================================
@@ -75,8 +77,15 @@ function ProgressForm({ order, carried, onDone, close }) {
     setBusy(true)
     setServerError('')
     try {
-      const saved = await api.post(`/api/orders/${order.id}/progress`, { ...form, ...resources })
-      toast('进度记下了', 'ok')
+      // 「识别画面」认下来的截屏：取回原图 → 浏览器里压缩 → 上传，
+      // 拿到 URL 后和手填的链接一起挂到这条进度的 media 上。
+      // 时间线那边本来就会把 media 里的图片渲染出来、点开可下载，
+      // 所以这一步做完，截图就真的留在这条进度里了。
+      // saveScreenshots 内部吞掉所有失败（截图是锦上添花，不该挡住记进度）。
+      const shotUrls = await saveScreenshots(takeFrameTokens(order.id))
+      const media = [...(form.media || []), ...shotUrls.filter(Boolean)]
+      const saved = await api.post(`/api/orders/${order.id}/progress`, { ...form, media, ...resources })
+      toast(shotUrls.length ? `进度记下了，附了 ${shotUrls.length} 张截屏` : '进度记下了', 'ok')
       close(saved)
       if (onDone) onDone(saved)
     } catch (err) {
@@ -124,6 +133,9 @@ function ProgressForm({ order, carried, onDone, close }) {
               beforeFrom={carried ? '上一条的「做之后」' : ''}
               game={order.game_name}
               games={(order.games || []).map((g) => g.name).filter(Boolean)}
+              // 识别画面留下的截屏凭据按订单寄存（见 client/lib/screen-frames.js），
+              // 提交时按这个 id 取回来挂到 media 上
+              orderId={order.id}
               onChange={setResources}
             />
 

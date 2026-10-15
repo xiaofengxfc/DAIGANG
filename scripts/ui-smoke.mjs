@@ -2131,6 +2131,33 @@ async function main() {
       ok('备份文件下载下来了', await waitFor(cdp, `(window.__downloads || []).some((d) => d.name.includes('备份') && d.name.endsWith('.json'))`, { tries: 40, interval: 200 }), JSON.stringify(await cdp.eval(`window.__downloads || []`)).slice(0, 200))
       ok('导出后还说了句导了多少', await waitFor(cdp, `[...document.querySelectorAll('.toasts .toast')].some((t) => t.textContent.includes('备份已导出'))`, { tries: 25, interval: 200 }))
 
+      // 整包备份（数据库 + 上传文件 → tar.gz）：走的是 fetch+blob，不是直接跳转，
+      // 所以要在下载件列表里看到那个 .tar.gz 才算真的成了。
+      const archiveRow = await cdp.eval(`(() => {
+        const el = [...document.querySelectorAll('.settings-page .itemlist > *')].find((r) => r.innerText.includes('下载整包备份'))
+        return el ? el.innerText.replace(/\\s+/g, ' ') : ''
+      })()`)
+      ok('设置页有「下载整包备份」这一行', archiveRow.includes('下载整包备份'), archiveRow.slice(0, 200))
+      ok('说明里讲了它含上传文件', archiveRow.includes('.tar.gz') && archiveRow.includes('上传文件'), archiveRow.slice(0, 260))
+      // 按钮自己的文字只是「下载」，得先定位到那一行再点行内的按钮
+      // ——直接按「下载整包备份」找按钮是找不到的（那是行标题，不是按钮文字）。
+      const clickedArchive = await cdp.eval(`(() => {
+        const row = [...document.querySelectorAll('.settings-page .itemlist > *')].find((r) => r.innerText.includes('下载整包备份'))
+        if (!row) return 'NO ROW'
+        const btn = row.querySelector('button')
+        if (!btn) return 'NO BUTTON'
+        if (btn.disabled) return 'DISABLED'
+        btn.click()
+        return 'clicked'
+      })()`)
+      ok('点到了「下载整包备份」的按钮', clickedArchive === 'clicked', clickedArchive)
+      ok(
+        '整包备份下载下来了（tar.gz）',
+        await waitFor(cdp, `(window.__downloads || []).some((d) => d.name.includes('整包备份') && d.name.endsWith('.tar.gz'))`, { tries: 60, interval: 250 }),
+        JSON.stringify(await cdp.eval(`window.__downloads || []`)).slice(0, 240)
+      )
+      ok('下载完按钮恢复可用（不是一直卡在打包中）', await waitFor(cdp, `!((${JSON.stringify('.settings-page .itemlist')}) && [...document.querySelectorAll('.settings-page .itemlist button')].some((b) => b.textContent.includes('打包中')))`, { tries: 30, interval: 200 }))
+
       // 清空业务数据：危险动作，先弹确认
       await clickInMain(cdp, '清空')
       ok('清空前弹了确认框', await waitFor(cdp, `${modalCountText} === 1`, { tries: 30, interval: 200 }), await modalCount(cdp))

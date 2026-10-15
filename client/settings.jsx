@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { Check, Download, Edit3, Play, RefreshCw, Square, Upload } from 'lucide-react'
+import { Archive, Check, Download, Edit3, Play, RefreshCw, Square, Upload } from 'lucide-react'
 import { api } from './lib/api.js'
 import { fmtDateTime } from './lib/formatters.js'
 import { toast, toastErr } from './app/toast-store.js'
@@ -67,6 +67,7 @@ export default function SettingsPage({ onReload, reloadKey }) {
   const [ocr, setOcr] = useState(null)
   const [actor, setActor] = useState('')
   const [error, setError] = useState('')
+  const [archiving, setArchiving] = useState(false)
   const importRef = useRef(null)
 
   const load = useCallback(async () => {
@@ -178,8 +179,27 @@ export default function SettingsPage({ onReload, reloadKey }) {
     }
   }, [])
 
-  const LAN = location.hostname !== '127.0.0.1' && location.hostname !== 'localhost'
+  const downloadArchive = useCallback(async () => {
+    if (archiving) return
+    setArchiving(true)
+    try {
+      // 走 fetch 拿 blob 而不是 window.open：这样失败能弹 toast，
+      // 而不是留一个空白标签页让人猜发生了什么。
+      const res = await fetch('/api/backup/archive', { credentials: 'same-origin' })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const blob = await res.blob()
+      const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')
+      // 和 7-Zip 一致用 .tar.gz：Windows 10+ 自带 tar 能解，见 README
+      downloadBlob(blob, `代肝运营台-整包备份-${stamp}.tar.gz`)
+      toast(`整包备份已下载：${(blob.size / 1024 / 1024).toFixed(1)} MB（含数据库和上传的图片）`, 'ok', 5000)
+    } catch (err) {
+      toastErr(`整包备份失败：${err.message}`)
+    } finally {
+      setArchiving(false)
+    }
+  }, [archiving])
 
+  const LAN = location.hostname !== '127.0.0.1' && location.hostname !== 'localhost'
   return (
     <div className="settings-page">
       <header className="settings-page__head">
@@ -269,6 +289,15 @@ export default function SettingsPage({ onReload, reloadKey }) {
                 title="导出一份备份"
                 desc="下载一个 JSON 文件，含全部业务数据。凭证在文件里仍然是密文，换台电脑要用同一个保险箱密码才能解开。"
                 action={<button className="btn btn--sm" type="button" onClick={() => exportBackup().catch(toastErr)}><Download {...iconProps(14)} />导出</button>}
+              />
+              <Row
+                title="下载整包备份"
+                desc="数据库快照 + 全部上传文件（图标、进度截图、自媒体素材）打成一个 .tar.gz。换电脑或重装时用这个还原最完整；截图现在是业务数据的一部分，只导 JSON 会丢图。"
+                action={
+                  <button className="btn btn--sm" type="button" disabled={archiving} onClick={() => downloadArchive()}>
+                    <Archive {...iconProps(14)} />{archiving ? '打包中…' : '下载'}
+                  </button>
+                }
               />
               <Row
                 title="从备份恢复"

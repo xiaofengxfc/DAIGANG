@@ -94,3 +94,21 @@ export async function startTestApp({ dataDir } = {}) {
 
   return { base: `http://127.0.0.1:${port}`, port, dataDir: dir, stop }
 }
+
+/**
+ * 往这个测试实例里塞一帧「识别截图」的暂存帧，返回它的 token。
+ *
+ * 给冒烟测试用：正常路径上这帧是 recognizeScreenOnce() 抓屏后存的，那需要真的
+ * 有游戏窗口和 OCR 引擎 —— 测试里不可能有。这里直接调真实的那份 stash 模块
+ * （同一个进程、同一份模块实例，所以服务器那边真的取得到），把「取帧 → 压缩
+ * → 上传」这条链路测完整。
+ */
+export async function stashTestFrame(session = 'smoke-frame') {
+  const { stashFrame } = await import('../../src/screen-stash.mjs')
+  // 1×1 的合法 PNG：够真实到能被 <img> 解码
+  const png = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==',
+    'base64'
+  )
+  return stashFrame({ session, stage: 'bag', buf: png, width: 1, height: 1 })
+}

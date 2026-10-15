@@ -16,6 +16,7 @@
     "test": "node scripts/smoke-run.mjs",
     "test:ui": "node scripts/ui-smoke.mjs",
     "test:glass": "node scripts/glass-check.mjs",
+    "test:icon-probe": "node scripts/icon-probe-check.mjs",
     "test:bili": "node scripts/bili-scan-check.mjs",
     "test:bili-apply": "node scripts/bili-apply-check.mjs",
     "check": "node scripts/check.mjs && npm run test && npm run build",
@@ -36,6 +37,7 @@
     "node": ">=22.12.0"
   },
   "dependencies": {
+    "browser-image-compression": "^2.0.2",
     "lucide-react": "1.50.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"

@@ -72,7 +72,8 @@ async function request(method, path, { body, query } = {}) {
 
 export const api = {
   get: (path, query) => request('GET', path, { query }),
-  post: (path, body) => request('POST', path, { body: body || {} }),
+  // query 是可选的：个别 POST 需要带开关（比如 /api/ocr?deep=1 要一份图标体检）
+  post: (path, body, query) => request('POST', path, { body: body || {}, query }),
   patch: (path, body) => request('PATCH', path, { body: body || {} }),
   del: (path, query) => request('DELETE', path, { query }),
 }

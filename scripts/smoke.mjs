@@ -29,7 +29,7 @@ import { profileForGame } from '../shared/game-profiles.js'
 // 导出配色的定义处，断言从这里取色值，不再把十六进制写死在测试里
 import { DOCX_PALETTE } from '../src/docx.mjs'
 // 静态资源断言要看 public/dist/ 在不在（没构建就跳过，不假装测过）
-import { ROOT } from './lib/test-app.mjs'
+import { ROOT, stashTestFrame } from './lib/test-app.mjs'
 
 const BASE = process.env.XFC_BASE || 'http://127.0.0.1:8790'
 
@@ -106,6 +106,51 @@ function isNeutral(hex) {
   return Math.max(r, g, b) - Math.min(r, g, b) <= 12
 }
 
+/* ---------- tar 断言的小工具（整包备份用） ---------- */
+
+/**
+ * 遍历 tar 的成员，交给回调。
+ * 只认普通文件和 PAX 扩展头 —— 我们自己写出来的归档只有这两类会带内容。
+ */
+function tarWalk(tar, visit) {
+  const BLOCK = 512
+  let off = 0
+  while (off + BLOCK <= tar.length) {
+    const h = tar.subarray(off, off + BLOCK)
+    if (h.every((b) => b === 0)) break // 结尾的两个全零块
+    const str = (o, l) => {
+      const s = h.subarray(o, o + l)
+      const end = s.indexOf(0)
+      return s.subarray(0, end === -1 ? s.length : end).toString('utf8')
+    }
+    const size = parseInt(str(124, 12).trim() || '0', 8)
+    const type = String.fromCharCode(h[156])
+    const prefix = str(345, 155)
+    const name = prefix ? `${prefix}/${str(0, 100)}` : str(0, 100)
+    const dataAt = off + BLOCK
+    visit({ name, type, size, dataStart: dataAt })
+    off = dataAt + size + (size % BLOCK === 0 ? 0 : BLOCK - (size % BLOCK))
+  }
+}
+
+/** tar 里所有「真文件」的名字（跳过目录和 PAX 头） */
+function tarEntries(tar) {
+  const out = []
+  tarWalk(tar, ({ name, type }) => {
+    if (type === '0') out.push(name)
+  })
+  return out
+}
+
+/** 读 tar 里某个文件的内容；找不到返回 null */
+function tarRead(tar, want) {
+  let found = null
+  tarWalk(tar, ({ name, type, size, dataStart }) => {
+    if (type === '0' && name === want) found = tar.subarray(dataStart, dataStart + size)
+  })
+  return found
+}
+
 /**
  * 跑一遍全流程。返回 { pass, failures }，不自己退出进程——
  * 退出码由调用方决定（被 smoke-run.mjs 调用时由它定，直接执行时由下面的守卫定）。
@@ -176,6 +221,38 @@ export async function run() {
   )
   raw = await fetch(`${BASE}/orders/12`)
   ok('SPA 路由仍然回 index.html', raw.status === 200 && (raw.headers.get('content-type') || '').includes('text/html'), raw.status)
+
+  /* ---------- 识别截图：暂存帧 → 取回 → 挂到进度上 ---------- */
+  // 「识别画面」抓到的帧现在会暂存起来，用户点保存时取回、压缩、上传，
+  // 最后挂到这条进度的 media 上（时间线据此渲染缩略图并支持下载）。
+  // 这里守住「帧取得到 / 取走即失效 / 过期给 404 而不是 500」。
+  {
+    r = await api('GET', '/api/ocr/screen/frame')
+    ok('取帧不给 token 时报 400', r.status === 400 && r.body.code === 'missing_token', r.body)
+
+    r = await api('GET', '/api/ocr/screen/frame?token=nope')
+    ok('取不存在的帧报 404（不是 500）', r.status === 404 && r.body.code === 'frame_gone', r.body)
+
+    const token = await stashTestFrame()
+    ok('暂存了一帧', Boolean(token), token)
+
+    const got = await fetch(`${BASE}/api/ocr/screen/frame?token=${encodeURIComponent(token)}`, { headers: { cookie } })
+    const frameBuf = Buffer.from(await got.arrayBuffer())
+    ok(
+      '取回这一帧是 PNG',
+      got.status === 200 && frameBuf.subarray(0, 8).toString('hex') === '89504e470d0a1a0a',
+      `${got.status} ${frameBuf.subarray(0, 8).toString('hex')}`
+    )
+    ok('取帧响应声明 image/png', String(got.headers.get('content-type')).includes('image/png'), got.headers.get('content-type'))
+    ok('取帧不允许缓存', String(got.headers.get('cache-control')).includes('no-store'), got.headers.get('cache-control'))
+
+    const again = await fetch(`${BASE}/api/ocr/screen/frame?token=${encodeURIComponent(token)}`, { headers: { cookie } })
+    ok('同一帧取第二次就没了（取走即删）', again.status === 404, again.status)
+
+    // 这里面是游戏画面，未登录绝不能取到
+    const anonFrame = await fetch(`${BASE}/api/ocr/screen/frame?token=x`)
+    ok('未登录取不到帧', anonFrame.status === 401, anonFrame.status)
+  }
 
   /* ---------- 游戏 / 分类 / 服务 ---------- */
   section('游戏 · 分类 · 服务与价格')
@@ -1363,6 +1440,33 @@ export async function run() {
 
   r = await api('POST', '/api/backup/import', { payload: r.body })
   ok('导入需要确认', r.status === 400 && r.body.code === 'need_confirm', r.body)
+
+  /* ---------- 整包备份（数据库 + 上传文件 → tar.gz） ---------- */
+  // 截图会留在时间线上，图片就成了业务数据的一部分，只导 JSON 不再算完整备份。
+  // 这里守住「压缩包真的生成了、头对了、上传件真的进去了」。
+  {
+    const anon = await fetch(`${BASE}/api/backup/archive`)
+    ok('未登录不给下载整包备份', anon.status === 401, anon.status)
+
+    const res = await fetch(`${BASE}/api/backup/archive`, { headers: { cookie } })
+    const buf = Buffer.from(await res.arrayBuffer())
+    ok('整包备份返回 gzip', res.status === 200 && buf[0] === 0x1f && buf[1] === 0x8b, `${res.status} magic=${buf.subarray(0, 2).toString('hex')}`)
+    ok('整包备份的内容类型是 gzip', String(res.headers.get('content-type')).includes('gzip'), res.headers.get('content-type'))
+    // 中文文件名必须走 RFC 5987 的 filename*，只写 filename= 会被浏览器丢成乱码
+    const disp = String(res.headers.get('content-disposition') || '')
+    ok('下载头带 filename*（中文文件名）', disp.includes("filename*=UTF-8''") && disp.includes('.tar.gz'), disp)
+    ok('整包备份不允许缓存', String(res.headers.get('cache-control')).includes('no-store'), res.headers.get('cache-control'))
+
+    // 解开看一眼：必须有 console.db，而且之前上传的那张图也要在
+    const entries = tarEntries(zlib.gunzipSync(buf))
+    ok('归档里有数据库快照', entries.includes('backup/console.db'), entries)
+    ok('归档里有上传的图片', entries.some((n) => n.startsWith('backup/uploads/') && n.endsWith('.png')), entries)
+    ok('归档里有还原说明', entries.includes('backup/README.txt'), entries)
+
+    // 快照要能被 SQLite 当数据库打开 —— 「拷了个坏文件」也算备份的话就没意义了
+    const snap = tarRead(zlib.gunzipSync(buf), 'backup/console.db')
+    ok('快照是合法 SQLite 文件', snap && snap.subarray(0, 15).toString('latin1') === 'SQLite format 3', snap ? snap.subarray(0, 16).toString('latin1') : 'missing')
+  }
 
   /* ---------- 设置 / 改密 ---------- */
   section('设置与改密')

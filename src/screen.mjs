@@ -33,6 +33,7 @@ import { activeGameWindow } from './game-window.mjs'
 import { profileForGame, profileKeys, DEFAULT_PROFILE } from '../shared/game-profiles.js'
 import { decodePNG, crop, encodePNG, resize } from './imgmatch.mjs'
 import { buildIntegral, compileTemplate, findIcon, findIconTop, pickStableCandidate, resampleBilinear, sweepScales, groupNumberBlocks, subImage } from './vision.mjs'
+import { stashFrame } from './screen-stash.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const GRAB_PS1 = path.resolve(HERE, '..', 'scripts', 'grab.ps1')
@@ -199,7 +200,80 @@ export function loadTemplates({ force = false, profile = DEFAULT_PROFILE } = {})
   return refs
 }
 
-/** 供 /api/ocr/status 用：这台机器手上到底有几个图标模板（按游戏分开报） */
+/**
+ * 图标匹配体检：拿一张截图，把**每个**资源模板都在顶栏带里搜一遍，
+ * 报出各自的最好分数和位置，不管有没有过阈值。
+ *
+ * 为什么需要它：识别失败时用户只会看到一句「还差体力」，但这句话背后可能是
+ * 三种完全不同的毛病 ——
+ *   · 模板跟画面根本对不上（分数 0.5 上下，换模板/重抠图标才有救）；
+ *   · 对得上但没过阈值（0.7 上下，调阈值就行）；
+ *   · 对得上也过了，但取数字那一步没取到（分数很高、block 为空）。
+ * 不把分数摆出来就只能靠猜，改一处试一次。
+ *
+ * 阈值传 0，等于「都别拦，全报上来」。
+ */
+export function probeIcons(img, { profile = DEFAULT_PROFILE, minScore = 0, keys = null } = {}) {
+  const p = profile && profile.resources ? profile : profileForGame(profile)
+  const wanted = keys ? new Set(keys) : null
+  const refs = loadTemplates({ profile: p }).filter((r) => !wanted || wanted.has(r.key))
+  const bandH = Math.max(48, Math.round(img.height * TOP_BAND_RATIO))
+
+  /* 和 recognizeFrame 用同一套「把带缩放到工作宽度」的策略：两边不一致的话，
+     同一个模板在这里量出来的分数会和真实识别时对不上，这个体检就没意义了。 */
+  const expectedIconW = p.iconWidthRatio ? p.iconWidthRatio * img.width : WORK_ICON_W
+  const workScale = Math.min(2600 / img.width, Math.max(0.2, WORK_ICON_W / expectedIconW))
+  const bandImg = resampleBilinear(
+    subImage(img, 0, 0, img.width, bandH),
+    Math.max(16, Math.round(img.width * workScale)),
+    Math.max(8, Math.round(bandH * workScale))
+  )
+  const work = { img: bandImg, scale: workScale }
+
+  const items = refs.map((r) => {
+    const t0 = Date.now()
+    let found = []
+    let error = ''
+    try {
+      // 时间预算给足：这是「用户主动来看一眼」的场景，一次跑完比跑一半有用
+      found = findIconTop(img, r.img, { work, minScore, timeBudgetMs: 8000 }, 3) || []
+    } catch (err) {
+      error = err.message
+    }
+    const best = pickStableCandidate(found, { margin: 0.92, minScore: 0 }) || found[0] || null
+    // 带上允许为 0 的阈值，方便判断「这个分数到底算不算认出来了」
+    const threshold = r.anchor ? ANCHOR_MIN_SCORE : minScore || MIN_SCORE
+    return {
+      key: r.key,
+      from: r.from,
+      template_size: [r.img.width, r.img.height],
+      score: best ? Number(best.score.toFixed(3)) : 0,
+      // findIconTop 返回的**已经是原图坐标**（它内部自己做过 ÷scale，见 vision.mjs），
+      // 所以这里不能再除一次 workScale —— 除了会偏一大截，位置就对不上了。
+      x: best ? Math.round(best.x) : -1,
+      y: best ? Math.round(best.y) : -1,
+      scale: best ? Number((best.scale || 1).toFixed(3)) : 0,
+      candidates: found.length,
+      passes: best ? best.score >= MIN_SCORE : false,
+      error,
+      ms: Date.now() - t0,
+    }
+  })
+
+  return {
+    game: p.id,
+    size: [img.width, img.height],
+    band_h: bandH,
+    work_scale: Number(workScale.toFixed(4)),
+    expected_icon_w: Math.round(expectedIconW),
+    min_score: MIN_SCORE,
+    anchor_min_score: ANCHOR_MIN_SCORE,
+    items: items.sort((a, b) => b.score - a.score),
+  }
+}
+
+/**
+ * 供 /api/ocr/status 用：这台机器手上到底有几个图标模板（按游戏分开报） */
 export function templateStatus(game) {
   const p = profileForGame(game)
   const refs = loadTemplates({ profile: p })
@@ -376,6 +450,7 @@ export function recognizeFrame(img, words, {
   profile = DEFAULT_PROFILE,
   refs = null,
   keys = null,
+  stage = '',
   topBandRatio = TOP_BAND_RATIO,
   timeBudgetMs = 1500,
   timings = null,
@@ -472,9 +547,17 @@ export function recognizeFrame(img, words, {
      要是上一次在同一分辨率下已经定过标（用户连着点「识别画面」就是这种情况），
      直接用上次的锚点：同一台机器同一个窗口，位置不会跳。
      这一条把「第一次贵、之后每帧几十毫秒」变成常态。 */
-  // 定标缓存按「游戏 + 分辨率」存。两个游戏的图标大小差一倍（0.0344 vs 0.0225），
-  // 共用一份定标会把异环的图标按鸣潮的尺度去复核，直接找不到。
-  const calibKey = `${p.id}:${img.width}x${img.height}`
+  // 定标缓存按「游戏 + 分辨率 + 界面」存。
+  //
+  // 为什么要带 stage：**背包和地图是同一分辨率的两个不同界面**，顶栏上
+  // 有哪些东西并不一样。以前只按「游戏 + 分辨率」存，于是从背包切到地图时
+  // 会直接复用背包那次定标 —— 锚点（星声）在地图上可能根本不在那个位置、
+  // 甚至不显示，而「其余图标只在锚点那一簇里找」这条规则又会把真正在地图上
+  // 的图标（比如体力）挡在簇外，结果就是稳定地报「还差体力」。
+  //
+  // 两个游戏的图标大小差一倍（0.0344 vs 0.0225），共用一份定标会把异环的
+  // 图标按鸣潮的尺度去复核，直接找不到 —— 所以游戏也必须在 key 里。
+  const calibKey = `${p.id}:${stage || '-'}:${img.width}x${img.height}`
   const cached = calibrations.get(calibKey)
   // 这一帧认到的图标位置，收尾时写回缓存（每个 key 单独记，下帧直接复查）
   const calibIcons = cached && cached.icons ? { ...cached.icons } : {}
@@ -800,7 +883,7 @@ async function ocrBand(img, bandH, { lang = 'zh-Hans-CN' } = {}) {
  * 但明说「这张图只能看字、认不了图标数字」，让人换 PNG 重截，
  * 而不是丢一个看不懂的解码异常给用户。
  */
-export async function recognizeImageFile(filePath, { lang = 'zh-Hans-CN', minScore = MIN_SCORE, game = '', keys = null } = {}) {
+export async function recognizeImageFile(filePath, { lang = 'zh-Hans-CN', minScore = MIN_SCORE, game = '', keys = null, stage = '' } = {}) {
   const profile = profileForGame(game)
   const buf = fs.readFileSync(filePath)
   let img = null
@@ -830,7 +913,7 @@ export async function recognizeImageFile(filePath, { lang = 'zh-Hans-CN', minSco
   const bandH = Math.max(48, Math.round(img.height * TOP_BAND_RATIO))
   const ocr = await ocrBand(img, bandH, { lang })
   if (!ocr.ok) return { ok: false, error: ocr.error }
-  const r = recognizeFrame(img, ocr.words, { minScore, profile, keys })
+  const r = recognizeFrame(img, ocr.words, { minScore, profile, keys, stage })
   return {
     ok: true,
     game: profile.id,
@@ -905,6 +988,7 @@ function tally(session, frame, minVotes) {
 export async function recognizeScreenOnce({
   id = 'default',
   game = '',
+  stage = '',
   minVotes = 2,
   minScore = MIN_SCORE,
   lang = 'zh-Hans-CN',
@@ -931,7 +1015,7 @@ export async function recognizeScreenOnce({
     const ocr = await ocrBand(img, bandH, { lang })
     if (!ocr.ok) return { ok: false, error: ocr.error }
     // 单帧最多花 1.5 秒：认不出来就该老实返回，让前端接着看下一帧
-    const frame = recognizeFrame(img, ocr.words, { minScore, timeBudgetMs: 1500, profile, keys })
+    const frame = recognizeFrame(img, ocr.words, { minScore, timeBudgetMs: 1500, profile, keys, stage })
     let session = sessions.get(id)
     if (!session) {
       session = { votes: new Map(), frames: 0, touched: Date.now(), game: profile.id }
@@ -939,6 +1023,22 @@ export async function recognizeScreenOnce({
     }
     session.touched = Date.now()
     const { agreed, pending } = tally(session, frame, Math.max(1, minVotes))
+
+    /* 这一帧认出东西了，就把它暂存起来给用户留档。
+       为什么要留：以前抓完帧、认完数字就删了，「当时屏幕长什么样」没有留档，
+       数字认错了没法复盘，用户想在进度时间线上附一张截图也无从谈起。
+       暂存的帧等用户真保存进度时来取（见 src/screen-stash.mjs），
+       不保存就自己过期，不会在 uploads 里留孤儿文件。
+       这一步失败绝不能影响识别 —— 留档是附加价值，识别才是主职责。 */
+    let frameToken = null
+    if (Object.keys(agreed).length) {
+      try {
+        frameToken = stashFrame({ session: id, stage, buf, width: img.width, height: img.height })
+      } catch {
+        frameToken = null
+      }
+    }
+
     return {
       ok: true,
       game: profile.id,
@@ -952,6 +1052,7 @@ export async function recognizeScreenOnce({
       size: frame.size,
       engine: ocr.engine || 'windows',
       ms: frame.ms,
+      frame_token: frameToken,
     }
   } catch (err) {
     return { ok: false, error: err.message }

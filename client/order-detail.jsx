@@ -728,13 +728,17 @@ function ShareModal({ order, ctx, close }) {
     let alive = true
     api
       .get(`/api/orders/${order.id}/progress-report`)
-      .then((data) => {
+      .then(async (data) => {
         if (!alive) return
         setText(data.text || '')
         setReport(data.report)
         try {
-          setPreview(renderProgressCard(data.report, { scale: 1 }).toDataURL('image/png'))
+          // renderProgressCard 现在是 async：它要先把截图加载完才能知道图多高
+          const canvas = await renderProgressCard(data.report, { scale: 1 })
+          if (!alive) return
+          setPreview(canvas.toDataURL('image/png'))
         } catch (err) {
+          if (!alive) return
           setPreviewError(err?.message || String(err))
         }
       })
@@ -756,7 +760,7 @@ function ShareModal({ order, ctx, close }) {
   async function doImage() {
     setBusy(true)
     try {
-      const blob = await canvasToBlob(renderProgressCard(report, { scale: 2 }))
+      const blob = await canvasToBlob(await renderProgressCard(report, { scale: 2 }))
       if (!blob) {
         toast('这个浏览器不支持生成图片，请换 Chrome / Edge / Safari 试试', 'err', 4200)
         return

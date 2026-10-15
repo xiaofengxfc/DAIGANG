@@ -722,6 +722,9 @@ function resourceDeltaText(beforeText, afterText) {
         note: p.note || '',
         shots: (p.media || []).filter((m) => /\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(m)).length,
         links: (p.media || []).filter((m) => !/\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(m)).length,
+        // 截图地址：分享卡要把缩略图画进去（public/js/progresscard.js 会预加载它们）。
+        // 只给张数的话，卡片上永远只有一行「附 N 张截图」，客户看不到画面。
+        shotUrls: (p.media || []).filter((m) => /\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(m)),
       }))
 
     const report = {
