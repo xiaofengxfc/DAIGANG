@@ -254,6 +254,56 @@ export async function run() {
     ok('未登录取不到帧', anonFrame.status === 401, anonFrame.status)
   }
 
+  /* ---------- 只截图不识别（F2） ---------- */
+  // 这条路的重点是「不需要 OCR 引擎、也不碰游戏 UI」。
+  // 断言的是**契约**，不是「这台机器上有没有游戏」：
+  //   · 截图键只认 F2 / F12；
+  //   · 成功 → 给一个能取回 PNG 的 frame_token；
+  //   · 失败 → 400 + shot_failed 的人话；
+  //   · 未登录 → 401。
+  // 有没有游戏窗口决定了走哪一支，两种都算通过 —— 否则这个测试在装了游戏的
+  // 机器上和在 CI 上结论相反（第一次写就踩到了：本机正好开着鸣潮）。
+  {
+    r = await api('POST', '/api/ocr/screen/shot', { key: 'F5' })
+    ok('截图键只认 F2 / F12', r.status === 400 && r.body.code === 'bad_key', r.body)
+
+    const t0 = Date.now()
+    r = await api('POST', '/api/ocr/screen/shot', {})
+    const elapsed = Date.now() - t0
+    // 没找到游戏窗口时 focusGameWindow 是**立刻**返回的（不去扫窗口就报错），
+    // 所以「毫秒级就回来 + 没有 frame_token」= 这台机器上没有在跑的游戏。
+    const hadGame = Boolean(r.body && r.body.frame_token)
+
+    if (hadGame) {
+      ok('有游戏时截图成功并给出 frame_token', r.status === 200 && typeof r.body.frame_token === 'string', { status: r.status, token: r.body.frame_token })
+      ok('截图响应说是哪个键、多大的图', r.body.key === 'F2' && Number(r.body.bytes) > 0, { key: r.body.key, bytes: r.body.bytes })
+      ok('截图不该有 500 之外的怪状态', r.status === 200, r.status)
+
+      const shot = await fetch(`${BASE}/api/ocr/screen/frame?token=${encodeURIComponent(r.body.frame_token)}`, { headers: { cookie } })
+      const shotBuf = Buffer.from(await shot.arrayBuffer())
+      ok(
+        '按 F2 截到的是一张真 PNG（不是黑屏也不是空文件）',
+        shot.status === 200 && shotBuf.subarray(0, 8).toString('hex') === '89504e470d0a1a0a' && shotBuf.length > 1000,
+        `${shot.status} ${shotBuf.length} bytes`
+      )
+    } else {
+      ok('没有游戏时截图失败且给的是 shot_failed', r.status === 400 && r.body.code === 'shot_failed', r.body)
+      // 具体理由取决于这台机器的状态，两种都合法：
+      //   「没找到游戏窗口」= 游戏没开；
+      //   「没有允许切换到窗口」= 游戏开着但 Windows 拒绝了抢焦点。
+      // 所以这里守的是「给的是能照做的人话」，而不是背某一条文案。
+      ok(
+        '失败理由是人话（说清是窗口没找到或切不过去）',
+        /游戏窗口|窗口/.test(String(r.body.error || '')) && String(r.body.error).length > 6,
+        r.body.error
+      )
+      ok('没有游戏时是立刻返回的（没在那儿死等窗口）', elapsed < 8000, `${elapsed}ms`)
+    }
+
+    const anonShot = await fetch(`${BASE}/api/ocr/screen/shot`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })
+    ok('未登录不能触发截图', anonShot.status === 401, anonShot.status)
+  }
+
   /* ---------- 游戏 / 分类 / 服务 ---------- */
   section('游戏 · 分类 · 服务与价格')
   r = await api('POST', '/api/games', { name: '原神', short_name: 'YS', servers: ['天空岛', '世界树'], note: '主号在天空岛' })

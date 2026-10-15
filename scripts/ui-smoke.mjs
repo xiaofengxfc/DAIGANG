@@ -653,6 +653,15 @@ async function main() {
       ok('资源对比两排都在', resText.includes('资源对比 · 做之前') && resText.includes('资源对比 · 做之后'), resText.slice(0, 200))
       ok('三个资源框都在', ['星声', '体力', '贝币'].every((key) => resText.includes(key)), resText.slice(0, 200))
       ok('两个识别按钮都在', resText.includes('识别画面') && resText.includes('识别截图'))
+      // 「截图」= 切到游戏按 F2 只留图不认数字，和识别是两条并行的路。
+      // 按按钮文字找（不能拿整段文本 includes('截图')，那会被「识别截图」命中）。
+      const shotBtn = await cdp.eval(`(() => {
+        const scope = document.querySelector('dialog[open], .drawer[open]') || document
+        const b = [...scope.querySelectorAll('button')].find((x) => x.textContent.replace(/\\s+/g, '') === '截图')
+        return b ? String(b.getAttribute('title') || '') : 'NO BUTTON'
+      })()`)
+      ok('「截图」按钮在（只截图不识别）', shotBtn !== 'NO BUTTON', shotBtn)
+      ok('它的说明里写清了是按 F2', shotBtn.includes('F2'), shotBtn)
       ok('还没有上一条进度时不写来历', !resText.includes('「做之前」带的是'), resText.slice(0, 240))
 
       // 填一条真进度：做之前 100/50 → 做之后 80/20，「本次消耗」要自己算出来

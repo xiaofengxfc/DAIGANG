@@ -4,7 +4,9 @@
 param(
   [Parameter(Mandatory = $true)][long]$WindowHandle,
   [Parameter(Mandatory = $true)][int]$ProcessId,
-  [Parameter(Mandatory = $true)][ValidateSet('B', 'M', 'ESC')][string]$Key
+  # F2 / F12 是游戏自带的截图键：按下去游戏自己会把图存到它的截图目录。
+  # 我们抓屏是另一条路（CopyFromScreen），但玩家习惯按 F2，所以允许发。
+  [Parameter(Mandatory = $true)][ValidateSet('B', 'M', 'ESC', 'F2', 'F12')][string]$Key
 )
 $ErrorActionPreference = 'Stop'
 try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false) } catch { }
@@ -26,6 +28,9 @@ $virtualKey = switch ($Key) {
   'B' { 0x42; break }
   'M' { 0x4D; break }
   'ESC' { 0x1B; break }
+  # VK_F2 = 0x71, VK_F12 = 0x7B（功能键就是 0x70 + (n-1)）
+  'F2' { 0x71; break }
+  'F12' { 0x7B; break }
 }
 
 try {

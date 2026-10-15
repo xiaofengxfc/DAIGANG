@@ -750,8 +750,15 @@ export function recognizeFrame(img, words, {
    截屏
    ============================================================ */
 
-/** 截屏到一个 png 文件 */
-export function grabScreen(outPath, { timeoutMs = 15000 } = {}) {
+/**
+ * 截屏到一个 png 文件。
+ *
+ * `maxWidth` 交给 scripts/grab.ps1 在保存前等比缩小（那边用的是 HighQualityBicubic，
+ * 比我们自己再解一次像素再缩要省事也更好看）。识别路径不传它 —— 认数字要原始分辨率。
+ * 「只截图留档」那条路会传：4K 原图一张好几兆，先缩到 1920 再交给浏览器压缩，
+ * 传输和内存都省一大截，而留档看画面 1920 足够了。
+ */
+export function grabScreen(outPath, { timeoutMs = 15000, maxWidth = 0 } = {}) {
   return new Promise((resolve) => {
     const logPath = `${outPath}.log`
     let stdFd = null
@@ -783,6 +790,7 @@ export function grabScreen(outPath, { timeoutMs = 15000 } = {}) {
     try {
       // 注意不能用 stdio:'ignore'：powershell 拿到空句柄会 0xC0000142 直接退出
       const args = ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', GRAB_PS1, '-Out', path.resolve(outPath)]
+      if (maxWidth > 0) args.push('-MaxWidth', String(Math.round(maxWidth)))
       const gameWindow = activeGameWindow()
       if (gameWindow?.hwnd) args.push('-WindowHandle', gameWindow.hwnd)
       child = spawn('powershell.exe', args, {

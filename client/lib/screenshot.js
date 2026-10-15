@@ -12,9 +12,12 @@
 
    `browser-image-compression`（Donaldcwl/browser-image-compression，
    npm 上叫 browser-image-compression）。选它而不是自己拿 canvas 压：
-     · 支持「压到指定体积以内」的迭代（maxSizeMB），不用自己二分调质量；
      · 处理 EXIF 方向、超大图自动降到浏览器 canvas 上限以内；
-     · 图标库式的自研实现容易在「降到多少质量」上拍脑袋，压完还是很大。
+     · 要换格式（png → webp）只要给个 fileType，不用自己写编码分支；
+     · 自己写 canvas 版很容易在「降到多少质量」上拍脑袋。
+
+   ⚠️ 但它那个 `maxSizeMB`（压到指定体积以内）**不要用**，见下面
+   saveScreenshot 里的实测数据：那是迭代逼近，一张 2K 图要 6.5 秒。
 
    ⚠️ 为什么 useWebWorker 传 false：
 
@@ -24,9 +27,7 @@
    走 Worker 会被浏览器直接拦掉，压缩整个失败。
 
    两条路：改 CSP 放行 blob: 和 CDN，或者留在主线程。
-   选了后者：本地单机、就压一两张 2K 图，主线程压一次几百毫秒，
-   为它把安全策略放宽不划算。真嫌卡可以改成走 libURL 指本地
-   （dist 里那份），那要额外配静态路由，暂时没这个必要。
+   选了后者：单次编码实测 230ms，不值得为它把安全策略放宽。
 
    压完仍然走 /api/uploads（data URL 上传），和图标模板同一个接口，
    服务端不用为这件事多一条路径。
@@ -35,13 +36,18 @@
 import imageCompression from 'browser-image-compression'
 import { api } from './api.js'
 
-/** 目标：单张不超过 1MB。2K 截图压到 1MB 后文字仍然看得清（timeline 上就是给人看个大概） */
-const MAX_MB = 1
-/** 长边上限。再大对「看个大概」没有增益，只是白占地方 */
+/**
+ * 质量：单次编码用的档位。0.82 是实测选的 ——
+ * 1920×1200 的游戏截图压完 104KB，HUD 上的数字和文字在时间线里仍然清楚。
+ * 调到 0.7 会到 80KB 上下，但小字开始发糊，不值得。
+ */
+const QUALITY = 0.82
+/** 长边上限。再大对「看个画面」没有增益，只是白占地方 */
 const MAX_SIDE = 1920
 
-/** 后端 /api/uploads 的请求体上限是 12MB（MAX_OCR_IMAGE_BYTES）。压完一般 1MB 上下，
- *  留足余量；万一压不动（比如一张噪点极多的图）也要在发出去之前拦下来，给一句人话。 */
+/** 后端 /api/uploads 的请求体上限是 12MB（MAX_OCR_IMAGE_BYTES）。单次 webp 一般
+ *  100~300KB，留足余量；万一压不动（比如浏览器不支持 webp 又退回原图）也要在
+ *  发出去之前拦下来，给一句人话。 */
 const HARD_LIMIT_BYTES = 8 * 1024 * 1024
 
 function blobToDataURL(blob) {
@@ -118,16 +124,37 @@ export async function saveScreenshot(token) {
     let out = blob
     try {
       out = await imageCompression(new File([blob], 'screen.png', { type: blob.type || 'image/png' }), {
-        maxSizeMB: MAX_MB,
+        /**
+         * 这里**故意不用 maxSizeMB**（那个是「压到指定体积以内」的迭代逼近）。
+         *
+         * 实测（1920×1200 的真实鸣潮截图，3.2MB PNG）：
+         *   · maxSizeMB=1        → 1014KB **6573ms**，而且输出还是 PNG
+         *     （PNG 是无损的，要命中体积目标只能靠降分辨率 + 反复重编码，
+         *      所以又慢又大）；
+         *   · 单次 webp q0.82    →  104KB **230ms**，分辨率还是完整的 1920×1200。
+         *
+         * 差 28 倍时间、10 倍体积。截图是按下按钮就等的交互，6.5 秒不能接受，
+         * 而 104KB 的 webp 在时间线缩略图里和原图看不出差别。所以走单次编码。
+         */
         maxWidthOrHeight: MAX_SIDE,
-        // 见文件头注释：CSP 是 script-src 'self'，Worker 默认要从 CDN 拉脚本，会被拦
+        fileType: 'image/webp',
+        initialQuality: QUALITY,
         useWebWorker: false,
-        // 不保留 EXIF：这是游戏截图，没有拍摄信息，留着只是白占体积
         preserveExif: false,
       })
     } catch {
-      // 压不动就用原图（后面还有体积兜底），总比丢掉这张截图好
-      out = blob
+      // webp 不被支持（很老的内核）或压缩出错：退回 jpeg 单次，再不行就用原图
+      try {
+        out = await imageCompression(new File([blob], 'screen.png', { type: blob.type || 'image/png' }), {
+          maxWidthOrHeight: MAX_SIDE,
+          fileType: 'image/jpeg',
+          initialQuality: QUALITY,
+          useWebWorker: false,
+          preserveExif: false,
+        })
+      } catch {
+        out = blob
+      }
     }
 
     if (out.size > HARD_LIMIT_BYTES) return null

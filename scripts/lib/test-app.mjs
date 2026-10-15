@@ -72,6 +72,8 @@ export async function startTestApp({ dataDir } = {}) {
   // 就会去抢 5410 —— 那台端口上很可能正跑着你自己那份实例的 sidecar。
   process.env.XFC_VISION_AUTOSTART = '0'
   process.env.XFC_VISION_PORT = '5419'
+  // 「只截图」那条路每按一次 F2 就是一帧，上限放宽一点，免得测试连按几下把自己挤掉
+  process.env.XFC_SCREEN_FRAME_LIMIT = '16'
 
   const { createApplication } = await import('../../src/server/app.mjs')
   const { db } = await import('../../src/db.mjs')

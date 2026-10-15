@@ -13,6 +13,7 @@ import { recognizeScreenOnce, recognizeImageFile, resetVotes, screenAvailable, t
 import { takeFrame } from '../screen-stash.mjs'
 import { profileForGame } from '../../shared/game-profiles.js'
 import { focusGameWindow, returnToPreviousWindow, sendGameKey } from '../game-window.mjs'
+import { captureGameFrame } from '../game-shot.mjs'
 import { decodePNG, encodePNG } from '../imgmatch.mjs'
 import { isSetUp, setPassword, verifyPassword, createSession, destroySession, destroyAllSessions, actorName, assertNotThrottled, noteFailure, clearFailures } from '../auth.mjs'
 import { lock, status as vaultStatus, isConfigured, configure, auditLog } from '../vault.mjs'
@@ -647,6 +648,32 @@ export function register() {
     const spec = INSTALL_SPECS[id]
     if (!spec) fail(400, `不认识的引擎：${id}`, 'bad_engine')
     return { engine: id, name: spec.name, page: releasePage(spec), license: spec.license, size: spec.size, note: spec.note }
+  })
+
+  /**
+   * 只截图、不识别：切到游戏 → 按 F2（游戏自带截图键）→ 抓一张画面 → 暂存。
+   *
+   * 和上面 /api/ocr/screen 的分工：那条是「打开界面读数字」，这条纯粹是
+   * 「留一张图」。所以：
+   *   · 不需要任何 OCR 引擎（截图跟认字没关系，没装引擎也能用）；
+   *   · 不去碰游戏 UI（不按 B/M、不开背包），截到的就是用户当前那一屏；
+   *   · 认数字那套完全不走，所以也不会因为「认不出来」而失败。
+   *
+   * 返回的 frame_token 交给前端：用户点「记下」时取回、压缩、挂到进度上，
+   * 和识别画面留下的帧走同一条路（见 /api/ocr/screen/frame）。
+   */
+  post('/api/ocr/screen/shot', async (ctx) => {
+    const key = (clampStr(ctx.body.key, 6).toUpperCase() || 'F2')
+    if (!['F2', 'F12'].includes(key)) bad('只支持 F2 / F12 这两个截图键', 'bad_key')
+    const r = await captureGameFrame({ game: clampStr(ctx.body.game, 40), key })
+    if (!r.ok) fail(400, r.error || '没能截到游戏画面', 'shot_failed')
+    return {
+      frame_token: r.frame_token,
+      bytes: r.bytes,
+      key: r.key,
+      window: r.window,
+      warnings: r.warnings || [],
+    }
   })
 
   /** 清掉一次「看屏幕」的投票记录（换了一张单、或者用户点了重来） */

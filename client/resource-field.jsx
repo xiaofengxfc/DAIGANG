@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Eye, RefreshCw } from 'lucide-react'
+import { Camera, Eye, RefreshCw } from 'lucide-react'
 import { api } from './lib/api.js'
 import { fmtQty } from './lib/formatters.js'
 import { RES_KEYS, buildResources, deltaText, joinResourceSections, parseResources, sectionText } from '../shared/resources.js'
@@ -398,6 +398,41 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
     else toast(escError || stoppedReason || `已识别 ${count}/${keys.length} 项`, 'err', escError ? 5200 : 4200)
   }
 
+  /**
+   * 只截图、不识别：切到游戏按 F2 抓一张画面，挂到这条进度上。
+   *
+   * 和「识别画面」分开是有意的 —— 用户有时候只想要一张图（画面好看、
+   * 或者数字本来就打算手填），不该为了留张图去跑一遍识别（要开背包、
+   * 要按 M、认不出来还会报错）。
+   */
+  async function grabShot(side) {
+    setBusy((prev) => ({ ...prev, [side]: 'grab' }))
+    try {
+      const r = await api.post('/api/ocr/screen/shot', { game: gameName, key: 'F2' })
+      if (!r || !r.frame_token) throw new Error('没有拿到截图的凭据')
+      rememberFrameToken(orderId, side, r.frame_token)
+      const kb = r.bytes ? `${Math.round(r.bytes / 1024)}KB` : ''
+      const win = r.window && r.window.title ? `（${r.window.title}）` : ''
+      toast(`已按 F2 截下游戏画面${win}${kb ? ` · ${kb}` : ''}，记下这条就会存进去`, 'ok', 4200)
+      setNotes((prev) => ({
+        ...prev,
+        [side]: (
+          <>
+            <strong>截了一张游戏画面，记下这条时一起存。</strong>
+            <div className="tiny" style={tinyTopStyle}>{`截图键：F2 · 原图 ${kb || '已抓到'}`}</div>
+            {(r.warnings || []).map((w) => (
+              <div className="tiny tone-amber" style={amberStyle} key={w}>{w}</div>
+            ))}
+          </>
+        ),
+      }))
+    } catch (err) {
+      toastErr(err && err.message ? err.message : '没能截到游戏画面')
+    } finally {
+      setBusy((prev) => ({ ...prev, [side]: '' }))
+    }
+  }
+
   function buildSide(side, label, isFirst) {
     const parsed = sides[side]
     return (
@@ -414,6 +449,16 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
           >
             <RefreshCw size={14} strokeWidth={1.8} absoluteStrokeWidth aria-hidden />
             识别画面
+          </button>
+          <button
+            className="btn btn--sm"
+            type="button"
+            title={`切回${gameName}按 F2 截一张画面，只留图不认数字（记下这条进度时一起存）`}
+            data-loading={busy[side] === 'grab' ? '1' : undefined}
+            onClick={() => grabShot(side)}
+          >
+            <Camera size={14} strokeWidth={1.8} absoluteStrokeWidth aria-hidden />
+            截图
           </button>
           <button
             className="btn btn--sm"

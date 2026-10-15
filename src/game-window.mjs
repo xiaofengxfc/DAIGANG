@@ -107,17 +107,18 @@ export function focusGameWindow({ timeoutMs = 10000, game = '' } = {}) {
   })
 }
 
-/** Send only the navigation keys used by the resource-reading flow. */
+/** Send only the keys used by the resource-reading and screenshot flows. */
 export function sendGameKey(key, { timeoutMs = 5000 } = {}) {
   const normalized = String(key || '').trim().toUpperCase()
-  if (!['B', 'M', 'ESC'].includes(normalized)) {
-    return Promise.resolve({ ok: false, error: '只允许发送 B、M 或 ESC。' })
+  // F2 / F12 是给「只截图不识别」用的：那是游戏自带的截图键
+  if (!['B', 'M', 'ESC', 'F2', 'F12'].includes(normalized)) {
+    return Promise.resolve({ ok: false, error: '只允许发送 B、M、ESC、F2 或 F12。' })
   }
   if (process.platform !== 'win32') {
     return Promise.resolve({ ok: false, error: '自动向游戏发送按键目前只支持 Windows。' })
   }
   if (!activeWindow?.hwnd) {
-    return Promise.resolve({ ok: false, error: '还没有激活鸣潮窗口，请重新点击识别。' })
+    return Promise.resolve({ ok: false, error: '还没有激活游戏窗口，请重新点击识别。' })
   }
 
   return new Promise((resolve) => {
