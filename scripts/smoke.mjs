@@ -28,6 +28,8 @@ import { recognizeFrame, CLUSTER_RATIO } from '../src/screen.mjs'
 import { profileForGame } from '../shared/game-profiles.js'
 // 导出配色的定义处，断言从这里取色值，不再把十六进制写死在测试里
 import { DOCX_PALETTE } from '../src/docx.mjs'
+// 静态资源断言要看 public/dist/ 在不在（没构建就跳过，不假装测过）
+import { ROOT } from './lib/test-app.mjs'
 
 const BASE = process.env.XFC_BASE || 'http://127.0.0.1:8790'
 
@@ -144,6 +146,36 @@ export async function run() {
 
   r = await api('POST', '/api/setup', { password: 'x', confirm: 'x' })
   ok('重复初始化被拒', r.status === 409, r.body)
+
+  /* ---------- 静态资源与前端产物 ---------- */
+  // 白屏的老根因：静态文件找不到时一律回 index.html，于是 /dist/app.js
+  // 以 text/html 返回，浏览器按 MIME 拒绝执行，页面就白了。
+  // 这里把「资源缺了就 404、SPA 路由才回 index.html」钉死。
+  section('静态资源 · 前端产物')
+  const distApp = path.join(ROOT, 'public', 'dist', 'app.js')
+  if (!fs.existsSync(distApp)) {
+    console.log('  ⚠ public/dist/app.js 不存在（还没构建），跳过产物相关断言。先跑 npm run build。')
+  }
+  let raw = await fetch(`${BASE}/`)
+  ok('根路径返回 index.html', raw.status === 200 && (raw.headers.get('content-type') || '').includes('text/html'), raw.headers.get('content-type'))
+  if (fs.existsSync(distApp)) {
+    raw = await fetch(`${BASE}/dist/app.js`)
+    ok('/dist/app.js 以 JS 类型返回', raw.status === 200 && (raw.headers.get('content-type') || '').includes('javascript'), raw.status + ' ' + raw.headers.get('content-type'))
+
+    raw = await fetch(`${BASE}/dist/app.css`)
+    ok('/dist/app.css 以 CSS 类型返回', raw.status === 200 && (raw.headers.get('content-type') || '').includes('text/css'), raw.status + ' ' + raw.headers.get('content-type'))
+  }
+  raw = await fetch(`${BASE}/dist/not-built-yet.js`)
+  ok('缺失的静态资源返回 404（不再拿 index.html 顶包）', raw.status === 404, raw.status)
+  raw = await fetch(`${BASE}/dist/not-built-yet.css`)
+  ok('缺失的样式也返回 404', raw.status === 404, raw.status)
+  ok(
+    '缺失资源不返回 HTML 内容类型',
+    !(raw.headers.get('content-type') || '').includes('text/html'),
+    raw.headers.get('content-type')
+  )
+  raw = await fetch(`${BASE}/orders/12`)
+  ok('SPA 路由仍然回 index.html', raw.status === 200 && (raw.headers.get('content-type') || '').includes('text/html'), raw.status)
 
   /* ---------- 游戏 / 分类 / 服务 ---------- */
   section('游戏 · 分类 · 服务与价格')

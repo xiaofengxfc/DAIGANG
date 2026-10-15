@@ -4,9 +4,14 @@
 
 从源码首次部署时先在项目根目录执行 `npm run setup`，它会安装锁定版本的前端依赖并生成 `public/dist/`；之后启动器可以直接运行 `server.mjs`。
 
+启动器在拉后台之前会检查前端产物：`public/dist/app.js` 或 `app.css` 缺失、或者比 `client/`、`src/`、`shared/`、`vite.config.mjs` 里的源码旧，就先自动跑一遍 `npm run build`。构建失败不拦启动（后端接口本身是好的），但会写进日志、弹窗提示，并且网页根路径会返回一页说明而不是白屏。日志卡上的「重建前端」按钮可以随时手动重跑。
+
+> 前端是构建产物，`public/dist/` 不进版本库。所以直接 `node server.mjs`（绕过启动器）前要先构建一次，否则网页白屏。
+
 支持：
 
 - 启动、停止、重启后台
+- 启动前自动构建前端；「重建前端」按钮可手动触发
 - `--local`、`--port`、`--host` 和附加参数
 - `XFC_PORT`、`XFC_LOCAL`、`XFC_HOST`、`XFC_DATA_DIR` 环境变量
 - `XFC_NODE_PATH` 可指定 Node.js 完整路径；也会自动识别 nvm-windows、scoop 和常见安装目录

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -243,6 +244,145 @@ namespace DaiganLauncher
             return quoted.ToString();
         }
 
+        /**
+         * 前端产物（public/dist/）是构建出来的，不进版本库。以前启动器直接拉 server.mjs，
+         * 于是「刚克隆下来还没 build」的机器上后台能起来、接口全通，网页却是一片白——
+         * 用户只会看到白屏，看不出是没构建。这里让启动器自己把这一步补上。
+         */
+        internal static string BundleDirectory()
+        {
+            return Path.Combine(Root, "public", "dist");
+        }
+
+        internal static bool BundleMissing()
+        {
+            return !File.Exists(Path.Combine(BundleDirectory(), "app.js"))
+                || !File.Exists(Path.Combine(BundleDirectory(), "app.css"));
+        }
+
+        /** 源码比产物新 = 产物过期。第一次构建之后，改了 src/client 再启动就该重建。 */
+        internal static bool BundleStale()
+        {
+            DateTime bundleTime;
+            try
+            {
+                bundleTime = File.GetLastWriteTimeUtc(Path.Combine(BundleDirectory(), "app.js"));
+                if (File.Exists(Path.Combine(BundleDirectory(), "app.css")))
+                {
+                    DateTime css = File.GetLastWriteTimeUtc(Path.Combine(BundleDirectory(), "app.css"));
+                    if (css < bundleTime) bundleTime = css;
+                }
+            }
+            catch { return true; }
+
+            foreach (string file in SourceFilesNewerThan(bundleTime))
+            {
+                if (!string.IsNullOrEmpty(file)) return true;
+            }
+            return false;
+        }
+
+        private static IEnumerable<string> SourceFilesNewerThan(DateTime threshold)
+        {
+            var roots = new List<string> { Path.Combine(Root, "client"), Path.Combine(Root, "src"), Path.Combine(Root, "shared") };
+            foreach (string root in roots)
+            {
+                if (!Directory.Exists(root)) continue;
+                IEnumerable<string> files;
+                try { files = Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories); }
+                catch { continue; }
+                foreach (string file in files)
+                {
+                    DateTime written;
+                    try { written = File.GetLastWriteTimeUtc(file); }
+                    catch { continue; }
+                    if (written > threshold) yield return file;
+                }
+            }
+            DateTime config;
+            try { config = File.GetLastWriteTimeUtc(Path.Combine(Root, "vite.config.mjs")); }
+            catch { config = DateTime.MinValue; }
+            if (config > threshold) yield return "vite.config.mjs";
+        }
+
+        /** 只认真文件：PATH 上若只有个同名目录，Process.Start 会抛别的错，不如老实判定为找不到。 */
+        private static bool FileExistsOnPath(string path)
+        {
+            try { return !string.IsNullOrWhiteSpace(path) && File.Exists(path.Trim()); }
+            catch { return false; }
+        }
+
+        /** 装着 node.exe 的那个目录。拿不到就返回空串。 */
+        internal static string NodeDirectory()
+        {
+            string node = FindNodeExecutable();
+            try { return string.IsNullOrWhiteSpace(node) ? "" : Path.GetDirectoryName(node); }
+            catch { return ""; }
+        }
+
+        /**
+         * 跑 npm 时用的 PATH。
+         *
+         * npm.cmd 自己会去调 node。启动器可能是在「PATH 里没有 node」的环境里被拉起来的
+         * （开机的 Run 项、从别处双击），但它仍然找到了 node.exe —— 那份 PATH 一定要
+         * 传给子进程，否则 npm 会报 'node' is not recognized 而构建失败。
+         */
+        internal static string BuildPath()
+        {
+            string existing = Environment.GetEnvironmentVariable("PATH") ?? "";
+            string nodeDir = NodeDirectory();
+            if (string.IsNullOrWhiteSpace(nodeDir)) return existing;
+            if (existing.Split(';').Any((part) => string.Equals(part.Trim().TrimEnd('\\'), nodeDir.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)))
+                return existing;
+            return nodeDir + ";" + existing;
+        }
+
+        /**
+         * 找 npm。npm 是 npm.cmd，而且 .cmd 必须交给 cmd.exe 执行，并且要带上 /d /s /c
+         * ——直接 Process.Start("npm.cmd") 在没配 PATHEXT 的环境里会失败。
+         * 返回 null 表示这台机器上没找到 npm（那前端就构建不了，由调用方给出提示）。
+         */
+        internal static string FindNpmCommand()
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "where.exe",
+                    Arguments = "npm.cmd",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+                using (var p = Process.Start(psi))
+                {
+                    string output = p.StandardOutput.ReadToEnd();
+                    p.WaitForExit(2000);
+                    foreach (string line in output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        if (FileExistsOnPath(line)) return line.Trim();
+                    }
+                }
+            }
+            catch { }
+
+            // where.exe 没找到时，按 Node 的常见装法再猜一遍：npm.cmd 就躺在 node.exe 旁边。
+            string nodeDir = NodeDirectory();
+            if (!string.IsNullOrWhiteSpace(nodeDir))
+            {
+                string besideNode = Path.Combine(nodeDir, "npm.cmd");
+                if (FileExistsOnPath(besideNode)) return besideNode;
+            }
+            string pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+            return new[]
+            {
+                Path.Combine(pf, "nodejs", "npm.cmd"),
+                Path.Combine(pf86, "nodejs", "npm.cmd")
+            }.FirstOrDefault(FileExistsOnPath);
+        }
+
         internal static int? FindProjectServerPidFromWmi()
         {
             try
@@ -293,6 +433,7 @@ namespace DaiganLauncher
         private readonly Button _openButton = new Button();
         private readonly Button _logButton = new Button();
         private readonly Button _dataButton = new Button();
+        private readonly Button _buildButton = new Button();
         private readonly RichTextBox _logBox = new RichTextBox();
         private readonly Timer _timer = new Timer();
         private readonly List<string> _passThrough = new List<string>();
@@ -302,6 +443,7 @@ namespace DaiganLauncher
         private bool _startOnLoad;
         private bool _closing;
         private bool _loadingSettings;
+        private bool _building;
         private DateTime _lastProcessProbeUtc = DateTime.MinValue;
         private int? _lastExternalPid;
 
@@ -528,9 +670,10 @@ namespace DaiganLauncher
             var logTitle = new Label { Text = "运行日志", AutoSize = true, ForeColor = Color.FromArgb(243, 245, 247), Font = new Font(Font, FontStyle.Bold), Location = new Point(0, 2) };
             var logHint = new Label { Text = "最近 180 行 · UTF-8", AutoSize = true, ForeColor = Color.FromArgb(115, 126, 139), Location = new Point(70, 3) };
             ConfigureButton(_logButton, "打开日志", Color.FromArgb(38, 43, 52), OpenLog); ConfigureButton(_dataButton, "数据目录", Color.FromArgb(38, 43, 52), OpenDataDirectory);
-            _logButton.Width = 96; _dataButton.Width = 96;
+            ConfigureButton(_buildButton, "重建前端", Color.FromArgb(38, 43, 52), RebuildFrontend);
+            _logButton.Width = 96; _dataButton.Width = 96; _buildButton.Width = 96;
             var logActions = new FlowLayoutPanel { Anchor = AnchorStyles.Top | AnchorStyles.Right, Dock = DockStyle.Right, AutoSize = true, FlowDirection = FlowDirection.RightToLeft, WrapContents = false, Margin = new Padding(0) };
-            logActions.Controls.Add(_dataButton); logActions.Controls.Add(_logButton);
+            logActions.Controls.Add(_dataButton); logActions.Controls.Add(_logButton); logActions.Controls.Add(_buildButton);
             logHeader.Controls.Add(logTitle); logHeader.Controls.Add(logHint); logHeader.Controls.Add(logActions); logGrid.Controls.Add(logHeader, 0, 0);
             _logBox.Dock = DockStyle.Fill; _logBox.ReadOnly = true; _logBox.BackColor = Color.FromArgb(11, 13, 16); _logBox.ForeColor = Color.FromArgb(167, 176, 188); _logBox.BorderStyle = BorderStyle.None; _logBox.Font = new Font("Cascadia Mono", 9F); _logBox.DetectUrls = true; _logBox.Padding = new Padding(8);
             logGrid.Controls.Add(_logBox, 0, 1); logCard.Controls.Add(logGrid); main.Controls.Add(logCard, 0, 3);
@@ -577,6 +720,152 @@ namespace DaiganLauncher
 
         private void StartServer(object sender, EventArgs e) { StartServer(); }
 
+        /**
+         * 开工前先把前端产物准备好。缺了/过期了就自己构建——用户不该为了「网页不白」
+         * 去猜 npm run build 这件事。
+         *
+         * 失败也不拦着启动：后端接口本身是好的，硬拦下来用户连日志都看不到；
+         * server.mjs 那边会明确报出前端没构建，网页上也会给一页说明。
+         */
+        private void EnsureFrontendBuilt()
+        {
+            if (!Program.BundleMissing() && !Program.BundleStale()) return;
+            // RunNpmBuild 里要转消息泵，否则窗口会被判定成「未响应」；转起来之后
+            // 用户可能又点一下「启动」。这里挡住重入，别把同一份产物构建两遍。
+            if (_building) return;
+
+            string reason = Program.BundleMissing() ? "前端还没构建" : "前端产物比源码旧";
+            string npm = Program.FindNpmCommand();
+            if (npm == null)
+            {
+                WriteLog("⚠ " + reason + "，但这台机器上没找到 npm，无法自动构建。");
+                WriteLog("  请手动在 " + Program.Root + " 下执行：npm run setup");
+                return;
+            }
+
+            WriteLog("===== " + reason + "，开始构建前端 =====");
+            SetStatus("正在构建前端…", Color.FromArgb(37, 99, 235));
+            _building = true;
+            int code;
+            string built;
+            try
+            {
+                var output = new StringBuilder();
+                code = RunNpmBuild(npm, output);
+                built = output.ToString();
+            }
+            finally { _building = false; }
+
+            foreach (string line in built.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries))
+                WriteLog("  " + line);
+
+            if (code == 0 && !Program.BundleMissing())
+            {
+                WriteLog("===== 前端构建完成 =====");
+                return;
+            }
+
+            WriteLog("⚠ 前端构建失败（退出码 " + code + "），后台会照常启动。");
+            WriteLog("  手动重试：在 " + Program.Root + " 下执行 npm run setup");
+            MessageBox.Show(
+                "前端构建失败（退出码 " + code + "）。\n\n" +
+                "后台仍会启动，但网页可能显示「前端还没构建」的提示页。\n" +
+                "常见原因：首次构建需要联网下载依赖，网络不通就会失败。\n\n" +
+                "可以在 " + Program.Root + " 下手动执行：npm run setup",
+                "前端构建失败", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        /**
+         * 跑 npm run build。npm 是 .cmd，必须经 cmd.exe 执行，并加 /d /s /c。
+         * 构建可能要几十秒到几分钟（首次要下依赖），这里给 10 分钟上限，
+         * 同时把消息泵转起来，免得窗口被判定成「未响应」。
+         */
+        private int RunNpmBuild(string npmPath, StringBuilder output)
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = Environment.GetEnvironmentVariable("ComSpec") ?? "cmd.exe",
+                Arguments = "/d /s /c \"\"" + npmPath + "\" run build 2>&1\"",
+                WorkingDirectory = Program.Root,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                StandardOutputEncoding = Encoding.UTF8
+            };
+            // npm.cmd 内部要调 node；启动器可能是从「PATH 里没有 node」的环境起来的，
+            // 把 node 目录补进子进程的 PATH，否则会失败在 'node' is not recognized。
+            psi.EnvironmentVariables["PATH"] = Program.BuildPath();
+
+            using (var process = new Process { StartInfo = psi })
+            {
+                process.OutputDataReceived += delegate(object s, DataReceivedEventArgs e)
+                {
+                    if (e.Data != null) output.AppendLine(e.Data);
+                };
+                process.Start();
+                process.BeginOutputReadLine();
+
+                var deadline = DateTime.UtcNow.AddMinutes(10);
+                while (!process.WaitForExit(120))
+                {
+                    Application.DoEvents();
+                    if (DateTime.UtcNow > deadline)
+                    {
+                        try { process.Kill(); } catch { }
+                        output.AppendLine("构建超时（超过 10 分钟），已中止。");
+                        return -1;
+                    }
+                }
+                // WaitForExit(int) 返回后异步的 stdout 可能还没读完，无参版本等它排空。
+                process.WaitForExit();
+                return process.ExitCode;
+            }
+        }
+
+        /** 工具栏里的手动入口：日志卡在「重建前端」按钮上。 */
+        private void RebuildFrontend(object sender, EventArgs e)
+        {
+            if (_building) return;
+            string npm = Program.FindNpmCommand();
+            if (npm == null)
+            {
+                MessageBox.Show("没有找到 npm。请先安装 Node.js 22.12 或更高版本。", "无法构建前端", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (Program.FindRunningServerPid().HasValue)
+            {
+                MessageBox.Show("后台正在运行。构建过程中页面会短暂不可用，构建完成后需要重启后台才会生效。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+
+            _building = true;
+            _buildButton.Enabled = false;
+            try
+            {
+                WriteLog("\r\n===== 手动重建前端 " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " =====");
+                SetStatus("正在构建前端…", Color.FromArgb(37, 99, 235));
+                var output = new StringBuilder();
+                int code = RunNpmBuild(npm, output);
+                foreach (string line in output.ToString().Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries))
+                    WriteLog("  " + line);
+                if (code == 0 && !Program.BundleMissing())
+                {
+                    SetStatus("前端构建完成", Color.FromArgb(5, 150, 105));
+                    MessageBox.Show("前端构建完成。如果后台正在运行，重启后台后新界面才会生效。", "完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    SetStatus("前端构建失败", Color.FromArgb(220, 38, 38));
+                    MessageBox.Show("前端构建失败（退出码 " + code + "）。详情见下方日志。", "构建失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            finally
+            {
+                _building = false;
+                _buildButton.Enabled = true;
+                RefreshStatus();
+            }
+        }
+
         private void StartServer()
         {
             Process startedProcess = null;
@@ -597,6 +886,8 @@ namespace DaiganLauncher
                 WriteLog("\r\n===== 启动请求 " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " =====");
                 WriteLog("Node: " + node);
                 WriteLog("Args: " + BuildNodeArguments());
+                // 先补前端产物，再拉后台：白屏的根因就在这里，别等用户自己发现。
+                EnsureFrontendBuilt();
                 var psi = new ProcessStartInfo
                 {
                     FileName = node,

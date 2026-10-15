@@ -1,4 +1,6 @@
 import http from 'node:http'
+import fs from 'node:fs'
+import path from 'node:path'
 import {
   PORT,
   HOST,
@@ -125,6 +127,81 @@ async function handleAPI(req, res, url, pathname) {
   }
 }
 
+/**
+ * 请求看起来像不像一个「静态资源」——有扩展名的那种（/dist/app.js、/favicon.svg）。
+ *
+ * 为什么要区分：前端是单页应用，/orders/12 这种路由在磁盘上没有对应文件，
+ * 只能回 index.html 让前端路由接手。但 /dist/app.js 回 index.html 是灾难——
+ * 浏览器拿到 Content-Type: text/html 的 <script type="module">，直接拒绝执行，
+ * 页面就是一片白。资源缺了就该 404，别拿 HTML 糊上去。
+ */
+function looksLikeAsset(pathname) {
+  const lastSegment = pathname.slice(pathname.lastIndexOf('/') + 1)
+  const dot = lastSegment.lastIndexOf('.')
+  if (dot <= 0) return false
+  const ext = lastSegment.slice(dot + 1)
+  return ext.length <= 5 && /^[A-Za-z0-9]+$/.test(ext)
+}
+
+/**
+ * 前端产物缺失时的说明页。
+ *
+ * 后台起得来、接口全通，只有网页是白的——这种故障用户没法自己定位。
+ * 所以宁可不发那个空壳 index.html，也要把「缺什么、敲什么命令」直接印在页面上。
+ */
+function sendBuildNotice(res, missing) {
+  const body = `<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>前端还没构建 · 代肝价格查询</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center;
+         background: #eef1f7; color: #1b2230;
+         font: 15px/1.7 "Microsoft YaHei UI", system-ui, sans-serif; }
+  main { max-width: 40rem; padding: 2.5rem 2.75rem; background: #fff;
+         border: 1px solid #dfe4ee; border-radius: 14px; box-shadow: 0 10px 30px rgba(27,34,48,.07); }
+  h1 { margin: 0 0 .75rem; font-size: 1.3rem; }
+  p { margin: .6rem 0; }
+  code, pre { font-family: ui-monospace, Consolas, monospace; }
+  pre { background: #f5f7fb; border: 1px solid #e3e8f1; border-radius: 9px;
+        padding: .85rem 1rem; margin: .5rem 0 0; overflow-x: auto; font-size: 13px; }
+  .hint { color: #5b667a; font-size: 13.5px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>后台起来了，但前端还没构建</h1>
+  <p><code>public/dist/</code> 里缺少 <strong>${missing.map((m) => `<code>${m}</code>`).join('、')}</strong>，
+     所以网页没有可以执行的界面代码——打开就是一片白。</p>
+  <p>在项目目录（就是 <code>server.mjs</code> 所在的那一层）跑一次：</p>
+  <pre>npm run setup     # 第一次：装依赖 + 构建前端
+npm run build     # 依赖已装好，只重新构建前端</pre>
+  <p class="hint">构建完刷新这个页面即可。首次构建需要联网下载前端依赖。</p>
+</main>
+</body>
+</html>
+`
+  res.writeHead(503, {
+    'Content-Type': 'text/html; charset=utf-8',
+    'Content-Length': Buffer.byteLength(body),
+    'Cache-Control': 'no-store',
+  })
+  res.end(body)
+}
+
+/**
+ * 请求落在构建产物目录（/dist/…）里吗？
+ *
+ * 只有这里需要「产物缺失」的把关：public/dist/ 整个是构建出来的，
+ * 里面的东西缺了就是没构建（或者构建没跑完）。而 /favicon.svg、/resource-icons/*
+ * 是手写的静态资源，永远该照常发——不能因为前端没构建就把它们也一起挡掉。
+ */
+function isBundlePath(pathname) {
+  return pathname === '/dist' || pathname.startsWith('/dist/')
+}
+
 function handleStatic(req, res, pathname) {
   if (pathname.startsWith('/uploads/')) {
     const file = resolveSafe(UPLOAD_DIR, pathname.slice('/uploads'.length))
@@ -133,12 +210,46 @@ function handleStatic(req, res, pathname) {
     return true
   }
   if (req.method !== 'GET' && req.method !== 'HEAD') return false
+
+  // 前端产物缺失：给一页人话说明，不要发那个注定白屏的空壳。
+  //
+  // 三处入口都要拦：/dist/…（产物本体）、/（根）、/index.html（显式入口）。
+  // 不拦别的：/favicon.svg、/resource-icons/* 是手写的静态资源，照常发；
+  // 深链接（/orders/12）走下面的 SPA 兜底，行为不变。
+  //
+  // 拦 /dist/ 必须排在「直接找文件」前面：vite build 也会往 public/dist/ 里
+  // 写一份 index.html，它引用的 app.js 同样在 public/dist/ 里；产物缺了的话，
+  // 按路径把 index.html 找出来发出去，用户拿到的还是白屏——正是要修的症状。
+  const bundle = bundleHealth()
+  if (bundle && (isBundlePath(pathname) || pathname === '/' || pathname === '/index.html')) {
+    sendBuildNotice(res, bundle.missing)
+    return true
+  }
+
   const rel = pathname === '/' ? 'index.html' : pathname
   const file = resolveSafe(PUBLIC_DIR, rel)
   if (file && serveFile(req, res, file)) return true
+  // 资源文件不存在：老实回 404。回 index.html 会让浏览器报 MIME 错，页面白屏。
+  if (looksLikeAsset(pathname)) {
+    sendText(res, 404, '资源不存在')
+    return true
+  }
   const index = resolveSafe(PUBLIC_DIR, 'index.html')
   if (index && serveFile(req, res, index)) return true
   return false
+}
+
+/**
+ * 前端产物体检。public/dist/ 是构建产物、不进版本库（见 .gitignore），
+ * 所以「刚克隆下来还没 build」是个很常见又很难自己看出来的状态：
+ * 后台能起来、接口都通，但网页一片白。白屏从来不会自己说明原因，
+ * 这里就在启动横幅里直接点破，并给出该敲的命令。
+ */
+function bundleHealth() {
+  const dist = path.join(PUBLIC_DIR, 'dist')
+  // app.js 是界面本体，app.css 缺了会变成没样式的裸页面，两个都要在。
+  const missing = ['app.js', 'app.css'].filter((name) => !fs.existsSync(path.join(dist, name)))
+  return missing.length ? { missing } : null
 }
 
 function banner() {
@@ -163,6 +274,14 @@ function banner() {
   const vault = vaultStatus()
   lines.push(`  保险箱状态：  ${vault.configured ? (vault.unlocked ? '已解锁' : '已锁定') : '未设置'}`)
   if (!isSetUp()) lines.push('  首次使用：    打开上面的网址，按提示设置登录密码')
+  const bundle = bundleHealth()
+  if (bundle) {
+    lines.push('')
+    lines.push(`  ⚠ 前端还没构建：public/dist/ 里没有 ${bundle.missing.join('、')}。`)
+    lines.push('    现在打开网页会是一片白屏。在这个目录下先跑一次：')
+    lines.push('      npm run setup      （首次：装依赖 + 构建前端）')
+    lines.push('      npm run build      （依赖已装好，只重新构建前端）')
+  }
   lines.push('', '  保持这个窗口开着；关掉窗口 = 关闭后台。按 Ctrl+C 退出。', '')
   return lines.join('\n')
 }

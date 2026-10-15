@@ -563,6 +563,22 @@ async function main() {
     if (!shell) throw new Error('登录后没进到工作台，后面的页面检查没有意义')
 
     section('页面渲染')
+    // 白屏回归：后端还在的旧写法是「静态文件找不到就回 index.html」，
+    // 于是 /dist/app.js 会以 text/html 返回，模块脚本被浏览器拒执行——
+    // 页面一片白，但接口全通、控制台只有一行 MIME 报错，很难联想到构建。
+    // 这里直接问浏览器：产物拿到了吗？样式挂上了吗？画面里真有字吗？
+    {
+      const before = cdp.errors.length
+      const asset = await cdp.eval(
+        `fetch('/dist/app.js').then(async (r) => ({ type: r.headers.get('content-type') || '', ok: r.ok, head: (await r.text()).slice(0, 60) }))`
+      )
+      ok('前端产物以 JS 类型返回（不是被 index.html 顶掉）', asset.ok && asset.type.includes('javascript'), asset.type || asset)
+      ok('前端产物确实是脚本，不是 HTML 兜底页', !asset.head.includes('<!doctype') && !asset.head.includes('<!DOCTYPE'), asset.head.replace(/\s+/g, ' '))
+      ok('至少挂上了一张样式表（不是裸奔的白页）', await cdp.eval('document.styleSheets.length > 0'), await cdp.eval('document.styleSheets.length'))
+      ok('工作台里真的渲染出了文字（不是白屏）', await cdp.eval('(document.body.innerText || "").trim().length > 20'), await cdp.eval('(document.body.innerText || "").trim().slice(0, 120)'))
+      ok('渲染过程没有页面报错', cdp.errors.length === before, cdp.errors.slice(before, before + 2))
+    }
+
     let index = 1
     for (const route of ROUTES) {
       await checkRoute(cdp, route, index++)
