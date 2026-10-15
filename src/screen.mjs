@@ -758,7 +758,7 @@ export function recognizeFrame(img, words, {
  * 「只截图留档」那条路会传：4K 原图一张好几兆，先缩到 1920 再交给浏览器压缩，
  * 传输和内存都省一大截，而留档看画面 1920 足够了。
  */
-export function grabScreen(outPath, { timeoutMs = 15000, maxWidth = 0 } = {}) {
+export function grabScreen(outPath, { timeoutMs = 15000, maxWidth = 0, allowUnfocused = false } = {}) {
   return new Promise((resolve) => {
     const logPath = `${outPath}.log`
     let stdFd = null
@@ -791,6 +791,9 @@ export function grabScreen(outPath, { timeoutMs = 15000, maxWidth = 0 } = {}) {
       // 注意不能用 stdio:'ignore'：powershell 拿到空句柄会 0xC0000142 直接退出
       const args = ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', GRAB_PS1, '-Out', path.resolve(outPath)]
       if (maxWidth > 0) args.push('-MaxWidth', String(Math.round(maxWidth)))
+      // 允许「窗口不在前台也抓」：抢焦点被 Windows 拒绝时（focus_denied），
+      // CopyFromScreen 只能抓到盖在上面的东西，而 PrintWindow 能读窗口自己的像素
+      if (allowUnfocused) args.push('-AllowUnfocused')
       const gameWindow = activeGameWindow()
       if (gameWindow?.hwnd) args.push('-WindowHandle', gameWindow.hwnd)
       child = spawn('powershell.exe', args, {
@@ -815,7 +818,23 @@ export function grabScreen(outPath, { timeoutMs = 15000, maxWidth = 0 } = {}) {
     child.on('close', () => {
       clearTimeout(timer)
       if (!fs.existsSync(outPath)) return finish({ ok: false, error: '截屏没有输出（可能被系统权限拦了）' })
-      finish({ ok: true })
+      /* 读一下 sidecar 元数据，搞清楚这张图是「怎么」来的。
+         为什么需要：PrintWindow 对 DirectX 窗口可能返回成功但画的是桌面内容，
+         光看 PNG 分不出来（它看起来完全正常）。调用方要靠 method / covered
+         判断这张图能不能信。读不到就当 CopyFromScreen 全屏处理。 */
+      let meta = null
+      try {
+        meta = JSON.parse(fs.readFileSync(`${outPath}.json`, 'utf8'))
+      } catch {
+        meta = null
+      } finally {
+        try {
+          fs.unlinkSync(`${outPath}.json`)
+        } catch {
+          /* 没有就算了 */
+        }
+      }
+      finish({ ok: true, meta })
     })
   })
 }

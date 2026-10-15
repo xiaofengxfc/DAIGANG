@@ -16,7 +16,14 @@
 param(
   [Parameter(Mandatory = $true)][string]$Out,
   [int]$MaxWidth = 0,
-  [long]$WindowHandle = 0
+  [long]$WindowHandle = 0,
+  # Try to read the window's own pixels (PrintWindow) when it is NOT in front.
+  # Why: SetForegroundWindow is subject to Windows' foreground-lock rules and can
+  # be refused outright (both the direct call and the AttachThreadInput retry),
+  # which used to make capture impossible even though the window was right there.
+  # CopyFromScreen copies from the SCREEN, so it needs the window in front;
+  # PrintWindow asks the window to draw itself into our DC, front or not.
+  [switch]$AllowUnfocused
 )
 $ErrorActionPreference = 'Stop'
 
@@ -78,11 +85,71 @@ if ($WindowHandle -gt 0) {
 }
 
 $bmp = New-Object System.Drawing.Bitmap($w, $h, [System.Drawing.Imaging.PixelFormat]::Format24bppRgb)
-$g = [System.Drawing.Graphics]::FromImage($bmp)
+$method = 'CopyFromScreen'
+# How much of the desktop the capture rect covers. A window covering essentially
+# the whole screen cannot be told apart from "the whole screen", which matters
+# when we are NOT allowed to rely on focus (see the caller's -AllowUnfocused).
+#
+# MUST be computed from the ORIGINAL $w/$h, before MaxWidth scales the bitmap
+# down: a 2560x1600 window scaled to 1920 would look like it covers only 75% of
+# the screen and the caller would wrongly trust a desktop capture (measured).
+$srcW = $w
+$srcH = $h
+$covered = $false
 try {
-  $g.CopyFromScreen($x, $y, 0, 0, (New-Object System.Drawing.Size($w, $h)))
-} finally {
-  $g.Dispose()
+  $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+  $covered = ($srcW -ge [int]($screen.Width * 0.98)) -and ($srcH -ge [int]($screen.Height * 0.98))
+} catch { }
+
+# Can we read the window's own pixels? Only meaningful when we have a window
+# handle; a whole-screen grab has no window to ask.
+$canAskWindow = $AllowUnfocused -and $WindowHandle -gt 0
+
+if ($canAskWindow -and [WindowCapture]::IsForeground([IntPtr]::new([Int64]$WindowHandle))) {
+  # Already in front: CopyFromScreen is the cheapest correct path.
+  $canAskWindow = $false
+}
+
+if ($canAskWindow) {
+  # Try PrintWindow (with PW_RENDERFULLCONTENT for DirectX surfaces), and if that
+  # refuses, BitBlt straight from the window DC.
+  #
+  # The Graphics object owns the HDC for the whole block: GetHdc() and ReleaseHdc()
+  # must bracket every use, and releasing early would leave it drawing into a dead
+  # DC (silent black image, not an exception).
+  $g = [System.Drawing.Graphics]::FromImage($bmp)
+  $hdc = $g.GetHdc()
+  try {
+    $hwnd = [IntPtr]::new([Int64]$WindowHandle)
+    if ([WindowCapture]::PrintWindow($hwnd, $hdc, [WindowCapture]::PW_RENDERFULLCONTENT)) {
+      $method = 'PrintWindow-full'
+    } elseif ([WindowCapture]::PrintWindow($hwnd, $hdc, [WindowCapture]::PW_CLIENTONLY)) {
+      $method = 'PrintWindow-client'
+    } else {
+      $winDc = [WindowCapture]::GetWindowDC($hwnd)
+      if ($winDc -ne [IntPtr]::Zero) {
+        try {
+          if ([WindowCapture]::BitBlt($hdc, 0, 0, $w, $h, $winDc, 0, 0, [WindowCapture]::SRCCOPY)) { $method = 'BitBlt' }
+        } finally {
+          [void][WindowCapture]::ReleaseDC($hwnd, $winDc)
+        }
+      }
+    }
+  } catch {
+    $method = 'CopyFromScreen'
+  } finally {
+    $g.ReleaseHdc($hdc)
+    $g.Dispose()
+  }
+}
+
+if ($method -eq 'CopyFromScreen') {
+  $g = [System.Drawing.Graphics]::FromImage($bmp)
+  try {
+    $g.CopyFromScreen($x, $y, 0, 0, (New-Object System.Drawing.Size($w, $h)))
+  } finally {
+    $g.Dispose()
+  }
 }
 
 # MaxWidth (if asked for) scales the whole capture down afterwards -- shrinking
@@ -110,4 +177,20 @@ try {
 } finally {
   $final.Dispose()
 }
-Write-Host "ok $w x $h dpi=$dpiAware"
+# Sidecar metadata: the caller needs to know HOW this was captured. A PNG on its
+# own cannot say "I am a PrintWindow of a DirectX window that came back as the
+# desktop" -- and that failure mode produces a plausible-looking image.
+try {
+  $meta = @{
+    method = $method
+    width = $w
+    height = $h
+    src_width = $srcW
+    src_height = $srcH
+    covered = $covered
+    dpi = $dpiAware
+    windowHandle = $WindowHandle
+  } | ConvertTo-Json -Compress
+  [IO.File]::WriteAllText("$Out.json", $meta, (New-Object System.Text.UTF8Encoding($false)))
+} catch { }
+Write-Host "ok $w x $h dpi=$dpiAware method=$method covered=$covered"

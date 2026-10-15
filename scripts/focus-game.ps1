@@ -172,8 +172,22 @@ $hwnd = [IntPtr]::new([Int64]$target.Hwnd)
 # browser titles: it works for any browser, and it is literally "go back".
 $previous = [GameWindowFocus]::GetForegroundWindow()
 
-[void][GameWindowFocus]::ShowWindowAsync($hwnd, 9) # SW_RESTORE
-[void][GameWindowFocus]::SetForegroundWindow($hwnd)
+# The ALT tap below is the long-standing workaround for Windows' foreground lock.
+# The lock stops background apps from stealing focus from whatever the user is
+# doing, and it decides partly on "did the caller just receive user input".
+# A synthetic ALT press satisfies that check, so SetForegroundWindow is allowed
+# through. Measured here: without it the direct call AND the AttachThreadInput
+# retry were both refused ("focus_denied"), which made recognition and screenshots
+# impossible while the game sat right there on screen.
+# try/finally so a failure here can never leave ALT logically held down.
+try {
+  [WindowCapture]::TapAlt()
+  Start-Sleep -Milliseconds 30
+  [void][GameWindowFocus]::ShowWindowAsync($hwnd, 9) # SW_RESTORE
+  [void][GameWindowFocus]::SetForegroundWindow($hwnd)
+} finally {
+  try { [WindowCapture]::TapAlt() } catch { }
+}
 $foreground = [GameWindowFocus]::GetForegroundWindow()
 $focused = $foreground.ToInt64() -eq [Int64]$target.Hwnd
 
@@ -191,6 +205,8 @@ if (-not $focused) {
     }
   }
   try {
+    [WindowCapture]::TapAlt()
+    Start-Sleep -Milliseconds 30
     [void][GameWindowFocus]::ShowWindowAsync($hwnd, 9)
     [void][GameWindowFocus]::BringWindowToTop($hwnd)
     [void][GameWindowFocus]::SetForegroundWindow($hwnd)

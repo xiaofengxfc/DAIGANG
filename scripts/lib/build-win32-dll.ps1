@@ -20,12 +20,12 @@ Add-Type -TypeDefinition (Get-Content -LiteralPath $src -Raw) -OutputAssembly $d
 $size = (Get-Item -LiteralPath $dll).Length
 Write-Output "Built $dll ($size bytes)"
 
-# Prove the freshly built assembly actually loads and exposes the four classes.
+# Prove the freshly built assembly actually loads and exposes the five classes.
 # Load the bytes rather than Assembly.LoadFrom: LoadFrom builds a file:// URI and
 # this repo's path has Chinese characters in it, which makes that URI invalid
 # (measured: COR_E_FILELOAD 0x80131515). See win32.ps1.
 $asm = [Reflection.Assembly]::Load([IO.File]::ReadAllBytes($dll))
-foreach ($name in @('ScreenDpi', 'DisplayMode', 'GameWindowFocus', 'GameKeyInput')) {
+foreach ($name in @('ScreenDpi', 'DisplayMode', 'GameWindowFocus', 'GameKeyInput', 'WindowCapture')) {
   if (-not $asm.GetType($name)) { throw "Type $name is missing from the built assembly" }
 }
-Write-Output "Verified: ScreenDpi, DisplayMode, GameWindowFocus, GameKeyInput"
+Write-Output "Verified: ScreenDpi, DisplayMode, GameWindowFocus, GameKeyInput, WindowCapture"

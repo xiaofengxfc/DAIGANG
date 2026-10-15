@@ -5,6 +5,7 @@ import { profileForGame } from '../shared/game-profiles.js'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const FOCUS_PS1 = path.resolve(HERE, '..', 'scripts', 'focus-game.ps1')
+const FIND_PS1 = path.resolve(HERE, '..', 'scripts', 'find-game-window.ps1')
 const KEY_PS1 = path.resolve(HERE, '..', 'scripts', 'game-key.ps1')
 const ACTIVATE_PS1 = path.resolve(HERE, '..', 'scripts', 'activate-window.ps1')
 let activeWindow = null
@@ -107,8 +108,83 @@ export function focusGameWindow({ timeoutMs = 10000, game = '' } = {}) {
   })
 }
 
-/** Send only the keys used by the resource-reading and screenshot flows. */
-export function sendGameKey(key, { timeoutMs = 5000 } = {}) {
+/**
+ * 只**找**游戏窗口，不碰焦点。
+ *
+ * 为什么需要它：focusGameWindow 是「找到 + 抢到前台」两件事一起做，而抢焦点
+ * 可能被 Windows 的前台锁拒绝。被拒时它不返回句柄，于是截图那边就不知道该
+ * 抓哪个窗口，退化成「抓整个屏幕」—— 抓到的是桌面，上面还盖着浏览器。
+ * 一张看起来正常但其实拍错了的图，比报错更糟（实测踩到过）。
+ *
+ * 找到了会把句柄记进 activeWindow，后面的 grabScreen 才知道要裁哪个窗口。
+ * 失败返回 { ok: false }，调用方自行决定怎么办。
+ */
+export function findGameWindow({ timeoutMs = 8000, game = '' } = {}) {
+  if (process.platform !== 'win32') {
+    return Promise.resolve({ ok: false, error: '只支持 Windows。' })
+  }
+  const profile = profileForGame(game)
+
+  return new Promise((resolve) => {
+    let settled = false
+    let timer = null
+    let stdout = ''
+    let stderr = ''
+    const finish = (result) => {
+      if (settled) return
+      settled = true
+      if (timer) clearTimeout(timer)
+      resolve(result)
+    }
+
+    let child
+    try {
+      const args = ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', FIND_PS1]
+      // 和 focusGameWindow 一样：中文游戏名不往命令行上传，传 profile id
+      if (profile.id) args.push('-Profile', String(profile.id))
+      const processName = String(process.env.XFC_GAME_PROCESS || '').trim()
+      if (processName) args.push('-ProcessName', processName)
+      child = spawn('powershell.exe', args, { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
+    } catch (err) {
+      return finish({ ok: false, error: `查找游戏窗口失败：${err.message}` })
+    }
+
+    timer = setTimeout(() => {
+      try {
+        child.kill()
+      } catch {
+        /* 可能已经退了 */
+      }
+      finish({ ok: false, error: '查找游戏窗口超时。' })
+    }, timeoutMs)
+
+    child.stdout.setEncoding('utf8')
+    child.stderr.setEncoding('utf8')
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk
+    })
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk
+    })
+    child.on('error', (err) => finish({ ok: false, error: `查找游戏窗口失败：${err.message}` }))
+    child.on('close', (code) => {
+      let result = null
+      try {
+        result = JSON.parse(stdout.trim().replace(/^\uFEFF/, ''))
+      } catch {
+        /* 下面统一报 */
+      }
+      if (code !== 0 || !result?.ok) {
+        return finish({ ok: false, code: result?.code, error: stderr.trim() || '没有找到游戏窗口。' })
+      }
+      // 记进 activeWindow：grabScreen 靠它决定裁哪一块、走不走 PrintWindow
+      activeWindow = { hwnd: String(result.hwnd), processId: Number(result.processId), process: result.process, title: result.title }
+      finish({ ...result, game: profile.id, ok: true })
+    })
+  })
+}
+
+/** Send only the keys used by the resource-reading and screenshot flows. */export function sendGameKey(key, { timeoutMs = 5000 } = {}) {
   const normalized = String(key || '').trim().toUpperCase()
   // F2 / F12 是给「只截图不识别」用的：那是游戏自带的截图键
   if (!['B', 'M', 'ESC', 'F2', 'F12'].includes(normalized)) {
