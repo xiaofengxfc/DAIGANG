@@ -64,19 +64,118 @@ export function visionVenvPython() {
 }
 
 /**
+ * 依赖能装上的 Python 范围（win_amd64）。
+ *
+ * 这个数字**不是猜的**，是 scripts/vision-python-matrix.mjs 去 PyPI 把每个包
+ * 的 win_amd64 轮子按 cpXX 打表取交集算出来的。当前事实：
+ *   · onnxruntime（OCR 的推理引擎，绕不开）轮子只到 cp314；
+ *   · cp310 在 onnxruntime 1.24 之后就没有了；
+ *   · 3.15 至今没有任何一个 onnxruntime 轮子。
+ * 所以 3.10~3.14 可用，**3.15 装不上**。
+ * 改了 requirements.txt 的版本区间就要重跑那张表。
+ */
+export const SUPPORTED_PYTHON = { min: [3, 10], max: [3, 14], recommended: '3.14' }
+
+/** 把 "3.14.8" / "3.15.0" 解析成 [3, 14]；解析不出来返回 null */
+function versionPair(text) {
+  const m = /(\d+)\.(\d+)/.exec(String(text || ''))
+  return m ? [Number(m[1]), Number(m[2])] : null
+}
+
+/**
+ * 这个 Python 版本能不能装依赖。返回 { ok, code, message }。
+ *
+ * 为什么要提前拦：不拦的话用户会走到 pip，然后看到「找不到匹配的分发」
+ * 一长串 —— 那看不出是版本不兼容，只看到「装依赖失败」。这里直接说清
+ * 「你这版不行、支持到哪版、怎么办」。
+ */
+export function pythonVersionSupport(versionText) {
+  const pair = versionPair(versionText)
+  if (!pair) {
+    return { ok: false, code: 'python_version_unknown', message: `读不出 Python 版本号（拿到的是「${versionText || '空'}」）。` }
+  }
+  const cmp = (a, b) => (a[0] !== b[0] ? a[0] - b[0] : a[1] - b[1])
+  const version = `${pair[0]}.${pair[1]}`
+  if (cmp(pair, SUPPORTED_PYTHON.min) < 0) {
+    return {
+      ok: false,
+      code: 'python_too_old',
+      message: `Python ${version} 太旧了，需要 ${SUPPORTED_PYTHON.min.join('.')} ~ ${SUPPORTED_PYTHON.max.join('.')}（推荐 ${SUPPORTED_PYTHON.recommended}）。`,
+    }
+  }
+  if (cmp(pair, SUPPORTED_PYTHON.max) > 0) {
+    return {
+      ok: false,
+      code: 'python_too_new',
+      message:
+        `Python ${version} 太新了：这个后端要用的 onnxruntime（OCR 推理引擎）还没有适配它的预编译包，` +
+        `只能现编，而现编需要 C++ 工具链，普通机器上装不了。` +
+        `支持 ${SUPPORTED_PYTHON.min.join('.')} ~ ${SUPPORTED_PYTHON.max.join('.')}，推荐装 ${SUPPORTED_PYTHON.recommended}。`,
+    }
+  }
+  return { ok: true, code: '', message: '' }
+}
+
+/**
+ * 在 Windows 上按注册表找 Python。
+ *
+ * 为什么必须要有这一步：官方安装器**默认不勾**「Add python.exe to PATH」，
+ * 于是一台装好 Python 的机器上 `python` / `python3` 全是「找不到命令」
+ * （实测：注册表里明明有 PythonCore\3.15，PATH 里一个都没有）。
+ * 只查 PATH 就等于「用户装了 Python 但程序说没装」。
+ *
+ * 注册表里存的是安装目录，比 PATH 可靠。HKCU 是「只为当前用户装」的默认落点，
+ * 所以先看它。
+ */
+function windowsRegistryPythons() {
+  if (process.platform !== 'win32') return []
+  const roots = [
+    'HKCU\\SOFTWARE\\Python\\PythonCore',
+    'HKLM\\SOFTWARE\\Python\\PythonCore',
+    'HKLM\\SOFTWARE\\WOW6432Node\\Python\\PythonCore',
+  ]
+  const found = []
+  for (const root of roots) {
+    // reg query 的输出是「键名 + 值行」，直接按 ExecutablePath 抓最省事
+    const r = run('reg', ['query', root, '/s', '/v', 'ExecutablePath'], 8000)
+    const text = `${r.stdout || ''}`
+    for (const line of text.split(/\r?\n/)) {
+      const m = /ExecutablePath\s+REG_SZ\s+(.+)$/i.exec(line.trim())
+      if (!m) continue
+      const exe = m[1].trim()
+      if (exe && exists(exe)) found.push(exe)
+    }
+  }
+  return found
+}
+
+/**
  * 候选解释器，按优先级：
  *   1. 已经建好的 venv（依赖就装在里面，优先用它）
- *   2. XFC_VISION_PYTHON / XFC_PYTHON 指定的
- *   3. 系统 PATH 里的 python / python3
+ *   2. XFC_VISION_PYTHON / XFC_PYTHON 指定的（用户明确指定就最优先）
+ *   3. **Windows 注册表里装过的**（HKCU 优先：官方安装器默认不勾 Add to PATH，
+ *      所以一台装好 Python 的机器上 PATH 里可能一个都没有 —— 实测就是这样）
+ *   4. Windows 常见安装目录（%LOCALAPPDATA%\Programs\Python\Python3xx 等）
+ *   5. 系统 PATH 里的 python / python3
  *
  * 非绝对路径的候选会先解析成真实可执行文件路径：WindowsApps 那个别名
  * 能通过 `--version` 探测，但拿它去建 venv / 装包会出问题。
  */
 function pythonCandidates() {
   const venv = visionVenvPython()
-  const raw = [...new Set([venv, VISION_PYTHON, process.env.XFC_PYTHON, process.platform === 'win32' ? 'python' : 'python3', 'python3', 'python'].filter(Boolean))]
+  const raw = [
+    venv,
+    VISION_PYTHON,
+    process.env.XFC_PYTHON,
+    ...windowsRegistryPythons(),
+    ...windowsCommonPythons(),
+    process.platform === 'win32' ? 'python' : 'python3',
+    'python3',
+    'python',
+  ].filter(Boolean)
+
   const resolved = []
-  for (const bin of raw) {
+  for (const bin of [...new Set(raw)]) {
     if (path.isAbsolute(bin)) {
       if (exists(bin)) resolved.push(bin)
       continue
@@ -88,18 +187,72 @@ function pythonCandidates() {
   }
   return [...new Set(resolved)]
 }
+function windowsCommonPythons() {
+  if (process.platform !== 'win32') return []
+  const dirs = []
+  const local = process.env.LOCALAPPDATA || ''
+  const pf = process.env.ProgramFiles || 'C:\\Program Files'
+  const home = process.env.USERPROFILE || ''
+  if (local) dirs.push(path.join(local, 'Programs', 'Python'))
+  dirs.push(pf)
+  if (home) dirs.push(path.join(home, 'anaconda3'), path.join(home, 'miniconda3'))
+  const out = []
+  for (const dir of dirs) {
+    if (!dir || !exists(dir)) continue
+    // ...\Programs\Python\Python314\python.exe 以及 ...\Program Files\Python314\python.exe
+    try {
+      for (const child of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (!child.isDirectory()) continue
+        if (!/^Python3\d+$/i.test(child.name) && !/^(anaconda|miniconda)3$/i.test(child.name)) continue
+        const exe = path.join(dir, child.name, 'python.exe')
+        if (exists(exe)) out.push(exe)
+      }
+    } catch {
+      /* 读不了就跳过 */
+    }
+  }
+  return out
+}
 
-/** 这台机器上第一个能用的 Python 3（不要求装了依赖） */
+/**
+ * 挑一个能用的 Python 解释器（不要求装了依赖）。
+ *
+ * 关键点：**优先挑「依赖装得上」的版本，而不是 PATH 里第一个 Python 3**。
+ * 以前只要求「是 Python 3」就返回，于是机器上同时有 3.15 和 3.12 时，
+ * 谁先被扫到就用谁 —— 扫到 3.15 就必然装不上依赖，而用户看不出为什么。
+ *
+ * 返回里带上 support：不支持时调用方要**明确报错**，不能继续往下走。
+ */
 export function findVisionInterpreter() {
   const tried = []
+  const usable = []
   for (const bin of pythonCandidates()) {
     const version = run(bin, ['--version'], 8000)
     const text = `${version.stdout || ''}${version.stderr || ''}`.trim()
-    tried.push({ bin, output: text, status: version.status })
-    if (version.status !== 0 || !/^Python\s+3\./i.test(text)) continue
-    return { available: true, bin, version: text.replace(/^Python\s+/i, ''), tried }
+    if (version.status !== 0 || !/^Python\s+3\./i.test(text)) {
+      tried.push({ bin, output: text, status: version.status, supported: false })
+      continue
+    }
+    const clean = text.replace(/^Python\s+/i, '')
+    const support = pythonVersionSupport(clean)
+    tried.push({ bin, output: text, status: version.status, supported: support.ok })
+    usable.push({ bin, version: clean, support })
   }
-  return { available: false, bin: '', version: '', tried }
+
+  if (!usable.length) return { available: false, bin: '', version: '', tried, support: null }
+
+  // 支持范围内的优先；同样支持就按候选顺序（venv → 用户指定 → 注册表 → PATH）
+  const supported = usable.find((u) => u.support.ok)
+  const chosen = supported || usable[0]
+  return {
+    available: true,
+    bin: chosen.bin,
+    version: chosen.version,
+    tried,
+    support: chosen.support,
+    // 有几个能用的版本，界面上可以提示「换个版本就行」
+    usableVersions: [...new Set(usable.map((u) => u.version))],
+  }
 }
 
 /** 拿一个解释器去问「五个模块在不在」。返回 {ok, python, executable, mods, error} */
@@ -145,23 +298,48 @@ export function visionDependencyStatus({ force = false } = {}) {
     const v = run(interpreter.bin, ['--version'], 8000)
     version = `${v.stdout || ''}${v.stderr || ''}`.trim().replace(/^Python\s+/i, '')
   }
+  // venv 已经建好时上面那条分支不会走 findVisionInterpreter，support 是空的 ——
+  // 那就按 venv 自己的版本现算一次，不然「版本不支持」这个结论会漏报。
+  const support = interpreter.support || (version ? pythonVersionSupport(version) : null)
+  const blockReason = !interpreter.available
+    ? '没有找到 Python 3。装一个再来（推荐 3.14）。'
+    : support && !support.ok
+      ? support.message
+      : ''
   cachedProbe = {
     ready: Boolean(interpreter.available && deps.ok),
     venv: { path: VISION_VENV, exists: Boolean(venvPython), python: venvPython },
-    interpreter: { available: Boolean(interpreter.available), bin: interpreter.bin, version, tried: interpreter.tried || [] },
+    interpreter: {
+      available: Boolean(interpreter.available),
+      bin: interpreter.bin,
+      version,
+      tried: interpreter.tried || [],
+      supported: support ? support.ok : null,
+      usable_versions: interpreter.usableVersions || [],
+    },
+    // 「这版 Python 装不上依赖」要说清楚，界面照着这条给结论
+    python_support: support || null,
+    block_reason: blockReason,
+    supported_range: {
+      min: SUPPORTED_PYTHON.min.join('.'),
+      max: SUPPORTED_PYTHON.max.join('.'),
+      recommended: SUPPORTED_PYTHON.recommended,
+    },
     deps: { ...deps, version },
     requirements: { exists: exists(VISION_REQUIREMENTS), path: VISION_REQUIREMENTS },
     install: {
+      // 装不装得成，先在这里定论 —— 不要让用户走到 pip 才发现
+      possible: interpreter.available && (!support || support.ok),
       commands: interpreter.available
         ? [
             `${interpreter.bin} -m venv "${VISION_VENV}"`,
             `${path.join(VISION_VENV, process.platform === 'win32' ? 'Scripts' : 'bin', process.platform === 'win32' ? 'python.exe' : 'python3')} -m pip install --no-cache-dir -r "${VISION_REQUIREMENTS}"`,
           ]
-        : ['先装一个 Python 3.10 或更高版本（python.org），再回到这里点「一键安装依赖」'],
+        : [`先装一个 Python ${SUPPORTED_PYTHON.min.join('.')} ~ ${SUPPORTED_PYTHON.max.join('.')}（推荐 ${SUPPORTED_PYTHON.recommended}，python.org），再回到这里点「一键安装依赖」`],
       python_download: 'https://www.python.org/downloads/windows/',
       // 装依赖这一步不做「只能二进制包」的限制：antlr4-python3-runtime 这类
       // 包在 3.14 上没有 wheel，得现编（实测能编过）。
-      note: '依赖装在项目内的 data/vision-venv，不动你系统里的 Python。约 200MB。',
+      note: `依赖装在项目内的 data/vision-venv，不动你系统里的 Python。约 200MB。支持 Python ${SUPPORTED_PYTHON.min.join('.')} ~ ${SUPPORTED_PYTHON.max.join('.')}。`,
     },
   }
   return cachedProbe
@@ -236,7 +414,14 @@ export function startVisionDependencyInstall() {
     return { ok: false, error: `找不到依赖清单：${VISION_REQUIREMENTS}`, status: probe }
   }
   if (!probe.interpreter.available) {
-    return { ok: false, code: 'python_missing', error: '没有找到 Python 3，请先装一个（python.org），再回到这里点「一键安装依赖」', status: probe }
+    return { ok: false, code: 'python_missing', error: probe.block_reason || '没有找到 Python 3，请先装一个（python.org），再回到这里点「一键安装依赖」', status: probe }
+  }
+  /* 版本不支持就别往下走了。
+     以前这里不拦，用户会一路走到 pip，然后面对「找不到匹配的分发」一长串日志
+     —— 那看不出是 Python 版本的事。实测：Python 3.15 上 onnxruntime 根本没有
+     预编译包，这个安装**不可能成功**。 */
+  if (probe.python_support && !probe.python_support.ok) {
+    return { ok: false, code: probe.python_support.code, error: probe.python_support.message, status: probe }
   }
 
   const id = `vision-deps-${Date.now().toString(36)}`

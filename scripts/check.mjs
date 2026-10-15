@@ -70,6 +70,15 @@ if (parseAst) {
 }
 
 const jsxNote = parseAst ? `${files.jsx.length} 个` : `${files.jsx.length} 个（跳过）`
+
+/* ---------- Python 视觉后端的版本闸门 ----------
+   纯逻辑（不联网、不起进程），所以放进闸门里守：哪些 Python 版本该放行、
+   哪些该拦、拦下时说没说人话。背景见 scripts/vision-python-check.mjs 的头注释。
+   注意**不**在这里跑 vision-python-matrix.mjs —— 那个要联网查 PyPI，
+   没网时跑不了，塞进闸门就会把「离线」变成「失败」。它单独一条命令。 */
+const pyGate = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'vision-python-check.mjs')], { stdio: 'inherit' })
+if (pyGate.status !== 0) failed.push('scripts/vision-python-check.mjs')
+
 console.log(`\n语法自检：.mjs/.js ${files.js.length} 个，.jsx ${jsxNote}，失败 ${failed.length} 个`)
 if (failed.length) {
   for (const f of failed) console.log(`   ✗ ${f}`)

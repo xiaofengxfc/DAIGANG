@@ -38,6 +38,44 @@ Umi-OCR → PaddleOCR-json → RapidOCR-json → Tesseract → Windows 自带）
 
 `words` 的形状和仓里另外几条 OCR 路一致：`{x, y, w, h, text, score, cx, cy}`。
 
+## 支持哪些 Python 版本（**重要**）
+
+**3.10 ~ 3.14（win_amd64）。3.15 目前装不上。**
+
+原因不是这个后端写得挑版本，而是绕不开的 `onnxruntime`（OCR 的推理引擎）还没为
+3.15 发布预编译包 —— 没有轮子就只能现编，而现编要 C++ 工具链，普通机器上装不了。
+
+各版本的实际覆盖（PyPI 实测，`onnxruntime` 每个大版本都不一样）：
+
+| onnxruntime | 提供的 cp 轮子 |
+| --- | --- |
+| 1.20 ~ 1.23 | cp310 ~ cp313 |
+| 1.24 ~ 1.29 | cp311 ~ **cp314** |
+
+所以 `requirements.txt` 里写的是区间 `>=1.20,<2`：3.10 会落到 1.23.x、3.14 会落到
+1.24+。**钉死任何一头都会让另一端掉进源码编译。**
+
+这张表不是手抄的，是 `node scripts\vision-python-matrix.mjs` 去 PyPI 现查的：
+
+```powershell
+node scripts\vision-python-matrix.mjs           # 打一张 包 × Python版本 的轮子表
+node scripts\vision-python-matrix.mjs --check   # 顺带断言「声明的范围」和事实一致
+```
+
+`--check` 里有一条断言专门写「**3.15 应该被认成不支持**」。等 onnxruntime 哪天发了
+cp315，那条会红 —— 那就是该把支持范围扩上去的信号，而不是让人凭印象改。
+
+程序侧的配套动作（都在 `src/vision-deps.mjs`）：
+
+- **找得到不在 PATH 里的 Python**：官方安装器默认不勾「Add python.exe to PATH」，
+  所以只查 PATH 等于「用户装了 Python 但程序说没装」。现在会先查注册表
+  （`HKCU\SOFTWARE\Python\PythonCore`）、再查常见安装目录，最后才看 PATH。
+- **优先挑版本合适的那个**：不是「PATH 里第一个 Python 3」，而是先找装得上依赖的版本。
+  机器上同时有 3.15 和 3.12 时，会选 3.12。
+- **版本不合适就提前拦**：界面上直接说「Python 3.15 太新了…支持 3.10~3.14」，
+  并把「一键安装依赖」置灰。以前不拦，用户会走到 pip，然后面对一长串
+  「找不到匹配的分发」—— 那看不出是版本的事。
+
 ## 它现在有多快（这台机器实测，Python 3.14.8）
 
 | 场景 | 耗时 |

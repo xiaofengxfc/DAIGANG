@@ -619,13 +619,18 @@ function PythonBackendSection({ onChanged }) {
   const jobSteps = job && job.steps ? job.steps : []
   const depsReady = data.deps_ready === true
   const online = Boolean(data.online && data.warm)
+  /* 「这版 Python 装不上依赖」—— 后端算好的结论，这里只负责显示。
+     为什么要在界面上说：用户装了 Python、点了安装却失败，最容易卡在
+     「我明明有 Python 啊」。实测背景：onnxruntime 的轮子只覆盖 3.10~3.14，
+     3.15 上装不了。 */
+  const pySupport = deps.python_support && deps.python_support.ok === false ? deps.python_support : null
 
   return (
     <div className="install" style={{ marginTop: 'var(--sp-4)' }}>
       <div className="install__head">
         <span className="install__name">Python 视觉后端</span>
-        <span className={`tag ${online ? 'tag--jade' : depsReady ? 'tag--amber' : 'tag--muted'}`}>
-          {online ? '在线' : data.running ? '起来了但没就绪' : depsReady ? '已装好，没启动' : '依赖没装'}
+        <span className={`tag ${online ? 'tag--jade' : pySupport ? 'tag--amber' : depsReady ? 'tag--amber' : 'tag--muted'}`}>
+          {online ? '在线' : data.running ? '起来了但没就绪' : pySupport ? 'Python 版本不支持' : depsReady ? '已装好，没启动' : '依赖没装'}
         </span>
         <span className="tiny dim">RapidOCR + ONNX Runtime</span>
         <div style={{ flex: '1' }} />
@@ -636,17 +641,32 @@ function PythonBackendSection({ onChanged }) {
       <div className="tbl__meta" style={{ marginTop: '2px' }}>
         {online
           ? `${data.url}　载模型 ${data.load_ms ?? '-'}ms / 预热 ${data.warm_ms ?? '-'}ms / 上次识别 ${data.last_ms ?? '-'}ms　PID ${data.pid || '-'}`
-          : data.error || data.blocked || '没在跑'}
+          : pySupport
+            ? pySupport.message
+            : data.error || data.blocked || '没在跑'}
       </div>
 
       {/* 解释器 / venv / 依赖版本 */}
       <div className="cluster" style={{ marginTop: '6px', flexWrap: 'wrap', gap: '6px' }}>
-        <span className={`tag ${depsReady ? 'tag--muted' : 'tag--amber'}`}>
+        <span className={`tag ${pySupport ? 'tag--amber' : depsReady ? 'tag--muted' : 'tag--amber'}`}>
           {deps.interpreter && deps.interpreter.bin ? `Python ${deps.interpreter.version || ''}：${deps.interpreter.bin}` : '没找到 Python 3'}
         </span>
+        {deps.supported_range ? (
+          <span className="tag tag--muted">{`支持 ${deps.supported_range.min} ~ ${deps.supported_range.max}（推荐 ${deps.supported_range.recommended}）`}</span>
+        ) : null}
         {deps.venv && deps.venv.exists ? <span className="tag tag--muted">{`venv：${deps.venv.path}`}</span> : null}
         {Object.entries(mods).map(([k, v]) => <span key={k} className="tag tag--muted">{`${k} ${v}`}</span>)}
       </div>
+
+      {/* 版本不支持时：把「怎么解决」摆出来，按钮也置灰 —— 不让用户白点一次 */}
+      {pySupport ? (
+        <div className="note note--warn" style={{ marginTop: '6px' }}>
+          {`当前 Python ${deps.interpreter && deps.interpreter.version ? deps.interpreter.version : ''} 装不了这个后端的依赖。`}
+          {pySupport.code === 'python_too_new' ? '装一个旧一点的版本就能用。' : '装一个新一点的版本就能用。'}
+          {deps.install && deps.install.python_download ? '　' : ''}
+          {deps.interpreter && deps.interpreter.usable_versions && deps.interpreter.usable_versions.length ? `（这台机器上扫到的 Python：${deps.interpreter.usable_versions.join('、')}）` : ''}
+        </div>
+      ) : null}
 
       {models ? (
         <div className="tbl__meta" style={{ marginTop: '4px' }}>
@@ -659,7 +679,14 @@ function PythonBackendSection({ onChanged }) {
       {/* 按钮 */}
       <div className="cluster" style={{ gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
         {!depsReady ? (
-          <button className="btn btn--sm btn--primary" type="button" disabled={installing} data-loading={installing ? '1' : undefined} onClick={install}><Download {...iconProps(14)} />一键安装依赖</button>
+          <button
+            className="btn btn--sm btn--primary"
+            type="button"
+            disabled={installing || Boolean(pySupport)}
+            title={pySupport ? pySupport.message : undefined}
+            data-loading={installing ? '1' : undefined}
+            onClick={install}
+          ><Download {...iconProps(14)} />一键安装依赖</button>
         ) : null}
         {depsReady && !data.running ? (
           <button className="btn btn--sm btn--primary" type="button" disabled={Boolean(acting)} data-loading={acting === 'start' ? '1' : undefined} onClick={() => act('start')}><Play {...iconProps(14)} />启动</button>

@@ -17,6 +17,8 @@
     "test:ui": "node scripts/ui-smoke.mjs",
     "test:glass": "node scripts/glass-check.mjs",
     "test:icon-probe": "node scripts/icon-probe-check.mjs",
+    "test:vision-python": "node scripts/vision-python-check.mjs",
+    "vision:matrix": "node scripts/vision-python-matrix.mjs",
     "test:bili": "node scripts/bili-scan-check.mjs",
     "test:bili-apply": "node scripts/bili-apply-check.mjs",
     "check": "node scripts/check.mjs && npm run test && npm run build",
