@@ -1,6 +1,6 @@
 {
   "name": "daigan-ops-console",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "type": "module",
   "description": "代肝价格查询 · 私用运营台 —— 本地优先的运营工作台",
