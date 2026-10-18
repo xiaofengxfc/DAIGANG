@@ -809,7 +809,8 @@ input {
   box-shadow: 0 0 0 3px var(--jade-bg);
 }
 
-.react-icon-button {
+.react-icon-button,
+.refactor-icon-button {
   width: 32px;
   height: 32px;
   display: grid;
@@ -821,7 +822,8 @@ input {
   cursor: pointer;
 }
 
-.react-icon-button:hover {
+.react-icon-button:hover,
+.refactor-icon-button:hover {
   border-color: var(--line);
   background: var(--surface-2);
   color: var(--ink);
@@ -903,13 +905,16 @@ input {
 .react-dashboard-panel,
 .react-dashboard-empty {
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 
 .react-ledger {
   overflow: hidden;
-  border-top: 2px solid var(--cinnabar);
+  /* 早先这里有一条 2px 的强调色顶边。那时卡片是白底、画布偏灰，
+     顶边算是一种「标出重点卡」的手段；换成玻璃后这条线反而抢眼，
+     因为它比玻璃边框重了一个数量级，一眼看过去像「页面顶部有条杠」。
+     重点应该由内容和字号层级表达，不由色块表达。 */
 }
 
 .react-ledger__head,
@@ -1378,7 +1383,9 @@ button.react-side-row {
 /* React 订单清单 */
 .orders-page {
   display: grid;
-  gap: 14px;
+  /* 18px 而不是 14px：页面抬头、筛选条、表格是三种不同性质的东西，
+     全塞进 14px 会糊成一片；拉开一点，扫视时能立刻分出「我在哪一层」。 */
+  gap: 18px;
 }
 
 .orders-page__head {
@@ -1386,6 +1393,34 @@ button.react-side-row {
   align-items: flex-end;
   justify-content: space-between;
   gap: 18px;
+}
+
+/* 订单详情的动作条。
+   这里原先是**完全没有样式**的：JSX 里挂着 .order-detail__actions，
+   CSS 里查无此类，八个按钮就靠默认的 inline 排列挤在一起，没有间距、
+   不会换行。窗口一收窄，整条动作会把页面撑出横向滚动条。
+   现在给它换行能力 + 统一的间距；按钮多的时候宁可行数增加，
+   也不能把页面撑破。 */
+.order-detail__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* 删除是破坏性动作，和左边一排「正常操作」要拉开距离，
+   避免手滑点到相邻按钮。 */
+.order-detail__danger {
+  margin-left: 6px;
+  color: var(--oxblood);
+}
+
+.order-detail__danger:hover {
+  border-color: var(--oxblood);
+  background: var(--oxblood-bg);
 }
 
 .orders-page__head h2 {
@@ -1433,16 +1468,26 @@ button.react-side-row {
   white-space: nowrap;
 }
 
-.orders-filter:hover,
-.orders-filter.is-active,
-.orders-chip {
+.orders-filter:hover {
   border-color: var(--line-strong);
   background: var(--surface-2);
   color: var(--ink);
 }
 
+/* 选中态跟侧栏用同一套语言：强调色淡底 + 强调色字。
+   早先这里是「浅灰底 + 灰边框」，和未选中只差一点点明度，
+   一屏七八个筛选片时很难一眼扫出当前在看哪一档。 */
+.orders-filter.is-active {
+  border-color: transparent;
+  background: var(--cinnabar-bg);
+  color: var(--cinnabar-strong);
+  font-weight: 600;
+}
+
 .orders-chip {
   border-color: var(--line-strong);
+  background: var(--surface-2);
+  color: var(--ink);
 }
 
 .orders-chip span {
@@ -3418,6 +3463,44 @@ button.react-side-row {
   background: var(--glass-soft);
 }
 
+/* ---------- 页面骨架：收敛各页遗留的旧值 ---------- */
+
+/* 这八页是一个个从旧页面迁过来的，骨架参数各写各的：页面纵向间距 14px、
+   大面板圆角 9px、筛选片选中态是浅灰底。单看每页都不算错，但切页时
+   能感觉到「每页都差一点」——抬头到内容的距离、卡片边角的弧度都在跳。
+   这里统一成与总览、订单页同一套值：
+   - 纵向 18px：抬头 / 筛选条 / 内容三层彼此分开；
+   - 圆角跟 --r-card 走，不再各写 9px；
+   - 选中态与侧栏、订单页同语言（强调色淡底 + 强调色字），
+     浅灰底和未选中只差一点明度，一屏多个筛选片时看不出来。 */
+.customers-page,
+.games-page,
+.finance-page,
+.quotes-page,
+.price-page,
+.vault-page,
+.settings-page {
+  gap: 18px;
+}
+
+.customers-panel,
+.games-panel,
+.finance-ledger,
+.finance-panel,
+.quotes-panel,
+.price-group,
+.orders-panel {
+  border-radius: var(--r-card);
+}
+
+.customers-filter.is-active,
+.games-filter.is-active {
+  border-color: transparent;
+  background: var(--cinnabar-bg);
+  color: var(--cinnabar-strong);
+  font-weight: 600;
+}
+
 /* ---------- 页面抬头：统一节奏，去掉多余的描边 ---------- */
 
 .orders-page__head h2,
@@ -3664,6 +3747,11 @@ button.react-side-row {
 .ps-tabs button:hover { background: var(--surface-2); }
 .ps-tabs button.is-active { border-color: var(--cinnabar-line); background: var(--cinnabar-bg); color: var(--cinnabar); font-weight: 600; }
 .ps-tabs__spacer { flex: 1 1 12px; }
+/* 提案面板右上角那组「全选 / 清空 / 重新整理」。
+   原来没有定义，三个链接按钮按默认 inline 紧贴在一起，中间没有间隔，
+   看起来像一个连在一起的怪字符串。 */
+.ps-tabs__tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-left: auto; }
+.ps-suggest__actions { margin-top: 10px; display: flex; justify-content: center; }
 .ps-link { border: 0; background: transparent; color: var(--cinnabar); cursor: pointer; font: inherit; font-size: var(--fs-xs); text-decoration: underline; }
 
 .ps-table { display: grid; }

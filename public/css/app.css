@@ -570,7 +570,10 @@ button.cell:hover {
 .panel {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  /* 与其他页面的卡片共用同一个圆角 token。这里原先是写死的 12px，
+     于是保险箱、设置、自媒体、订单详情这几页的卡片比别处「方一点」，
+     同一屏里两种弧度并排时能看出来。 */
+  border-radius: var(--r-card);
   overflow: hidden;
 }
 
@@ -865,6 +868,15 @@ button.cell:hover {
   background: transparent;
   border: 1px solid var(--line-strong);
   color: var(--ink-2);
+}
+
+/* 设置页用了 .tag--muted 标「未安装 / 自备」，但样式表里一直没有这个变体。
+   缺了它这些标签只能落到 .tag 基础样式，视觉上和「已完成」的绿标混在一起。
+   这里补成中性灰：表示「不算问题，只是没启用/不是内置的」。 */
+.tag--muted {
+  background: var(--slate-bg);
+  border-color: transparent;
+  color: var(--ink-3);
 }
 
 /* 状态轨：订单走到哪一步 */
@@ -2837,6 +2849,28 @@ pre.plaintext {
   font-family: var(--font-fig);
   font-size: var(--fs-xs);
   font-weight: 600;
+}
+
+/* 报价弹层底部的合计行。
+   JSX 里挂着 .sumline / .sumline__v，但样式表里一直没有这两个类：
+   「合计 ¥xxx」于是和上面的勾选列表贴成一片普通文字，看不出这是结算区。
+   金额是全流程里最该被一眼看到的东西，给它单独一条分隔线和更大的字号。 */
+.sumline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.sumline__v {
+  color: var(--cinnabar);
+  font-family: var(--font-fig);
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .formsec {
