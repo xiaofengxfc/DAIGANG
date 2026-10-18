@@ -24,8 +24,8 @@ npm run setup
 
 | 系统 | 怎么做 |
 | --- | --- |
-| Windows | 双击 **`DaiganLauncher.exe`** |
-| Windows（只给本机用） | `DaiganLauncher.exe --local` |
+| Windows（桌面版） | 双击 **`DaiganOps-portable-2.0.0.exe`**（绿色版），或安装 `DaiganOps-setup-2.0.0.exe` |
+| Windows（从源码） | `npm start`；只给本机用 `npm run local` |
 | macOS / Linux | 终端里 `./start.sh`，或 `./start.sh --local` |
 
 启动后窗口里会打印两个网址：
@@ -35,17 +35,16 @@ npm run setup
 手机打开：   http://192.168.1.7:8787     （手机要和这台电脑连同一个 WiFi）
 ```
 
-启动器里可以直接启动、停止、重启后台，也可以设置当前用户开机自启动。
+桌面版是一个 Electron 外壳：双击 exe 就起窗口，后端由外壳托管（用户机上
+不需要装 Node.js）。窗口可以最小化到托盘，退出时后端会一起关掉。
 
-启动器发现前端产物缺失（或比源码旧）时会自己先构建一遍再拉后台，
-所以刚克隆下来直接双击 `DaiganLauncher.exe` 也能起来。日志卡上的
-**「重建前端」** 按钮可以手动重跑这一步。
+绿色版的数据放在 exe 旁边的 `data/`，安装版放在 `%APPDATA%\daigan-ops-console\data`。
 
-> 前端是构建产物（`public/dist/`），**不进版本库**。如果你绕过启动器直接
+> 前端是构建产物（`public/dist/`），**不进版本库**。如果你从源码直接跑
 > `node server.mjs`，先跑一次 `npm run setup`——否则后台能起来、接口也通，
 > 但网页是白屏。这种情况下启动横幅会明确提示，根路径也会返回一页说明。
 
-端口被占用了就换一个：`DaiganLauncher.exe --port 8888`。
+端口被占用了就换一个：`npm start -- --port 8888`（桌面版会自动挑空闲端口）。
 
 ---
 
@@ -1051,10 +1050,10 @@ PNG 是无损的，想命中体积目标只能靠反复重编码 + 降分辨率�
   jpeg，再不行用原图；超过 8MB 干脆放弃这张截图 —— 截图是锦上添花，不该挡住「记进度」；
 - 任何一步失败都只是**少一张截图**，不影响这条进度记下来。
 
-**流程结束时为什么会自己切回浏览器**：切到游戏那一步（`scripts/focus-game.ps1`）
+**流程结束时为什么会自己切回浏览器**：切到游戏那一步（`scripts/win32/focus-game.ps1`）
 会先记下**当时在前台的那个窗口句柄**再抢焦点 —— 那正好就是你点「识别画面」的浏览器，
 然后一起返回给 Node。认完（或报错）之后前端调 `POST /api/ocr/screen/return`，
-`scripts/activate-window.ps1` 把前台还给这个句柄。
+`scripts/win32/activate-window.ps1` 把前台还给这个句柄。
 
 这么做而不是「按标题找浏览器」，是因为它不挑浏览器、不怕标题变、也不怕你开了几个标签页，
 而且语义上就是字面的「返回」。几个刻意的取舍：
@@ -1113,7 +1112,7 @@ PNG 是无损的，想命中体积目标只能靠反复重编码 + 降分辨率�
 所以：
 
 - 只在自家或信得过的 WiFi 下用手机访问；
-- 在陌生网络里就用 `DaiganLauncher.exe --local` 只开本机；
+- 在陌生网络里就用 `npm run local`（或桌面版里关掉「允许局域网访问」）只开本机；
 - 后台对登录和保险箱解锁都做了失败限速（10 分钟内错 8 次就锁一段时间）。
 
 ---
@@ -1158,17 +1157,17 @@ npm run test:ui                   # 界面冒烟：真浏览器点一遍主要�
 npm run test:glass                # 玻璃层级 / 对比度 / 六种宽度不溢出（见下）
 npm run check                     # 闸门：语法自检 + 接口冒烟 + 构建前端
 npm run check:full                # 上面这些 + 界面冒烟 + 玻璃检查，全量
-node scripts/check.mjs            # 只做语法自检：.mjs / .js 走 node --check，.jsx 走 rolldown
-node scripts/vision-selftest.mjs  # 屏幕识别自检：先核对截屏是不是整屏，再拿真截图测十一种分辨率的准确率
-node scripts/vision-parity.mjs    # 屏幕识别后端对照：旧引擎链 vs Python 后端，逐档比结果和耗时
-node scripts/inspect.mjs          # 只读查看库里有什么（游戏/大类/服务项/订单…），不改任何东西
-node scripts/reset-password.mjs   # 忘了登录密码时用：清掉密码，下次启动回到初始化引导
-node scripts/reset-password.mjs 我的新密码    # 或者直接设一个新密码（≥6 位）
-node scripts/shot.mjs --help      # 无头浏览器截图（调界面时用，见下）
+node scripts/checks/check.mjs            # 只做语法自检：.mjs / .js 走 node --check，.jsx 走 rolldown
+node scripts/checks/vision-selftest.mjs  # 屏幕识别自检：先核对截屏是不是整屏，再拿真截图测十一种分辨率的准确率
+node scripts/checks/vision-parity.mjs    # 屏幕识别后端对照：旧引擎链 vs Python 后端，逐档比结果和耗时
+node scripts/checks/inspect.mjs          # 只读查看库里有什么（游戏/大类/服务项/订单…），不改任何东西
+node scripts/tools/reset-password.mjs   # 忘了登录密码时用：清掉密码，下次启动回到初始化引导
+node scripts/tools/reset-password.mjs 我的新密码    # 或者直接设一个新密码（≥6 位）
+node scripts/tools/shot.mjs --help      # 无头浏览器截图（调界面时用，见下）
 ```
 
 `inspect.mjs` 和 `reset-password.mjs` 都支持 `--data <目录>` 指向别的数据目录，
-比如 `node scripts/inspect.mjs data/console.db`。
+比如 `node scripts/checks/inspect.mjs data/console.db`。
 
 这两个脚本都**只动登录密码那两行设置**，游戏、价格表、客户、订单、凭证一概不碰。
 保险箱密码是另一套，不受影响。
@@ -1178,7 +1177,7 @@ node scripts/shot.mjs --help      # 无头浏览器截图（调界面时用，�
 零依赖，用的是系统里现成的 Edge + Node 自带的 WebSocket（不需要装 puppeteer）：
 
 ```bash
-node scripts/shot.mjs --url http://127.0.0.1:8802 --password 临时密码 \
+node scripts/tools/shot.mjs --url http://127.0.0.1:8802 --password 临时密码 \
      --route /price --out shots/price.png --width 1280 --height 900
 ```
 
@@ -1222,7 +1221,7 @@ set XFC_DATA_DIR=./data-smoke && node server.mjs --port 8790 --local
 XFC_DATA_DIR=./data-smoke node server.mjs --port 8790 --local
 ```
 
-然后另开一个终端 `node scripts/smoke.mjs`（实例地址用 `XFC_BASE` 覆盖，默认 `http://127.0.0.1:8790`）。
+然后另开一个终端 `node scripts/checks/smoke.mjs`（实例地址用 `XFC_BASE` 覆盖，默认 `http://127.0.0.1:8790`）。
 `npm run test` 还有两个开关：`XFC_SMOKE_KEEP=1` 跑完保留数据目录，`XFC_SMOKE_DATA_DIR=<目录>` 换一个目录
 （那个目录会被整个删掉重建，所以只接受 `data-smoke*` 这种名字，或者系统临时目录里的路径）。
 
@@ -1295,7 +1294,7 @@ npm run test:bili          # 扫描链路 + 接口契约（用真实数据目录
 npm run test:bili-apply    # 写入路径（会真的改价格，但改的是副本）
 ```
 
-两个都能加参数：`node scripts/bili-scan-check.mjs 原神 5`（游戏名 + 视频数）。
+两个都能加参数：`node scripts/checks/bili-scan-check.mjs 原神 5`（游戏名 + 视频数）。
 
 `test:bili` 检查的是**「用户能不能核对」这件事本身**：每条建议都得带来源视频、
 来源帧、OCR 原文行、匹配分，多样本行的建议价必须落在样本区间里，
@@ -1452,7 +1451,7 @@ python.exe，5419 会被占着，脚本会明确告诉你结束掉它或换个�
 
 #### 找到游戏窗口也是按游戏分的
 
-`scripts/focus-game.ps1` 里两个游戏各一套窗口特征（`-Profile wuwa|nte`），
+`scripts/win32/focus-game.ps1` 里两个游戏各一套窗口特征（`-Profile wuwa|nte`），
 识别前先按订单上那个游戏去找它的窗口：
 
 | 游戏 | 进程名 | 窗口标题 | 其它特征 |
@@ -1469,11 +1468,11 @@ python.exe，5419 会被占着，脚本会明确告诉你结束掉它或换个�
 截屏这一步还有一条不显眼但致命的规矩：**截到的必须是游戏画面，而且跟 Windows 的
 显示缩放无关**。点击自动识别后会先激活对应游戏的窗口，按上述顺序切换背包和地图，
 并按游戏窗口边界截取；
-`scripts/grab.ps1` 会先把自己标成 DPI 感知，再读取窗口位置 ——
+`scripts/win32/grab.ps1` 会先把自己标成 DPI 感知，再读取窗口位置 ——
 少了这一步，在 150% 缩放的 2560×1600 屏上它以为屏幕只有 1707×1067，
 `CopyFromScreen` 就只抓了**左上角那一块**（不是整屏缩小）；而上面那个锚点在画面
 宽度 ~89% 处，正好整个落在被裁掉的部分里，于是一个数字都认不出来。
-`vision-selftest` 里有一条**截屏自检**专门守这件事：拿 `scripts/screen-info.ps1`
+`vision-selftest` 里有一条**截屏自检**专门守这件事：拿 `scripts/win32/screen-info.ps1`
 问来的真实显示模式（`EnumDisplaySettings`，不受 DPI 虚拟化影响）跟截出来的图比，
 对不上就直接判失败。
 
@@ -1490,7 +1489,7 @@ python.exe，5419 会被占着，脚本会明确告诉你结束掉它或换个�
 | 3413×2133 | 2174 ✓ | 2508319 ✓ |
 | 3840×2400 | 2174 ✓ | 2508319 ✓ |
 
-异环两张真截图换四种分辨率（`node scripts/vision-selftest.mjs` 里跑的就是这两套）：
+异环两张真截图换四种分辨率（`node scripts/checks/vision-selftest.mjs` 里跑的就是这两套）：
 
 | 分辨率 | 背包页 | 地图页 |
 | --- | --- | --- |
@@ -1520,15 +1519,15 @@ python.exe，5419 会被占着，脚本会明确告诉你结束掉它或换个�
 这一帧里**大头是图标匹配（冷 2.8s / 热 0.4s），OCR 只占 ~0.6s** ——
 所以想再快，方向不是换 OCR，而是别每帧都重新找图标（跨帧记住标定 + 只认那几个数字块）。
 
-> 改动识别相关代码（`src/vision.mjs` / `src/screen.mjs` / `src/ocr.mjs` /
-> `shared/game-profiles.js` / `scripts/focus-game.ps1` / `scripts/grab.ps1`）之后，
-> 跑一下 `node scripts/vision-selftest.mjs` ——
+> 改动识别相关代码（`src/vision/vision.mjs` / `src/vision/screen.mjs` / `src/vision/ocr.mjs` /
+> `shared/game-profiles.js` / `scripts/win32/focus-game.ps1` / `scripts/win32/grab.ps1`）之后，
+> 跑一下 `node scripts/checks/vision-selftest.mjs` ——
 > 它先真截一次屏核对「截到的是不是整屏」（显示缩放变了、截屏脚本退回 DPI 不感知，
 > 都会在这里当场报出来），再拿 `shots/samples/` 里的真截图把十一种分辨率过一遍：
 > **一个游戏一套期望值**（鸣潮的武器页、异环的背包页和地图页），
 > 能立刻看出哪一档、哪个游戏退化了。可以加 `--game=异环` 只跑一个游戏。
-> 要比较两个后端就再加一步 `node scripts/vision-parity.mjs`。
-> 没有样例图它会自己跳过，不会让 `node scripts/check.mjs` 失败。
+> 要比较两个后端就再加一步 `node scripts/checks/vision-parity.mjs`。
+> 没有样例图它会自己跳过，不会让 `node scripts/checks/check.mjs` 失败。
 
 ### 想认得更全，装一个本地 OCR 引擎（推荐，能一键装）
 
@@ -1580,8 +1579,8 @@ python.exe，5419 会被占着，脚本会明确告诉你结束掉它或换个�
 #### 换后端这件事有对照脚本，别凭感觉
 
 ```bash
-node scripts/vision-parity.mjs          # 旧引擎链 vs Python 后端，11 档并排列出来
-node scripts/vision-parity.mjs --quick  # 只跑两档，看个大概
+node scripts/checks/vision-parity.mjs          # 旧引擎链 vs Python 后端，11 档并排列出来
+node scripts/checks/vision-parity.mjs --quick  # 只跑两档，看个大概
 ```
 
 它把两个后端各跑一遍同一份自检，逐档比结果和耗时，**有哪一档退化了当场就能看见**。
@@ -1589,10 +1588,10 @@ node scripts/vision-parity.mjs --quick  # 只跑两档，看个大概
 Python 那边每帧慢 ~200ms（热态整帧 1100ms vs 898ms），但多了置信度和那条 13ms 的
 数字块识别 —— 后者才是把这一帧从 600ms 压下去的关键（下一步的事）。
 
-> 引擎的「认字」这一层是可插拔的：`src/ocr.mjs` 里那个 `ocrImage()` 就是接缝。
+> 引擎的「认字」这一层是可插拔的：`src/vision/ocr.mjs` 里那个 `ocrImage()` 就是接缝。
 > 强制用某一个引擎跑自检（排查问题时很有用）：
-> `set XFC_OCR_ENGINE=python && node scripts/vision-selftest.mjs`，
-> 或者 `node scripts/vision-selftest.mjs --backend=python`。
+> `set XFC_OCR_ENGINE=python && node scripts/checks/vision-selftest.mjs`，
+> 或者 `node scripts/checks/vision-selftest.mjs --backend=python`。
 
 视觉后端这几个旋钮在需要时才用（默认值都能跑）：
 
@@ -1643,8 +1642,8 @@ icacls "D:\...\代肝价格查询"
 ```powershell
 # 1. 把整棵树的 Low 换成 Medium —— 恢复 %TEMP% 写入和 C# 编译
 icacls "D:\github_xm\代肝价格查询" /setintegritylevel (OI)(CI)Medium
-# 2. 再把启动器单独标成 High —— 这一步之后进程才和游戏同级，才能激活它的窗口
-icacls "D:\github_xm\代肝价格查询\DaiganLauncher.exe" /setintegritylevel High
+# 2. 再把桌面版 exe 单独标成 High —— 这一步之后进程才和游戏同级，才能激活它的窗口
+icacls "D:\github_xm\代肝价格查询\dist-desktop\DaiganOps-portable-2.0.0.exe" /setintegritylevel High
 ```
 
 然后**重启程序**（进程的级别在启动时就定死了，改标签不会影响已经在跑的进程）。
@@ -1665,7 +1664,7 @@ icacls "D:\github_xm\代肝价格查询\DaiganLauncher.exe" /setintegritylevel H
 受限环境里跑时，往 `%TEMP%` 写一个 2×2 的 PNG 直接被拒（`EPERM`），
 「自检一下」整个接口 500 —— 而原因跟识别本身毫无关系。
 
-所以临时文件的落点统一走 `src/util.mjs` 的 `scratchFile()`，**两档偏好、三档兜底**：
+所以临时文件的落点统一走 `src/core/util.mjs` 的 `scratchFile()`，**两档偏好、三档兜底**：
 
 | 偏好 | ① 先放 | ② 写不进就退 | ③ 还不行才退 | 谁在用 |
 | --- | --- | --- | --- | --- |
@@ -1711,8 +1710,8 @@ Add-Type : A required privilege is not held by the client     ← Win32 1314
 ```
 
 说明问题不在临时目录，而在「现场编译」这件事本身（要拉起 `csc.exe`，在某些环境里被拦）。
-于是改成：**把 P/Invoke 声明编成一个 5KB 的程序集 `scripts/lib/XfcWin32.dll` 提交进仓库**
-（源码是 `scripts/lib/xfc-win32.cs`，改动后用 `lib/build-win32-dll.ps1` 重建，两个都要提交），
+于是改成：**把 P/Invoke 声明编成一个 5KB 的程序集 `scripts/win32/XfcWin32.dll` 提交进仓库**
+（源码是 `scripts/win32/xfc-win32.cs`，改动后用 `lib/build-win32-dll.ps1` 重建，两个都要提交），
 四个脚本开头只写：
 
 ```powershell
@@ -1776,7 +1775,7 @@ npm run test:icon-probe          # 12 项断言，会把合成图存到 shots/ic
 ```
 
 内部接口 `POST /api/ocr?deep=1` 会带上 `icon_probe` 字段（每个模板的分数、
-位置、有没有过阈值），体检本身在 `probeIcons()`（`src/screen.mjs`）。
+位置、有没有过阈值），体检本身在 `probeIcons()`（`src/vision/screen.mjs`）。
 
 ### 相关接口
 
@@ -1802,7 +1801,7 @@ npm run test:icon-probe          # 12 项断言，会把合成图存到 shots/ic
 
 ### 技术上的取舍（几句话）
 
-算法在 `src/vision.mjs`：**积分图版 NCC 模板匹配**（OpenCV `matchTemplate` 的
+算法在 `src/vision/vision.mjs`：**积分图版 NCC 模板匹配**（OpenCV `matchTemplate` 的
 `TM_CCOEFF_NORMED` 口径 + scikit-image 的工程形式）配上**由粗到细的多尺度搜索**，
 外加**锚点定标 + 相对布局**（思路来自 Airtest 的 `record_pos` / `resolution`）。
 一个第三方库都没引 —— 这是照着思路自己写的实现，不是搬代码。
@@ -1810,23 +1809,24 @@ npm run test:icon-probe          # 12 项断言，会把合成图存到 shots/ic
 「哪个游戏、哪几个资源」全部来自 `shared/game-profiles.js` 的 profile：
 图标大小比例、模板文件名、取数页与按键、锚点、`allowZero`、打分口径、
 锚点簇的宽度都是它的字段。加一个游戏 = 加一条 profile + 几张模板图，
-`src/screen.mjs` / `src/routes/` 一行都不用改。
+`src/vision/screen.mjs` / `src/routes/` 一行都不用改。
 
 之所以非要换掉老实现：老的每匹配一个位置都要重算窗口均值方差，
 2559 宽的顶栏上光一次匹配就要 **21 秒**；现在同场景几十毫秒。
-评估和踩坑记录都写在 `PORT-CANDIDATES.md` 里。
+评估和踩坑记录都写在 `docs/PORT-CANDIDATES.md` 里。
 
 ---
 
 ## 八、常见问题
 
 **Windows 怎么启动、停止或重启？**
-双击 `DaiganLauncher.exe`，在控制台里使用对应按钮；也可以直接带参数启动。
-启动器会自动寻找 Node.js，并把日志写入 `launcher-data/server.log`。
+双击桌面版 exe，窗口关掉就等于停掉后端（默认最小化到托盘，托盘菜单里有「退出」）。
+从源码跑的话用 `npm start`，`Ctrl+C` 停止。桌面版的日志写在数据目录的 `desktop/` 下。
 
 **窗口一闪就没了 / 提示需要 Node.js？**
-说明这台电脑上没找到 Node.js。去 <https://nodejs.org> 下载 LTS 版本装上。
-如果刚装完还是提示找不到，**关掉窗口重新开一个新的**——PATH 的改动只对新开的窗口生效。
+从源码跑时说明这台电脑上没找到 Node.js。去 <https://nodejs.org> 下载 LTS 版本装上。
+如果刚装完还是提示找不到，**关掉终端重新开一个新的**——PATH 的改动只对新开的窗口生效。
+用桌面版（exe）则不需要装 Node.js。
 
 **点「生成图片」没反应 / 下载文件夹里没东西？**
 浏览器可能把「连续下载多个文件」拦掉了。导出范围改成「全部游戏合并成一份」就只下一个文件；
@@ -1840,7 +1840,7 @@ npm run test:icon-probe          # 12 项断言，会把合成图存到 shots/ic
 带单位和档位的信息在「单位」「起订」「档位」三列里，一眼也能对上。
 
 **提示端口被占用？**
-换一个端口：`DaiganLauncher.exe --port 8888`。
+换一个端口：`npm start -- --port 8888`（桌面版会自动挑空闲端口）。
 
 **手机打不开那个局域网网址？**
 确认手机和电脑连的是同一个 WiFi；Windows 防火墙第一次会弹窗，要选「允许访问」；
@@ -1861,7 +1861,7 @@ npm run test:icon-probe          # 12 项断言，会把合成图存到 shots/ic
 3. **换了游戏大版本、图标重画了？** 设置 → 屏幕识别 → 自备一个图标模板，
    给一张顶栏截图 + 图标所在的方框（x/y/宽/高），它会当场抠出来存下。
 4. **一个数字都认不出来（连「没配上数字的」都没有）？** 那是截屏这一层的问题，
-   不是识别的阈值问题：跑 `node scripts/vision-selftest.mjs`，第一条「截屏自检」
+   不是识别的阈值问题：跑 `node scripts/checks/vision-selftest.mjs`，第一条「截屏自检」
    会直接告诉你截到的是不是整屏（显示器缩放不是 100% 时最容易踩这个）。
 5. **「Python 视觉后端」那张卡说「起来了但没就绪」/「依赖没装」？** 点「看日志」，
    它自己的 stderr 就在里面（载模型失败、缺 DLL、模型没找齐都会写在那儿）。
@@ -1870,15 +1870,15 @@ npm run test:icon-probe          # 12 项断言，会把合成图存到 shots/ic
    留下的 python.exe 还占着端口。正常情况下它会跟着主程序一起退（主程序一死，
    管道断开它就自己退出）；真留下了就在任务管理器里结束那个 python.exe。
 
-想自己确认「换分辨率还认不认得出」，跑 `node scripts/vision-selftest.mjs`；
-想比较两个后端，跑 `node scripts/vision-parity.mjs`。
+想自己确认「换分辨率还认不认得出」，跑 `node scripts/checks/vision-selftest.mjs`；
+想比较两个后端，跑 `node scripts/checks/vision-parity.mjs`。
 
 **忘了登录密码？**
 关掉启动窗口，然后：
 
 ```bash
-node scripts/reset-password.mjs            # 清掉密码，下次启动回到初始化引导
-node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
+node scripts/tools/reset-password.mjs            # 清掉密码，下次启动回到初始化引导
+node scripts/tools/reset-password.mjs 新密码      # 或者直接设一个新密码
 ```
 
 只会动登录密码，**游戏、价格表、客户、订单、订单凭证一概不碰**。
@@ -1891,7 +1891,7 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 备份文件里的凭证是密文，必须用**同一套保险箱密码**才能解开。
 换了密码就不行了。
 
-**想只在自己电脑上用？** 用 `DaiganLauncher.exe --local` / `./start.sh --local`。
+**想只在自己电脑上用？** 用 `npm run local` / `./start.sh --local`，桌面版默认就只绑 127.0.0.1。
 
 ---
 
@@ -1902,7 +1902,7 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 - 界面从「React 壳 + 旧命令式视图」搬到单栈的过程和现状，见下面「界面是怎么从旧栈搬到 React 的」。
 - 密码用 scrypt 哈希；会话是 HttpOnly + SameSite=Lax 的 Cookie，有效期 14 天。
 - 数据库开了 WAL 和外键约束；迁移按 `PRAGMA user_version` 顺序前进，只增不改。
-- **钱的算法只有一份**：阶梯价规则在 `shared/pricing.js`，服务端（`src/pricing.mjs`）、
+- **钱的算法只有一份**：阶梯价规则在 `shared/pricing.js`，服务端（`src/catalog/pricing.mjs`）、
   React 组合报价弹窗和旧价格表页面（现在只当测试参照物）都调它。以前服务端和前端各有一份
   实现，一旦漂移就会「客户看到的价」和「实际收的价」对不上，而且很难发现。
 - 订单口径（阶梯单价、日体、可得、进度、收款）同理，只有一份：`shared/order-calc.js`。
@@ -1910,7 +1910,7 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
   （服务项自己的 `game_id` 优先，没有就看它大类属于哪个游戏）。一个游戏就写它，
   多个就拼成 `A + B` 并把 `game_id` 留空；混单的资源/进度按 `【游戏】` 分段存，
   只有一段时不加标记，所以老记录、老报表一个字都不用改。
-- 附 `PRODUCT.md` 和 `DESIGN.md`：前者是产品定义，后者是视觉与交互的规则书。
+- 附 `docs/PRODUCT.md` 和 `docs/DESIGN.md`：前者是产品定义，后者是视觉与交互的规则书。
 
 ### 界面是怎么从旧栈搬到 React 的
 
@@ -1923,29 +1923,29 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 
 **现在全部搬完了**，一页不剩。挑几件值得单独说的：
 
-- **游戏表单**（`client/game-form.jsx`）—— 第一个全 React 的表单；
-- **客户表单**（`client/customer-form.jsx`）—— 字段和提示跟旧的一字不差；
+- **游戏表单**（`client/pages/game-form.jsx`）—— 第一个全 React 的表单；
+- **客户表单**（`client/pages/customer-form.jsx`）—— 字段和提示跟旧的一字不差；
 - **确认框**（`client/app/confirm.jsx`）—— 各页原先弹的都是旧 DOM 对话框，
   现在换成 React 渲染的，调用方式（`if (!await confirmDelete({...})) return`）一字未改；
-- **价格表整页**（`client/price.jsx` + 五个浮层模块）—— 大类表单、组合报价、
+- **价格表整页**（`client/pages/price.jsx` + 五个浮层模块）—— 大类表单、组合报价、
   服务项表单、阶梯价编辑器、套餐增项编辑器、服务项详情抽屉、导出器，全部换成 React；
 - **提示条**（`client/app/toast-store.js` + `client/app/toast.jsx`）—— 全站唯一一份
   toast 实现：谁都能 `toast()`，由 `<ToastHost />` 统一画，样式和时长不会再各走各的；
-- **订单整页**（`client/order-composer.jsx` + `client/order-detail.jsx`）—— 开单台
+- **订单整页**（`client/pages/order-composer.jsx` + `client/pages/order-detail.jsx`）—— 开单台
   （挑服务、算钱、自动到期日、改明细）和订单详情（记进度、记收款、推进状态、
   分享进度、拆单、删单）都换成 React，`/orders`、`/orders/new`、`/orders/:id`
   三条路由全走 React；
-- **报价单**（`client/quote-composer.jsx`）—— 做报价单/改报价单的抽屉，以及
+- **报价单**（`client/pages/quote-composer.jsx`）—— 做报价单/改报价单的抽屉，以及
   列表里那个「看文字版」弹窗（以前是旧 `modal`），一起换成 React；
-- **保险箱**（`client/vault.jsx` + `client/vault-gate.jsx`）—— 凭证列表、登记/改
+- **保险箱**（`client/pages/vault.jsx` + `client/components/vault-gate.jsx`）—— 凭证列表、登记/改
   凭证表单、明文取用弹窗、审计抽屉、解锁门禁（`promptUnlock` /
   `ensureVaultReady`）全部 React。门禁的**状态**仍然只有一份：
   `public/js/vaultgate.js` 里的 `vaultState` + `syncVault` + 监听器，设置页和
   保险箱页看到的是同一个真相；
-- **设置整页**（`client/settings.jsx`）—— 店铺信息、改登录密码、改保险箱密码、
+- **设置整页**（`client/pages/settings.jsx`）—— 店铺信息、改登录密码、改保险箱密码、
   屏幕识别（引擎列表 + Python 视觉后端那张卡 + 自动安装 + 进度轮询）、自备图标模板、
   导出/导入备份、清空数据，连同四个抽屉表单一起搬；
-- **客户档案详情**（`client/customer-detail.jsx`）—— 客户名下的订单（在做/已结束
+- **客户档案详情**（`client/pages/customer-detail.jsx`）—— 客户名下的订单（在做/已结束
   各自封顶 + 「还有 N 张」）、收款流水、联系方式、账目、凭证脱敏列表，以及
   「归档 / 彻底删除」那个三选一（旧 `choiceDialog` 的 React 版）。
 
@@ -1962,7 +1962,7 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 认不出来的地址走 `client/app/not-found.jsx`（以前会偷偷退回总览）。
 `public/js/` 现在只剩三个真正被 React 调用的文件：`pricecard.js`（画价格表图片）、
 `progresscard.js`（画进度卡）、`vaultgate.js`（保险箱状态，只剩状态没有界面 ——
-弹窗都在 `client/vault-gate.jsx`）。
+弹窗都在 `client/components/vault-gate.jsx`）。
 `public/dist/` 也从版本库里拿出来了（`.gitignore` 里有一条）：`npm start` 的
 `prestart` 会自动 build，不必再把 1.2MB 的产物提交进 git。
 
@@ -2003,7 +2003,7 @@ node scripts/reset-password.mjs 新密码      # 或者直接设一个新密码
 依赖清单文件在位不在位、自检要么通过要么给得出能照做的原因（测试实例的 venv 在临时数据目录里，
 所以多半走的是「给原因」那条路），以及装依赖/自检那几条路不会 500。
 「装了引擎之后真的认得出」这件事得在装了引擎的机器上验 —— 用
-`node scripts/vision-selftest.mjs` 和 `node scripts/vision-parity.mjs`。
+`node scripts/checks/vision-selftest.mjs` 和 `node scripts/checks/vision-parity.mjs`。
 
 ```
 server.mjs            服务入口：应用启动

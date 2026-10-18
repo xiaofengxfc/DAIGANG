@@ -18,7 +18,7 @@
      orderId 分桶，用完就清。
 
    注意这里**只存 token（一个短字符串）**，不存图片数据。真正的图还在服务端
-   暂存着，等提交时才去取（见 src/screen-stash.mjs 和 /api/ocr/screen/frame）。
+   暂存着，等提交时才去取（见 src/vision/screen-stash.mjs 和 /api/ocr/screen/frame）。
    ============================================================ */
 
 /**

@@ -6,7 +6,7 @@
  * 它要 B站 登录态、要这个游戏真实的 65 个服务项、要真实的 OCR 引擎。
  * 所以这里的策略正相反：数据用真的，但**写入落到副本上**。
  *
- * 关键顺序：XFC_DATA_DIR 必须在 import src/config.mjs 之前设好，
+ * 关键顺序：XFC_DATA_DIR 必须在 import src/core/config.mjs 之前设好，
  * 因为配置是模块加载时读环境变量的，import 之后再设就晚了（会落到真实 data/ 上）。
  */
 import fs from 'node:fs'
@@ -65,7 +65,7 @@ function realVenvPython() {
 /**
  * 设好环境变量并起一个**同进程**的实例。
  *
- * 同进程是关键：视觉后端的 token 是 src/config.mjs 在模块加载时随机生成的，
+ * 同进程是关键：视觉后端的 token 是 src/core/config.mjs 在模块加载时随机生成的，
  * 只有同进程才拿得到同一个 token。跨进程起实例的话，要么去猜 token，
  * 要么就得手工先跑一个 sidecar 再告诉脚本 —— 那样这脚本就没法「一条命令跑完」。
  */
@@ -90,9 +90,9 @@ export async function startBiliCheck({ dataDir, copyFrom = false, label = 'B站�
   process.env.XFC_LOCAL = '1'
 
   const { createApplication } = await import('../../src/server/app.mjs')
-  const { createSession } = await import('../../src/auth.mjs')
-  const { sessionCookie } = await import('../../src/http.mjs')
-  const { db } = await import('../../src/db.mjs')
+  const { createSession } = await import('../../src/core/auth.mjs')
+  const { sessionCookie } = await import('../../src/server/http.mjs')
+  const { db } = await import('../../src/core/db.mjs')
 
   const app = createApplication()
   await new Promise((resolve, reject) => {
@@ -117,7 +117,7 @@ export async function startBiliCheck({ dataDir, copyFrom = false, label = 'B站�
 
 /** 把视觉后端拉起来。没有它 OCR 一步都跑不了，所以起不来就直接报清楚 */
 export async function ensureVision() {
-  const { ensureVisionStarted } = await import('../../src/vision-python.mjs')
+  const { ensureVisionStarted } = await import('../../src/vision/vision-python.mjs')
   const started = await ensureVisionStarted({ force: true })
   if (!started.ok) {
     throw new Error(

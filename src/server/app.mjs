@@ -10,8 +10,8 @@ import {
   SESSION_COOKIE,
   lanAddresses,
   LOCAL_ONLY,
-} from '../config.mjs'
-import { migrate, db, getSetting } from '../db.mjs'
+} from '../core/config.mjs'
+import { migrate, db, getSetting } from '../core/db.mjs'
 import {
   match,
   sendJSON,
@@ -24,16 +24,16 @@ import {
   resolveSafe,
   serveFile,
   securityHeaders,
-} from '../http.mjs'
-import { HttpError } from '../util.mjs'
-import { readSession, purgeExpiredSessions, isSetUp } from '../auth.mjs'
-import { lock, status as vaultStatus } from '../vault.mjs'
+} from './http.mjs'
+import { HttpError } from '../core/util.mjs'
+import { readSession, purgeExpiredSessions, isSetUp } from '../core/auth.mjs'
+import { lock, status as vaultStatus } from '../core/vault.mjs'
 import { registerAll } from '../routes/index.mjs'
-import { stopMediaExecutor } from '../media-deps.mjs'
-import { stopVisionSidecar, ensureVisionStarted } from '../vision-python.mjs'
+import { stopMediaExecutor } from '../media/media-deps.mjs'
+import { stopVisionSidecar, ensureVisionStarted } from '../vision/vision-python.mjs'
 import { dispatchDueScheduledTasks } from '../routes/media.mjs'
-import { ensureEnginesProbed } from '../ocr.mjs'
-import { MEDIA_SCHEDULER_INTERVAL_MS } from '../config.mjs'
+import { ensureEnginesProbed } from '../vision/ocr.mjs'
+import { MEDIA_SCHEDULER_INTERVAL_MS } from '../core/config.mjs'
 
 const PUBLIC_PATHS = new Set(['/api/auth/me', '/api/auth/login', '/api/setup', '/api/health'])
 const QUIET_PATHS = new Set(['/api/dashboard', '/api/auth/me', '/api/vault/status', '/api/health'])

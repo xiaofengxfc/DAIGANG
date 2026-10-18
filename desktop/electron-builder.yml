@@ -5,7 +5,7 @@
 #   nsis     —— 安装包，装到用户目录、建开始菜单和桌面快捷方式
 #
 # 关键决定：**关掉 asar**。
-# 后端要 spawn PowerShell 脚本（scripts/*.ps1）、要读 Python 源码
+# 后端要 spawn PowerShell 脚本（scripts/win32/*.ps1）、要读 Python 源码
 # （integrations/screen-vision/）、还要在 data/vision-venv 里找解释器。
 # 这些路径在 asar 的虚拟文件系统里打不开 —— 打成 asar 之后第一次截图就会失败，
 # 而失败信息会指向一个"文件不存在"的路径，很难查。多占几十 MB 换掉这类故障。
@@ -27,14 +27,20 @@ files:
   - src/**
   - shared/**
   - public/**
-  - scripts/**
+  # 运行时只需要 scripts/win32：后端起 PowerShell 做找窗口、切前台、按键、截屏、
+  # OCR。checks/erpnext/migration/tools 是开发期脚本，跟着装进包里既多占空间，
+  # 又等于把一整套运维命令发给最终用户。
+  - scripts/win32/**
   - integrations/**
-  - hooks/**
   - server.mjs
   - package.json
   - '!**/__pycache__/**'
   - '!**/*.pyc'
-  - '!scripts/*.mjs'
+  # 编译脚本属于开发期，但 xfc-win32.cs 必须留着：win32.ps1 在 dll 读不出来时
+  # 会回退到用 Add-Type 现场编译这份源码，排掉它等于拆掉那条兜底路径。
+  - '!scripts/win32/build-win32-dll.ps1'
+  # 图标生成脚本是开发期工具（要 Edge 无头截图），不是运行期依赖
+  - '!desktop/assets/generate-icon.ps1'
   - '!integrations/**/*.md'
   - '!integrations/**/requirements-executor.txt'
 win:
@@ -43,7 +49,7 @@ win:
       arch: [x64]
     - target: nsis
       arch: [x64]
-  icon: launcher/daigan.ico
+  icon: desktop/assets/daigan.ico
   # 只跳过代码签名，**保留**图标和版本元数据（exe 的图标、产品名、版权全靠
   # 这一步写进去）。用 signAndEditExecutable: false 会连图标一起跳过，
   # 装出来的程序是 Electron 默认图标 —— 那就不算「有图标」了。

@@ -1,6 +1,6 @@
-import { db, stamp } from '../db.mjs'
-import { enqueueERPNextChange } from '../outbox.mjs'
-import { get, post, patch, del } from '../http.mjs'
+import { db, stamp } from '../core/db.mjs'
+import { enqueueERPNextChange } from '../core/outbox.mjs'
+import { get, post, patch, del } from '../server/http.mjs'
 import {
   bad,
   notFound,
@@ -13,7 +13,7 @@ import {
   toStringArray,
   likeTerm,
   money,
-} from '../util.mjs'
+} from '../core/util.mjs'
 
 /**
  * 把表结构写成声明，通用增删改查就不用每个模块抄一遍。

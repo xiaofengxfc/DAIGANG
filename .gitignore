@@ -38,3 +38,6 @@ tools/
 
 # 桌面版打包产物（几百 MB，不进版本库）
 dist-desktop/
+
+# 运行日志（ui-smoke / 桌面版都会往这里写）
+logs/

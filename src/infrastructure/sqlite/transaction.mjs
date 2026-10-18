@@ -1,4 +1,4 @@
-import { db } from '../../db.mjs'
+import { db } from '../../core/db.mjs'
 
 /**
  * SQLite 事务边界统一放在基础设施层。业务服务只描述操作，失败时由这里负责回滚。

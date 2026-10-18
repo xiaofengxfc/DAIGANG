@@ -204,7 +204,7 @@ function createWindow(port) {
     show: false,
     backgroundColor: dark ? '#0f1420' : '#f6f7fb',
     title: '代肝运营台',
-    icon: path.join(APP_ROOT, 'launcher', 'daigan.ico'),
+    icon: path.join(APP_ROOT, 'desktop', 'assets', 'daigan.ico'),
     // 自绘标题栏：把原生标题条藏起来，网页顶栏就是窗口顶栏。
     // 右侧三个系统按钮由 titleBarOverlay 画，颜色跟着主题走。
     titleBarStyle: 'hidden',
@@ -281,7 +281,7 @@ function applyNativeTheme() {
 }
 
 function createTray() {
-  const iconPath = path.join(APP_ROOT, 'launcher', 'daigan.ico')
+  const iconPath = path.join(APP_ROOT, 'desktop', 'assets', 'daigan.ico')
   if (!fs.existsSync(iconPath)) return
   try {
     tray = new Tray(iconPath)

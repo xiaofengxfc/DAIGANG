@@ -26,27 +26,27 @@ import {
   WalletCards,
 } from 'lucide-react'
 import { api } from './lib/api.js'
-import { openQuoteComposer } from './quote-composer.jsx'
-import DashboardPage from './dashboard.jsx'
-import OrdersPage from './orders.jsx'
-import CustomersPage from './customers.jsx'
-import CustomerDetailPage from './customer-detail.jsx'
-import GamesPage from './games.jsx'
-import PricePage from './price.jsx'
-import FinancePage from './finance.jsx'
-import QuotesPage from './quotes.jsx'
-import MediaPage from './media.jsx'
-import VaultPage from './vault.jsx'
-import SettingsPage from './settings.jsx'
+import { openQuoteComposer } from './pages/quote-composer.jsx'
+import DashboardPage from './pages/dashboard.jsx'
+import OrdersPage from './pages/orders.jsx'
+import CustomersPage from './pages/customers.jsx'
+import CustomerDetailPage from './pages/customer-detail.jsx'
+import GamesPage from './pages/games.jsx'
+import PricePage from './pages/price.jsx'
+import FinancePage from './pages/finance.jsx'
+import QuotesPage from './pages/quotes.jsx'
+import MediaPage from './pages/media.jsx'
+import VaultPage from './pages/vault.jsx'
+import SettingsPage from './pages/settings.jsx'
 import { toast, toastErr } from './app/toast-store.js'
 
 import NotFound from './app/not-found.jsx'
 import OverlayHost from './app/overlay-host.jsx'
 import ToastHost from './app/toast.jsx'
-import { OrderComposerRoute } from './order-composer.jsx'
-import OrderDetailPage from './order-detail.jsx'
-import { openGameForm } from './game-form.jsx'
-import { openCustomerForm } from './customer-form.jsx'
+import { OrderComposerRoute } from './pages/order-composer.jsx'
+import OrderDetailPage from './pages/order-detail.jsx'
+import { openGameForm } from './pages/game-form.jsx'
+import { openCustomerForm } from './pages/customer-form.jsx'
 import { navigate as go, parseRoute } from './app/router.js'
 import './styles.css'
 
@@ -178,7 +178,7 @@ function Gate({ setup, onDone }) {
           </button>
         </form>
         <p className="refactor-gate__foot">
-          {setup ? '数据写入本机 data/ 目录，可随时整体备份。' : '忘记密码时可使用 scripts/reset-password.mjs 重置登录密码。'}
+          {setup ? '数据写入本机 data/ 目录，可随时整体备份。' : '忘记密码时可使用 scripts/tools/reset-password.mjs 重置登录密码。'}
         </p>
       </section>
     </main>

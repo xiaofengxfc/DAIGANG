@@ -1,6 +1,6 @@
 # Python 视觉后端（屏幕识别的「认字」那一层）
 
-这是**可选**的一层。不装也能用屏幕识别（会退回 `src/ocr.mjs` 里的旧引擎链：
+这是**可选**的一层。不装也能用屏幕识别（会退回 `src/vision/ocr.mjs` 里的旧引擎链：
 Umi-OCR → PaddleOCR-json → RapidOCR-json → Tesseract → Windows 自带），
 装了就用它 —— 它排在最前面。
 
@@ -8,7 +8,7 @@ Umi-OCR → PaddleOCR-json → RapidOCR-json → Tesseract → Windows 自带）
 
 一个**长驻的本地 HTTP 服务**，跑在 `127.0.0.1:5410`，用 PP-OCR（PaddleOCR 的模型）
 + ONNX Runtime 认图里的字。Node 那边负责它的生死：探测解释器 → 建 venv →
-装依赖 → 起进程 → 探活 → 崩了重启 → 退出时收掉（`src/vision-python.mjs`）。
+装依赖 → 起进程 → 探活 → 崩了重启 → 退出时收掉（`src/vision/vision-python.mjs`）。
 
 为什么是「长驻进程」而不是「每帧起一个 exe」：
 
@@ -65,7 +65,7 @@ node scripts\vision-python-matrix.mjs --check   # 顺带断言「声明的范围
 `--check` 里有一条断言专门写「**3.15 应该被认成不支持**」。等 onnxruntime 哪天发了
 cp315，那条会红 —— 那就是该把支持范围扩上去的信号，而不是让人凭印象改。
 
-程序侧的配套动作（都在 `src/vision-deps.mjs`）：
+程序侧的配套动作（都在 `src/vision/vision-deps.mjs`）：
 
 - **找得到不在 PATH 里的 Python**：官方安装器默认不勾「Add python.exe to PATH」，
   所以只查 PATH 等于「用户装了 Python 但程序说没装」。现在会先查注册表

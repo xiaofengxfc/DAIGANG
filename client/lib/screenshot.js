@@ -23,7 +23,7 @@
 
    这个库的多线程模式默认要从 **CDN** 拉自己的脚本去起 Worker
    （libURL 默认指向 cdn.jsdelivr.net），而本项目的 CSP 是
-   `script-src 'self'`（见 src/http.mjs 的 securityHeaders）——
+   `script-src 'self'`（见 src/server/http.mjs 的 securityHeaders）——
    走 Worker 会被浏览器直接拦掉，压缩整个失败。
 
    两条路：改 CSP 放行 blob: 和 CDN，或者留在主线程。

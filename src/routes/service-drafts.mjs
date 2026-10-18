@@ -11,9 +11,9 @@
  * 而「这一项要不要建」恰恰要看这个 —— 原神的「主线」下面已经有 7.0、7.1 了，
  * 视频里那个「主线」是重复的还是新版本？得回价格表里看才知道。
  */
-import { del, get, patch, post } from '../http.mjs'
-import { int, clampStr } from '../util.mjs'
-import { acceptDraft, clearDrafts, deleteDraft, listDrafts, updateDraft } from '../service-drafts.mjs'
+import { del, get, patch, post } from '../server/http.mjs'
+import { int, clampStr } from '../core/util.mjs'
+import { acceptDraft, clearDrafts, deleteDraft, listDrafts, updateDraft } from '../catalog/service-drafts.mjs'
 
 export function register() {
   /**

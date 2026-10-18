@@ -1,4 +1,4 @@
-import { money, num } from '../../util.mjs'
+import { money, num } from '../../core/util.mjs'
 
 export function parseSnapshot(value) {
   if (value && typeof value === 'object') return value

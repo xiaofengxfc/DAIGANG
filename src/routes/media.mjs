@@ -1,11 +1,11 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
-import { db, stamp } from '../db.mjs'
-import { UPLOAD_DIR, MEDIA_COOKIE_DIR, MAX_MEDIA_UPLOAD_BYTES, MEDIA_EXECUTOR_TOKEN, MEDIA_EXECUTOR_TIMEOUT_MS } from '../config.mjs'
-import { mediaDependencyStatus, startMediaDependencyInstall, mediaDependencyInstallStatus, startMediaExecutor, mediaExecutorInfo, mediaExecutorBaseUrl } from '../media-deps.mjs'
-import { get, post, patch, del, postRaw } from '../http.mjs'
-import { bad, notFound, int, clampStr, parseJSON, stringifyJSON, fail } from '../util.mjs'
+import { db, stamp } from '../core/db.mjs'
+import { UPLOAD_DIR, MEDIA_COOKIE_DIR, MAX_MEDIA_UPLOAD_BYTES, MEDIA_EXECUTOR_TOKEN, MEDIA_EXECUTOR_TIMEOUT_MS } from '../core/config.mjs'
+import { mediaDependencyStatus, startMediaDependencyInstall, mediaDependencyInstallStatus, startMediaExecutor, mediaExecutorInfo, mediaExecutorBaseUrl } from '../media/media-deps.mjs'
+import { get, post, patch, del, postRaw } from '../server/http.mjs'
+import { bad, notFound, int, clampStr, parseJSON, stringifyJSON, fail } from '../core/util.mjs'
 
 // 重命名素材时根据新扩展名推断 mime_type，保证执行器能按图文/视频正确分类。
 const MIME_BY_EXT = {

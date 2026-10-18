@@ -2,10 +2,10 @@
    按游戏配置「屏幕识别认什么、怎么打开」
    ============================================================
 
-   纯数据 + 纯函数，不 import 任何东西 —— 服务端（src/screen.mjs）和前端
-   （client/resource-field.jsx）共用这一份，跟 shared/resources.js 一个路子。
+   纯数据 + 纯函数，不 import 任何东西 —— 服务端（src/vision/screen.mjs）和前端
+   （client/forms/resource-field.jsx）共用这一份，跟 shared/resources.js 一个路子。
 
-   以前这张表是写死在 src/screen.mjs 和 client/resource-field.jsx 里的：
+   以前这张表是写死在 src/vision/screen.mjs 和 client/forms/resource-field.jsx 里的：
    三个资源（星声 / 体力 / 贝币）、两个界面（B 背包 / M 地图）、图标宽度比例 0.0344。
    换游戏就得改代码，而且改一处漏一处。现在每个游戏一段配置，识别流程本身不认识
    「鸣潮」两个字。
@@ -40,7 +40,7 @@ export const GAME_PROFILES = [
     names: ['鸣潮', 'Wuthering Waves', 'wuwa'],
     // 顶栏图标宽 / 画面宽。实测 1152×720 ~ 3840×2400 十档都是 0.0344
     iconWidthRatio: 0.0344,
-    // 这套按顶栏数字格式硬推的兜底只对鸣潮成立（见 src/screen.mjs 的 ocrLayoutFallback）
+    // 这套按顶栏数字格式硬推的兜底只对鸣潮成立（见 src/vision/screen.mjs 的 ocrLayoutFallback）
     layoutFallback: true,
     stages: [
       { id: 'bag', title: '背包', key: 'B', resources: ['贝币', '星声'], openDelay: 1100 },

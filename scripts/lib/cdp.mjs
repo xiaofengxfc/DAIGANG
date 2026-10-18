@@ -1,7 +1,7 @@
 /**
  * CDP 小客户端：起一个无头 Edge，用 Node 自带的 WebSocket 跟它说话。
  *
- * 从 scripts/shot.mjs 里抽出来的——截图工具和 UI 冒烟本来各写一套，
+ * 从 scripts/tools/shot.mjs 里抽出来的——截图工具和 UI 冒烟本来各写一套，
  * 抽出来之后两边共用同一份「起浏览器 / 执行 JS / 收集页面报错」的逻辑。
  *
  * 为什么不用 --screenshot + --virtual-time-budget：

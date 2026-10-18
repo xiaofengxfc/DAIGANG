@@ -1,5 +1,5 @@
-import { computeItems, computeTotals } from '../../pricing.mjs'
-import { money } from '../../util.mjs'
+import { computeItems, computeTotals } from '../../catalog/pricing.mjs'
+import { money } from '../../core/util.mjs'
 import { splitItemTotals } from './order-snapshot.mjs'
 
 export function priceOrder({ items, discount, platform_fee, cost }) {

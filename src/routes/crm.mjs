@@ -1,10 +1,10 @@
-import { db, stamp, nextSerialNo } from '../db.mjs'
-import { get, post, patch, del } from '../http.mjs'
-import { bad, notFound, int, num, money, clampStr, parseJSON, stringifyJSON, nowISO } from '../util.mjs'
+import { db, stamp, nextSerialNo } from '../core/db.mjs'
+import { get, post, patch, del } from '../server/http.mjs'
+import { bad, notFound, int, num, money, clampStr, parseJSON, stringifyJSON, nowISO } from '../core/util.mjs'
 import { makeDef, registerCrud, getRow, createRow, updateRow, removeRow, shapeRow } from './_helpers.mjs'
-import { audit, auditLog, configure, decrypt, encrypt, isConfigured, lock, maskHint, status as vaultStatus, unlock, changePassword, requireKey } from '../vault.mjs'
-import { assertNotThrottled, clearFailures, noteFailure } from '../auth.mjs'
-import { computeItems, computeTotals } from '../pricing.mjs'
+import { audit, auditLog, configure, decrypt, encrypt, isConfigured, lock, maskHint, status as vaultStatus, unlock, changePassword, requireKey } from '../core/vault.mjs'
+import { assertNotThrottled, clearFailures, noteFailure } from '../core/auth.mjs'
+import { computeItems, computeTotals } from '../catalog/pricing.mjs'
 import { transaction } from '../infrastructure/sqlite/transaction.mjs'
 
 /* ---------------- 客户 ---------------- */

@@ -1,30 +1,30 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { db, setSetting, stamp, nextSerialNo } from '../db.mjs'
-import { get, post, patch, del, saveDataURL, setBodyLimit } from '../http.mjs'
-import { UPLOAD_DIR, needsRestart, ROOT, MAX_OCR_IMAGE_BYTES } from '../config.mjs'
-import { bad, notFound, fail, int, num, money, clampStr, nowISO, localDate, localMonth, bizDate, parseJSON, scratchFile } from '../util.mjs'
-import { ocrImage, extractResources, probeEnginesStatus, ensureEnginesProbed, ocrEngines } from '../ocr.mjs'
-import { ensureVisionStarted, probeVisionHealth, resetVisionBlock, stopVisionSidecar, visionBackendStatus, visionHealthCheck, visionLogTail, visionOcrCrop } from '../vision-python.mjs'
-import { startVisionDependencyInstall, visionDependencyInstallStatus, visionDependencyStatus } from '../vision-deps.mjs'
-import { installOptions, installEngine, installStatus, extractorStatus, releasePage, INSTALL_SPECS, engineHealth, cleanupTmp } from '../ocr-install.mjs'
-import { recognizeScreenOnce, recognizeImageFile, resetVotes, screenAvailable, templateStatus, loadTemplates, extractIconTemplate, screenResourcesFor, templateFileFor, SCREEN_RESOURCES, MIN_SCORE, probeIcons } from '../screen.mjs'
-import { peekFrame, releaseFrame } from '../screen-stash.mjs'
+import { db, setSetting, stamp, nextSerialNo } from '../core/db.mjs'
+import { get, post, patch, del, saveDataURL, setBodyLimit } from '../server/http.mjs'
+import { UPLOAD_DIR, needsRestart, ROOT, MAX_OCR_IMAGE_BYTES } from '../core/config.mjs'
+import { bad, notFound, fail, int, num, money, clampStr, nowISO, localDate, localMonth, bizDate, parseJSON, scratchFile } from '../core/util.mjs'
+import { ocrImage, extractResources, probeEnginesStatus, ensureEnginesProbed, ocrEngines } from '../vision/ocr.mjs'
+import { ensureVisionStarted, probeVisionHealth, resetVisionBlock, stopVisionSidecar, visionBackendStatus, visionHealthCheck, visionLogTail, visionOcrCrop } from '../vision/vision-python.mjs'
+import { startVisionDependencyInstall, visionDependencyInstallStatus, visionDependencyStatus } from '../vision/vision-deps.mjs'
+import { installOptions, installEngine, installStatus, extractorStatus, releasePage, INSTALL_SPECS, engineHealth, cleanupTmp } from '../vision/ocr-install.mjs'
+import { recognizeScreenOnce, recognizeImageFile, resetVotes, screenAvailable, templateStatus, loadTemplates, extractIconTemplate, screenResourcesFor, templateFileFor, SCREEN_RESOURCES, MIN_SCORE, probeIcons } from '../vision/screen.mjs'
+import { peekFrame, releaseFrame } from '../vision/screen-stash.mjs'
 import { profileForGame } from '../../shared/game-profiles.js'
-import { focusGameWindow, returnToPreviousWindow, sendGameKey, beginScreenFlow, endScreenFlow, touchScreenFlow, currentScreenFlow } from '../game-window.mjs'
-import { captureGameFrame } from '../game-shot.mjs'
-import { decodePNG, encodePNG } from '../imgmatch.mjs'
-import { isSetUp, setPassword, verifyPassword, createSession, destroySession, destroyAllSessions, actorName, assertNotThrottled, noteFailure, clearFailures } from '../auth.mjs'
-import { lock, status as vaultStatus, isConfigured, configure, auditLog } from '../vault.mjs'
+import { focusGameWindow, returnToPreviousWindow, sendGameKey, beginScreenFlow, endScreenFlow, touchScreenFlow, currentScreenFlow } from '../vision/game-window.mjs'
+import { captureGameFrame } from '../vision/game-shot.mjs'
+import { decodePNG, encodePNG } from '../vision/imgmatch.mjs'
+import { isSetUp, setPassword, verifyPassword, createSession, destroySession, destroyAllSessions, actorName, assertNotThrottled, noteFailure, clearFailures } from '../core/auth.mjs'
+import { lock, status as vaultStatus, isConfigured, configure, auditLog } from '../core/vault.mjs'
 import { STATUS_LABEL } from './orders.mjs'
-import { erpNextStatus, testERPNext, preflightERPNext, syncERPNextMaster, syncERPNextTransactions, reconcileERPNext, ERPNextError } from '../erpnext.mjs'
-import { buildERPNextPreview, buildERPNextBundle } from '../erpnext-map.mjs'
-import { listOutbox, outboxSummary, retryOutbox } from '../outbox.mjs'
-import { buildERPNextOutboxPlan, syncERPNextOutbox } from '../erpnext-outbox.mjs'
-import { erpNextScopeSummary } from '../erpnext-scope.mjs'
-import { resticStatus, listResticSnapshots, createResticBackup } from '../restic.mjs'
-import { streamArchive, archiveFilename } from '../backup-archive.mjs'
+import { erpNextStatus, testERPNext, preflightERPNext, syncERPNextMaster, syncERPNextTransactions, reconcileERPNext, ERPNextError } from '../erpnext/erpnext.mjs'
+import { buildERPNextPreview, buildERPNextBundle } from '../erpnext/erpnext-map.mjs'
+import { listOutbox, outboxSummary, retryOutbox } from '../core/outbox.mjs'
+import { buildERPNextOutboxPlan, syncERPNextOutbox } from '../erpnext/erpnext-outbox.mjs'
+import { erpNextScopeSummary } from '../erpnext/erpnext-scope.mjs'
+import { resticStatus, listResticSnapshots, createResticBackup } from '../backup/restic.mjs'
+import { streamArchive, archiveFilename } from '../backup/backup-archive.mjs'
 import { readSettings, updateSettings, SETTING_KEYS } from '../modules/settings/settings-service.mjs'
 import { transaction } from '../infrastructure/sqlite/transaction.mjs'
 
@@ -569,7 +569,7 @@ export function register() {
 
   /**
    * 流程只用 B / M 打开对应界面，再用 ESC 返回；截图那条路用 F2 / F12。
-   * 白名单要和 src/game-window.mjs 的 sendGameKey 保持一致 —— 两边不一致的话，
+   * 白名单要和 src/vision/game-window.mjs 的 sendGameKey 保持一致 —— 两边不一致的话，
    * 前端能点的动作会被这里 400 挡掉，而报错只说「只允许 B、M 或 ESC」，
    * 看不出是白名单漏了。
    */
@@ -733,7 +733,7 @@ export function register() {
   post('/api/ocr/screen/reset', (ctx) => resetVotes(clampStr(ctx.body.session, 40) || 'default'))
 
   /**
-   * 取回识别时暂存的那一帧原始截图（见 src/screen-stash.mjs）。
+   * 取回识别时暂存的那一帧原始截图（见 src/vision/screen-stash.mjs）。
    *
    * 给谁用：用户在进度表单上点保存时，前端把这一阶段最终采纳的那一帧取回来，
    * 在浏览器里压缩（browser-image-compression）再上传到 /api/uploads，

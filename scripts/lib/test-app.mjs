@@ -1,10 +1,10 @@
 /**
  * 测试用的应用实例：起一个干净库的实例，跑完能干净地关掉。
  *
- * scripts/smoke-run.mjs（接口冒烟）和 scripts/ui-smoke.mjs（界面冒烟）共用这一份，
+ * scripts/checks/smoke-run.mjs（接口冒烟）和 scripts/checks/ui-smoke.mjs（界面冒烟）共用这一份，
  * 两边的数据目录安检、端口分配、收尾逻辑就不会各写一套。
  *
- * 关键顺序：XFC_DATA_DIR 必须在 import 应用之前设好——src/config.mjs 是在模块加载时
+ * 关键顺序：XFC_DATA_DIR 必须在 import 应用之前设好——src/core/config.mjs 是在模块加载时
  * 读环境变量的，import 之后再设就晚了（会落到默认的 data/ 上去，那是真数据）。
  */
 import fs from 'node:fs'
@@ -76,7 +76,7 @@ export async function startTestApp({ dataDir } = {}) {
   process.env.XFC_SCREEN_FRAME_LIMIT = '16'
 
   const { createApplication } = await import('../../src/server/app.mjs')
-  const { db } = await import('../../src/db.mjs')
+  const { db } = await import('../../src/core/db.mjs')
 
   const app = createApplication()
   await new Promise((resolve, reject) => {
@@ -106,7 +106,7 @@ export async function startTestApp({ dataDir } = {}) {
  * → 上传」这条链路测完整。
  */
 export async function stashTestFrame(session = 'smoke-frame') {
-  const { stashFrame } = await import('../../src/screen-stash.mjs')
+  const { stashFrame } = await import('../../src/vision/screen-stash.mjs')
   // 1×1 的合法 PNG：够真实到能被 <img> 解码
   const png = Buffer.from(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==',

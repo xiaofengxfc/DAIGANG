@@ -3,7 +3,7 @@
    ============================================================
 
    纯函数，只 import 一份纯数据（shared/game-profiles.js）—— 服务端、新 React 表单
-   （client/resource-field.jsx）、订单详情页共用这一份。
+   （client/forms/resource-field.jsx）、订单详情页共用这一份。
 
    以前这几段只活在旧订单页里，React 要记进度就得再抄一遍；
    抄出偏差的话，「本次消耗」就会算错，而这种错没人看得出来
@@ -30,7 +30,7 @@ const SECTION_RE = /【([^】]+)】/g
 /** 「标签 + 数字」的通用长相：星声 105 / 4,116,889 / 255.5 都认 */
 const PAIR_RE = /([^\s\d,，./·、【】]+)\s*([\d][\d,，]*(?:\.\d+)?)/g
 
-/** 所有游戏资源的并集。名字跟 src/ocr.mjs 的 RESOURCE_ALIASES 对应 */
+/** 所有游戏资源的并集。名字跟 src/vision/ocr.mjs 的 RESOURCE_ALIASES 对应 */
 export const RES_KEYS = allResourceKeys()
 
 /** 这个游戏要记的资源（按游戏里从左往右的顺序）。认不出游戏名就用默认那份 */

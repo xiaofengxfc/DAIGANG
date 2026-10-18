@@ -3,7 +3,7 @@
    ============================================================
 
    纯函数，不 import 任何东西（阶梯价规则从 ./pricing.js 来，那份也是纯的）。
-   旧开单台（public/js/views/orders.js）和新 React 开单台（client/order-composer.jsx）
+   旧开单台（public/js/views/orders.js）和新 React 开单台（client/pages/order-composer.jsx）
    共用这一份。
 
    以前这几段只活在旧开单台里，而且旧开单台自己还抄了一份阶梯价

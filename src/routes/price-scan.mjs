@@ -11,10 +11,10 @@
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import { get, post } from '../http.mjs'
-import { BILI_FRAME_DIR } from '../config.mjs'
-import { resolveSafe } from '../http.mjs'
-import { bad, notFound, int, clampStr } from '../util.mjs'
+import { get, post } from '../server/http.mjs'
+import { BILI_FRAME_DIR } from '../core/config.mjs'
+import { resolveSafe } from '../server/http.mjs'
+import { bad, notFound, int, clampStr } from '../core/util.mjs'
 import {
   activeScanJob,
   applyScan,
@@ -27,10 +27,10 @@ import {
   saveDraftsFromScan,
   scanReadiness,
   startScan,
-} from '../bili-scan.mjs'
-import { acceptDraft, clearDrafts, deleteDraft, listDrafts, updateDraft } from '../service-drafts.mjs'
-import { biliDependencyInstallStatus, startBiliDependencyInstall, biliDependencyStatus } from '../bili-deps.mjs'
-import { aiProbe, aiStatus, saveAiConfig } from '../ai.mjs'
+} from '../scan/bili-scan.mjs'
+import { acceptDraft, clearDrafts, deleteDraft, listDrafts, updateDraft } from '../catalog/service-drafts.mjs'
+import { biliDependencyInstallStatus, startBiliDependencyInstall, biliDependencyStatus } from '../scan/bili-deps.mjs'
+import { aiProbe, aiStatus, saveAiConfig } from '../scan/ai.mjs'
 
 const FRAME_MIME = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png' }
 

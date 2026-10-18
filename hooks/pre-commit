@@ -11,7 +11,7 @@
 set -e
 
 echo "[pre-commit] 语法自检…"
-node scripts/check.mjs
+node scripts/checks/check.mjs
 
 echo "[pre-commit] 后端冒烟测试…"
-node scripts/smoke-run.mjs
+node scripts/checks/smoke-run.mjs

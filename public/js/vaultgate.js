@@ -3,7 +3,7 @@
    独立密码 + 查看/复制二次验证。这里是唯一盖章的地方。
 
    界面（解锁弹窗、设置密码、顶栏锁扣）已经全部搬进 React：
-   见 client/vault-gate.jsx 和 client/vault.jsx。这个文件只留状态，
+   见 client/components/vault-gate.jsx 和 client/pages/vault.jsx。这个文件只留状态，
    谁都能读同一份 vaultState。
    ============================================================ */
 

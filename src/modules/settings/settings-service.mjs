@@ -1,4 +1,4 @@
-import { getSetting, setSetting } from '../../db.mjs'
+import { getSetting, setSetting } from '../../core/db.mjs'
 
 export const SETTING_KEYS = Object.freeze([
   'business_name',
