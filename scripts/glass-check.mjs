@@ -182,21 +182,39 @@ const rgb = (value) => {
 }
 
 /** 相对亮度（0 黑 / 1 白），用来判断"这行字是深色还是浅色" */
-const luma = (value) => {
-  const c = rgb(value)
-  if (!c) return null
+const lumaOf = ({ r, g, b }) => {
   const f = (n) => {
     const v = n / 255
     return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
   }
-  return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b)
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b)
+}
+
+const luma = (value) => {
+  const c = rgb(value)
+  return c ? lumaOf(c) : null
 }
 
 /** WCAG 对比度。判断"这行字读不读得出来"要用它，不能用亮度阈值 ——
-    深色主题下一次要的浅灰（#a3adbd）亮度只有 0.41，对比度却有 8.6:1。 */
-function contrast(a, b) {
-  const la = luma(a)
-  const lb = luma(b)
+    深色主题下一次要的浅灰（#a3adbd）亮度只有 0.41，对比度却有 8.6:1。
+
+    **前景带 alpha 时必须先合成到背景上**。这条是踩出来的：侧栏曾经用
+    rgba(238,240,245,0.66) 的近白字，早期版本只取 RGB、无视 alpha，于是
+    把半透明白当成纯白，在浅色画布上算出 8:1 的假对比度 —— 断言全绿，
+    实际文字几乎看不见。 */
+function contrast(fg, bg) {
+  const f = rgb(fg)
+  const b = rgb(bg)
+  if (!f || !b) return null
+  // 背景本身是半透明（玻璃）时无法只凭两个颜色决定真实反差，宁可判不了
+  if (b.a < 0.999) return null
+  const fgColor = {
+    r: f.r * f.a + b.r * (1 - f.a),
+    g: f.g * f.a + b.g * (1 - f.a),
+    b: f.b * f.a + b.b * (1 - f.a),
+  }
+  const la = lumaOf(fgColor)
+  const lb = lumaOf(b)
   if (la === null || lb === null) return null
   const hi = Math.max(la, lb)
   const lo = Math.min(la, lb)

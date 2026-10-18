@@ -305,9 +305,11 @@ input {
 
 .refactor-gate__panel {
   width: min(100%, 460px);
-  padding: 30px;
+  /* 大浮层在 --r-card 基础上再加一档：容器越大，圆角越需要跟着放大，
+     否则同一个 14px 放在 460px 的卡片上会显得太方。 */
+  padding: 32px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: calc(var(--r-card) + 6px);
   background: var(--surface);
   box-shadow: 0 24px 72px rgba(15, 18, 25, 0.12);
 }
@@ -490,8 +492,10 @@ input {
 .react-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
-  grid-template-rows: 74px minmax(0, 1fr);
+  /* 骨架尺寸只认 token：早先这里把 240px / 74px 写死，token 里却是
+     236px / 60px，改 token 时骨架纹丝不动，两套尺寸各说各话。 */
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  grid-template-rows: var(--topbar-h) minmax(0, 1fr);
   grid-template-areas: 'sidebar topbar' 'sidebar main';
 }
 
@@ -505,7 +509,7 @@ input {
 }
 
 .react-sidebar__brand {
-  min-height: 74px;
+  min-height: var(--topbar-h);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -3061,9 +3065,13 @@ button.react-side-row {
 
 .refactor-navitem.is-active {
   border-color: transparent;
-  background: var(--glass-strong);
-  color: var(--ink);
-  box-shadow: var(--shadow-glass), var(--shadow-hi);
+  /* 选中态用强调色淡底，而不是「一块更白的玻璃」。
+     侧栏底色本身就是白玻璃，白底叠白块几乎看不出层次；
+     淡靛蓝底 + 靛蓝字能让人一眼定位当前页，也不会抢走正文注意力。 */
+  background: var(--cinnabar-bg);
+  color: var(--cinnabar-strong);
+  box-shadow: none;
+  font-weight: 600;
 }
 
 .refactor-navitem.is-active svg {
@@ -3190,7 +3198,9 @@ button.react-side-row {
 }
 
 .react-main__inner {
-  padding: 30px 34px 80px;
+  /* 与侧栏、顶栏共用 8px 网格：32px 页边距比 34px 更整齐，
+     且和顶栏 24px 的水平内边距形成「外松内紧」的呼吸感。 */
+  padding: 28px 32px 72px;
 }
 
 /* 每次换页（组件重新挂载）走一次，不做常驻动画 */
