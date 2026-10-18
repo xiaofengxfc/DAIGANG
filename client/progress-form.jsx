@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { api } from './lib/api.js'
 import { todayStr } from './lib/formatters.js'
 import { lastResourcesAfter } from '../shared/resources.js'
@@ -6,8 +6,8 @@ import { toast } from './app/toast-store.js'
 import Drawer from './app/drawer.jsx'
 import { Field, TagsInput, TextArea } from './app/fields.jsx'
 import ResourceField from './resource-field.jsx'
-import { takeFrameTokens } from './lib/screen-frames.js'
-import { saveScreenshots } from './lib/screenshot.js'
+import { takeFrameTokens, peekFrameTokens, dropFrameTokens } from './lib/screen-frames.js'
+import { saveScreenshot } from './lib/screenshot.js'
 import { openOverlay } from './app/overlay-host.jsx'
 
 /* ============================================================
@@ -58,6 +58,9 @@ export function openEditProgressForm(progress, onDone, game = '', games = []) {
 function ProgressForm({ order, carried, onDone, close }) {
   const [form, setForm] = useState({ happened_on: todayStr(), content: '', media: [], note: '' })
   const [resources, setResources] = useState({ resources_before: carried || '', resources_after: '' })
+  // 已经上传成功的截屏 URL：key 是帧 token，value 是上传后的 URL。
+  // 提交失败重试时直接复用，不会因为「取走即删」把图丢掉，也不会重复上传。
+  const shotUrlsRef = useRef(new Map())
   const [errors, setErrors] = useState({})
   const [serverError, setServerError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -76,15 +79,24 @@ function ProgressForm({ order, carried, onDone, close }) {
 
     setBusy(true)
     setServerError('')
+    const tokens = peekFrameTokens(order.id)
     try {
       // 「识别画面」认下来的截屏：取回原图 → 浏览器里压缩 → 上传，
       // 拿到 URL 后和手填的链接一起挂到这条进度的 media 上。
       // 时间线那边本来就会把 media 里的图片渲染出来、点开可下载，
       // 所以这一步做完，截图就真的留在这条进度里了。
-      // saveScreenshots 内部吞掉所有失败（截图是锦上添花，不该挡住记进度）。
-      const shotUrls = await saveScreenshots(takeFrameTokens(order.id))
+      //
+      // 注意这里是**两步**：先上传、再 POST 进度。而取帧接口是「取走即删」，
+      // 所以不能一进来就把 token 桶清掉：只要 POST 失败（校验没过 / 后端 500 /
+      // 断网），用户点重试时图和 token 就都没了，且全程没有提示。
+      // 现在改成上传成功的 URL 记在 shotUrlsRef 里，重试直接复用；
+      // 桶只在**提交成功之后**才 drop。
+      const shotUrls = await uploadShots(tokens)
       const media = [...(form.media || []), ...shotUrls.filter(Boolean)]
       const saved = await api.post(`/api/orders/${order.id}/progress`, { ...form, media, ...resources })
+      // 走到这里说明进度已经存下、截图也已经挂上去了，这时才清桶
+      dropFrameTokens(order.id)
+      shotUrlsRef.current.clear()
       toast(shotUrls.length ? `进度记下了，附了 ${shotUrls.length} 张截屏` : '进度记下了', 'ok')
       close(saved)
       if (onDone) onDone(saved)
@@ -93,6 +105,24 @@ function ProgressForm({ order, carried, onDone, close }) {
     } finally {
       setBusy(false)
     }
+  }
+
+  /**
+   * 逐张上传，并记住「token → URL」。
+   * 提交失败重试时走缓存，不会再去取一次已经被删掉的帧。
+   * 单张失败不抛（截图是锦上添花，不该挡住记进度）。
+   */
+  async function uploadShots(tokens) {
+    const urls = []
+    for (const token of tokens || []) {
+      let url = shotUrlsRef.current.get(token)
+      if (!url) {
+        url = await saveScreenshot(token)
+        if (url) shotUrlsRef.current.set(token, url)
+      }
+      if (url) urls.push(url)
+    }
+    return urls
   }
 
   return (

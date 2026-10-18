@@ -45,6 +45,24 @@ export function takeFrameTokens(orderId) {
   return [bucket.before, bucket.after].filter(Boolean)
 }
 
+/**
+ * 只看一眼，**不删桶**。
+ *
+ * 为什么要多这一个：提交进度是「先上传截屏、再 POST 进度」两步，而
+ * `/api/ocr/screen/frame` 是取走即删。以前直接用 takeFrameTokens，
+ * 只要后面 POST 失败（校验没过、后端 500、断网），token 已经被清掉、
+ * 服务端原图也已经被取走 —— 用户点重试时截图就永久没了，
+ * 而且没有任何提示（saveScreenshots 吞掉所有失败）。
+ *
+ * 所以改成：提交前 peek，**提交成功之后**才 drop。
+ * 重试时桶还在，配合进度表单里缓存的已上传 URL，不会重复上传也不会丢。
+ */
+export function peekFrameTokens(orderId) {
+  const bucket = buckets.get(String(orderId ?? ''))
+  if (!bucket) return []
+  return [bucket.before, bucket.after].filter(Boolean)
+}
+
 /** 用户取消、或者换了另一条单：把寄存的凭据丢掉，别让它挂到别人的进度上 */
 export function dropFrameTokens(orderId) {
   buckets.delete(String(orderId ?? ''))

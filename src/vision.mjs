@@ -528,8 +528,23 @@ export function sweepScales(baseScale, factor = 1.4, steps = 9) {
 export function findIconTop(screen, tplImg, opts = {}, topN = 3, minSeparation = 0.7, stopBelow = 0.4) {
   const hits = []
   const holes = []
-  // 挖洞用的是工作图坐标，所以要先知道工作图相对原图缩了多少（没传就是 1）
-  const scale = opts.work && opts.work.img ? opts.work.img.height / screen.height : 1
+  /**
+   * 洞用**原图坐标**。
+   *
+   * 这里以前乘过一个换算比例，而比例本身也算错了：
+   *   · 错在口径上：findIcon 收到 exclude 之后自己会做
+   *     `exclude.map(e => ({ cx: e.cx * scale, ... }))`（见它里面的 wExclude），
+   *     也就是**它要的是原图坐标**。这里再乘一次就是双重缩放。
+   *   · 就算口径对，原来的比例 `work.img.height / screen.height` 也差着条带比例：
+   *     识别顶栏时 work.img 是裁过的条带（只占画面高 14%），2559×1599、bandH=224
+   *     这一档真正的 scale 是 0.557，相除算出 0.078，小 7 倍。
+   *
+   * 结果一样：洞挖在错的地方、半径也小，等于没挖。topN 的第 2、3 次搜索又命中
+   * 同一个峰，pickStableCandidate 的 second_score 永远等于 best_score ——
+   * confirmAnchor 会把锚点自己当成伙伴图标来确认。
+   *
+   * 所以这里直接给原图坐标，让 findIcon 去做那唯一一次换算。
+   */
   // 预算按**这一整次调用**算，不是每次 findIcon 都重新给一份。
   // 以前每个候选都拿到完整预算，topN=3 就等于把时间乘以 3 —— 异环实测
   // 定锚点那一步因此花了 4.5 秒（3 × 1.5 秒），而它其实只要一遍扫完就够。
@@ -550,13 +565,13 @@ export function findIconTop(screen, tplImg, opts = {}, topN = 3, minSeparation =
     hits.push(hit)
     const size = Math.max(tplImg.width * hit.scale, tplImg.height * hit.scale)
     // 把已经找到的位置挖掉，避免同一个图标被重复找到。
-    // 注意：hit.x/y 是**原图坐标**，而匹配是在工作图上做的，
-    // 所以这里要按 scale 换算成工作图坐标（不换算就会挖错地方，
-    // 于是第 2、3 个候选全是同一个图标的重复命中 —— 这个坑踩过）。
+    // 这里存的是**原图坐标**：findIcon 会把 exclude 换算到工作图坐标（它内部的
+    // wExclude 已经乘过 work.scale 了），所以这里不能再乘 —— 乘了就是双重缩放，
+    // 洞会挖到别处去，第 2、3 个候选又变成同一个图标的重复命中。
     holes.push({
-      cx: (hit.x + (tplImg.width * hit.scale) / 2) * scale,
-      cy: (hit.y + (tplImg.height * hit.scale) / 2) * scale,
-      r: size * minSeparation * scale,
+      cx: hit.x + (tplImg.width * hit.scale) / 2,
+      cy: hit.y + (tplImg.height * hit.scale) / 2,
+      r: size * minSeparation,
     })
   }
   return hits
@@ -587,7 +602,31 @@ export function pickStableCandidate(hits, { margin = 0.92, minScore = 0 } = {}) 
 
 /* ---------------- 数字块（把 OCR 碎片拼回一个数） ---------------- */
 
-const DIGITISH = /^[\dOoIlL|，,．.／/：:\s]+$/
+/**
+ * 「像数字的一块」。允许万/亿：`250万` 这类缩写是 parseNumber 支持的（顶部资源
+ * 栏空间有限时会这么显示），但这里的过滤器以前不认这两个字，于是带单位的块在
+ * 拼数字之前就被整块丢掉了，永远走不到 parseNumber。
+ */
+const DIGITISH = /^[\dOoIlL|，,．.／/：:\s万亿]+$/
+
+/**
+ * 拼完之后是不是还像一个数。
+ *
+ * 万/亿 是**单位后缀**：`1.2万`、`2174万` 都合法，但它只能出现在末尾、只能有一个。
+ * 不检查的话，`1.2万` 会和紧挨着的 `2174` 拼成 `1.2万2174`，而 parseNumber
+ * 去掉「万」之后得到 1.22174 —— 一个看着像模像样、其实是编出来的数。
+ * 那比认不出来糟得多，所以宁可两块不拼。
+ */
+function mergeOk(group, it) {
+  const text = [...group, it]
+    .sort((a, b) => a.x - b.x)
+    .map((g) => g.text)
+    .join('')
+    .replace(/\s+/g, '')
+  const units = text.match(/[万亿]/g)
+  if (!units) return true
+  return units.length === 1 && /[万亿]$/.test(text)
+}
 
 /**
  * OCR 会把一个数字切成几块：1280 宽下 `2174` 会变成 `2174`，
@@ -622,6 +661,10 @@ export function groupNumberBlocks(words, { gapRatio = 0.45, lineRatio = 0.6 } = 
         if (Math.abs(it.cy - cy) > Math.max(gh, it.h) * lineRatio) continue
         const gap = it.x > right ? it.x - right : left - (it.x + it.w)
         if (gap > Math.max(gh, it.h) * gapRatio) continue
+        // 几何上挨着不代表是同一个数：单位（万/亿）只允许出现在末尾。
+        // 挡不住的例子：`1.2万` 右边紧挨着另一个资源的 `2174`，
+        // 拼起来 parseNumber 会得出 1.22174 这样一个编出来的数。
+        if (!mergeOk(group, it)) continue
         used[j] = true
         group.push(it)
         grew = true
@@ -629,6 +672,10 @@ export function groupNumberBlocks(words, { gapRatio = 0.45, lineRatio = 0.6 } = 
     }
     group.sort((a, b) => a.x - b.x)
     const text = group.map((g) => g.text).join('').replace(/\s+/g, '')
+    // 单位后面不该再有数字。mergeOk 在追加时就挡了，但拼接顺序由 OCR 的词序
+    // 决定，挡不干净（可能先并入右边的数字、再遇到「万」）。这里兜一道底：
+    // 宁可整块丢掉，也不交出一个拼错的数 —— 编出来的数比认不出来糟。
+    if (/[万亿].*\d/.test(text)) continue
     const x = Math.min(...group.map((g) => g.x))
     const y = Math.min(...group.map((g) => g.y))
     const w = Math.max(...group.map((g) => g.x + g.w)) - x

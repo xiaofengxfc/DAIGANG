@@ -254,7 +254,11 @@ export function probeIcons(img, { profile = DEFAULT_PROFILE, minScore = 0, keys 
       y: best ? Math.round(best.y) : -1,
       scale: best ? Number((best.scale || 1).toFixed(3)) : 0,
       candidates: found.length,
-      passes: best ? best.score >= MIN_SCORE : false,
+      // 过了这一档才算「图标体检认出来了」。阈值必须和真正识别时用的那条一致：
+      // 锚点走 ANCHOR_MIN_SCORE（0.85），其余走 minScore（默认 0.62）。
+      // 以前这里写死 MIN_SCORE，于是 0.70 的锚点会显示「通过」，
+      // 而真正跑识别时它连锚点都定不出来 —— 体检行就是用来排障的，这个偏差会把人带偏。
+      passes: best ? best.score >= threshold : false,
       error,
       ms: Date.now() - t0,
     }
@@ -481,16 +485,41 @@ export function recognizeFrame(img, words, {
   const blocks = groupNumberBlocks(bandWords)
   const seen = []
   const deadline = timeBudgetMs > 0 ? t0 + timeBudgetMs : 0
-  const budget = () => (deadline ? Math.max(0, deadline - Date.now()) : 0)
   /**
-   * 「还剩多少时间，但至少给 ms」。
+   * 这一次搜索最多能用多少毫秒：min(这一帧还剩多少, 这一步自己的上限)。
    *
-   * 定出锚点之后每个图标都还要一遍搜索，而 budget() 到点之后返回 0 ——
-   * 0 在 findIcon 里的意思是**不限时**（不传预算的调用方用它），于是「预算用完」
-   * 反而变成了「随便跑」：异环实测定出锚点之后这一遍跑了 11 秒。
-   * 保底给一点时间，既不漏图标，也不会无限跑。
+   * **返回 0 表示已经到点，调用方必须跳过这次搜索** —— 绝不能把 0 传给
+   * findIcon：那边的 0 是「不限时」，于是「预算用完」反倒变成「随便跑」。
+   * 旧版用的是 Math.max(budget(), ms)（保底给 ms），到点之后仍然每次搜索
+   * 拿到 300~700ms，一帧能跑十几秒 —— 前端 watchScreen 只有 8 帧、
+   * 没有中止按钮，用户看到的就是「点了没反应」。
+   *
+   * 硬预算的代价是一帧到点时会少认一两个图标。这比整帧卡住好：
+   * 识别本来就靠多帧投票收敛，这一帧漏掉的下一帧还有机会补上；
+   * 而卡十几秒时连下一帧都到不了。到点之后返回结果里会带 timed_out，
+   * 让前端能说清楚「这帧没跑完」。
    */
-  const leftOr = (ms) => (deadline ? Math.max(budget(), ms) : 0)
+  const leftMs = (ms) => (deadline ? Math.max(0, Math.min(deadline - Date.now(), ms)) : 0)
+  const outOfTime = () => Boolean(deadline) && deadline - Date.now() <= 0
+  /**
+   * 在剩余预算内跑一次 findIconTop。
+   *
+   * deadline 为 0 表示**不限时**（没传预算的调用方，比如自检和 smoke），
+   * 这时照旧把 opts 原样传下去；只有真的设了预算才做「到点就跳过」的判断。
+   * 这两种情况必须分开：把「时限为 0」也当成「到点」，会让不限时的调用
+   * 一个图标都搜不到。
+   */
+  const budgetedFind = (tplImg, opts = {}, topN = 3) => {
+    if (!deadline) {
+      // 不限时就用调用方的原语义：把每一步的 hint 也清零，别偷偷给它加上限
+      const { timeBudgetMs: _ignored, ...rest } = opts
+      return findIconTop(img, tplImg, { work, minScore, ...rest, timeBudgetMs: 0 }, topN)
+    }
+    const hint = Number(opts.timeBudgetMs) > 0 ? Number(opts.timeBudgetMs) : 700
+    const left = leftMs(hint)
+    if (!left) return []
+    return findIconTop(img, tplImg, { work, minScore, ...opts, timeBudgetMs: left }, topN)
+  }
 
   // 这一屏「图标大概多大」：**跟画面宽度成比例，不跟高度**。
   //
@@ -567,7 +596,7 @@ export function recognizeFrame(img, words, {
   let anchorR = null
   if (quick && quick.img) {
     const tryHit = (opts) => {
-      const found = findIconTop(img, quick.img, { work, minScore, timeBudgetMs: leftOr(1200), ...opts }, 3)
+      const found = budgetedFind(quick.img, { timeBudgetMs: 1200, ...opts }, 3)
       return pickStableCandidate(found, { margin: 0.92, minScore })
     }
     /**
@@ -591,7 +620,8 @@ export function recognizeFrame(img, words, {
       }
       for (const other of iconRefs) {
         if (!other.img || other === quick) continue
-        const found = findIconTop(img, other.img, { region: near, baseScale: hit.scale, scaleFactor: 1.3, scaleSteps: 7, work, coarseStep: 3, minScore, timeBudgetMs: Math.min(leftOr(400), 400) }, 1)
+        if (outOfTime()) return null
+        const found = budgetedFind(other.img, { region: near, baseScale: hit.scale, scaleFactor: 1.3, scaleSteps: 7, coarseStep: 3, timeBudgetMs: 400 }, 1)
         const best = pickStableCandidate(found, { margin: 0.92, minScore })
         if (best) return { ...hit, confirmed_by: other.key, confirm_score: +best.score.toFixed(3) }
       }
@@ -606,16 +636,15 @@ export function recognizeFrame(img, words, {
         h: Math.max(24, quick.img.height * cached.scale * 3),
       }
       // 缓存命中只是「核对上次的位置」，给它一份小预算就够；
-      // 主力预算留给全条带定标。budget() 为 0 表示不限时（不会传进来）。
-      const cachedBudget = deadline ? Math.min(budget(), 400) : 0
-      const hit = tryHit({ region: near, baseScale: cached.scale, scaleFactor: 1.15, scaleSteps: 5, timeBudgetMs: cachedBudget })
+      // 主力预算留给全条带定标。leftMs 返回 0 表示已经到点，这次核对直接跳过。
+      const hit = tryHit({ region: near, baseScale: cached.scale, scaleFactor: 1.15, scaleSteps: 5, timeBudgetMs: 400 })
       if (hit && hit.score >= ANCHOR_MIN_SCORE) {
         anchor = { ...hit, key: quick.key, tpl: quick.img }
         anchorR = quick
       }
     }
     if (!anchor) {
-      const hit = confirmAnchor(tryHit({ region: band, scales: scalesFor(quick.img), coarseStep: 3, timeBudgetMs: leftOr(1200) }))
+      const hit = confirmAnchor(tryHit({ region: band, scales: scalesFor(quick.img), coarseStep: 3, timeBudgetMs: 1200 }))
       if (hit) {
         anchor = { ...hit, key: quick.key, tpl: quick.img }
         anchorR = quick
@@ -630,11 +659,15 @@ export function recognizeFrame(img, words, {
   const hits = []
   for (const r of iconRefs) {
     if (!r.img) continue
-    // 时间上限只在**没定出锚点**时生效：那种情况说明这张图和模板差得远
-    // （比如给了一张地图截图），三个图标各扫一遍全条带又慢又没意义。
-    // 定出锚点了就照常跑完 —— 有锚点时每个图标只要几十毫秒，而且少了它
-    // 真会漏（实测把这条写死成「到点就停」会把贝币漏掉）。
-    if (!anchor && deadline && Date.now() > deadline) break
+    // 到点就收手 —— 有锚点也一样。
+    //
+    // 旧版这里写的是 `if (!anchor && ...)`，理由是「有锚点之后每个图标只要几十毫秒」。
+    // 实测不成立：锚点偏弱（0.75~0.85）时会退回全条带 fallback，那一步是按 3 个候选
+    // × 11 档尺度扫的，一帧十几秒。前端 watchScreen 最多 8 帧、没有中止按钮，
+    // 用户看到的是「点了没反应」。
+    // 现在这一帧到点就 break，漏掉的图标交给下一帧（多帧投票本来就是这么设计的），
+    // 返回结果里带 timed_out 说明这帧没跑完。
+    if (outOfTime()) break
     let hit = null
     let fallbackHits = null
     // 上一次在同一分辨率下认到过这个图标 → 记住它在哪、多大。
@@ -645,7 +678,7 @@ export function recognizeFrame(img, words, {
       const tw = r.img.width * memo.scale
       const th = r.img.height * memo.scale
       const near = { x: Math.max(0, memo.x - tw), y: Math.max(0, memo.y - th), w: tw * 3, h: th * 3 }
-      const found = findIconTop(img, r.img, { region: near, baseScale: memo.scale, scaleFactor: 1.12, scaleSteps: 5, work, coarseStep: 3, minScore, timeBudgetMs: leftOr(300) }, 1)
+      const found = budgetedFind(r.img, { region: near, baseScale: memo.scale, scaleFactor: 1.12, scaleSteps: 5, coarseStep: 3, timeBudgetMs: 300 }, 1)
       const best = pickStableCandidate(found, { margin: 0.92, minScore })
       if (best) hit = best
     }
@@ -656,7 +689,8 @@ export function recognizeFrame(img, words, {
         w: Math.min(img.width, anchor.x + clusterSpan) - Math.max(0, anchor.x - clusterSpan),
         h: bandH,
       }
-      const local = findIconTop(img, r.img, { region: near, baseScale: anchor.scale, scaleFactor: 1.25, scaleSteps: 7, work, coarseStep: 3, minScore, timeBudgetMs: leftOr(700) }, 3)
+      // 簇内搜索：没预算时返回空数组，下面的 fallback 也会因为到点被跳过
+      const local = budgetedFind(r.img, { region: near, baseScale: anchor.scale, scaleFactor: 1.25, scaleSteps: 7, coarseStep: 3, timeBudgetMs: 700 }, 3)
       hit = pickStableCandidate(local, { margin: 0.92, minScore })
       // 簇里没找到就到此为止：**不再跑一遍全条带**。
       // 这一步以前很贵（每个找不到的图标多花 0.9 秒，一帧就两秒），收益却极小 ——
@@ -665,7 +699,7 @@ export function recognizeFrame(img, words, {
       // 只有锚点自己也弱（说明这张图跟模板差别大，可能是新版本界面）时，
       // 才值得退回全条带再找一遍看看。
       if (!hit && anchor.score < ANCHOR_STRONG) {
-        fallbackHits = findIconTop(img, r.img, { region: band, scales: scalesFor(r.img), work, coarseStep: 3, minScore, timeBudgetMs: leftOr(700) }, 3)
+        fallbackHits = budgetedFind(r.img, { region: band, scales: scalesFor(r.img), coarseStep: 3, timeBudgetMs: 700 }, 3)
         const wide = pickStableCandidate(fallbackHits, { margin: 0.92, minScore })
         if (wide && Math.abs(wide.x - anchor.x) <= MAX_CLUSTER) hit = wide
         else if (wide) {
@@ -681,7 +715,7 @@ export function recognizeFrame(img, words, {
         hit = anchor
       } else {
         // 压根没定出锚点 → 老老实实全条带找
-        const found = findIconTop(img, r.img, { region: band, scales: scalesFor(r.img), work, coarseStep: 3, minScore, timeBudgetMs: leftOr(700) }, 3)
+        const found = budgetedFind(r.img, { region: band, scales: scalesFor(r.img), coarseStep: 3, timeBudgetMs: 700 }, 3)
         hit = pickStableCandidate(found, { margin: 0.92, minScore })
         fallbackHits = found
       }
@@ -743,7 +777,7 @@ export function recognizeFrame(img, words, {
   } else if (Object.keys(calibIcons).length) {
     calibrations.set(calibKey, { ...(cached || {}), icons: calibIcons, at: Date.now() })
   }
-  return { hits: [...byKey.values()], seen, anchor: anchorOut, size: [img.width, img.height], bandH, blocks, ms: Date.now() - t0 }
+  return { hits: [...byKey.values()], seen, anchor: anchorOut, size: [img.width, img.height], bandH, blocks, ms: Date.now() - t0, timed_out: outOfTime() }
 }
 
 /* ============================================================
@@ -1079,6 +1113,9 @@ export async function recognizeScreenOnce({
       size: frame.size,
       engine: ocr.engine || 'windows',
       ms: frame.ms,
+      // 这一帧撞到了时间预算（有图标没来得及找完）。
+      // 前端拿它说「这帧没跑完，再看一帧」，而不是让人以为「这屏只有这么点资源」。
+      timed_out: Boolean(frame.timed_out),
       frame_token: frameToken,
     }
   } catch (err) {

@@ -606,6 +606,9 @@ export function register() {
       size: r.size,
       engine: r.engine,
       ms: r.ms,
+      // 这一帧撞到了时间预算（有图标没来得及找完）。前端用它说「这帧没跑完」，
+      // 而不是让人以为这屏本来就只有这么点资源。
+      timed_out: Boolean(r.timed_out),
       // 这一帧暂存的凭据：前端拿着它在保存进度时取回原图（见 /api/ocr/screen/frame）
       frame_token: r.frame_token || null,
       want: screenResourcesFor(game),

@@ -77,9 +77,14 @@ export function stashFrame({ session, stage = '', buf, width = 0, height = 0 }) 
 /** 取一帧。**取走即删除** —— 调用方拿去压缩上传，留着只会占内存 */
 export function takeFrame(token) {
   sweep()
-  const entry = frames.get(String(token || ''))
+  // token 先归一成字符串再用，**取和删必须用同一个 key**。
+  // 以前查的时候用了 String(token || '')、删的时候直接 frames.delete(token)：
+  // 传进来的不是字符串（比如 null、数字）时删不掉，于是同一帧能被反复取走，
+  // totalBytes 只减不删、「取走即删」的契约是破的。
+  const key = String(token || '')
+  const entry = frames.get(key)
   if (!entry) return null
-  frames.delete(token)
+  frames.delete(key)
   totalBytes -= entry.buf.length
   return { buf: entry.buf, width: entry.width, height: entry.height, stage: entry.stage }
 }

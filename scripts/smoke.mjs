@@ -23,7 +23,7 @@ import { bizDate, localDate, DAY_START_HOUR } from '../src/util.mjs'
 // 资源文本的分段（一单多个游戏）也是纯函数，直接验
 import { splitResourceSections, sectionText, joinResourceSections, deltaText, resourceDeltaList } from '../shared/resources.js'
 // 识别打分口径（掩码 NCC）和「按屏取键」也是纯函数：不连服务器就能验那两个踩过的坑
-import { subImage, buildIntegral, compileTemplate, matchAt } from '../src/vision.mjs'
+import { subImage, buildIntegral, compileTemplate, matchAt, findIcon, findIconTop, resampleBilinear } from '../src/vision.mjs'
 import { recognizeFrame, CLUSTER_RATIO } from '../src/screen.mjs'
 import { profileForGame } from '../shared/game-profiles.js'
 // 导出配色的定义处，断言从这里取色值，不再把十六进制写死在测试里
@@ -647,6 +647,72 @@ export async function run() {
     ok('鸣潮的簇半径和旧的 6.5×图标宽等价', Math.abs(CLUSTER_RATIO - 6.5 * wuwa.iconWidthRatio) < 0.001, `${CLUSTER_RATIO} vs ${6.5 * wuwa.iconWidthRatio}`)
     ok('异环的簇半径更宽（图标只有鸣潮的 65%，顶栏资源还铺得更开）', profileForGame('异环').clusterRatio > CLUSTER_RATIO, profileForGame('异环').clusterRatio)
     ok('异环走掩码 NCC、鸣潮不走（不动它标定好的阈值）', profileForGame('异环').maskedNcc === true && !wuwa.maskedNcc, `${profileForGame('异环').maskedNcc}/${wuwa.maskedNcc}`)
+
+    /* ---- findIconTop 的挖洞：洞必须是**原图坐标** ----
+       这条对应一个反复踩的坑：findIcon 收到 exclude 之后自己会把它乘上 work.scale
+       换算到工作图坐标，所以 findIconTop 传进去的必须是原图坐标。
+       一旦这里再乘一次（或者用 work.img.height / screen.height 这种错比例），
+       洞就挖到别处，topN 的第 2、3 个候选又命中同一个峰 —— 直接后果是
+       pickStableCandidate 的 second_score 永远等于 best_score，
+       confirmAnchor 会把锚点自己当成「伙伴图标」来确认。
+
+       造一张 2560 宽的条带、贴两个同样的图标（低频渐变，缩到 0.56 倍还认得出），
+       只保留「找到两个不同位置」和「原图坐标能排掉」这两条硬结论。 */
+    {
+      const SW = 2560
+      const SH = 800
+      const spx = new Uint8Array(SW * SH * 3)
+      for (let i = 0; i < spx.length; i += 3) {
+        const v = 20 + (i % 7)
+        spx[i] = v
+        spx[i + 1] = v
+        spx[i + 2] = v + 3
+      }
+      const SIDE = 88
+      const stamp = (x0) => {
+        for (let y = 6; y < 6 + SIDE; y++) {
+          for (let x = x0; x < x0 + SIDE; x++) {
+            const d = Math.hypot(x - x0 - SIDE / 2, y - 6 - SIDE / 2)
+            const t = Math.max(0, 1 - d / (SIDE / 2))
+            const i = (y * SW + x) * 3
+            spx[i] = Math.round(30 + 200 * t)
+            spx[i + 1] = Math.round(25 + 70 * t)
+            spx[i + 2] = Math.round(20 + 45 * t)
+          }
+        }
+      }
+      const atA = 600
+      const atB = 1500
+      stamp(atA)
+      stamp(atB)
+      const shot = { width: SW, height: SH, px: spx }
+      const sh = Math.max(48, Math.round(SH * 0.14))
+      const expectedW = SW * 0.0344
+      const ws = Math.min(2600 / SW, Math.max(0.2, 49 / expectedW))
+      const bandWork = {
+        img: resampleBilinear(subImage(shot, 0, 0, SW, sh), Math.round(SW * ws), Math.round(sh * ws)),
+        scale: ws,
+      }
+      const bandBox = { x: 0, y: 0, w: SW, h: sh }
+      const tplAtA = subImage(shot, atA, 6, SIDE, SIDE)
+
+      const top = findIconTop(shot, tplAtA, { region: bandBox, work: bandWork, minScore: 0.2, timeBudgetMs: 8000 }, 3)
+      const xs = top.map((h) => h.x)
+      const distinct = new Set(xs.map((x) => Math.round(x / 100)))
+      ok(
+        'findIconTop 在条带工作图下能找到两个不同位置的同款图标（挖洞有效）',
+        distinct.size === 2 && xs.some((x) => Math.abs(x - atA) < 60) && xs.some((x) => Math.abs(x - atB) < 60),
+        xs.map((x) => Math.round(x))
+      )
+
+      const hole = [{ cx: atA + SIDE / 2, cy: 6 + SIDE / 2, r: SIDE * 0.7 }]
+      const afterHole = findIcon(shot, tplAtA, { region: bandBox, work: bandWork, minScore: 0.2, exclude: hole })
+      ok(
+        'exclude 用原图坐标能排掉左边那个、命中右边那个',
+        Boolean(afterHole) && Math.abs(afterHole.x - atB) < 60,
+        afterHole && Math.round(afterHole.x)
+      )
+    }
   }
 
   // 改价格表，老订单不受影响

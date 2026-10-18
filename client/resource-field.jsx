@@ -232,6 +232,9 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
     // backError 只是没把浏览器切到前台（数据已经认全了，纯便利问题，不该降级结果）。
     let escError = ''
     let backError = ''
+    // 有几帧撞到了单帧时间预算（服务端 timed_out）：说明这一帧没跑完就被截断了，
+    // 不是「这屏本来就没这个资源」。要单独说一句，否则「还差体力」会被读成识别不了。
+    let timedOutFrames = 0
     let progressHint = `正在切回${gameName}…`
 
     const paintProgress = (stage, extra = progressHint) => {
@@ -288,6 +291,7 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
         for (let attempt = 0; attempt < MAX_SCREEN_FRAMES && !token.stop; attempt++) {
           const result = await api.post('/api/ocr/screen', { session, stage: stage.id, min_votes: 2, game: gameName, keys: stage.resources })
           if (result.engine) engine = result.engine
+          if (result.timed_out) timedOutFrames += 1
           if (Array.isArray(result.hits)) {
             for (const hit of result.hits) {
               const label = `${hit.key}(分${hit.score}${hit.source === 'ocr-layout' ? '·格式兜底' : hit.warn ? '·字太小' : ''})`
@@ -387,6 +391,11 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
           ) : null}
           {Object.keys(layoutFallback).length ? (
             <div className="tiny tone-amber" style={amberStyle}>{`${Object.keys(layoutFallback).join('、')} 是按数字格式补出的，请对照游戏核验。`}</div>
+          ) : null}
+          {timedOutFrames > 0 && !complete ? (
+            <div className="tiny tone-amber" style={amberStyle}>
+              {`有 ${timedOutFrames} 帧撞到单帧时限、没扫完就被截断了，所以「还差」不一定表示画面上没有。可以再点一次「识别画面」。`}
+            </div>
           ) : null}
           <div className="tiny" style={tinyTopStyle}>
             {complete ? `${stages.map((s) => s.title).join('和')}各自识别两次一致后才会填入。` : '只会填写复核一致的数值；未识别字段保持原样。'}
