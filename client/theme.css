@@ -2282,22 +2282,44 @@ a:hover {
   }
 }
 
-/* 桌面版外壳：右上角是系统画的三个按钮，顶栏右侧要留出空间 */
+/* 桌面版外壳：窗口按钮由网页画（frame:false），不再是系统画的
+   那三个方块。所以这里不再给 .appbar__tools 留 132px 空白 ——
+   那本来是躲开 titleBarOverlay 的，现在右侧就是自家的按钮。 */
 :root.is-desktop .appbar__inner {
   padding-right: 12px;
-}
-
-:root.is-desktop .appbar__tools {
-  padding-right: 132px;
 }
 
 @media (max-width: 760px) {
   :root.is-desktop .appbar__inner {
     padding-right: 8px;
   }
+}
 
-  :root.is-desktop .appbar__tools {
-    padding-right: 108px;
+/* 窗口控制：和 .app-icon 同尺寸同圆角，贴在最右端。
+   关闭按钮 hover 用系统的红，这是用户对窗口按钮唯一预期的例外。 */
+.appbar__win {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 6px;
+  padding-left: 8px;
+  border-left: 1px solid var(--line);
+}
+
+.appbar__win-btn {
+  width: 30px;
+  height: 30px;
+}
+
+.appbar__win-btn--close:hover {
+  background: #e5484d;
+  color: #fff;
+}
+
+/* 窄屏顶栏里隐藏窗口按钮：手机上本来也没有窗口可控制 */
+@media (max-width: 760px) {
+  .appbar__win {
+    display: none;
   }
 }
 

@@ -3816,31 +3816,34 @@ button.react-side-row {
    那会让拖动一起失效。
    ============================================================ */
 
-.react-sidebar__brand,
-.react-topbar,
+.appbar,
 .refactor-gate {
   -webkit-app-region: drag;
 }
 
-/* 拖动区里的交互元素：按钮、输入、链接、搜索框和它的下拉结果 */
-.react-topbar button,
-.react-topbar input,
-.react-topbar a,
-.react-topbar kbd,
-.refactor-search,
-.refactor-search__results,
-.refactor-search__results button,
-.react-sidebar__brand button,
-.react-sidebar__brand a,
-.refactor-gate__panel {
+/* 拖动区里的交互元素：按钮、输入、链接、搜索框和它的下拉结果。
+   拖动区会吞掉鼠标事件，漏掉一个就是「看得见但点不动」。 */
+.appbar button,
+.appbar a,
+.appbar input,
+.appbar [role='button'],
+.appbar .refactor-search,
+.appbar__menu,
+.refactor-gate__panel,
+.refactor-gate input,
+.refactor-gate button {
   -webkit-app-region: no-drag;
 }
 
 /* 可拖动的地方给个抓手光标，用户才知道这里能拖 */
-.react-topbar,
-.react-sidebar__brand,
+.appbar,
 .refactor-gate {
   cursor: default;
+}
+
+/* 窗口按钮自己也是拖动区的一部分，必须显式排除 */
+.appbar__win {
+  -webkit-app-region: no-drag;
 }
 
 /* 窗口没最大化时才需要拖动提示；最大化状态下拖拽由系统接管，

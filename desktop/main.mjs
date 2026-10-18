@@ -69,6 +69,17 @@ function log(...parts) {
   }
 }
 
+/** 本机的局域网 IPv4，用来告诉用户手机该输哪个地址 */
+function lanAddresses() {
+  const out = []
+  for (const list of Object.values(os.networkInterfaces())) {
+    for (const ni of list || []) {
+      if (ni.family === 'IPv4' && !ni.internal) out.push(ni.address)
+    }
+  }
+  return out
+}
+
 /* ---------------- 端口 ---------------- */
 
 /** 端口空着吗。绑一下再放开，比 connect 更能反映「别人正占着」 */
@@ -110,8 +121,10 @@ function spawnServer(port) {
     throw new Error('前端还没构建：public/dist/app.js 不存在。请在项目目录跑一次 npm run build。')
   }
 
-  // 默认只绑本机。要手机访问就在环境变量里给 XFC_HOST=0.0.0.0。
-  const host = process.env.XFC_HOST || '127.0.0.1'
+  // 默认绑到 0.0.0.0：手机/平板要连的是局域网地址，绑 127.0.0.1 的话
+  // 只有本机能打开，启动横幅里也不会出现「手机打开」那一行。
+  // 想锁回本机就设 XFC_HOST=127.0.0.1。
+  const host = process.env.XFC_HOST || '0.0.0.0'
 
   serverExited = false
   const child = fork(entry, ['--port', String(port), '--host', host], {
@@ -121,7 +134,8 @@ function spawnServer(port) {
       ...process.env,
       ELECTRON_RUN_AS_NODE: '1',
       XFC_DATA_DIR: DATA_DIR,
-      ...(process.env.XFC_HOST ? {} : { XFC_LOCAL: '1' }),
+      // 不再注入 XFC_LOCAL：那个开关会让启动横幅整段跳过「手机打开」，
+      // 而手机要连的正是局域网地址。想只给本机用，就设 XFC_HOST=127.0.0.1。
     },
     stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
     windowsHide: true,
@@ -180,21 +194,12 @@ async function waitForServer(port, timeoutMs = 30000) {
 
 /* ---------------- 窗口 ---------------- */
 
-/** 标题栏高度：和网页顶栏对齐，让原生窗口按钮坐在同一条线上 */
-const TITLEBAR_H = 56
-
 let mainWindow = null
 let tray = null
 let quitting = false
 
-const THEME = {
-  light: { bar: '#ffffff', symbol: '#4b5563' },
-  dark: { bar: '#0f1420', symbol: '#c7cedb' },
-}
-
 function createWindow(port) {
   const dark = nativeTheme.shouldUseDarkColors
-  const palette = dark ? THEME.dark : THEME.light
 
   const win = new BrowserWindow({
     width: 1360,
@@ -205,10 +210,20 @@ function createWindow(port) {
     backgroundColor: dark ? '#0f1420' : '#f6f7fb',
     title: '代肝运营台',
     icon: path.join(APP_ROOT, 'desktop', 'assets', 'daigan.ico'),
-    // 自绘标题栏：把原生标题条藏起来，网页顶栏就是窗口顶栏。
-    // 右侧三个系统按钮由 titleBarOverlay 画，颜色跟着主题走。
-    titleBarStyle: 'hidden',
-    titleBarOverlay: { color: palette.bar, symbolColor: palette.symbol, height: TITLEBAR_H },
+    /*
+     * 无边框窗口：标题条整个交给网页画。
+     *
+     * 之前用 titleBarStyle:'hidden' + titleBarOverlay，那三个按钮是
+     * Windows 自己画的 —— 方角、贴边、固定 46px 宽，和顶栏里 32px 的
+     * 圆形图标并排，一眼就是两套东西，换主题时底色也对不齐
+     * （overlay 只能给纯色，而顶栏是半透明）。
+     * 现在 frame:false，三个按钮由 React 画，和「刷新 / 主题 / 退出」
+     * 共用同一套尺寸与 hover，主题切换天然同步。
+     *
+     * 拖拽由 CSS 的 -webkit-app-region: drag 负责（见 client/styles.css），
+     * 窗口边缘的缩放 Windows 仍然自动支持。
+     */
+    frame: false,
     // 网页里没有需要透明的地方，透明窗口在 Windows 上反而会掉帧
     autoHideMenuBar: true,
     webPreferences: {
@@ -222,6 +237,15 @@ function createWindow(port) {
   })
 
   win.setMenuBarVisibility(false)
+
+  /** 把最大化状态同步给网页：按钮要换成「还原」图标 */
+  const sendMaximized = () => {
+    if (win.isDestroyed()) return
+    win.webContents.send('desktop:win-maximized', win.isMaximized())
+  }
+  win.on('maximize', sendMaximized)
+  win.on('unmaximize', sendMaximized)
+  win.webContents.on('did-finish-load', sendMaximized)
 
   win.once('ready-to-show', () => {
     win.show()
@@ -269,15 +293,10 @@ function openExternal(url) {
   }
 }
 
-/** 主题变了，原生按钮的颜色也要跟着变，否则深色壳子里挂两个白按钮 */
+/** 主题变了要重新算窗口底色；按钮由网页画，不再需要通知系统 */
 function applyNativeTheme() {
   if (!mainWindow || mainWindow.isDestroyed()) return
-  const palette = nativeTheme.shouldUseDarkColors ? THEME.dark : THEME.light
-  try {
-    mainWindow.setTitleBarOverlay({ color: palette.bar, symbolColor: palette.symbol, height: TITLEBAR_H })
-  } catch {
-    /* 旧版本没有这个方法，忽略 */
-  }
+  mainWindow.setBackgroundColor(nativeTheme.shouldUseDarkColors ? '#0f1420' : '#f6f7fb')
 }
 
 function createTray() {
@@ -363,8 +382,15 @@ function showFatal({ title, detail, hint }) {
       width: 820,
       height: 620,
       backgroundColor: '#f6f7fb',
-      titleBarStyle: 'hidden',
-      titleBarOverlay: { color: '#ffffff', symbolColor: '#4b5563', height: TITLEBAR_H },
+      /*
+       * 这一扇窗口保留系统标题栏。
+       *
+       * 主窗口是无边框的（frame:false），但它的三个按钮由 React 画。
+       * 出错页是后端没起来时用 data: URL 加载的静态 HTML，
+       * 既没有 preload 也没有那三个按钮 —— 设成无边框就等于给了用户
+       * 一个关不掉的窗口。所以这里显式保留标题栏，让系统提供关闭入口。
+       */
+      titleBarStyle: 'default',
       webPreferences: { contextIsolation: true, nodeIntegration: false },
     })
     mainWindow.loadURL(dataUrl)
@@ -395,6 +421,17 @@ async function boot() {
     serverProc = spawnServer(serverPort)
     await waitForServer(serverPort)
     log(`后端就绪 http://127.0.0.1:${serverPort}`)
+    // 手机要输的地址必须能被用户直接看到：打包后的程序没有控制台，
+    // 只有 desktop.log 可查。后端横幅里也有，但那要等 stdout 刷出来，
+    // 而且用户未必知道去哪看，所以这里单独再写一行。
+    const lan = lanAddresses()
+    if (process.env.XFC_HOST && process.env.XFC_HOST !== '0.0.0.0') {
+      log(`只监听 ${process.env.XFC_HOST}：手机无法访问（去掉 XFC_HOST 即恢复局域网可达）`)
+    } else if (lan.length) {
+      for (const ip of lan) log(`手机打开 http://${ip}:${serverPort}（需与电脑同一 WiFi）`)
+    } else {
+      log('没检测到局域网地址：手机可能连不上，检查电脑是否已联网')
+    }
 
     mainWindow = createWindow(serverPort)
     createTray()
@@ -523,6 +560,25 @@ if (!app.requestSingleInstanceLock()) {
     return app.getLoginItemSettings().openAtLogin
   })
   ipcMain.handle('desktop:open-at-login:get', () => app.getLoginItemSettings().openAtLogin)
+
+  /*
+   * 无边框窗口的按钮由网页画（见 desktop/preload.cjs 的 window 桥）。
+   * 这里只做三个动作，另外把最大化状态回答给渲染进程，
+   * 免得网页自己猜 —— 用户双击标题栏、按 Win+↑ 都能让状态变化。
+   */
+  ipcMain.on('desktop:win', (event, action) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win || win.isDestroyed()) return
+    if (action === 'minimize') win.minimize()
+    else if (action === 'toggle-maximize') {
+      if (win.isMaximized()) win.unmaximize()
+      else win.maximize()
+    } else if (action === 'close') win.close()
+  })
+  ipcMain.handle('desktop:win-maximized:get', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    return Boolean(win && !win.isDestroyed() && win.isMaximized())
+  })
   /**
    * 网页里的主题开关要带上原生窗口按钮。
    * 只改 color-scheme 是不够的：右上角那三个按钮由系统画，

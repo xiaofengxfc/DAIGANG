@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   LockKeyhole,
   LogOut,
+  Minus,
   Moon,
   MoreHorizontal,
   Plus,
@@ -21,10 +22,13 @@ import {
   Search,
   Settings2,
   ShieldCheck,
+  Square,
+  Copy,
   Sun,
   Tags,
   Users,
   WalletCards,
+  X,
 } from 'lucide-react'
 import { api } from './lib/api.js'
 import { openQuoteComposer } from './pages/quote-composer.jsx'
@@ -354,6 +358,71 @@ function AppbarMore({ items, current, counts, onNavigate }) {
   )
 }
 
+/**
+ * 桌面版右上角的三个窗口按钮。
+ *
+ * 窗口是 frame:false（见 desktop/main.mjs），系统不再画标题栏，
+ * 所以最小化 / 最大化 / 关闭必须由网页提供 —— 浏览器里打开时
+ * window.daiganDesktop 不存在，这个组件直接返回 null。
+ *
+ * 样式和旁边的 .app-icon 用同一套尺寸与圆角：之前由 titleBarOverlay
+ * 画系统按钮时，那边是方角、贴边、固定宽度，和圆形图标并排就是两种东西。
+ */
+function WindowControls() {
+  const bridge = window.daiganDesktop?.window || null
+  const [maximized, setMaximized] = useState(false)
+
+  useEffect(() => {
+    if (!bridge) return undefined
+    let alive = true
+    if (bridge.isMaximized) {
+      bridge.isMaximized().then((value) => {
+        if (alive) setMaximized(Boolean(value))
+      }).catch(() => {})
+    }
+    const off = bridge.onMaximizedChange?.((value) => setMaximized(value))
+    return () => {
+      alive = false
+      if (typeof off === 'function') off()
+    }
+  }, [bridge])
+
+  if (!bridge) return null
+
+  return (
+    <div className="appbar__win" role="group" aria-label="窗口控制">
+      <button
+        className="app-icon appbar__win-btn"
+        type="button"
+        title="最小化"
+        aria-label="最小化"
+        onClick={() => bridge.minimize()}
+      >
+        <Minus {...iconProps(16)} />
+      </button>
+      <button
+        className="app-icon appbar__win-btn"
+        type="button"
+        title={maximized ? '向下还原' : '最大化'}
+        aria-label={maximized ? '向下还原' : '最大化'}
+        onClick={() => bridge.toggleMaximize()}
+      >
+        {/* Copy 的两个叠方块就是 Windows 的「还原」形状 */}
+        {maximized ? <Copy {...iconProps(14)} /> : <Square {...iconProps(14)} />}
+      </button>
+      <button
+        className="app-icon appbar__win-btn appbar__win-btn--close"
+        type="button"
+        title="关闭"
+        aria-label="关闭"
+        onClick={() => bridge.close()}
+      >
+        <X {...iconProps(16)} />
+      </button>
+    </div>
+  )
+}
+
 function Shell({ me, onLogout }) {
   const [route, setRoute] = useState(parseRoute())
   const [theme, setTheme] = useState(readTheme)
@@ -454,6 +523,7 @@ function Shell({ me, onLogout }) {
             <button className="app-icon" type="button" title={theme === 'light' ? '切换到深色模式' : '切换到浅色模式'} aria-label={theme === 'light' ? '切换到深色模式' : '切换到浅色模式'} onClick={toggleTheme}>{theme === 'light' ? <Moon {...iconProps(17)} /> : <Sun {...iconProps(17)} />}</button>
             <button className="app-icon" type="button" title="退出登录" aria-label="退出登录" onClick={onLogout}><LogOut {...iconProps(17)} /></button>
             <button className="refactor-button refactor-button--primary" type="button" onClick={() => go('/orders/new')}><Plus {...iconProps(15)} />开新单</button>
+            <WindowControls />
           </div>
         </div>
       </header>
