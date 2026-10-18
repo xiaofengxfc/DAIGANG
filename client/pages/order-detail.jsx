@@ -157,12 +157,12 @@ export default function OrderDetailPage({ route, navigate, onReload, reloadKey }
 
   return (
     <div className="orders-page">
-      <header className="orders-page__head">
-        <div>
-          <h2>{order.order_no}</h2>
-          <p>{order.title || '（没写标题）'}</p>
+      <header className="app-page__head orders-page__head order-detail__head">
+        <div className="app-page__title">
+          <h1>{order.order_no}</h1>
+          <p>{[order.title || '（没写标题）', order.customer_name || '散客', order.game_name || '未指定游戏', `下单 ${fmtDateTime(order.ordered_at)}`].join(' · ')}</p>
         </div>
-        <div className="order-detail__actions">
+        <div className="app-page__actions order-detail__actions">
           <button className="refactor-button" type="button" onClick={() => openProgressForm(order, reload)}><Pencil {...iconProps(14)} />记进度</button>
           {order.due_total > 0.001 ? <button className="refactor-button" type="button" onClick={() => openPaymentForm(order, reload)}><Wallet {...iconProps(14)} />记收款</button> : null}
           {!closed ? (
@@ -182,41 +182,34 @@ export default function OrderDetailPage({ route, navigate, onReload, reloadKey }
       </header>
 
       <div className="stack">
-        {/* 抬头 */}
-        <section className="panel">
+        {/* 摘要：单号 / 标题 / 客户已经在抬头里说过了，这张卡只回答
+            「现在到哪一步、钱还差多少」，不再重复一遍标题。 */}
+        <section className="panel order-detail__summary">
           <div className="panel__body">
-            <div className="cluster" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div style={{ minWidth: '0' }}>
+            <div className="order-detail__glance">
+              <div className="order-detail__glance-status">
                 <div className="cluster">
-                  <span className="mono strong">{order.order_no}</span>
                   <Lamp label={order.status_label} tone={STATUS_TONE[order.status] || 'muted'} />
+                  <span className="mono dim">{order.order_no}</span>
                   <CopyIcon text={order.order_no} label="复单号" />
                 </div>
-                <h1 style={{ marginTop: '4px' }}>{order.title || '（没写标题）'}</h1>
-                <div className="cluster sm dim" style={{ marginTop: '4px' }}>
-                  <span>{order.customer_name || '散客'}</span>
-                  <span>·</span>
-                  <span>{order.game_name || '未指定游戏'}</span>
-                  <span>·</span>
-                  <span>{`下单 ${fmtDateTime(order.ordered_at)}`}</span>
-                  {order.due_at ? <span>{`· 交付 ${fmtDay(order.due_at)}`}</span> : null}
+                <div className="cluster sm dim">
+                  <span>{order.due_at ? `交付 ${fmtDay(order.due_at)}` : '未设交付日期'}</span>
                   {/* 交付日期还剩几天 —— 做完的单就不用提醒了 */}
                   {!closed && remain.kind !== 'none' ? (
                     remain.kind === 'invalid' ? <span className="duepill duepill--bad">交付日期填错了</span> : <span className={`duepill duepill--${remain.kind}`}>{remain.text}</span>
                   ) : null}
                 </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div className="cell__lbl">订单总额</div>
-                <div style={{ fontFamily: 'var(--font-fig)', fontSize: 'var(--fs-2xl)', fontWeight: '600', letterSpacing: '-0.02em' }}>{`¥${fmtMoney(order.total)}`}</div>
-                <div className="sm">
-                  {order.due_total > 0.001 ? <span className="tone-amber">{`还差 ¥${fmtMoney(order.due_total)}`}</span> : <span className="tone-jade">已结清</span>}
-                </div>
+              <div className="order-detail__glance-money">
+                <span className="cell__lbl">订单总额</span>
+                <b>{`¥${fmtMoney(order.total)}`}</b>
+                {order.due_total > 0.001 ? <span className="tone-amber">{`还差 ¥${fmtMoney(order.due_total)}`}</span> : <span className="tone-jade">已结清</span>}
               </div>
             </div>
-            <div style={{ marginTop: 'var(--sp-4)' }}><OrderTrack status={order.status} statusLabel={order.status_label} /></div>
+            <div className="order-detail__track"><OrderTrack status={order.status} statusLabel={order.status_label} /></div>
             {order.customer_id ? (
-              <div className="cluster" style={{ marginTop: 'var(--sp-3)' }}>
+              <div className="cluster order-detail__links">
                 <button className="btn btn--sm" type="button" onClick={() => navigate(`/customers/${order.customer_id}`)}>看客户档案</button>
                 {order.credentials?.length ? (
                   <button className="btn btn--sm" type="button" onClick={() => navigate(`/vault?customer=${order.customer_id}`)}>{`这个客户有 ${order.credentials.length} 条登录凭证`}</button>

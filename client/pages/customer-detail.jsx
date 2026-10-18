@@ -77,19 +77,19 @@ export default function CustomerDetailPage({ route, navigate, onReload, reloadKe
 
   return (
     <div className="customer-detail">
-      <header className="customer-detail__head">
-        <div className="cluster" style={{ gap: 'var(--sp-3)', alignItems: 'center' }}>
+      <header className="app-page__head customer-detail__head">
+        <div className="customer-detail__identity">
           {customer.avatar
             ? <img className="avatar avatar--lg" src={customer.avatar} alt="" style={{ flex: 'none' }} />
             : <div className="avatar avatar--lg" style={{ flex: 'none' }}>{(customer.name || '?').slice(0, 1)}</div>}
-          <div className="pagehead__txt">
+          <div className="app-page__title">
             <h1>{customer.name}</h1>
-            <p className="pagehead__sub">
+            <p>
               {`${summary.order_count} 张单 · 累计 ¥${fmtMoney(summary.order_total)}${summary.due_total > 0.001 ? ` · 还欠 ¥${fmtMoney(summary.due_total)}` : ' · 已结清'}`}
             </p>
           </div>
         </div>
-        <div className="customer-detail__actions">
+        <div className="app-page__actions customer-detail__actions">
           <button className="refactor-button refactor-button--primary" type="button" onClick={() => openOrderComposer({ navigate, onReload: reload }, { presetCustomer: customer.id })}>
             <Plus {...iconProps(14)} />给 TA 开单
           </button>

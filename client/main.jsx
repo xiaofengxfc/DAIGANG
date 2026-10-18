@@ -166,8 +166,9 @@ function Gate({ setup, onDone }) {
             <small>本机私有 · 数据不出这台电脑</small>
           </span>
         </div>
+        {/* 不再放「安全登录 / 首次设置」那行小标签：一个登录页只需要
+            一句标题和一句说明，多一层小字只是在抢注意力。 */}
         <div className="refactor-gate__heading">
-          <span className="refactor-eyebrow">{setup ? '首次设置' : '安全登录'}</span>
           <h1>{setup ? '把帐桌支起来' : '欢迎回来'}</h1>
           <p>{setup ? '设置店铺信息和登录凭证，马上开始整理业务。' : '输入登录密码，继续处理今天的订单。'}</p>
         </div>

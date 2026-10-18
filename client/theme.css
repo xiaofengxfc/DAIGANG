@@ -884,10 +884,26 @@ a:hover {
   border-radius: 20px 0 0 20px;
   background: var(--surface);
   box-shadow: var(--shadow-drawer);
+  /* 旧规则里这里有一层 blur。抽屉是"一块推到眼前的白板"，
+     背后被糊掉的页面只会让人分不清自己在哪一层。 */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .drawer__head {
+  padding: 18px 22px;
   border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.drawer__body {
+  padding: 20px 22px 24px;
+}
+
+.drawer__foot {
+  padding: 14px 22px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
 }
 
 .drawer__title {
@@ -921,7 +937,10 @@ a:hover {
 .drawer::backdrop,
 .modal::backdrop {
   background: rgba(0, 0, 0, 0.32);
-  backdrop-filter: blur(2px);
+  /* 遮罩不再糊背景：糊一层会把后面的表格变成色块，
+     反而比直接压暗更花。压暗 32% 已经足够把注意力收到浮层上。 */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .toast {
@@ -1290,6 +1309,31 @@ a:hover {
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.12;
+}
+
+/* 头像 + 姓名 + 一行账目：头像是身份的一部分，和标题同一条基线 */
+.customer-detail__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.customer-detail__identity .avatar--lg {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--surface-3);
+  color: var(--ink-2);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .customer-detail__identity {
+    align-items: flex-start;
+  }
 }
 
 .orders-page__head p,
@@ -1890,6 +1934,74 @@ a:hover {
 }
 
 /* ============================================================
+   订单详情：抬头说「哪一单」，摘要卡说「现在到哪、钱还差多少」
+
+   上一版这里把单号、标题、客户、游戏在抬头和第一张卡里各写了一遍 ——
+   同一屏里读两遍同一句话，还占掉了首屏一半的高度。现在抬头负责身份，
+   卡里只剩状态、交付时间和金额，进度条紧跟其后。
+   ============================================================ */
+
+.order-detail__summary .panel__body {
+  display: grid;
+  gap: 18px;
+}
+
+.order-detail__glance {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px 24px;
+}
+
+.order-detail__glance-status {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.order-detail__glance-money {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  text-align: right;
+}
+
+.order-detail__glance-money b {
+  color: var(--ink);
+  font-family: var(--font-fig);
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.order-detail__glance-money span:last-child {
+  font-size: var(--fs-xs);
+}
+
+/* 进度条下面再隔一层，和金额区分开 */
+.order-detail__track {
+  padding-top: 2px;
+}
+
+.order-detail__links {
+  padding-top: 2px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+/* 详情页的两栏：左边明细与进度（宽），右边钱与备注（窄）。
+   窄屏折成一栏 —— 这一条旧版靠 app.css 的 .split 断点，这里只补缺口。 */
+@media (max-width: 980px) {
+  .order-detail__glance-money {
+    justify-items: start;
+    text-align: left;
+  }
+}
+
+/* ============================================================
    登录页：一张居中的白卡，没有网格底纹
    ============================================================ */
 
@@ -1914,19 +2026,34 @@ a:hover {
 }
 
 .refactor-gate__heading {
-  margin: 32px 0 22px;
+  margin: 30px 0 24px;
 }
 
 .refactor-gate h1 {
-  margin-top: 6px;
+  margin: 0;
   font-size: 30px;
   font-weight: 600;
   letter-spacing: -0.03em;
+  line-height: 1.15;
 }
 
 .refactor-gate__heading p {
+  margin: 8px 0 0;
   color: var(--ink-2);
   font-size: var(--fs-sm);
+  line-height: 1.55;
+}
+
+/* 表单：字段之间留 14px，首次设置的两列在窄屏折成一列（styles.css 已有断点）。 */
+.refactor-form {
+  gap: 14px;
+}
+
+.refactor-gate__foot {
+  margin: 22px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  line-height: 1.6;
 }
 
 .refactor-eyebrow {
@@ -2126,3 +2253,460 @@ a:hover {
     padding-right: 108px;
   }
 }
+
+/* ============================================================
+   开单台 / 报价单：两个抽屉内部的同一套收口
+
+   这两处是"勾服务项"的工作面，一屏要扫几十行。上一版给每行加了
+   左侧 3px 彩色竖条（选中态），给每个分类标题也加了一条 ——
+   几十行叠起来就是一面竖条纹墙，而且颜色和"主按钮"抢注意力。
+   现在选中只靠"浅灰底 + 勾选框"，颜色只留给价格数字。
+   ============================================================ */
+
+/* 分类标题：去掉那条竖线，靠字重和一条极细的分隔线分组 */
+.pickgroup__name::before {
+  content: none;
+}
+
+.pickgroup__head {
+  padding: 9px 14px 8px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.pickgroup__name {
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+/* 选择面板：一块浅灰凹槽，不是一张带边框的小卡片 */
+.picker {
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--surface-2);
+}
+
+.picker__foot {
+  padding: 9px 14px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-3);
+}
+
+.pickrow {
+  padding: 10px 14px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.pickrow:first-child {
+  border-top: 0;
+}
+
+.pickrow:hover {
+  background: var(--surface-2);
+}
+
+/* 选中：浅灰底 + 左侧 2px 墨线（不是彩色块）。
+   底色已经能说明"选了"，墨线只是让滚动时更容易扫到边界。 */
+.pickrow--on,
+.pickrow--on:hover {
+  background: var(--surface-2);
+  box-shadow: inset 2px 0 0 0 var(--ink);
+}
+
+.pickrow__name {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.pickrow__fig {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.pickrow__meta {
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+
+.pickrow__gain {
+  border-color: var(--line);
+  background: var(--surface-3);
+  color: var(--ink-2);
+}
+
+/* 「已选 N」：墨黑药丸，和主按钮同一个色，面积小但一眼能找到 */
+.pickcount {
+  min-width: 20px;
+  padding: 0 7px;
+  background: var(--ink);
+  color: var(--bg);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* 报价单预览：去掉顶部那条 2px 彩线，改成一张普通白卡 + 细描边 */
+.quote-sheet {
+  border: 1px solid var(--line);
+  border-top: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: 18px;
+}
+
+.quote-sheet__totalfig {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 结算行（两个抽屉的"金额"区）：一行灰色小字，不要线条 */
+.sumline {
+  border-top-color: var(--line);
+}
+
+.sumline__v {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 抽屉内的分区标题：比正文重一档，但不画下划线 —— 
+   抽屉里已经有抽屉头、面板边界两条线了。 */
+.drawer .sechead {
+  border-bottom-color: transparent;
+  padding-bottom: 0;
+  margin-bottom: 2px;
+}
+
+.drawer .sechead h2,
+.drawer .sechead h3 {
+  color: var(--ink);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.drawer .sechead__note {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+/* 抽屉里的两栏（报价单：左边挑服务、右边预览）在中等宽度就折成一栏，
+   否则 760px 宽减去两侧内边距，每边只剩 340px，服务名会被截断。 */
+@media (max-width: 900px) {
+  .drawer .split {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+}
+
+@media (max-width: 560px) {
+  .drawer__head {
+    padding: 14px 16px;
+  }
+
+  .drawer__body {
+    padding: 16px;
+  }
+
+  .drawer__foot {
+    padding: 12px 16px;
+  }
+
+  .formgrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* ============================================================
+   基础控件：表格 / 列表行 / 空态 / 提示 / 分区标题
+
+   这一版把"每个元件都带一圈边界"收敛成"同一屏只有三种线"：
+     1. 卡片本身的边界 —— 靠画布色差，不画线；
+     2. 表格与列表的行分隔 —— 一条 1px 极浅灰；
+     3. 输入框 —— 浅灰凹槽，只在焦点时出边。
+   除此之外的线（分区标题下划线、提示条描边、空态虚线框）全部去掉。
+   ============================================================ */
+
+/* ---------- 表格：表头是灰底条，行是白底，只有行间一条细线 ---------- */
+
+.tbl {
+  font-size: var(--fs-base);
+}
+
+.tbl th {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.tbl td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tbl tbody tr:hover {
+  background: var(--surface-2);
+}
+
+.tbl tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.tbl td.num,
+.tbl th.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 卡片里直接放表格时，表头要有自己的一条上圆角，否则会顶破卡片边角 */
+.panel .tbl:first-child th:first-child {
+  border-top-left-radius: var(--r-card);
+}
+
+.panel .tbl:first-child th:last-child {
+  border-top-right-radius: var(--r-card);
+}
+
+/* ---------- 列表行（凭证 / 客户 / 报价单项）：无边框，靠留白和悬停分组 ---------- */
+
+.itemlist {
+  border-radius: var(--r-ctl);
+  overflow: hidden;
+}
+
+.item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+}
+
+.item:hover {
+  background: var(--surface-2);
+}
+
+.item:last-child {
+  border-bottom: 0;
+}
+
+.item__title {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.item__meta {
+  margin-top: 2px;
+  color: var(--ink-3);
+}
+
+.item__fig {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 头像：不再是"带描边的小方块"，而是一块浅灰圆角片 */
+.avatar {
+  border: 0;
+  border-radius: var(--r-ctl);
+  background: var(--surface-3);
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+/* ---------- 空态：一句话 + 一个动作，不要虚线框和插图 ---------- */
+
+.empty {
+  padding: 40px 20px;
+  gap: 10px;
+  color: var(--ink-2);
+}
+
+.empty__mark {
+  width: 36px;
+  height: 36px;
+  margin-bottom: 2px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--ink-3);
+}
+
+.empty__title {
+  color: var(--ink);
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+.empty__body {
+  max-width: 42ch;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  line-height: 1.65;
+}
+
+.empty__steps {
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+
+/* ---------- 提示条：一块浅灰底，不描边、不带投影 ---------- */
+
+.note {
+  padding: 11px 14px;
+  border: 0;
+  border-radius: var(--r-ctl);
+  background: var(--surface-2);
+  box-shadow: none;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+
+/* 三种语气只换文字色和左侧极小的一点底色，不整块染色 */
+.note--warn {
+  background: var(--surface-2);
+  color: var(--amber-ink);
+}
+
+.note--alert {
+  background: var(--oxblood-bg);
+  color: var(--oxblood-ink);
+}
+
+.note--ok {
+  background: var(--jade-bg);
+  color: var(--jade-ink);
+}
+
+/* ---------- 分区标题：字重分组，不画下划线 ---------- */
+
+.sechead {
+  padding-bottom: 0;
+  margin-bottom: 10px;
+  border-bottom: 0;
+  gap: 10px;
+}
+
+.sechead h2,
+.sechead h3 {
+  color: var(--ink);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.sechead__note {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+/* 抽屉里已经有一条抽屉头分隔线，分区标题更不能再画一条 */
+.drawer .sechead {
+  border-bottom: 0;
+}
+
+/* ---------- 字段标签：一行小字，必填用星号而不是红块 ---------- */
+
+.field > .lbl {
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.field > .lbl .req {
+  color: var(--ink-3);
+}
+
+.field .hint,
+.field .err {
+  line-height: 1.5;
+}
+
+.field .err {
+  color: var(--oxblood-ink);
+}
+
+/* ---------- 到期药丸：只剩文字和一点底色，不再描边 ---------- */
+
+.duepill {
+  padding: 1px 7px;
+  border: 0;
+  background: var(--surface-2);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.duepill--soon {
+  border: 0;
+  background: var(--amber-bg);
+  color: var(--amber-ink);
+}
+
+.duepill--bad {
+  border: 0;
+  background: var(--oxblood-bg);
+  color: var(--oxblood-ink);
+}
+
+/* ---------- 状态灯：一个小圆点，不要外面的光晕 ---------- */
+
+.lamp::before {
+  width: 6px;
+  height: 6px;
+  box-shadow: none;
+}
+
+/* ---------- 键值表（详情页右栏）：标签一档灰，值主动对齐 ---------- */
+
+.kv {
+  gap: 9px 20px;
+}
+
+.kv dt {
+  color: var(--ink-3);
+  font-size: var(--fs-sm);
+}
+
+.kv dd {
+  color: var(--ink);
+  font-size: var(--fs-sm);
+}
+
+/* ---------- 纯文本块（报价单文字版）：等宽、浅灰底、可整段复制 ---------- */
+
+pre.plaintext {
+  padding: 14px 16px;
+  border: 0;
+  border-radius: var(--r-ctl);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+}
+
+/* ---------- 分段控件：灰底药丸，选中项是白片 ---------- */
+
+.seg,
+.refactor-segmented {
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  padding: 3px;
+}
+
+.seg > button,
+.seg > .seg__item {
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+
+.seg > button[aria-pressed='true'],
+.seg > button.is-on,
+.seg > .seg__item[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
