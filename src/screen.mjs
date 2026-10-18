@@ -804,7 +804,7 @@ export function grabScreen(outPath, { timeoutMs = 15000, maxWidth = 0, allowUnfo
       /* 打不开就当没有 */
     }
     const finish = (r) => {
-      for (const p of [logPath]) {
+      for (const p of [logPath, `${outPath}.error`]) {
         try {
           fs.unlinkSync(p)
         } catch {
@@ -849,9 +849,42 @@ export function grabScreen(outPath, { timeoutMs = 15000, maxWidth = 0, allowUnfo
       clearTimeout(timer)
       finish({ ok: false, error: `截不了屏：${err.message}` })
     })
-    child.on('close', () => {
+    child.on('close', (code) => {
       clearTimeout(timer)
-      if (!fs.existsSync(outPath)) return finish({ ok: false, error: '截屏没有输出（可能被系统权限拦了）' })
+      /* grab.ps1 在「窗口不在前台、又读不到它自己的像素」时会**故意不输出图片**
+         并以 6 退出，同时把错误码写进 <out>.error。为什么不在那边退回从屏幕拷：
+         那样会静默交出一张看着正常、其实是桌面的图（比报错糟得多）。
+         所以先读这个码，再判断文件在不在 —— 否则用户只会看到
+         「截屏没有输出（可能被系统权限拦了）」，完全猜不到真正该做什么。 */
+      let refused = ''
+      try {
+        refused = fs.readFileSync(`${outPath}.error`, 'utf8').trim()
+      } catch {
+        refused = ''
+      }
+      if (!fs.existsSync(outPath)) {
+        if (code === 6 || refused === 'window_pixels_unavailable') {
+          return finish({
+            ok: false,
+            code: 'window_pixels_unavailable',
+            error:
+              '游戏窗口不在前台，而系统不允许读取它自己的像素（PrintWindow 和 BitBlt 都没成功），'
+              + '所以没有截图 —— 硬要抓的话只会抓到盖在上面的桌面。'
+              + '把游戏切到前台再试，或者把游戏的显示模式改成「无边框窗口 / 窗口」。',
+          })
+        }
+        /* 最小化：窗口还在，只是被挪到屏幕外（-32000,-32000）。照那个矩形抓只会
+           得到一张黑图，下游的 detectBlank 会把它误诊成「独占全屏」，然后让用户
+           去改显示模式 —— 而真正要做的只是把窗口还原。单独一个码，话说准。 */
+        if (code === 7 || refused === 'window_minimized') {
+          return finish({
+            ok: false,
+            code: 'window_minimized',
+            error: '游戏窗口是最小化的，现在抓不到画面。把游戏窗口还原（点任务栏上的游戏）再试一次。',
+          })
+        }
+        return finish({ ok: false, error: '截屏没有输出（可能被系统权限拦了）' })
+      }
       /* 读一下 sidecar 元数据，搞清楚这张图是「怎么」来的。
          为什么需要：PrintWindow 对 DirectX 窗口可能返回成功但画的是桌面内容，
          光看 PNG 分不出来（它看起来完全正常）。调用方要靠 method / covered
@@ -1040,6 +1073,12 @@ function tally(session, frame, minVotes) {
   return { agreed, pending }
 }
 
+/** profile id → 界面上叫的名字（报错文案里用，别把 nte 这种 id 抛给用户） */
+function gameLabelOf(id) {
+  const p = profileForGame(id)
+  return (p.names && p.names[0]) || p.id
+}
+
 /**
  * 看一帧屏幕并投票。同一 id 连续调用，票数会累计。
  * 返回 { ok, resources, agreed, pending, hits, seen, size, engine }
@@ -1059,6 +1098,34 @@ export async function recognizeScreenOnce({
   // 认哪个游戏由调用方给（前端传的是**订单上选的游戏**）
   const profile = profileForGame(game)
   pruneSessions()
+
+  /* 抓图之前先确认「现在这个窗口是不是本单那个游戏」。
+   *
+   * 为什么必须查：抓图拿的是 activeWindow 的句柄（scree.mjs / grab.ps1 都靠它
+   * 决定裁哪块）。两个游戏同时开着、或者上一条流程刚切到另一个游戏时，句柄
+   * 属于**别人**，而这张图上的数字会被原封不动记到本单上 —— 认错的数字比
+   * 认不出来的数字糟得多，因为后者用户会去核对，前者不会。
+   *
+   * 句柄本身没有游戏标记，所以标记跟着「这次是为哪个游戏找的窗口」一起记
+   * （见 game-window.mjs 的 activeWindow.game）。 */
+  const win = activeGameWindow()
+  if (!win || !win.hwnd) {
+    return {
+      ok: false,
+      code: 'no_game_window',
+      error: `还没有切到${gameLabelOf(profile.id)}窗口，先点一次「识别画面」让它切过去。`,
+    }
+  }
+  if (win.game && win.game !== profile.id) {
+    return {
+      ok: false,
+      code: 'wrong_game_window',
+      error:
+        `现在要认的是${gameLabelOf(profile.id)}，但抓到的窗口属于${gameLabelOf(win.game)}`
+        + `${win.title ? `（${win.title}）` : ''}。屏幕识别一次只能跑一条，请等另一条流程结束，再重新点「识别画面」。`,
+    }
+  }
+
   // 截图落点：优先系统临时目录（纯 ASCII），写不进去再退 data/tmp。
   // 这一步要是写不了，整个识别就没法开始 —— 所以它必须有退路。
   const tmp = scratchFile('xfc-screen', '.png', { mode: 'ascii' })

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Camera, Eye, RefreshCw } from 'lucide-react'
+import { Camera, Eye, RefreshCw, Square } from 'lucide-react'
 import { api } from './lib/api.js'
 import { fmtQty } from './lib/formatters.js'
 import { RES_KEYS, buildResources, deltaText, joinResourceSections, parseResources, sectionText } from '../shared/resources.js'
@@ -39,6 +39,15 @@ const tinyStyle = { marginTop: '2px', opacity: '.85' }
 const tinyTopStyle = { marginTop: '4px', opacity: '.85' }
 const amberStyle = { marginTop: '2px' }
 const MAX_SCREEN_FRAMES = 8
+/**
+ * 「识别截图」能读多大的文件。
+ *
+ * 后端 /api/ocr 收 12MB（MAX_OCR_IMAGE_BYTES，见 src/config.mjs），以前这里却卡
+ * 1.5MB —— 那是给头像/图标那种小图定的量。2K 游戏截图一张原始 PNG 就 2~3MB，
+ * 于是用户选了一张完全正常的截图，界面直接弹「请压到 1.5MB 以内」，
+ * 而同一张图改名走别的入口却认得出来。两边对齐到后端那个上限。
+ */
+const MAX_PICKED_SCREENSHOT_BYTES = 12 * 1024 * 1024
 
 /**
  * 外壳：决定渲染一块还是多块。自己不带 hook（条件 return 不能夹在 hook 中间），
@@ -101,12 +110,31 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
     return () => {
       alive = false
       for (const side of ['before', 'after']) {
-        if (watchers.current[side]) watchers.current[side].stop = true
+        const token = watchers.current[side]
+        if (!token) continue
+        token.stop = true
+        // 顺便把正在等的定时器解开：不然组件都卸载了，流程还要把那段等待睡完
+        if (token.wake) token.wake()
       }
     }
   }, [])
 
   const fileRefOf = (side) => (side === 'before' ? fileBefore : fileAfter)
+
+  /**
+   * 停止正在跑的「识别画面」。
+   *
+   * 以前只有卸载时才会让流程停 —— 也就是说用户点错了、或者发现自己看错了仓库，
+   * 只能等它把两段各 8 帧全跑完（一分多钟），期间游戏一直被抢着窗口。
+   * 现在给了按钮：置 stop、立刻解开正在等待的定时器，流程会在下一个检查点
+   * 按 ESC 返回并按原来的 finally 收尾（释放租约、把前台还给浏览器）。
+   */
+  function stopScreen(side) {
+    const token = watchers.current[side]
+    if (!token) return
+    token.stop = true
+    if (token.wake) token.wake()
+  }
 
   const patch = (side, key, value) => {
     setSides((prev) => ({ ...prev, [side]: { ...prev[side], [key]: value } }))
@@ -125,8 +153,8 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
 
   async function recognizeShot(side, file) {
     if (!file) return
-    if (file.size > 1.5 * 1024 * 1024) {
-      toast('截图请压到 1.5MB 以内', 'err', 3600)
+    if (file.size > MAX_PICKED_SCREENSHOT_BYTES) {
+      toast('截图请压到 12MB 以内', 'err', 3600)
       return
     }
     setBusy((prev) => ({ ...prev, [side]: 'shot' }))
@@ -213,10 +241,31 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
       return
     }
     const token = { stop: false }
+    // 中途「停止」要能立刻打断等待：流程里有好几段 500~1400ms 的固定等待，
+    // 只设 stop 标记的话，用户点了停止还得盯着转圈好几秒才停。
+    // 所以等待统一走这个 wait()，停止时顺手把当前那个定时器提前解开。
+    token.wake = null
+    const wait = (ms) =>
+      new Promise((resolve) => {
+        const timer = setTimeout(() => {
+          token.wake = null
+          resolve()
+        }, ms)
+        token.wake = () => {
+          token.wake = null
+          clearTimeout(timer)
+          resolve()
+        }
+      })
     watchers.current[side] = token
     setBusy((prev) => ({ ...prev, [side]: 'watch' }))
 
-    const sessionBase = `w${Date.now()}-${++sessionSeq.current}`
+    // 一条流程一个 id：服务端同时只允许一条「识别画面」跑（见 game-window.mjs
+    // 的 beginScreenFlow）。两条并发会互相抢窗口、按键打到别的游戏上，
+    // 认出来的数字还可能串到别的单上。id 同时当 session 前缀用。
+    const flowId = `w${Date.now()}-${++sessionSeq.current}`
+    const sessionBase = flowId
+    let flowHeld = false
     const sessions = []
     const got = {}
     const pending = {}
@@ -258,6 +307,11 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
 
     paintProgress(stages[0])
     try {
+      // 先拿流程租约：同一时刻只允许一条「识别画面」。两条并发会互相抢窗口，
+      // 而且认出来的数字可能串到别的单上 —— 那比认不出来糟得多。
+      const lease = await api.post('/api/ocr/screen/begin', { id: flowId, game: gameName })
+      if (!lease || !lease.ok) throw new Error((lease && lease.error) || '另有一条「识别画面」正在跑，等它结束再试')
+      flowHeld = true
       // 带上游戏名：切窗口是按游戏找的（鸣潮和异环的进程名/窗口标题都不一样）
       const focus = await api.post('/api/ocr/screen/focus', { game: gameName })
       if (!focus || !focus.ok) throw new Error((focus && focus.error) || `没有切换到${gameName}窗口`)
@@ -269,7 +323,7 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
         progressHint = `已切回${gameName}${focus.title ? `（${focus.title}）` : ''}，准备打开${stages[0].title}…`
       }
       // Give the restored game window a moment to repaint before capturing it.
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      await wait(500)
 
       for (const stage of stages) {
         if (token.stop) break
@@ -277,19 +331,19 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
         sessions.push(session)
         progressHint = `正在按 ${stage.key} 打开${stage.title}…`
         paintProgress(stage)
-        const opened = await api.post('/api/ocr/screen/key', { key: stage.key })
+        const opened = await api.post('/api/ocr/screen/key', { key: stage.key, flow: flowId })
         if (!opened || !opened.ok) throw new Error((opened && opened.error) || `没有打开${stage.title}`)
         pageOpen = true
         returnedToGame = false
         progressHint = `已打开${stage.title}，等待画面稳定…`
         paintProgress(stage)
-        await new Promise((resolve) => setTimeout(resolve, stage.openDelay))
+        await wait(stage.openDelay)
 
         // 这一阶段「认全了」的那一帧的凭据。内层循环一认满就 break，
         // 所以这里留下的就是那次真正被采纳的画面。
         let keeperToken = ''
         for (let attempt = 0; attempt < MAX_SCREEN_FRAMES && !token.stop; attempt++) {
-          const result = await api.post('/api/ocr/screen', { session, stage: stage.id, min_votes: 2, game: gameName, keys: stage.resources })
+          const result = await api.post('/api/ocr/screen', { session, stage: stage.id, min_votes: 2, game: gameName, keys: stage.resources, flow: flowId })
           if (result.engine) engine = result.engine
           if (result.timed_out) timedOutFrames += 1
           if (Array.isArray(result.hits)) {
@@ -315,7 +369,7 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
             keeperToken = result.frame_token || ''
             break
           }
-          if (attempt + 1 < MAX_SCREEN_FRAMES) await new Promise((resolve) => setTimeout(resolve, 850))
+          if (attempt + 1 < MAX_SCREEN_FRAMES) await wait(850)
         }
 
         if (token.stop) break
@@ -327,24 +381,26 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
 
         /* 认全了就记下这一帧的凭据（不取走）。
            真正的图还在服务端暂存着，等用户点保存时再去取；用户不保存就自己过期，
-           所以不会在 uploads 里留下没人引用的孤儿截图。 */
-        if (keeperToken) rememberFrameToken(orderId, side, keeperToken)
+           所以不会在 uploads 里留下没人引用的孤儿截图。
+           gameName 不能省：一张单可能同时有鸣潮和异环，两边都记 before/after，
+           少了游戏这一维就会互相覆盖（见 screen-frames.js）。 */
+        if (keeperToken) rememberFrameToken(orderId, side, keeperToken, gameName)
 
         // ESC after each successful page, and the finally block handles every failure path.
-        await api.post('/api/ocr/screen/key', { key: 'ESC' })
+        await api.post('/api/ocr/screen/key', { key: 'ESC', flow: flowId })
         pageOpen = false
         returnedToGame = true
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        await wait(500)
       }
     } catch (err) {
       stoppedReason = err.message || '屏幕识别流程失败。'
     } finally {
       if (pageOpen) {
         try {
-          await api.post('/api/ocr/screen/key', { key: 'ESC' })
+          await api.post('/api/ocr/screen/key', { key: 'ESC', flow: flowId })
           pageOpen = false
           returnedToGame = true
-          await new Promise((resolve) => setTimeout(resolve, 450))
+          await wait(450)
         } catch (err) {
           escError = `未能自动按 ESC 返回游戏：${err.message || '按键发送失败'}`
         }
@@ -362,15 +418,44 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
       // 省得每次都要手动 Alt+Tab 回来。失败只提示，不影响识别结果。
       if (focused) {
         try {
-          const back = await api.post('/api/ocr/screen/return')
+          const back = await api.post('/api/ocr/screen/return', { flow: flowId })
           if (back && back.ok === false) backError = `没能自动切回浏览器：${back.error || '未知原因'}`
         } catch (err) {
           backError = `没能自动切回浏览器：${err.message || '切回失败'}`
         }
       }
+      // 租约最后放：上面按 ESC、切回浏览器都还要用 activeWindow。
+      // 放到这里就算中途抛异常也会释放，否则后面的识别会被一直挡在「上一条还没结束」。
+      if (flowHeld) {
+        try {
+          await api.post('/api/ocr/screen/end', { id: flowId })
+        } catch {
+          /* 服务端 3 分钟后自己过期，不至于把后续识别锁死 */
+        }
+      }
     }
 
-    if (token.stop) return
+    if (token.stop) {
+      // 用户点了停止：别静默返回 —— 界面会停在「识别中…」，看着像卡住了。
+      // 说清楚停在哪、已经认到的值留着，并交代窗口已经还回去了。
+      const done = keys.filter((key) => got[key] !== undefined)
+      setNotes((prev) => ({
+        ...prev,
+        [side]: (
+          <>
+            <strong>{`已停止识别${done.length ? `，已认到的 ${done.join('、')} 保留着` : ''}。`}</strong>
+            <div className="tiny" style={tinyTopStyle}>
+              {returnedToGame ? '已按 ESC 返回游戏。' : '游戏界面可能还开着，需要时手动按一下 ESC。'}
+              {focused ? '窗口已还给浏览器。' : ''}
+            </div>
+            {escError ? <div className="tiny tone-amber" style={amberStyle}>{escError}</div> : null}
+            {backError ? <div className="tiny tone-amber" style={amberStyle}>{backError}</div> : null}
+          </>
+        ),
+      }))
+      toast('已停止识别', 'ok', 2600)
+      return
+    }
     const count = keys.filter((key) => got[key] !== undefined).length
     const small = Object.keys(smallText)
     const complete = count === keys.length && !stoppedReason && !escError
@@ -419,7 +504,7 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
     try {
       const r = await api.post('/api/ocr/screen/shot', { game: gameName, key: 'F2' })
       if (!r || !r.frame_token) throw new Error('没有拿到截图的凭据')
-      rememberFrameToken(orderId, side, r.frame_token)
+      rememberFrameToken(orderId, side, r.frame_token, gameName)
       const kb = r.bytes ? `${Math.round(r.bytes / 1024)}KB` : ''
       const win = r.window && r.window.title ? `（${r.window.title}）` : ''
       toast(`已按 F2 截下游戏画面${win}${kb ? ` · ${kb}` : ''}，记下这条就会存进去`, 'ok', 4200)
@@ -464,6 +549,7 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
             type="button"
             title={`切回${gameName}按 F2 截一张画面，只留图不认数字（记下这条进度时一起存）`}
             data-loading={busy[side] === 'grab' ? '1' : undefined}
+            disabled={busy[side] === 'watch'}
             onClick={() => grabShot(side)}
           >
             <Camera size={14} strokeWidth={1.8} absoluteStrokeWidth aria-hidden />
@@ -474,11 +560,24 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
             type="button"
             title={`选一张游戏截图，自动认 ${keys.join(' / ')}`}
             data-loading={busy[side] === 'shot' ? '1' : undefined}
+            disabled={busy[side] === 'watch'}
             onClick={() => fileRefOf(side).current?.click()}
           >
             <Eye size={14} strokeWidth={1.8} absoluteStrokeWidth aria-hidden />
             识别截图
           </button>
+          {/* 停止只在流程跑着的时候出现：平时放一个永远灰着的按钮只会让人分心 */}
+          {busy[side] === 'watch' ? (
+            <button
+              className="btn btn--sm btn--danger"
+              type="button"
+              title="停下这次识别：按 ESC 回游戏、把窗口还给你，已经认到的值留着"
+              onClick={() => stopScreen(side)}
+            >
+              <Square size={13} strokeWidth={2} absoluteStrokeWidth aria-hidden />
+              停止
+            </button>
+          ) : null}
         </div>
         <div className="cluster" style={{ gap: '6px', flexWrap: 'wrap' }}>
           {keys.map((key) => (

@@ -225,7 +225,9 @@ export async function run() {
   /* ---------- 识别截图：暂存帧 → 取回 → 挂到进度上 ---------- */
   // 「识别画面」抓到的帧现在会暂存起来，用户点保存时取回、压缩、上传，
   // 最后挂到这条进度的 media 上（时间线据此渲染缩略图并支持下载）。
-  // 这里守住「帧取得到 / 取走即失效 / 过期给 404 而不是 500」。
+  // 这里守住「帧取得到 / 读不删 / 释放后失效 / 过期给 404 而不是 500」。
+  // 「读不删」是后改的：取帧和上传是两件事，压缩或上传失败时用户点重试
+  // 还要能再取一次，所以删除必须由调用方在上传成功后显式发起。
   {
     r = await api('GET', '/api/ocr/screen/frame')
     ok('取帧不给 token 时报 400', r.status === 400 && r.body.code === 'missing_token', r.body)
@@ -247,7 +249,19 @@ export async function run() {
     ok('取帧不允许缓存', String(got.headers.get('cache-control')).includes('no-store'), got.headers.get('cache-control'))
 
     const again = await fetch(`${BASE}/api/ocr/screen/frame?token=${encodeURIComponent(token)}`, { headers: { cookie } })
-    ok('同一帧取第二次就没了（取走即删）', again.status === 404, again.status)
+    ok('同一帧可以再取一次（上传失败要能重试，读不删）', again.status === 200, again.status)
+
+    r = await api('DELETE', `/api/ocr/screen/frame?token=${encodeURIComponent(token)}`)
+    ok('显式释放这一帧', r.status === 200 && r.body.released === true, r.body)
+
+    const gone = await fetch(`${BASE}/api/ocr/screen/frame?token=${encodeURIComponent(token)}`, { headers: { cookie } })
+    ok('释放之后再取就没了', gone.status === 404, gone.status)
+
+    r = await api('DELETE', `/api/ocr/screen/frame?token=${encodeURIComponent(token)}`)
+    ok('重复释放不报错（只是 released:false）', r.status === 200 && r.body.released === false, r.body)
+
+    r = await api('DELETE', '/api/ocr/screen/frame')
+    ok('释放不给 token 时报 400', r.status === 400 && r.body.code === 'missing_token', r.body)
 
     // 这里面是游戏画面，未登录绝不能取到
     const anonFrame = await fetch(`${BASE}/api/ocr/screen/frame?token=x`)
@@ -712,6 +726,68 @@ export async function run() {
         Boolean(afterHole) && Math.abs(afterHole.x - atB) < 60,
         afterHole && Math.round(afterHole.x)
       )
+    }
+
+    /* ---- grab.ps1：读不到窗口像素时**不许**退回整屏抓取 ----
+       这条对应一个会静默存错图的坑：窗口不在前台时，PrintWindow / BitBlt 全
+       失败，老代码把 $method 落回 'CopyFromScreen' —— 那是从**屏幕**上拷，
+       拷到的是盖在窗口上面的浏览器。图看着完全正常，covered 判据也过（窗口
+       没占满屏），于是被当成游戏截图存进时间线。
+
+       现在：三种办法都失败就 exit 6 + 写 <out>.error，由 src/screen.mjs 翻成
+       一句人话。这里守住三件事，任何一件被改回去都算回归：
+         · 文件必须是纯 ASCII（PowerShell 5.1 拿 GBK 解无 BOM 的 UTF-8，
+           中文注释会把后面的引号吃掉，整个脚本解析失败）；
+         · exit 6 与错误码仍在；
+         · '$method = ''CopyFromScreen''' 只出现一次，且在 if (-not $method) 之后。 */
+    {
+      const raw = fs.readFileSync(path.join(ROOT, 'scripts', 'grab.ps1'))
+      const nonAscii = [...raw].filter((b) => b > 0x7f)
+      ok('grab.ps1 是纯 ASCII（否则 GBK 解码会把引号吃掉）', nonAscii.length === 0, `${nonAscii.length} 个非 ASCII 字节`)
+
+      const text = raw.toString('utf8')
+      ok('读不到窗口像素时以 exit 6 结束', /exit\s+6/.test(text) && text.includes('window_pixels_unavailable'))
+
+      // 只数**有效赋值**（跳过注释行），再比行号 —— 注释里也写着这串字，
+      // 用 indexOf 会被注释骗过去。
+      const lines = text.split('\n')
+      const guardLine = lines.findIndex((line) => line.includes('if (-not $method)'))
+      const assignLines = lines
+        .map((line, i) => ({ line: line.trim(), i }))
+        .filter(({ line }) => !line.startsWith('#'))
+        .filter(({ line }) => /\$method\s*=\s*'CopyFromScreen'/.test(line))
+        .map(({ i }) => i)
+      const onlyBehindGuard = assignLines.length === 1 && guardLine > 0 && assignLines[0] > guardLine
+      ok('CopyFromScreen 只在「没选过方法」的兜底分支里赋值（catch 里不许回退）', onlyBehindGuard, `${assignLines.length} 处有效赋值，兜底在第 ${guardLine + 1} 行`)
+
+      // 最小化的窗口也会返回一个「有面积」的矩形，只是原点在 (-32000,-32000)。
+      // 照那个矩形抓就是一张黑图，下游会把它误诊成「独占全屏」。要单独报出来。
+      ok('最小化的窗口单独报错（exit 7 / window_minimized）', /exit\s+7/.test(text) && text.includes('window_minimized'))
+      const minimizedAt = text.indexOf('window_minimized')
+      const createAt = text.indexOf('New-Object System.Drawing.Bitmap')
+      ok('最小化判断在建位图之前', minimizedAt > 0 && createAt > minimizedAt, `minimized@${minimizedAt} create@${createAt}`)
+    }
+
+    /* ---------- 找不到窗口时，两条路径说同一套话 ----------
+       focusGameWindow 会把 ps1 的 code / integrity / seen 翻成人话，而
+       findGameWindow 曾经只丢一句 stderr —— 偏偏 find 是「抢焦点失败」时唯一的
+       退路，用户在那里最需要知道为什么。以及那个 ps1 以前根本不报 seen。 */
+    {
+      const findPs1 = fs.readFileSync(path.join(ROOT, 'scripts', 'find-game-window.ps1'), 'utf8')
+      ok('find-game-window.ps1 报 seen（否则「进程名猜错」和「游戏没开」分不出来）', findPs1.includes('seen = @($seenGames)'))
+      ok('find-game-window.ps1 报 integrity（低完整性看不到提权的游戏）', findPs1.includes("integrity = $integrity") && findPs1.includes('S-1-16-4096'))
+      ok('find-game-window.ps1 是纯 ASCII', [...Buffer.from(findPs1)].filter((b) => b > 0x7f).length === 0)
+      const gw = fs.readFileSync(path.join(ROOT, 'src', 'game-window.mjs'), 'utf8')
+      const calls = (gw.match(/describeWindowFailure\(/g) || []).length
+      ok('两个入口共用同一套失败翻译（focus + find）', calls === 3, `${calls} 处（定义 1 + 调用 2）`)
+    }
+
+    /* ---------- 前端选图上限要和后端对齐 ----------
+       后端 /api/ocr 收 12MB，前端却卡 1.5MB —— 2K 游戏截图的原始 PNG 就 2~3MB，
+       用户选一张完全正常的截图会被直接拒掉。 */
+    {
+      const rf = fs.readFileSync(path.join(ROOT, 'client', 'resource-field.jsx'), 'utf8')
+      ok('「识别截图」的上限跟后端一致（12MB）', rf.includes('12 * 1024 * 1024') && !rf.includes('1.5 * 1024 * 1024'))
     }
   }
 
@@ -1624,6 +1700,76 @@ export async function run() {
   // 必须当成功返回：它是省一次 Alt+Tab 的便利步骤，不该让流程看起来失败。
   r = await api('POST', '/api/ocr/screen/return')
   ok('没有可返回的窗口时不算失败', r.status === 200 && r.body.ok === true, r.body)
+
+  /* ---------- 「识别画面」一次只能跑一条 ----------
+     整条流程靠 game-window.mjs 里那两个**进程级**变量（activeWindow /
+     previousWindow）串起来，而每个订单、每个游戏、每个标签页都能各自点
+     「识别画面」。两条并发会互相抢窗口、按键打到别的游戏上，认出来的数字
+     还会串到别的单上 —— 这比认不出来糟得多（认不出来用户会去核对）。
+
+     这里守住三件事：
+       · 第二条流程拿不到租约（409 screen_busy）；
+       · 同一条流程重复拿 = 续期，不报错；
+       · 不在任何流程里请求识别会被挡掉（409 screen_flow_gone）——
+         否则流程结束后仍能抓一帧屏幕，那一帧没有归属。 */
+  {
+    const { beginScreenFlow, endScreenFlow, touchScreenFlow, currentScreenFlow } = await import('../src/game-window.mjs')
+    // 纯函数那一层先验一轮，不依赖平台
+    const a = beginScreenFlow({ id: 'smoke-flow-a', game: 'wuwa' })
+    ok('第一条流程拿得到租约', a.ok === true && a.reused === false, a)
+    const b = beginScreenFlow({ id: 'smoke-flow-b', game: 'nte' })
+    ok('第二条流程被挡下并说清是谁在占用', b.ok === false && b.code === 'screen_busy' && b.active.id === 'smoke-flow-a', b)
+    ok('被挡时的报错是能照做的人话', /上一条/.test(String(b.error)) && /识别画面/.test(String(b.error)), b.error)
+    const again = beginScreenFlow({ id: 'smoke-flow-a', game: 'wuwa' })
+    ok('同一条流程重复申请 = 续期，不算冲突', again.ok === true && again.reused === true, again)
+    touchScreenFlow('smoke-flow-a')
+    ok('续期不改占用者', currentScreenFlow()?.id === 'smoke-flow-a', currentScreenFlow())
+    ok('别人拿着别的 id 解不开锁', endScreenFlow('smoke-flow-b') === false && currentScreenFlow()?.id === 'smoke-flow-a', currentScreenFlow())
+    ok('自己释放得掉', endScreenFlow('smoke-flow-a') === true && currentScreenFlow() === null, currentScreenFlow())
+
+    // HTTP 那一层：前端实际走的就是这三个接口
+    r = await api('POST', '/api/ocr/screen/begin', { id: 'smoke-http-a', game: 'wuwa' })
+    ok('开始一条流程', r.status === 200 && r.body.ok === true, r.body)
+
+    r = await api('POST', '/api/ocr/screen/begin', { id: 'smoke-http-b', game: 'nte' })
+    ok('第二条流程被 409 挡下（不是 500）', r.status === 409 && r.body.code === 'screen_busy', r.body)
+
+    r = await api('POST', '/api/ocr/screen', { session: 'smoke-http-b', game: 'nte', flow: 'smoke-http-b' })
+    ok('拿着别的流程的 id 去识别会被挡下', r.status === 409 && r.body.code === 'screen_busy', r.body)
+
+    r = await api('POST', '/api/ocr/screen', { session: 'smoke-http-a', game: 'wuwa' })
+    ok('不带流程 id 也挡（否则能蹭别人的租约抓一帧没归属的屏幕）', r.status === 409 && r.body.code === 'screen_busy', r.body)
+
+    r = await api('POST', '/api/ocr/screen/shot', {})
+    ok('流程正在跑时不允许抢窗口截图', r.status === 409 && r.body.code === 'screen_busy', r.body)
+
+    r = await api('POST', '/api/ocr/screen/end', { id: 'smoke-http-a' })
+    ok('释放租约', r.status === 200 && r.body.released === true, r.body)
+
+    r = await api('POST', '/api/ocr/screen', { session: 'smoke-http-b', game: 'nte' })
+    ok('没有流程在跑时拒绝识别（否则那一帧没有归属）', r.status === 409 && r.body.code === 'screen_flow_gone', r.body)
+
+    r = await api('POST', '/api/ocr/screen/end', { id: 'smoke-http-a' })
+    ok('重复释放不报错', r.status === 200 && r.body.released === false, r.body)
+  }
+
+  /* ---------- 「识别画面」能中途停止 ----------
+     以前只有组件卸载时才置 stop：用户点错了、或者发现自己选错了仓库，只能
+     等两段各 8 帧全跑完（一分多钟），期间游戏窗口一直被占着。
+
+     这里守的是**静态**约定，因为这条流程要真机和真游戏才跑得起来：
+       · 界面上有「停止」按钮，点到的是 stopScreen；
+       · 流程里的等待统一走 token.wake 能解开的 wait()，而不是裸 setTimeout ——
+         否则点了停止还要干等 500~1400ms；
+       · 停止后不是静默 return（那会让界面停在「识别中…」看着像卡死）。 */
+  {
+    const src = fs.readFileSync(path.join(ROOT, 'client', 'resource-field.jsx'), 'utf8')
+    ok('有「停止」按钮', /停止/.test(src) && /onClick=\{\(\) => stopScreen\(side\)\}/.test(src), '')
+    ok('停止会置 stop 并解开正在等待的定时器', /token\.stop = true[\s\S]{0,200}token\.wake\(\)/.test(src), '')
+    const rawSleeps = src.match(/setTimeout\(resolve\s*,/g) || []
+    ok('流程里的等待不再用裸 setTimeout（sleep 统一走可打断的 wait）', rawSleeps.length === 0, `${rawSleeps.length} 处`)
+    ok('停止后有交代（不是静默 return）', /已停止识别/.test(src), '')
+  }
 
   /* ---------- 退出与登录 ---------- */
   section('退出与重新登录')

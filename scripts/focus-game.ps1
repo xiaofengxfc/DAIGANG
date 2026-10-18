@@ -179,15 +179,16 @@ $previous = [GameWindowFocus]::GetForegroundWindow()
 # through. Measured here: without it the direct call AND the AttachThreadInput
 # retry were both refused ("focus_denied"), which made recognition and screenshots
 # impossible while the game sat right there on screen.
-# try/finally so a failure here can never leave ALT logically held down.
-try {
-  [WindowCapture]::TapAlt()
-  Start-Sleep -Milliseconds 30
-  [void][GameWindowFocus]::ShowWindowAsync($hwnd, 9) # SW_RESTORE
-  [void][GameWindowFocus]::SetForegroundWindow($hwnd)
-} finally {
-  try { [WindowCapture]::TapAlt() } catch { }
-}
+#
+# TapAlt() is already a complete press+release pair, so there is nothing to undo
+# afterwards. It used to be called again from a finally block "so ALT cannot be
+# left held down" -- but that fired a second, pointless ALT tap on every single
+# focus (and a third on the retry path below), which some games read as a menu
+# key. One tap per attempt is enough.
+[WindowCapture]::TapAlt()
+Start-Sleep -Milliseconds 30
+[void][GameWindowFocus]::ShowWindowAsync($hwnd, 9) # SW_RESTORE
+[void][GameWindowFocus]::SetForegroundWindow($hwnd)
 $foreground = [GameWindowFocus]::GetForegroundWindow()
 $focused = $foreground.ToInt64() -eq [Int64]$target.Hwnd
 

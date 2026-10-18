@@ -76,6 +76,28 @@ if ($WindowHandle -gt 0) {
   $w = $rect.Right - $rect.Left
   $h = $rect.Bottom - $rect.Top
   if ($w -lt 1 -or $h -lt 1) { throw 'Game window has no visible capture area' }
+  # A minimized window reports a real size but is parked far off-screen at
+  # (-32000, -32000). Capturing that rect yields black (or whatever the desktop
+  # has out there), and the caller would then diagnose "exclusive fullscreen"
+  # and tell the user to change the display mode -- for a window that is merely
+  # minimized. Refuse with its own code so the message can be right.
+  # Checked against the virtual screen so a legitimately negative origin
+  # (a monitor placed left of / above the primary one) is not rejected.
+  $onScreen = $false
+  try {
+    $vs = [System.Windows.Forms.SystemInformation]::VirtualScreen
+    $onScreen = ($rect.Left + $w -gt $vs.Left) -and ($rect.Left -lt $vs.Right) -and ($rect.Top + $h -gt $vs.Top) -and ($rect.Top -lt $vs.Bottom)
+  } catch {
+    $onScreen = $rect.Left -gt -30000 -and $rect.Top -gt -30000
+  }
+  if (-not $onScreen) {
+    $code = 'window_minimized'
+    try {
+      [IO.File]::WriteAllText("$Out.error", $code, (New-Object System.Text.UTF8Encoding($false)))
+    } catch { }
+    [Console]::Error.WriteLine($code)
+    exit 7
+  }
 } else {
   $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
   $x = $bounds.X
@@ -85,7 +107,11 @@ if ($WindowHandle -gt 0) {
 }
 
 $bmp = New-Object System.Drawing.Bitmap($w, $h, [System.Drawing.Imaging.PixelFormat]::Format24bppRgb)
-$method = 'CopyFromScreen'
+# '' = not decided yet. When the window is NOT in front and we cannot read its own
+# pixels, we must NOT fall back to CopyFromScreen: that copies from the SCREEN
+# (usually covered by the browser) and yields a plausible-looking desktop image.
+# ASCII only on purpose -- see the header note.
+$method = ''
 # How much of the desktop the capture rect covers. A window covering essentially
 # the whole screen cannot be told apart from "the whole screen", which matters
 # when we are NOT allowed to rely on focus (see the caller's -AllowUnfocused).
@@ -136,11 +162,32 @@ if ($canAskWindow) {
       }
     }
   } catch {
-    $method = 'CopyFromScreen'
+    # Previously this said $method = 'CopyFromScreen', which is exactly what must
+    # NOT happen: the window is not in front, so the screen area is covered by
+    # whatever is on top of it. Leave it unset and let the check below refuse.
+    $method = ''
   } finally {
     $g.ReleaseHdc($hdc)
     $g.Dispose()
   }
+}
+
+if ($canAskWindow -and -not $method) {
+  # We wanted the window's own pixels and all three ways failed (DirectX exclusive
+  # fullscreen, or the OS refused). Do NOT fall back to CopyFromScreen: silently
+  # storing a desktop screenshot is worse than an error. The caller turns this
+  # code into a user-facing message (<out>.error is read by src/screen.mjs).
+  $code = 'window_pixels_unavailable'
+  try {
+    [IO.File]::WriteAllText("$Out.error", $code, (New-Object System.Text.UTF8Encoding($false)))
+  } catch { }
+  $bmp.Dispose()
+  [Console]::Error.WriteLine($code)
+  exit 6
+}
+
+if (-not $method) {
+  $method = 'CopyFromScreen'
 }
 
 if ($method -eq 'CopyFromScreen') {

@@ -10,9 +10,9 @@ import { ensureVisionStarted, probeVisionHealth, resetVisionBlock, stopVisionSid
 import { startVisionDependencyInstall, visionDependencyInstallStatus, visionDependencyStatus } from '../vision-deps.mjs'
 import { installOptions, installEngine, installStatus, extractorStatus, releasePage, INSTALL_SPECS, engineHealth, cleanupTmp } from '../ocr-install.mjs'
 import { recognizeScreenOnce, recognizeImageFile, resetVotes, screenAvailable, templateStatus, loadTemplates, extractIconTemplate, screenResourcesFor, templateFileFor, SCREEN_RESOURCES, MIN_SCORE, probeIcons } from '../screen.mjs'
-import { takeFrame } from '../screen-stash.mjs'
+import { peekFrame, releaseFrame } from '../screen-stash.mjs'
 import { profileForGame } from '../../shared/game-profiles.js'
-import { focusGameWindow, returnToPreviousWindow, sendGameKey } from '../game-window.mjs'
+import { focusGameWindow, returnToPreviousWindow, sendGameKey, beginScreenFlow, endScreenFlow, touchScreenFlow, currentScreenFlow } from '../game-window.mjs'
 import { captureGameFrame } from '../game-shot.mjs'
 import { decodePNG, encodePNG } from '../imgmatch.mjs'
 import { isSetUp, setPassword, verifyPassword, createSession, destroySession, destroyAllSessions, actorName, assertNotThrottled, noteFailure, clearFailures } from '../auth.mjs'
@@ -537,6 +537,26 @@ export function register() {
   })
 
   /**
+   * 开始一条「识别画面」流程（拿租约）。
+   *
+   * 为什么需要：整条流程靠 game-window.mjs 里那两个**进程级**变量
+   * （activeWindow / previousWindow）串起来，而每个订单、每个游戏、每个浏览器
+   * 标签页都能各自点「识别画面」。两条同时跑会互相抢窗口、按键打到别的游戏上、
+   * 认出来的数字串单。所以同一时刻只允许一条。
+   *
+   * id 由前端生成：同一条流程重复调用 = 续期；别人拿着别的 id 来 = 409。
+   * 租约 3 分钟自动过期 —— 前端崩了或标签页关了没来释放，不能把后续识别锁死。
+   */
+  post('/api/ocr/screen/begin', (ctx) => {
+    const r = beginScreenFlow({ id: clampStr(ctx.body?.id, 60), game: clampStr(ctx.body?.game, 40) })
+    if (!r.ok) fail(409, r.error, 'screen_busy')
+    return r
+  })
+
+  /** 释放流程租约。重复释放不报错，id 不匹配也不会替别人解锁。 */
+  post('/api/ocr/screen/end', (ctx) => ({ released: endScreenFlow(clampStr(ctx.body?.id, 60)) }))
+
+  /**
    * 用户点击「识别画面」后，把**这一单那个游戏**的窗口切到前台；后续截屏会裁取这个窗口。
    * game 传订单上的游戏名：鸣潮和异环的窗口特征不一样，切错了后面全认错。
    */
@@ -556,8 +576,11 @@ export function register() {
   post('/api/ocr/screen/key', async (ctx) => {
     const key = clampStr(ctx.body.key, 4).toUpperCase()
     if (!['B', 'M', 'ESC', 'F2', 'F12'].includes(key)) fail(400, '只允许发送 B、M、ESC、F2 或 F12。', 'bad_game_key')
+    // 每按一次键都续一下租约：一条流程最多 2 段 × 8 帧，算下来两分多钟，
+    // 不续期会在最后几帧突然被「上一条还没结束」挡下来。
+    touchScreenFlow(clampStr(ctx.body?.flow, 60))
     const r = await sendGameKey(key)
-    if (!r.ok) fail(400, r.error || '没有向鸣潮发送按键', 'game_key_failed')
+    if (!r.ok) fail(400, r.error || '没有向游戏发送按键', 'game_key_failed')
     return r
   })
 
@@ -566,7 +589,8 @@ export function register() {
    * 窗口句柄是 focus 那一步顺手记下来的，这里不需要任何参数；没有可返回的窗口时
    * 直接 ok（不算失败），因为这不是流程的必要环节。
    */
-  post('/api/ocr/screen/return', async () => {
+  post('/api/ocr/screen/return', async (ctx) => {
+    touchScreenFlow(clampStr(ctx.body?.flow, 60))
     const r = await returnToPreviousWindow()
     if (!r.ok) fail(400, r.error || '没有切回原来的窗口', 'screen_return_failed')
     return r
@@ -578,7 +602,20 @@ export function register() {
    * 返回里 agreed 是过了票的、pending 是还在核对的，前端两种都要显示。
    */
   post('/api/ocr/screen', async (ctx) => {
-    // 同上：看屏幕之前先探一次，别让首选引擎白白闲置
+    // 先查租约，再查引擎：**没在一条流程里**请求识别，说明前端流程已经结束
+    // （或者别的页面正在跑），这时候抓一帧屏幕毫无意义 —— 而且这个判断不该
+    // 被「这台机器有没有 OCR」掩盖掉。
+    const flow = clampStr(ctx.body.flow, 60)
+    const active = currentScreenFlow()
+    if (!active) fail(409, '这条识别流程已经结束了（或者超时了），请重新点「识别画面」。', 'screen_flow_gone')
+    // 必须**明确带着当前流程的 id**：不带 id 也放行的话，别的标签页（或者
+    // 已经结束的老流程）就能蹭着别人的租约抓屏幕，那这一帧没有归属。
+    if (!flow || active.id !== flow) {
+      fail(409, '上一条「识别画面」还没结束，这次识别没有执行。等它结束再试。', 'screen_busy')
+    }
+    touchScreenFlow(active.id)
+
+    // 看屏幕之前先探一次，别让首选引擎白白闲置
     const st = await ensureEnginesProbed()
     if (!st.available) fail(400, '这台机器上用不了屏幕识别（需要有可用的 OCR）', 'no_screen')
     const game = clampStr(ctx.body.game, 40)
@@ -590,7 +627,7 @@ export function register() {
       minVotes: Math.max(1, Math.min(6, int(ctx.body.min_votes, 2) || 2)),
       minScore: num(ctx.body.min_score, MIN_SCORE) || MIN_SCORE,
     })
-    if (!r.ok) fail(400, r.error || '识别失败', 'screen_failed')
+    if (!r.ok) fail(400, r.error || '识别失败', r.code || 'screen_failed')
     return {
       game: r.game,
       resources: r.resources,
@@ -671,6 +708,11 @@ export function register() {
    * 和识别画面留下的帧走同一条路（见 /api/ocr/screen/frame）。
    */
   post('/api/ocr/screen/shot', async (ctx) => {
+    // 「识别画面」正在跑时不允许再抢窗口：它会切走焦点，把那条流程正在读的
+    // 界面打断（B/M 开的背包还开着，接着按 ESC 的会是另一条流程）。
+    if (currentScreenFlow()) {
+      fail(409, '「识别画面」正在跑，等它结束再截图 —— 现在按 F2 会把它的窗口抢走。', 'screen_busy')
+    }
     const key = (clampStr(ctx.body.key, 6).toUpperCase() || 'F2')
     if (!['F2', 'F12'].includes(key)) bad('只支持 F2 / F12 这两个截图键', 'bad_key')
     const r = await captureGameFrame({ game: clampStr(ctx.body.game, 40), key })
@@ -680,6 +722,9 @@ export function register() {
       bytes: r.bytes,
       key: r.key,
       window: r.window,
+      // 这张是「游戏不在前台、靠 PrintWindow 抓的」时要说出来：界面得提示
+      // 用户确认截到的确实是游戏画面（全屏模式下 PrintWindow 可能画的是桌面）。
+      unfocused: Boolean(r.unfocused),
       warnings: r.warnings || [],
     }
   })
@@ -688,21 +733,24 @@ export function register() {
   post('/api/ocr/screen/reset', (ctx) => resetVotes(clampStr(ctx.body.session, 40) || 'default'))
 
   /**
-   * 取走识别时暂存的那一帧原始截图（见 src/screen-stash.mjs）。
+   * 取回识别时暂存的那一帧原始截图（见 src/screen-stash.mjs）。
    *
    * 给谁用：用户在进度表单上点保存时，前端把这一阶段最终采纳的那一帧取回来，
-   * 在浏览器里压缩（browser-image-compression，压到 1MB 以内）再上传到
-   * /api/uploads，最后挂到这条进度的 media 上 —— 于是时间线上就能看到、
-   * 也能随时下载。
+   * 在浏览器里压缩（browser-image-compression）再上传到 /api/uploads，
+   * 最后挂到这条进度的 media 上 —— 于是时间线上就能看到、也能随时下载。
    *
    * 为什么不在识别时就存进 uploads：识别一轮最多 6 帧，用户很可能看完就走，
-   * 那样会留下永远没人引用的孤儿图片。暂存的帧**取走即删**，没取就过期。
+   * 那样会留下永远没人引用的孤儿图片。
+   *
+   * **读不删**：压缩和上传都可能失败，失败之后用户点重试还要能再取一次。
+   * 真正用完之后由 `DELETE /api/ocr/screen/frame` 释放；一直不来释放的帧
+   * 会按 TTL（10 分钟）和总量上限自己消失，所以不会漏内存。
    */
   get('/api/ocr/screen/frame', (ctx) => {
     const token = clampStr(ctx.query.token, 60)
     if (!token) bad('缺少 token', 'missing_token')
-    const frame = takeFrame(token)
-    if (!frame) fail(404, '这一帧已经过期或已被取走，请重新识别画面', 'frame_gone')
+    const frame = peekFrame(token)
+    if (!frame) fail(404, '这一帧已经过期，请重新识别画面', 'frame_gone')
     ctx.res.writeHead(200, {
       'Content-Type': 'image/png',
       'Content-Length': frame.buf.length,
@@ -711,6 +759,20 @@ export function register() {
       'X-Content-Type-Options': 'nosniff',
     })
     ctx.res.end(frame.buf)
+  })
+
+  /**
+   * 释放一帧（前端把图上传到 /api/uploads 之后调）。
+   *
+   * 为什么要单独一步：`GET /api/ocr/screen/frame` 现在只读不删，如果不调用
+   * 这个接口，帧要等 10 分钟 TTL 才消失 —— 用户连拍几张 4K 截图就白占内存。
+   * 重复释放（重试提交）返回 `released: false` 而不是报错：那说明它已经
+   * 被删过或过期了，对调用方不是异常。
+   */
+  del('/api/ocr/screen/frame', (ctx) => {
+    const token = clampStr(ctx.query.token, 60)
+    if (!token) bad('缺少 token', 'missing_token')
+    return { released: releaseFrame(token) }
   })
 
   /* ============================================================

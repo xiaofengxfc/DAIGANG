@@ -13,17 +13,109 @@ let activeWindow = null
 // browser the user clicked "识别画面" in. Handed back when the reading is done.
 let previousWindow = null
 
+/* ---------- 一次「看屏幕」流程的全局租约 ----------
+
+   为什么要它：整个流程是「切到游戏 → 按 B/M → 抓图 → 认字 → ESC → 回切」，
+   中间所有步骤都靠 game-window.mjs 里那两个模块级变量（activeWindow /
+   previousWindow）串起来。它们是**进程级单例**，而前端每个订单、每个游戏、
+   每个浏览器标签页都能各自点「识别画面」。两个流程叠在一起时：
+
+     · A 单切到鸣潮、B 单切到异环 → A 后面按的 B 打到了异环窗口上；
+     · A 的 return 把 previousWindow 用掉，B 以为自己能回去，其实不行；
+     · 两个流程交替抓屏，认出来的数字会串单。
+
+   所以同一时刻只允许一条流程。租约带超时：前端崩了/标签页关了没来释放时，
+   不能把后续所有识别都永久锁死。 */
+const FLOW_TTL_MS = 3 * 60 * 1000
+let screenFlow = null // { id, game, at }
+
+/** 申请人占用。id 由前端给（同一条流程重复调用 = 续期），不传就自动生成 */
+export function beginScreenFlow({ id = '', game = '' } = {}) {
+  const now = Date.now()
+  const wanted = String(id || '')
+  if (screenFlow && now - screenFlow.at < FLOW_TTL_MS) {
+    if (wanted && screenFlow.id === wanted) {
+      screenFlow.at = now
+      if (game) screenFlow.game = game
+      return { ok: true, id: screenFlow.id, reused: true }
+    }
+    const label = (profileForGame(screenFlow.game).names || [])[0] || '另一个游戏'
+    return {
+      ok: false,
+      code: 'screen_busy',
+      error: `上一条「识别画面」还没结束（${label}）。屏幕识别一次只能跑一条 —— 两条同时跑会互相抢窗口、按键打到别的游戏上。等它结束（或关掉那个页面）再试。`,
+      active: { id: screenFlow.id, game: screenFlow.game },
+    }
+  }
+  screenFlow = { id: wanted || `f${now.toString(36)}${Math.random().toString(36).slice(2, 6)}`, game, at: now }
+  return { ok: true, id: screenFlow.id, reused: false }
+}
+
+/** 续期（流程里的每一步都调一次，避免长流程中途过期） */
+export function touchScreenFlow(id) {
+  if (!screenFlow) return
+  if (id && screenFlow.id !== String(id)) return
+  screenFlow.at = Date.now()
+}
+
+/** 释放。id 不匹配就什么都不做 —— 不能让别人替自己解锁 */
+export function endScreenFlow(id) {
+  if (!screenFlow) return false
+  if (id && screenFlow.id !== String(id)) return false
+  screenFlow = null
+  return true
+}
+
+/** 给测试和排查用 */
+export function currentScreenFlow() {
+  if (!screenFlow) return null
+  if (Date.now() - screenFlow.at >= FLOW_TTL_MS) return null
+  return { ...screenFlow }
+}
+
 export function activeGameWindow() {
   return activeWindow ? { ...activeWindow } : null
 }
 
 /**
- * Find and foreground the game's top-level window from an explicit UI action.
+ * 把窗口脚本的失败 JSON 翻成「照着做就能解决」的人话。
  *
- * `game` 是订单上那个游戏名（鸣潮 / 异环）：两个游戏的进程名和窗口标题都不
- * 一样，认哪个游戏的界面就得切哪个游戏的窗口 —— 切错了后面全认错。
- * 认不出游戏名时按默认那份（鸣潮）来，保持老行为。
+ * 为什么单独抽出来：`focusGameWindow` 和 `findGameWindow` 走的是两份 ps1，
+ * 但失败原因是同一批（游戏没开 / 进程名猜错 / 本程序完整性太低）。
+ * 以前只有 focus 那条会翻译，find 那条直接把 `stderr` 或一句
+ * 「没有找到游戏窗口。」丢出去 —— 而 find 恰恰是「抢焦点失败」时唯一的
+ * 退路，用户在那里最需要知道到底为什么。两个入口说同一套话，才不会
+ * 让人以为是两个不同的毛病。
  */
+function describeWindowFailure(profile, result, fallback) {
+  const gameLabel = (profile.names && profile.names[0]) || profile.id
+  // A low-integrity process cannot see an elevated game at all (measured:
+  // Get-Process silently drops it), and that is NOT "the game is not
+  // running" -- saying so sends people chasing the wrong thing. The usual
+  // cause is a "Low" mandatory label on the program's own directory, which
+  // also explains %TEMP% write failures and Add-Type errors on the same
+  // machine. See the README section on integrity labels.
+  if (result?.code === 'game_window_missing' && result.integrity === 'low') {
+    const root = path.resolve(HERE, '..')
+    return {
+      code: 'game_window_missing',
+      integrity: 'low',
+      error: '本程序正以「低完整性」运行，看不到游戏进程（游戏是以管理员身份运行的）。'
+        + `多半是程序目录被打上了 Low 完整性标签，在管理员窗口里执行：icacls "${root}" /setintegritylevel (OI)(CI)Medium`
+        + `，再执行 icacls "${path.join(root, 'DaiganLauncher.exe')}" /setintegritylevel High，然后重启本程序。`,
+    }
+  }
+  // 错误里带上具体是哪个游戏 —— 「没有找到游戏窗口」在混着两个游戏时帮不上忙
+  const seen = Array.isArray(result?.seen) ? result.seen.filter(Boolean) : []
+  const knownErrors = {
+    game_window_missing:
+      `没有找到${gameLabel}游戏窗口，请先启动${gameLabel}。`
+      + (seen.length ? `看到这几个疑似游戏窗口：${seen.join('；')} —— 如果${gameLabel}在里面，把它的进程名设成环境变量 XFC_GAME_PROCESS 再试。` : '如果它的进程名和猜的不一样，可以设置环境变量 XFC_GAME_PROCESS 直接指定进程名。'),
+    focus_denied: `Windows 没有允许切换到${gameLabel}窗口。请先手动切到${gameLabel}一次，再点击识别。`,
+  }
+  return { code: result?.code, error: knownErrors[result?.code] || fallback }
+}
+
 export function focusGameWindow({ timeoutMs = 10000, game = '' } = {}) {
   if (process.platform !== 'win32') {
     return Promise.resolve({ ok: false, error: '自动切回游戏目前只支持 Windows。' })
@@ -69,34 +161,18 @@ export function focusGameWindow({ timeoutMs = 10000, game = '' } = {}) {
       let result = null
       try { result = JSON.parse(stdout.trim().replace(/^\uFEFF/, '')) } catch { /* report below */ }
       if (code !== 0 || !result?.ok) {
-        // A low-integrity process cannot see an elevated game at all (measured:
-        // Get-Process silently drops it), and that is NOT "the game is not
-        // running" -- saying so sends people chasing the wrong thing. The usual
-        // cause is a "Low" mandatory label on the program's own directory, which
-        // also explains %TEMP% write failures and Add-Type errors on the same
-        // machine. See the README section on integrity labels.
-        if (result?.code === 'game_window_missing' && result.integrity === 'low') {
-          const root = path.resolve(HERE, '..')
-          return finish({
-            ok: false,
-            code: 'game_window_missing',
-            integrity: 'low',
-            error: '本程序正以「低完整性」运行，看不到游戏进程（游戏是以管理员身份运行的）。'
-              + `多半是程序目录被打上了 Low 完整性标签，在管理员窗口里执行：icacls "${root}" /setintegritylevel (OI)(CI)Medium`
-              + `，再执行 icacls "${path.join(root, 'DaiganLauncher.exe')}" /setintegritylevel High，然后重启本程序。`,
-          })
-        }
-        // 错误里带上具体是哪个游戏 —— 「没有找到游戏窗口」在混着两个游戏时帮不上忙
-        const seen = Array.isArray(result?.seen) ? result.seen.filter(Boolean) : []
-        const knownErrors = {
-          game_window_missing:
-            `没有找到${gameLabel}游戏窗口，请先启动${gameLabel}。`
-            + (seen.length ? `看到这几个疑似游戏窗口：${seen.join('；')} —— 如果${gameLabel}在里面，把它的进程名设成环境变量 XFC_GAME_PROCESS 再试。` : '如果它的进程名和猜的不一样，可以设置环境变量 XFC_GAME_PROCESS 直接指定进程名。'),
-          focus_denied: `Windows 没有允许切换到${gameLabel}窗口。请先手动切到${gameLabel}一次，再点击识别。`,
-        }
-        return finish({ ok: false, error: knownErrors[result?.code] || stderr.trim() || '没有切换到游戏窗口。' })
+        const described = describeWindowFailure(profile, result, stderr.trim() || '没有切换到游戏窗口。')
+        return finish({ ok: false, ...described })
       }
-      activeWindow = { hwnd: String(result.hwnd), processId: Number(result.processId), process: result.process, title: result.title }
+      activeWindow = {
+        hwnd: String(result.hwnd),
+        processId: Number(result.processId),
+        process: result.process,
+        title: result.title,
+        // 记下这个句柄是**为哪个游戏**找的。后续抓图/按键靠它校验：
+        // 两个游戏同时开着时，句柄可能是上一条流程留下的另一个游戏的窗口。
+        game: profile.id,
+      }
       // "0" means there was nothing to come back to (the game was already in
       // front), so the flow will not try to hand focus anywhere.
       const previousHwnd = String(result.previous || '0')
@@ -175,10 +251,18 @@ export function findGameWindow({ timeoutMs = 8000, game = '' } = {}) {
         /* 下面统一报 */
       }
       if (code !== 0 || !result?.ok) {
-        return finish({ ok: false, code: result?.code, error: stderr.trim() || '没有找到游戏窗口。' })
+        // 和 focusGameWindow 说同一套话：code 保留（前端/调用方靠它区分
+        // 「没开游戏」「进程名猜错」「本程序完整性太低」），不再只丢一句 stderr。
+        return finish({ ok: false, ...describeWindowFailure(profile, result, stderr.trim() || '没有找到游戏窗口。') })
       }
       // 记进 activeWindow：grabScreen 靠它决定裁哪一块、走不走 PrintWindow
-      activeWindow = { hwnd: String(result.hwnd), processId: Number(result.processId), process: result.process, title: result.title }
+      activeWindow = {
+        hwnd: String(result.hwnd),
+        processId: Number(result.processId),
+        process: result.process,
+        title: result.title,
+        game: profile.id,
+      }
       finish({ ...result, game: profile.id, ok: true })
     })
   })

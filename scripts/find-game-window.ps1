@@ -62,11 +62,19 @@ function Test-AnyPattern {
 }
 
 $candidates = @()
+# Windows we saw but did not accept, reported when nothing matched. Without
+# them, "the game is not running" and "your process name is not what we
+# predicted" look identical -- and the fix (set XFC_GAME_PROCESS) is impossible
+# to guess. Same wording as focus-game.ps1 so both paths tell the same story.
+$seenGames = @()
 foreach ($p in Get-Process -ErrorAction SilentlyContinue) {
   $hwnd = $p.MainWindowHandle
   if ($hwnd -eq [IntPtr]::Zero) { continue }
   $title = [string]$p.MainWindowTitle
   try { $exePath = [string]$p.Path } catch { $exePath = '' }
+  if ((Test-AnyPattern $p.ProcessName '(?i)-Win64-Shipping$') -or (Test-AnyPattern $exePath '(?i)-Win64-Shipping\.exe$')) {
+    $seenGames += "$($p.ProcessName) | $title"
+  }
 
   $matched = $false
   if ($ProcessName) {
@@ -112,7 +120,18 @@ foreach ($p in Get-Process -ErrorAction SilentlyContinue) {
 }
 
 if (-not $candidates.Count) {
-  [Console]::Out.WriteLine((@{ ok = $false; code = 'game_window_missing' } | ConvertTo-Json -Compress))
+  # Say WHY nothing turned up, exactly as focus-game.ps1 does: a process running
+  # at LOW integrity cannot see an elevated game at all (Get-Process silently
+  # drops it), and telling the user "no window found" sends them looking in the
+  # wrong place. whoami reports the SID, which is language-independent.
+  $integrity = 'unknown'
+  try {
+    $groups = (whoami /groups) 2>$null
+    if ($groups -match 'S-1-16-12288') { $integrity = 'high' }
+    elseif ($groups -match 'S-1-16-8192') { $integrity = 'medium' }
+    elseif ($groups -match 'S-1-16-4096') { $integrity = 'low' }
+  } catch { }
+  [Console]::Out.WriteLine((@{ ok = $false; code = 'game_window_missing'; integrity = $integrity; seen = @($seenGames) } | ConvertTo-Json -Compress))
   exit 2
 }
 

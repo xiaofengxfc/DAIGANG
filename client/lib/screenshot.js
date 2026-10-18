@@ -108,7 +108,27 @@ function dataURLToBlob(dataUrl) {
 }
 
 /**
+ * 告诉服务端「这一帧已经用完了，可以删了」。
+ *
+ * 取帧接口现在**只读不删**（压缩/上传都可能失败，失败之后要能重取），所以
+ * 必须在上传成功之后显式释放，否则那一帧要等 10 分钟 TTL 才消失。
+ *
+ * 失败不抛：帧最终会自己过期。重复释放也是正常的（重试提交）。
+ */
+async function releaseFrame(token) {
+  if (!token) return
+  try {
+    await api.del('/api/ocr/screen/frame', { token })
+  } catch {
+    /* 过期了 / 断网：帧自己会消失，不值得打扰用户 */
+  }
+}
+
+/**
  * 取一帧暂存的识别截图，压缩后上传，返回它的访问 URL。
+ *
+ * 帧在「上传成功」之后才释放；中途任何一步失败都保留它，好让用户点重试时
+ * 还能再取一次 —— 以前取帧即删，上传失败就等于永久丢图且毫无提示。
  *
  * @param {string} token  /api/ocr/screen 返回的 frame_token
  * @returns {Promise<string|null>} 上传成功返回 /uploads/xxx，失败返回 null（不抛）
@@ -161,9 +181,13 @@ export async function saveScreenshot(token) {
 
     const dataUrl = await blobToDataURL(out)
     const saved = await api.post('/api/uploads', { data_url: dataUrl, prefix: 'shot' })
-    return saved && saved.url ? saved.url : null
+    const url = saved && saved.url ? saved.url : null
+    // 只有真的拿到 URL 才释放：失败时保留这一帧，用户点重试还能再取。
+    if (url) await releaseFrame(token)
+    return url
   } catch {
-    // 截图是「锦上添花」，任何一个环节失败都不该让用户记不下这条进度
+    // 截图是「锦上添花」，任何一个环节失败都不该让用户记不下这条进度。
+    // 注意这里**不释放**帧：下次重试还有机会成功。
     return null
   }
 }

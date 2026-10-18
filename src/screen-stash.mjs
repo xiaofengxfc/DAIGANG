@@ -9,7 +9,13 @@
    为什么不直接写进 data/uploads：
      识别一轮最多要看 3 帧 × 2 个界面 = 6 张 2K 截图。用户很可能看完数字就
      走掉了（不保存进度），那些图就成了永远没人引用的孤儿文件，只增不减。
-     所以这里先放内存，等用户**真的保存这条进度**时再来取走；没来取就过期丢掉。
+     所以这里先放内存，等用户**真的保存这条进度**时再来取；没来取就过期丢掉。
+
+   取和删是分开的（peekFrame / releaseFrame）：
+     取帧之后前端还要在浏览器里压缩、再 POST /api/uploads。中间任何一步失败
+     都不该让这一帧消失 —— 否则用户点重试时只能拿到 404，进度记下了、截图
+     永久没了。所以「读」不改状态，「释放」由调用方在上传成功之后显式发起；
+     不来释放的帧照样会被 TTL 和总量上限收掉，内存不会越攒越多。
 
    为什么放内存而不是落盘：
      一张 2K PNG 约 1~3MB，6 张也就十几兆，本地单机工具完全吃得下。
@@ -74,19 +80,40 @@ export function stashFrame({ session, stage = '', buf, width = 0, height = 0 }) 
   return token
 }
 
-/** 取一帧。**取走即删除** —— 调用方拿去压缩上传，留着只会占内存 */
-export function takeFrame(token) {
+/**
+ * 读一帧，**不删除**。
+ *
+ * 以前这里是「取走即删除」，调用方拿到字节就没了。但取帧和「上传成功」是
+ * 两件不同的事：前端取回 → 在浏览器里压缩 → POST /api/uploads。中间任何一步
+ * 失败（压缩抛错、上传断网、后端 500），帧就已经被删掉，用户点重试只会得到
+ * 404 —— 进度记下了、截图永久没了，而且没有任何提示（saveScreenshot 吞异常）。
+ *
+ * 所以改成：读不改状态，由调用方在**真正用完之后**调 releaseFrame。
+ * 没来释放的照样会被 TTL 和总量上限收掉，不会在内存里越攒越多。
+ */
+export function peekFrame(token) {
   sweep()
-  // token 先归一成字符串再用，**取和删必须用同一个 key**。
-  // 以前查的时候用了 String(token || '')、删的时候直接 frames.delete(token)：
-  // 传进来的不是字符串（比如 null、数字）时删不掉，于是同一帧能被反复取走，
-  // totalBytes 只减不删、「取走即删」的契约是破的。
+  // token 先归一成字符串再用：传进来可能是 null、数字，get 和 delete 必须是
+  // 同一个 key，否则删不掉（这个坑踩过）。
   const key = String(token || '')
   const entry = frames.get(key)
   if (!entry) return null
+  return { buf: entry.buf, width: entry.width, height: entry.height, stage: entry.stage }
+}
+
+/**
+ * 释放一帧（上传成功之后调用）。
+ * 返回 true 表示确实删掉了一帧，false 表示它已经过期/被释放过了 ——
+ * 后者不是错误：重试提交时重复释放很正常。
+ */
+export function releaseFrame(token) {
+  sweep()
+  const key = String(token || '')
+  const entry = frames.get(key)
+  if (!entry) return false
   frames.delete(key)
   totalBytes -= entry.buf.length
-  return { buf: entry.buf, width: entry.width, height: entry.height, stage: entry.stage }
+  return true
 }
 
 /** 看一眼有多少帧 / 占多少内存（给测试和排查用） */
