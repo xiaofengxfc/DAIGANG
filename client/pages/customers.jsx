@@ -26,9 +26,11 @@ function CustomerRow({ customer, navigate }) {
         <div>
           <div className="customers-row__name"><b>{customer.name || '未命名客户'}</b>{customer.status === 'archived' ? <span className="customers-tag customers-tag--archived">已归档</span> : null}{tags.map((tag) => <span className="customers-tag" key={tag}>{tag}</span>)}</div>
           <div className="customers-row__contact"><span>{customer.phone || '没填手机号'}</span>{customer.wechat ? <span>微信 {customer.wechat}</span> : null}{customer.qq ? <span>QQ {customer.qq}</span> : null}</div>
+          {/* 来源原来独占一列，但九成客户都是"未注明来源"，那一列长期空着。
+              挪到联系方式这一行的末尾：有就顺带看到，没有也不占地方。 */}
+          {customer.source ? <div className="customers-row__source">来自 {customer.source}</div> : null}
         </div>
       </div>
-      <div className="customers-row__source">{customer.source || '未注明来源'}</div>
       <div className="customers-row__orders"><b>{customer.order_count || 0}</b><small>张订单</small></div>
       <div className="customers-row__money"><b className={due > 0.001 ? 'is-due' : ''}>{due > 0.001 ? `¥${fmtMoney(due)}` : `¥${fmtMoney(customer.order_total)}`}</b><small>{due > 0.001 ? '未收余额' : '累计订单额'}</small></div>
       <div className="customers-row__credentials"><WalletCards {...iconProps(14)} /><span>{customer.credential_count || 0}</span></div>
@@ -85,21 +87,28 @@ export default function CustomersPage({ route, navigate, onNew, reloadKey }) {
 
   return (
     <div className="customers-page">
-      <header className="customers-page__head">
-        <div><h2>{title}</h2><p>{rows.length ? `${rows.length} 位${rows.length !== all.length ? ` · 共 ${all.length} 位` : ''}` : '集中查看客户联系信息、订单和收款情况'}</p></div>
-        <button className="refactor-button refactor-button--primary" type="button" onClick={onNew}><Plus {...iconProps(15)} />新建客户</button>
-      </header>
-      <section className="customers-toolbar" aria-label="客户筛选">
-        <div className="customers-filters" role="tablist" aria-label="客户类型">
-          {FILTERS.map((filter) => <button key={filter.key || 'all'} className={`customers-filter${filters.only === filter.key ? ' is-active' : ''}`} type="button" role="tab" aria-selected={filters.only === filter.key} onClick={() => update({ only: filter.key })}>{filter.label}</button>)}
-          {archivedCount ? <button className={`customers-filter${filters.only === 'archived' ? ' is-active' : ''}`} type="button" role="tab" aria-selected={filters.only === 'archived'} onClick={() => update({ only: 'archived' })}>已归档 {archivedCount}</button> : null}
+      <header className="app-page__head">
+        <div className="app-page__title">
+          <h1>{title}</h1>
+          <p>{rows.length ? `${rows.length} 位${rows.length !== all.length ? ` · 共 ${all.length} 位` : ''}` : '集中查看客户联系信息、订单和收款情况'}</p>
         </div>
-        <div className="customers-toolbar__spacer" />
-        <label className="customers-search"><Search {...iconProps(15)} /><input type="search" value={search} placeholder="搜昵称 / 手机号 / 微信 / QQ" onChange={(event) => { const value = event.target.value; setSearch(value); window.clearTimeout(searchTimer.current); searchTimer.current = window.setTimeout(() => update({ q: value.trim() }), 260) }} /><kbd>/</kbd></label>
-      </section>
+        <div className="app-page__actions">
+          <button className="refactor-button refactor-button--primary" type="button" onClick={onNew}><Plus {...iconProps(15)} />新建客户</button>
+        </div>
+      </header>
       {error ? <div className="refactor-alert" role="alert">{error}</div> : null}
+      {/* 和订单页同一套：筛选与搜索收进卡片顶部一条，
+          页面因此从「抬头 → 浮层工具条 → 卡片」收成「抬头 → 一张卡」。 */}
       <section className="customers-panel">
-        <div className="customers-table-head"><span>客户</span><span>来源</span><span>订单</span><span>金额</span><span>凭证</span><span> </span></div>
+        <div className="customers-panel__bar">
+          <div className="customers-filters" role="tablist" aria-label="客户类型">
+            {FILTERS.map((filter) => <button key={filter.key || 'all'} className={`customers-filter${filters.only === filter.key ? ' is-active' : ''}`} type="button" role="tab" aria-selected={filters.only === filter.key} onClick={() => update({ only: filter.key })}>{filter.label}</button>)}
+            {archivedCount ? <button className={`customers-filter${filters.only === 'archived' ? ' is-active' : ''}`} type="button" role="tab" aria-selected={filters.only === 'archived'} onClick={() => update({ only: 'archived' })}>已归档 {archivedCount}</button> : null}
+          </div>
+          <div className="customers-toolbar__spacer" />
+          <label className="customers-search"><Search {...iconProps(15)} /><input type="search" value={search} placeholder="搜昵称 / 手机号 / 微信 / QQ" onChange={(event) => { const value = event.target.value; setSearch(value); window.clearTimeout(searchTimer.current); searchTimer.current = window.setTimeout(() => update({ q: value.trim() }), 260) }} /><kbd>/</kbd></label>
+        </div>
+        <div className="customers-table-head"><span>客户</span><span>订单</span><span>金额</span><span>凭证</span><span> </span></div>
         {items === null ? <div className="refactor-loading"><span /><span /><span /></div> : rows.length ? <div className="customers-list">{rows.map((customer) => <CustomerRow key={customer.id} customer={customer} navigate={navigate} />)}</div> : <EmptyCustomers filtered={Boolean(filters.q || filters.only)} onNew={onNew} />}
       </section>
     </div>

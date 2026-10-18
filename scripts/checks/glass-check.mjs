@@ -289,59 +289,73 @@ async function checkTheme(cdp, theme, expectDark) {
     canvas
   )
 
-  // 3. 扁平：侧栏 / 顶栏 / 面板都**不许**有毛玻璃
+  // 3. 毛玻璃只许出现在**顶栏**上。
+  //    第 5 版把「侧栏 + 顶栏」换成了一条横贯顶部的玻璃条：它要压在滚动内容之上，
+  //    半透明 + 模糊是 Apple 的做法，也让长表格滚过时仍能看见下面的字。
+  //    但内容面（卡片 / 表格 / 账单抬头）必须**不透明** —— 半透明白卡片叠在白画布上
+  //    等于没有边界，而且滚动时 backdrop-filter 会实时重算、掉帧。
+  const barGlass = await cdp.eval(glassOf('.appbar'))
+  ok(
+    `${tag}：顶栏是玻璃条（有 backdrop-filter 的模糊）`,
+    Boolean(barGlass) && /blur\(/.test(String(barGlass.backdrop)),
+    barGlass && barGlass.backdrop
+  )
   for (const [label, sel] of [
-    ['侧栏', '.react-sidebar'],
-    ['顶栏', '.react-topbar'],
     ['总览抬头', '.react-ledger'],
     ['总览面板', '.react-dashboard-panel'],
   ]) {
     const g = await cdp.eval(glassOf(sel))
     const blurry = Boolean(g) && /blur\(\s*(?!0px)[\d.]+px/.test(String(g.backdrop))
-    ok(`${tag}：${label}是平面（没有 backdrop-filter 的模糊）`, Boolean(g) && !blurry, g && g.backdrop)
+    ok(`${tag}：${label}是不透明面（没有 backdrop-filter）`, Boolean(g) && !blurry, g && g.backdrop)
   }
 
   // 4. 文字读得出来：用对比度，不用亮度阈值
   const navColor = await cdp.eval(`(() => {
-    const el = document.querySelector('.react-sidebar .refactor-navitem span')
+    const el = document.querySelector('.appbar__link:not(.is-active) span')
     return el ? getComputedStyle(el).color : ''
   })()`)
   const navRatio = contrast(navColor, canvas)
   ok(
-    `${tag}：侧栏导航文字对比度 ${navRatio ? navRatio.toFixed(1) : '?'}:1 ≥ 4.5`,
+    `${tag}：顶栏导航文字对比度 ${navRatio ? navRatio.toFixed(1) : '?'}:1 ≥ 4.5`,
     navRatio !== null && navRatio >= 4.5,
     navColor
   )
 
-  const titleColor = await cdp.eval(`getComputedStyle(document.querySelector('.react-topbar__title h1')).color`)
+  // 页面标题从顶栏挪回了正文（Apple 的做法：导航只负责"去哪儿"，
+  // "这是什么"由内容自己说），所以这里量的是正文抬头的 h1。
+  //
+  // 注意不能退回 `.react-main h2`：卡片里的面板小标题正好是 h2，
+  // 选到它就变成「量的是区块标题、报告却写着页面标题」的假通过。
+  const titleColor = await cdp.eval(`(() => {
+    const el = document.querySelector('.app-page__title h1')
+    return el ? getComputedStyle(el).color : ''
+  })()`)
   const titleRatio = contrast(titleColor, canvas)
   ok(
-    `${tag}：顶栏标题对比度 ${titleRatio ? titleRatio.toFixed(1) : '?'}:1 ≥ 4.5`,
+    `${tag}：页面标题对比度 ${titleRatio ? titleRatio.toFixed(1) : '?'}:1 ≥ 4.5`,
     titleRatio !== null && titleRatio >= 4.5,
     titleColor
   )
 
-  // 5. 分层靠线：侧栏必须有一条**看得见**的右边框
-  //    （白玻璃版断言的是 "alpha < 0.25"，即线要淡到几乎不存在；
-  //      扁平化之后线是唯一的层次手段，太淡等于没有层次。）
-  const railBorder = await cdp.eval(`(() => {
-    const s = getComputedStyle(document.querySelector('.react-sidebar'))
-    return { color: s.borderRightColor, width: s.borderRightWidth, style: s.borderRightStyle }
+  // 5. 分层：顶栏与内容之间有一条看得见的线
+  const barBorder = await cdp.eval(`(() => {
+    const s = getComputedStyle(document.querySelector('.appbar'))
+    return { color: s.borderBottomColor, width: s.borderBottomWidth, style: s.borderBottomStyle }
   })()`)
-  const rb = rgb(railBorder.color)
+  const bb = rgb(barBorder.color)
   ok(
-    `${tag}：侧栏有一条实线分隔（1px 且不透明）`,
-    rb !== null && rb.a > 0.99 && parseFloat(railBorder.width) >= 1 && railBorder.style === 'solid',
-    `${railBorder.width} ${railBorder.style} ${railBorder.color}`
+    `${tag}：顶栏下沿有一条实线（1px 且不透明）`,
+    bb !== null && bb.a > 0.99 && parseFloat(barBorder.width) >= 1 && barBorder.style === 'solid',
+    `${barBorder.width} ${barBorder.style} ${barBorder.color}`
   )
 
-  // 6. 像素级：画布必须是**一块平整的纯色**（没有渐变、没有光斑）
-  //    x=250 落在主内容左侧的排水沟里（侧栏 236px + 内边距），那里只有画布。
+  // 6. 像素级：画布必须是**一块平整的纯色**（没有渐变、没有光斑），
+  //    而且卡片比画布亮一档 —— 第 5 版的层次来自"面"的色差，不再是靠线。
   const gutter = [
-    [250, 150],
-    [250, 380],
-    [250, 620],
-    [250, 820],
+    [12, 200],
+    [12, 420],
+    [12, 640],
+    [12, 860],
   ]
   const gutterPixels = await samplePixels(cdp, gutter)
   const flat = gutterPixels.every((p) => dist(p, gutterPixels[0]) === 0)
@@ -351,14 +365,18 @@ async function checkTheme(cdp, theme, expectDark) {
     gutterPixels.map((p) => `rgb(${p.join(',')})`).join(' / ')
   )
 
-  // 侧栏与画布同为白/同色是**预期行为**：靠那条 1px 线分开，不靠色差。
-  // 这里守住的是「侧栏没有偷偷叠一层半透明底」——两者应当完全同色。
-  const railPixel = await samplePixels(cdp, [[120, 380]])
-  const railTint = dist(railPixel[0], gutterPixels[1])
+  const cardPixel = await cdp.eval(`(() => {
+    const el = document.querySelector('.react-ledger')
+    if (!el) return null
+    const r = el.getBoundingClientRect()
+    return [Math.round(r.left + 40), Math.round(r.top + 12)]
+  })()`)
+  const cardPixels = cardPixel ? await samplePixels(cdp, [cardPixel]) : null
+  const cardGap = cardPixels ? dist(cardPixels[0], gutterPixels[1]) : 0
   ok(
-    `${tag}：侧栏没有叠半透明底（与画布同色，差 ${railTint}）`,
-    railTint === 0,
-    `侧栏 rgb(${railPixel[0].join(',')}) vs 画布 rgb(${gutterPixels[1].join(',')})`
+    `${tag}：卡片与画布有色差（层次靠面，差 ${cardGap}）`,
+    cardGap > 0,
+    `卡片 rgb(${(cardPixels ? cardPixels[0] : []).join(',')}) vs 画布 rgb(${gutterPixels[1].join(',')})`
   )
 
   // 7. 每个页面都不能横向溢出，并且不允许嵌套卡片
@@ -766,41 +784,65 @@ async function main() {
       (await cdp.eval(`document.querySelectorAll('.react-topbar .refactor-eyebrow').length`)) === 0
     )
     ok('顶栏不再有「本机运行」状态条', (await cdp.eval(`document.querySelectorAll('.react-online').length`)) === 0)
-    // 第 4 版（Notion 式侧栏）：分组标题回**来了**，但换了理由。
-    // 第 3 版删掉它们，是因为当时那三行是 10px/700/字距 .08em 的全大写小标，
-    // 配着半透明深色侧栏，确实像一层多余的装饰。
-    // 现在侧栏是纯白 + 14px 导航项，一行 11px 灰字标题的作用变成"说清为什么这些项在一起" ——
-    // 它比一条分隔线更能表达分组，而且不靠颜色。所以断言反过来：必须正好三组。
-    ok(
-      '侧栏有三行分组小标题（工作台/业务/工具）',
-      (await cdp.eval(
-        `JSON.stringify([...document.querySelectorAll('.react-sidebar__nav h2')].map((h) => h.textContent.trim()))`
-      )) === JSON.stringify(['工作台', '业务', '工具']),
-      await cdp.eval(
-        `JSON.stringify([...document.querySelectorAll('.react-sidebar__nav h2')].map((h) => h.textContent.trim()))`
-      )
+    // 第 5 版：导航从左侧竖轨搬到顶部横排。
+    // 横向导航里"分组小标题"没法放了（横排没有纵深的层级），
+    // 改成分层：一级只放五个高频页，其余进「更多」下拉 ——
+    // 十个平铺在顶部会挤成一条标签墙，而且「设置」不该和「订单」同权重。
+    const primary = await cdp.eval(
+      `JSON.stringify([...document.querySelectorAll('.appbar__nav > .appbar__link')].map((b) => b.textContent.replace(/[0-9]+$/, '').trim()))`
     )
-    // 选中态只能靠灰底和字重表达。左侧彩条是竖排导航里最容易"晃"的东西：
-    // 滚动时它一直在视野边缘，而且把"你在哪"重复说了两遍（底色已经说过一次）。
     ok(
-      '侧栏选中态没有左侧彩条',
-      (await cdp.eval(
-        `(() => {
-           const active = document.querySelector('.react-sidebar .refactor-navitem.is-active')
-           if (!active) return 'no-active'
-           const before = getComputedStyle(active, '::before')
-           return before.content === 'none' || before.content === 'normal' ? 'ok' : before.content + '|' + before.backgroundColor
-         })()`
-      )) === 'ok'
+      '顶栏一级导航只放五个（总览/订单/客户/价格表/游戏）',
+      JSON.parse(primary).slice(0, 5).join(',') === '总览,订单,客户,价格表,游戏',
+      primary
     )
-    // 分组之间的分隔线也要一起去掉：标题已经承担了分组，再加线就是双重标注
+    // 「更多」包在自己的容器里（.appbar__more > .appbar__link），
+    // 所以上面那条只取直接子元素；这里单独确认它存在，且二级页没有平铺出来。
+    const allLinks = await cdp.eval(
+      `JSON.stringify([...document.querySelectorAll('.appbar__nav .appbar__link')].map((b) => b.textContent.trim()))`
+    )
+    ok('顶栏导航里没有「保险箱/财务/报价单/自媒体/设置」（它们在「更多」里）',
+      !/保险箱|财务|报价单|自媒体|设置/.test(allLinks) && JSON.parse(allLinks).some((t) => t.startsWith('更多')),
+      allLinks
+    )
+    // 选中态：实心药丸（深底 + 反白字）。横向导航里下划线会被旁边的项误认成分隔线，
+    // 实心块的边界最清楚 —— 所以这里断言"当前页确实是一块实心块"。
+    const activeLook = await cdp.eval(`(() => {
+      const el = document.querySelector('.appbar__link.is-active')
+      if (!el) return null
+      const s = getComputedStyle(el)
+      return { bg: s.backgroundColor, color: s.color, radius: s.borderRadius }
+    })()`)
+    const activeBg = activeLook ? rgb(activeLook.bg) : null
     ok(
-      '侧栏分组之间不再画分隔线',
-      (await cdp.eval(
-        `[...document.querySelectorAll('.react-navgroup + .react-navgroup')]
-           .every((g) => getComputedStyle(g).borderTopWidth === '0px')`
-      ))
+      '顶栏选中项是实心药丸（深底 + 反白字 + 全圆角）',
+      Boolean(activeLook) && Boolean(activeBg) && activeBg.a > 0.99 && luma(activeLook.bg) < 0.2 && parseFloat(activeLook.radius) > 20,
+      activeLook && `${activeLook.bg} / ${activeLook.color} / ${activeLook.radius}`
     )
+    // 侧栏整体不该再存在：这是"骨架真的换了"的硬证据
+    ok(
+      '左侧导航轨已经移除（页面里没有 .react-sidebar）',
+      (await cdp.eval(`document.querySelectorAll('.react-sidebar').length`)) === 0
+    )
+    // 「更多」能打开，且里面有五个二级页
+    const moreOpened = await cdp.eval(`(() => {
+      const btn = [...document.querySelectorAll('.appbar__link')].find((b) => b.textContent.includes('更多'))
+      if (!btn) return 0
+      btn.click()
+      return 1
+    })()`)
+    await sleep(250)
+    const moreItems = await cdp.eval(
+      `[...document.querySelectorAll('.appbar__menu button')].map((b) => b.textContent.replace(/[0-9]+$/, '').trim())`
+    )
+    ok(
+      '「更多」下拉能打开，装着五个二级页',
+      moreOpened === 1 && ['保险箱', '财务', '报价单', '自媒体', '设置'].every((n) => moreItems.includes(n)),
+      JSON.stringify(moreItems)
+    )
+    await cdp.eval(`document.body.click()`)
+    await sleep(200)
+
     // 页面抬头原来压着一行靛蓝小标签（业务清单 / 客户档案 / 资金看板…），
     // 和下面的 h2 说的是同一件事，是"颜色太杂"的主要来源。
     const headEyebrows = await cdp.eval(
@@ -808,15 +850,19 @@ async function main() {
          .reduce((n, head) => n + head.querySelectorAll('.refactor-eyebrow').length, 0)`
     )
     ok('页面抬头不再压一行小标签', headEyebrows === 0, `还剩 ${headEyebrows} 处`)
+    // 顶栏右侧：三个纯图标按钮（刷新 / 主题 / 退出）+ 一个主操作。
+    // 上一版把它们塞在侧栏底部，得先找侧栏再找图标；现在和"开新单"并排，
+    // 高频动作全在右上角一个拇指能到的地方。
+    const iconLabels = await cdp.eval(
+      `[...document.querySelectorAll('.appbar__tools .app-icon')].map((b) => b.textContent.trim())`
+    )
+    ok('顶栏右侧有 3 个纯图标按钮（刷新/主题/退出）', iconLabels.length === 3 && iconLabels.every((t) => t === ''), JSON.stringify(iconLabels))
     ok(
-      '侧栏底部收成两行（开新单 + 图标行）',
-      (await cdp.eval(`document.querySelectorAll('.react-sidebar__footer > *').length`)) === 2,
-      await cdp.eval(`document.querySelectorAll('.react-sidebar__footer > *').length`)
+      '顶栏右侧有一个实心主操作「开新单」',
+      (await cdp.eval(
+        `[...document.querySelectorAll('.appbar__tools .refactor-button--primary')].some((b) => b.textContent.includes('开新单'))`
+      ))
     )
-    const labels = await cdp.eval(
-      `[...document.querySelectorAll('.react-sidebar__footer .react-sidebar__button')].map((b) => b.textContent.trim())`
-    )
-    ok('主题/退出按钮只留图标（不再占一整行文字）', labels.every((t) => t === ''), JSON.stringify(labels))
 
     section('浅色主题')
     await checkTheme(cdp, 'light', false)

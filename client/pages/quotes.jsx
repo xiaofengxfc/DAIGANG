@@ -74,10 +74,22 @@ export default function QuotesPage({ route, navigate, onNew, onReload, reloadKey
 
   return (
     <div className="quotes-page">
-      <header className="quotes-page__head"><div><h2>报价单</h2><p>{items?.length || 0} 张 · 客户点头后可以直接转成订单</p></div><button className="refactor-button refactor-button--primary" type="button" onClick={onNew}><Plus {...iconProps(15)} />做报价单</button></header>
-      <section className="quotes-toolbar"><div className="quotes-toolbar__spacer" /><label className="quotes-search"><Search {...iconProps(15)} /><input type="search" value={search} placeholder="搜报价单号、标题或客户" onChange={(event) => updateSearch(event.target.value)} /></label></section>
+      <header className="app-page__head quotes-page__head">
+        <div className="app-page__title">
+          <h1>报价单</h1>
+          <p>{items?.length || 0} 张 · 客户点头后可以直接转成订单</p>
+        </div>
+        <div className="app-page__actions">
+          <button className="refactor-button refactor-button--primary" type="button" onClick={onNew}><Plus {...iconProps(15)} />做报价单</button>
+        </div>
+      </header>
       {error ? <div className="refactor-alert" role="alert">{error}</div> : null}
-      <section className="quotes-panel"><div className="quotes-table-head"><span>报价单</span><span>项目</span><span>游戏</span><span>有效期</span><span>合计</span><span>操作</span></div>{items === null ? <div className="refactor-loading"><span /><span /><span /></div> : items.length ? <div className="quotes-list">{items.map((quote) => <article className="quotes-row" key={quote.id}><button className="quotes-row__main" type="button" onClick={() => showText(quote)}><span><b>{quote.quote_no}</b>{quote.customer_name ? <small>{quote.customer_name}</small> : null}</span><strong>{quote.title || '未命名报价'}</strong></button><span className="quotes-row__items">{quote.item_count || 0} 项</span><span className="quotes-row__game">{quote.game_name || '通用'}</span><span className="quotes-row__valid">{quote.valid_until || '—'}</span><span className="quotes-row__total">¥{fmtMoney(quote.total)}</span><div className="quotes-row__actions"><button className="react-mini-button" type="button" title="看文字版" onClick={() => showText(quote)}><FileText {...iconProps(14)} /></button><button className="react-mini-button" type="button" title="转成订单" onClick={() => convert(quote)}><ArrowRight {...iconProps(14)} /></button><button className="react-mini-button quotes-danger" type="button" title="删除" onClick={() => remove(quote)}><Trash2 {...iconProps(14)} /></button></div></article>)}</div> : <div className="quotes-empty"><FileText {...iconProps(23)} /><b>{query ? '没有找到报价单' : '还没做过报价单'}</b><span>{query ? '换个关键词试试。' : '从价格表勾选服务项，生成一段可以直接发给客户的报价。'}</span><button className="refactor-button refactor-button--primary" type="button" onClick={onNew}><Plus {...iconProps(15)} />做第一张报价单</button></div>}</section>
+      <section className="quotes-panel">
+        <div className="quotes-panel__bar">
+          <div className="quotes-toolbar__spacer" />
+          <label className="quotes-search"><Search {...iconProps(15)} /><input type="search" value={search} placeholder="搜报价单号、标题或客户" onChange={(event) => updateSearch(event.target.value)} /></label>
+        </div>
+        <div className="quotes-table-head"><span>报价单</span><span>项目</span><span>游戏</span><span>有效期</span><span>合计</span><span>操作</span></div>{items === null ? <div className="refactor-loading"><span /><span /><span /></div> : items.length ? <div className="quotes-list">{items.map((quote) => <article className="quotes-row" key={quote.id}><button className="quotes-row__main" type="button" onClick={() => showText(quote)}><span><b>{quote.quote_no}</b>{quote.customer_name ? <small>{quote.customer_name}</small> : null}</span><strong>{quote.title || '未命名报价'}</strong></button><span className="quotes-row__items">{quote.item_count || 0} 项</span><span className="quotes-row__game">{quote.game_name || '通用'}</span><span className="quotes-row__valid">{quote.valid_until || '—'}</span><span className="quotes-row__total">¥{fmtMoney(quote.total)}</span><div className="quotes-row__actions"><button className="react-mini-button" type="button" title="看文字版" onClick={() => showText(quote)}><FileText {...iconProps(14)} /></button><button className="react-mini-button" type="button" title="转成订单" onClick={() => convert(quote)}><ArrowRight {...iconProps(14)} /></button><button className="react-mini-button quotes-danger" type="button" title="删除" onClick={() => remove(quote)}><Trash2 {...iconProps(14)} /></button></div></article>)}</div> : <div className="quotes-empty"><FileText {...iconProps(23)} /><b>{query ? '没有找到报价单' : '还没做过报价单'}</b><span>{query ? '换个关键词试试。' : '从价格表勾选服务项，生成一段可以直接发给客户的报价。'}</span><button className="refactor-button refactor-button--primary" type="button" onClick={onNew}><Plus {...iconProps(15)} />做第一张报价单</button></div>}</section>
     </div>
   )
 }

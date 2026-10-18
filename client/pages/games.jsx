@@ -122,21 +122,26 @@ export default function GamesPage({ route, navigate, onNew, onReload, reloadKey 
 
   return (
     <div className="games-page">
-      <header className="games-page__head">
-        <div><h2>游戏</h2><p>{activeCount} 个上架{archivedCount ? ` · ${archivedCount} 个已归档` : ''}</p></div>
-        <button className="refactor-button refactor-button--primary" type="button" onClick={onNew}><Plus {...iconProps(15)} />新建游戏</button>
-      </header>
-      <section className="games-toolbar" aria-label="游戏筛选">
-        <div className="games-filters" role="tablist" aria-label="游戏状态">
-          <button className={`games-filter${!query.only ? ' is-active' : ''}`} type="button" role="tab" aria-selected={!query.only} onClick={() => navigateQuery({ only: '' })}>全部</button>
-          <button className={`games-filter${query.only === 'active' ? ' is-active' : ''}`} type="button" role="tab" aria-selected={query.only === 'active'} onClick={() => navigateQuery({ only: 'active' })}>上架 {activeCount}</button>
-          {archivedCount ? <button className={`games-filter${query.only === 'archived' ? ' is-active' : ''}`} type="button" role="tab" aria-selected={query.only === 'archived'} onClick={() => navigateQuery({ only: 'archived' })}>已归档 {archivedCount}</button> : null}
+      <header className="app-page__head games-page__head">
+        <div className="app-page__title">
+          <h1>游戏</h1>
+          <p>{activeCount} 个上架{archivedCount ? ` · ${archivedCount} 个已归档` : ''}</p>
         </div>
-        <div className="games-toolbar__spacer" />
-        <label className="games-search"><Search {...iconProps(15)} /><input type="search" value={search} placeholder="搜游戏名、简称或备注" onChange={(event) => { const value = event.target.value; setSearch(value); window.clearTimeout(timer.current); timer.current = window.setTimeout(() => navigateQuery({ q: value.trim() }), 260) }} /><kbd>/</kbd></label>
-      </section>
+        <div className="app-page__actions">
+          <button className="refactor-button refactor-button--primary" type="button" onClick={onNew}><Plus {...iconProps(15)} />新建游戏</button>
+        </div>
+      </header>
       {error ? <div className="refactor-alert" role="alert">{error}</div> : null}
       <section className="games-panel">
+        <div className="games-panel__bar">
+          <div className="games-filters" role="tablist" aria-label="游戏状态">
+            <button className={`games-filter${!query.only ? ' is-active' : ''}`} type="button" role="tab" aria-selected={!query.only} onClick={() => navigateQuery({ only: '' })}>全部</button>
+            <button className={`games-filter${query.only === 'active' ? ' is-active' : ''}`} type="button" role="tab" aria-selected={query.only === 'active'} onClick={() => navigateQuery({ only: 'active' })}>上架 {activeCount}</button>
+            {archivedCount ? <button className={`games-filter${query.only === 'archived' ? ' is-active' : ''}`} type="button" role="tab" aria-selected={query.only === 'archived'} onClick={() => navigateQuery({ only: 'archived' })}>已归档 {archivedCount}</button> : null}
+          </div>
+          <div className="games-toolbar__spacer" />
+          <label className="games-search"><Search {...iconProps(15)} /><input type="search" value={search} placeholder="搜游戏名、简称或备注" onChange={(event) => { const value = event.target.value; setSearch(value); window.clearTimeout(timer.current); timer.current = window.setTimeout(() => navigateQuery({ q: value.trim() }), 260) }} /><kbd>/</kbd></label>
+        </div>
         <div className="games-table-head"><span>游戏</span><span>货币</span><span>建档</span><span>操作</span></div>
         {items === null ? <div className="refactor-loading"><span /><span /><span /></div> : rows.length ? <div className="games-list">{rows.map((game) => <GameRow key={game.id} game={game} onEdit={edit} onToggle={toggle} onDelete={remove} />)}</div> : <EmptyGames filtered={Boolean(query.q || query.only)} onNew={onNew} />}
       </section>

@@ -115,12 +115,12 @@ export default function VaultPage({ route, navigate, onReload, reloadKey }) {
 
   return (
     <div className="vault-page">
-      <header className="vault-page__head">
-        <div>
-          <h2>登录凭证保险箱</h2>
+      <header className="app-page__head vault-page__head">
+        <div className="app-page__title">
+          <h1>登录凭证保险箱</h1>
           <p>{`${shown.length} 条凭证 · 用 AES-256-GCM 加密存储，明文不落盘`}</p>
         </div>
-        <div className="vault-page__actions">
+        <div className="app-page__actions vault-page__actions">
           <button className="refactor-button" type="button" onClick={() => openAudit()}><Clock {...iconProps(14)} />取用记录</button>
           <button className="refactor-button refactor-button--primary" type="button" onClick={register}><Plus {...iconProps(14)} />登记凭证</button>
         </div>

@@ -231,16 +231,16 @@ export default function MediaPage({ reloadKey = 0 }) {
 
   return (
     <div className="media-page">
-      <div className="media-page__head">
-        <div>
-          <h2>自媒体发布</h2>
+      <header className="app-page__head media-page__head">
+        <div className="app-page__title">
+          <h1>自媒体发布</h1>
           <p>统一管理素材、平台账号和跨平台发布任务。</p>
         </div>
-        <div className="media-page__head-actions">
+        <div className="app-page__actions media-page__head-actions">
           <span className={`media-executor${data.executor?.configured ? ' is-ready' : ''}`}><i />{data.executor?.configured ? '执行器已连接' : '管理模式'}</span>
           <button type="button" className="refactor-icon-button" title="刷新媒体数据" onClick={() => load({ quiet: true })} disabled={refreshing}><RefreshCw className={refreshing ? 'spin' : ''} {...iconProps(16)} /></button>
         </div>
-      </div>
+      </header>
 
       <div className="media-summary">
         <div><Radio {...iconProps(17)} /><span><b>{data.summary?.queued || 0}</b><small>待处理任务</small></span></div>

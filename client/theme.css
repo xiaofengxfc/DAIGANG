@@ -1,0 +1,2128 @@
+/* ============================================================
+   第 5 版 · 视觉层（Apple 式 · 顶部横向导航 · 全宽内容）
+
+   这一版换的不是配色，是**骨架**：
+
+     旧：左侧 236px 导航轨 + 顶栏 + 右侧内容（内容永远被挤窄）
+     新：一条横贯顶部的大标题栏 + 其下全宽内容区
+
+   为什么先去侧栏：这个后台一屏要看的信息是"一行一单"的宽表
+   （订单 8 列、价格表 5 列）。侧栏常年吃掉 236px，剩下的宽度
+   逼得表格缩字号、藏列、加横向滚动 —— 布局本身在跟内容抢地方。
+   横向导航只在顶部占 56px，换来的是每页多出 236px 的内容宽度。
+
+   视觉取 Apple 的三条做法：
+     1. **浅灰画布 + 纯白卡片**：层次来自"面"的色差和圆角，
+        不是来自边框。所以卡片没有 1px 描边，只有一层极轻的影；
+     2. **大留白**：行高、内边距、区块间距都比上一版松一档，
+        13px 正文提到 14px；
+     3. **一个动作一个颜色**：主按钮是墨黑（#1D1D1F）实心块，
+        其余全是中性灰。蓝色只留给键盘焦点环和文本链接 —— 面积小到
+        不会在任何一屏里成为"第一眼"。
+
+   文件位置说明：这里是**最终覆盖层**，在 main.jsx 里排在
+   styles.css 之后 import，所以同优先级下永远赢旧规则。
+   旧样式一行没删 —— 回退只需把这个 import 去掉。
+   ============================================================ */
+
+/* ---------- 令牌：把旧变量名的值换成 Apple 那一套 ---------- */
+
+:root {
+  /* 画布：浅灰。卡片是纯白，两者只差一档明度 —— 这层差就是层次的来源
+     （旧版画布纯白 + 描边，看久了满屏是格子）。 */
+  --bg: #f5f5f7;
+
+  /* 面：卡片 / 浮层 / 内嵌 */
+  --glass: #ffffff;
+  --glass-strong: #ffffff;
+  --glass-soft: #fafafa;
+  --glass-inset: #f5f5f7;
+  --glass-hi: transparent;
+  --surface: #ffffff;
+  --surface-2: #f5f5f7;
+  --surface-3: #f0f0f2;
+  --surface-inset: #f5f5f7;
+  --surface-solid: #ffffff;
+  --surface-solid-2: #f0f0f2;
+
+  /* 结构线：只在"必须有线"的地方用（表格行、顶栏下沿、输入框）。
+     卡片边界不再靠它。 */
+  --line: #e5e5ea;
+  --line-strong: #d2d2d7;
+
+  /* 文本：Apple 的三档灰 */
+  --ink: #1d1d1f;
+  --ink-2: #6e6e73;
+  --ink-3: #86868b;
+  --ink-inverse: #ffffff;
+
+  /* 动作色：中性墨黑。变量名沿用 cinnabar（历史遗留），
+     它已经不是"红色"，而是"最重的一档中性色"。 */
+  --cinnabar: #1d1d1f;
+  --cinnabar-strong: #000000;
+  --cinnabar-solid: #1d1d1f;
+  --cinnabar-solid-hover: #000000;
+  --cinnabar-bg: rgba(0, 0, 0, 0.05);
+  --cinnabar-line: rgba(0, 0, 0, 0.12);
+  --on-cinnabar: #ffffff;
+
+  /* 唯一的彩色：系统蓝。只给链接与焦点环。 */
+  --accent: #0071e3;
+  --accent-soft: rgba(0, 113, 227, 0.1);
+
+  /* 状态色：降饱和到只剩"能分辨"，不抢戏 */
+  --jade: #248a3d;
+  --jade-ink: #1d7032;
+  --jade-bg: rgba(52, 199, 89, 0.12);
+
+  --amber: #b25000;
+  --amber-ink: #96500a;
+  --amber-bg: rgba(255, 149, 0, 0.12);
+
+  --slate: #3a5f8a;
+  --slate-ink: #33517a;
+  --slate-bg: rgba(0, 113, 227, 0.1);
+
+  --oxblood: #c0182b;
+  --oxblood-ink: #b3122a;
+  --oxblood-bg: rgba(255, 59, 48, 0.1);
+
+  /* 影：Apple 的卡片是"浮起来一点点"，不是"贴一张纸"。
+     两层：一层 1px 的接触影，一层 24px 的扩散影。 */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 10px 30px -14px rgba(0, 0, 0, 0.12);
+  --shadow-pop: 0 2px 6px rgba(0, 0, 0, 0.06), 0 20px 48px -20px rgba(0, 0, 0, 0.24);
+  --shadow-glass: none;
+  --shadow-drawer: -1px 0 0 var(--line), -24px 0 60px -30px rgba(0, 0, 0, 0.25);
+  --shadow-hi: none;
+
+  /* 字号：正文 14（上一版 13），标题跳一档 */
+  --fs-xs: 0.6875rem;   /* 11 */
+  --fs-sm: 0.8125rem;   /* 13 */
+  --fs-base: 0.875rem;  /* 14 */
+  --fs-md: 0.9375rem;   /* 15 */
+  --fs-lg: 1.0625rem;   /* 17 */
+  --fs-xl: 1.375rem;    /* 22 */
+  --fs-2xl: 1.75rem;    /* 28 */
+  --fs-3xl: 2.125rem;   /* 34 */
+
+  /* 形状：卡片大圆角是 Apple 最明显的形。控件比卡片收一档。 */
+  --r-card: 18px;
+  --r-ctl: 11px;
+  --r-pill: 999px;
+
+  /* 骨架：不再有侧栏 */
+  --rail-w: 0px;
+  --topbar-h: 56px;
+  --tabs-h: 60px;
+  --shell-max: 1560px;
+
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-fast: 160ms;
+  --t-base: 240ms;
+  --t-slow: 320ms;
+}
+
+/* ---------- 深色：同一套结构，换到暗处 ----------
+   暗色下"浅灰画布 + 白卡片"翻成"黑画布 + 深灰卡片"，
+   面与面之间仍然只差一档明度，不引入边框。 */
+
+:root[data-theme='dark'] {
+  --bg: #000000;
+
+  --glass: #1c1c1e;
+  --glass-strong: #1c1c1e;
+  --glass-soft: #2c2c2e;
+  --glass-inset: #1c1c1e;
+  --surface: #1c1c1e;
+  --surface-2: #2c2c2e;
+  --surface-3: #2c2c2e;
+  --surface-inset: #232325;
+  --surface-solid: #1c1c1e;
+  --surface-solid-2: #2c2c2e;
+
+  --line: #38383a;
+  --line-strong: #48484a;
+
+  --ink: #f5f5f7;
+  --ink-2: #a1a1a6;
+  --ink-3: #86868b;
+  --ink-inverse: #1d1d1f;
+
+  --cinnabar: #f5f5f7;
+  --cinnabar-strong: #ffffff;
+  --cinnabar-solid: #f5f5f7;
+  --cinnabar-solid-hover: #ffffff;
+  --cinnabar-bg: rgba(255, 255, 255, 0.08);
+  --cinnabar-line: rgba(255, 255, 255, 0.16);
+  --on-cinnabar: #1d1d1f;
+
+  --accent: #0a84ff;
+  --accent-soft: rgba(10, 132, 255, 0.16);
+
+  --jade: #30d158;
+  --jade-ink: #4ade80;
+  --jade-bg: rgba(48, 209, 88, 0.16);
+
+  --amber: #ff9f0a;
+  --amber-ink: #ffb340;
+  --amber-bg: rgba(255, 159, 10, 0.16);
+
+  --slate: #64a5ff;
+  --slate-ink: #8ab8ff;
+  --slate-bg: rgba(10, 132, 255, 0.16);
+
+  --oxblood: #ff453a;
+  --oxblood-ink: #ff6961;
+  --oxblood-bg: rgba(255, 69, 58, 0.16);
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 30px -14px rgba(0, 0, 0, 0.7);
+  --shadow-pop: 0 2px 6px rgba(0, 0, 0, 0.5), 0 20px 48px -20px rgba(0, 0, 0, 0.8);
+  --shadow-drawer: -1px 0 0 var(--line), -24px 0 60px -30px rgba(0, 0, 0, 0.9);
+}
+
+/* ---------- 基础排版 ---------- */
+
+html {
+  background: var(--bg);
+}
+
+body {
+  background: var(--bg);
+  font-size: var(--fs-base);
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.022em;
+}
+
+h1 {
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+h2 {
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+h3 {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+/* ============================================================
+   外壳：顶部横向导航 + 全宽内容
+   ============================================================ */
+
+.react-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: block;
+  background: var(--bg);
+}
+
+/* 顶栏：Apple 的玻璃条。它 sticky 在顶部，内容从它下面滚过去。
+   只有它是半透明 + 模糊的 —— 面板一律不透明，否则层次会打架。 */
+.appbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-topbar, 30);
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--line);
+}
+
+.appbar__inner {
+  width: min(100%, var(--shell-max));
+  min-height: var(--topbar-h);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 28px;
+}
+
+.appbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.appbar__mark {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 8px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.appbar__name {
+  max-width: 180px;
+  overflow: hidden;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 一级导航：一排胶囊。选中态是"深色药丸"，不是"下划线 + 彩色字" ——
+   横向导航里下划线会被旁边的项误认成分隔，实心药丸的边界最清楚。 */
+.appbar__nav {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.appbar__nav::-webkit-scrollbar {
+  display: none;
+}
+
+.appbar__link {
+  position: relative;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+.appbar__link:hover {
+  background: var(--cinnabar-bg);
+  color: var(--ink);
+}
+
+.appbar__link.is-active {
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+.appbar__link.is-active:hover {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.appbar__link-icon {
+  flex: none;
+  opacity: 0.7;
+}
+
+.appbar__link.is-active .appbar__link-icon {
+  opacity: 0.95;
+}
+
+.appbar__badge {
+  min-width: 17px;
+  padding: 0 5px;
+  border-radius: var(--r-pill);
+  background: var(--cinnabar-bg);
+  color: var(--ink-2);
+  font-family: var(--font-fig);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 17px;
+  text-align: center;
+}
+
+.appbar__link.is-active .appbar__badge {
+  background: color-mix(in srgb, var(--bg) 26%, transparent);
+  color: var(--bg);
+}
+
+.appbar__tools {
+  min-width: 0;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 「更多」下拉：装二级导航（保险箱 / 财务 / 报价单 / 自媒体 / 设置） */
+.appbar__more {
+  position: relative;
+}
+
+.appbar__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  width: 208px;
+  overflow: hidden;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+
+.appbar__menu button {
+  width: 100%;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.appbar__menu button:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.appbar__menu button.is-active {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.appbar__menu button b {
+  margin-left: auto;
+  padding: 0 6px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--ink-3);
+  font-family: var(--font-fig);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* 顶栏右侧的图标按钮：无边框，悬停才浮出浅底 */
+.app-icon {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+.app-icon:hover {
+  background: var(--cinnabar-bg);
+  color: var(--ink);
+}
+
+/* 顶栏里的全局搜索：胶囊，宽度不抢导航 */
+.appbar .refactor-search {
+  width: 220px;
+  min-width: 0;
+  height: 32px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--cinnabar-bg);
+  color: var(--ink-3);
+}
+
+.appbar .refactor-search:focus-within {
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--line-strong), 0 0 0 3px var(--accent-soft);
+}
+
+.appbar .refactor-search input {
+  font-size: var(--fs-sm);
+}
+
+.appbar .refactor-search kbd {
+  display: none;
+}
+
+.appbar .refactor-search__results {
+  left: auto;
+  right: 0;
+  width: min(86vw, 420px);
+  padding: 5px;
+  border-radius: 14px;
+}
+
+.appbar .refactor-search__results button {
+  border-bottom: 0;
+  border-radius: 9px;
+}
+
+/* 内容区：全宽。max-width 只是防止超宽屏上一行拉到 2000px 读不下去，
+   1560 对 1440 笔记本等于"没有上限"。 */
+.react-main {
+  display: block;
+  min-width: 0;
+  grid-area: auto;
+}
+
+.react-main__inner {
+  width: min(100%, var(--shell-max));
+  margin: 0 auto;
+  padding: 32px 28px 80px;
+}
+
+/* 旧的侧栏/顶栏/移动标签类名如果还有残留，一律不占位 */
+.react-sidebar,
+.react-topbar {
+  display: none !important;
+}
+
+/* ============================================================
+   页面头部：每个页面统一的一段"标题 + 一行摘要 + 右侧动作"
+   ============================================================ */
+
+.app-page {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+}
+
+.app-page__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  min-width: 0;
+}
+
+.app-page__title {
+  min-width: 0;
+}
+
+.app-page__title h1,
+.app-page__title h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+}
+
+.app-page__title p {
+  margin: 8px 0 0;
+  max-width: 62ch;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+.app-page__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ============================================================
+   按钮：Apple 的三档（实心 / 浅灰 / 纯文字）
+   ============================================================ */
+
+.refactor-button,
+.btn {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  background: var(--cinnabar-bg);
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease),
+    transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+
+.refactor-button:hover:not(:disabled),
+.btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  border-color: transparent;
+}
+
+.refactor-button:active:not(:disabled),
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.refactor-button:disabled,
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.refactor-button--primary,
+.btn--primary {
+  background: var(--cinnabar-solid);
+  color: var(--on-cinnabar);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.refactor-button--primary:hover:not(:disabled),
+.btn--primary:hover:not(:disabled) {
+  background: var(--cinnabar-solid-hover);
+  border-color: transparent;
+}
+
+.refactor-button--primary:active:not(:disabled),
+.btn--primary:active:not(:disabled) {
+  background: var(--cinnabar-strong);
+}
+
+.refactor-button--block,
+.btn--block {
+  width: 100%;
+}
+
+/* 次级按钮：白底细边。用在"和主操作并列、但没那么重"的地方 */
+.refactor-button--ghost {
+  background: var(--surface);
+  border-color: var(--line-strong);
+}
+
+.refactor-button--ghost:hover:not(:disabled) {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+}
+
+.btn--quiet {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--ink-2);
+}
+
+.btn--quiet:hover:not(:disabled) {
+  background: var(--cinnabar-bg);
+  color: var(--ink);
+}
+
+.btn--danger {
+  background: var(--oxblood-bg);
+  border-color: transparent;
+  color: var(--oxblood-ink);
+  box-shadow: none;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--oxblood) 18%, transparent);
+}
+
+.btn--sm {
+  min-height: 28px;
+  padding: 0 11px;
+  font-size: var(--fs-xs);
+}
+
+.btn--icon {
+  width: 34px;
+  padding: 0;
+}
+
+.btn--icon.btn--sm {
+  width: 28px;
+}
+
+.refactor-icon-button,
+.react-icon-button {
+  border-radius: var(--r-pill);
+}
+
+/* 行内小图标按钮 */
+.react-mini-button {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+.react-mini-button:hover {
+  background: var(--cinnabar-bg);
+  color: var(--ink);
+}
+
+/* ============================================================
+   表单控件：去掉描边，用浅灰底 —— Apple 的输入框是"一块凹槽"
+   ============================================================ */
+
+.inp,
+.sel,
+.ta,
+.refactor-input {
+  width: 100%;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--r-ctl);
+  background: var(--glass-inset);
+  color: var(--ink);
+  font-size: var(--fs-base);
+  box-shadow: none;
+  transition: background var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+
+.inp:hover:not(:disabled),
+.sel:hover:not(:disabled),
+.ta:hover:not(:disabled),
+.refactor-input:hover:not(:disabled) {
+  border-color: var(--line-strong);
+}
+
+.inp:focus,
+.sel:focus,
+.ta:focus,
+.refactor-input:focus {
+  outline: none;
+  border-color: transparent;
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 1px var(--accent);
+}
+
+.inp--fig {
+  text-align: right;
+}
+
+.chk {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.chk:checked {
+  background: var(--cinnabar-solid);
+  border-color: transparent;
+}
+
+.sw {
+  width: 42px;
+  height: 26px;
+  border: 0;
+  background: var(--surface-3);
+}
+
+.sw::after {
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.sw:checked {
+  background: var(--jade);
+}
+
+.sw:checked::after {
+  transform: translateX(16px);
+  background: #ffffff;
+}
+
+/* ============================================================
+   卡片：白面 + 大圆角 + 极轻影，没有描边
+   ============================================================ */
+
+.panel,
+.card,
+.orders-panel,
+.customers-panel,
+.settings-page .panel,
+.vault-page .panel,
+.install {
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.panel__head,
+.panel-head {
+  border-bottom-color: transparent;
+}
+
+/* 标签：从"彩色底片"改成"浅灰片 + 深字" */
+.tag {
+  min-height: 21px;
+  padding: 0 8px;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+}
+
+.tag--jade,
+.tag--amber,
+.tag--slate,
+.tag--oxblood,
+.tag--cinnabar {
+  background: var(--surface-3);
+  color: var(--ink-2);
+}
+
+.tag--outline {
+  border-color: var(--line-strong);
+  background: transparent;
+}
+
+.tag--muted {
+  background: var(--surface-3);
+  color: var(--ink-3);
+}
+
+/* 状态徽标：一个点 + 灰字。点承担语义，字承担内容 —— 
+   这样一列状态读起来是"一排点"，不是"一排彩色药丸"。 */
+.react-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.react-status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.react-status--jade { color: var(--jade); }
+.react-status--amber { color: var(--amber); }
+.react-status--slate { color: var(--slate); }
+.react-status--oxblood { color: var(--oxblood); }
+.react-status--cinnabar { color: var(--ink); }
+.react-status--muted { color: var(--ink-3); }
+
+/* ============================================================
+   浮层：抽屉 / 对话框 / 吐司 —— 大圆角 + 柔和投影
+   ============================================================ */
+
+.drawer {
+  border: 0;
+  border-left: 1px solid var(--line);
+  border-radius: 20px 0 0 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow-drawer);
+}
+
+.drawer__head {
+  border-bottom: 1px solid var(--line);
+}
+
+.drawer__title {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.drawer__foot {
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.modal {
+  border: 0;
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+
+.modal__title {
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.modal__foot {
+  border-top: 1px solid var(--line);
+}
+
+.drawer::backdrop,
+.modal::backdrop {
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(2px);
+}
+
+.toast {
+  border: 0;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--ink) 92%, transparent);
+  color: var(--bg);
+  box-shadow: var(--shadow-pop);
+}
+
+.toast__ico {
+  background: color-mix(in srgb, var(--bg) 22%, transparent);
+  color: var(--bg);
+}
+
+/* ============================================================
+   总览页：一屏 = 一张"今日台面"大卡 + 一条调度列表
+   ============================================================ */
+
+.react-dashboard {
+  display: grid;
+  gap: 24px;
+}
+
+/* 抬头：四个待办数字 + 三个金额。
+   旧版是一个带边框的"账簿抬头"，现在是一张白卡，数字是页面上最大的东西。 */
+.react-ledger {
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.react-ledger__head {
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  padding: 20px 24px 0;
+  border-bottom: 0;
+}
+
+.react-ledger__head strong {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.react-ledger__head > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.react-ledger__head > div > span,
+.react-ledger__summary {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.react-ledger__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  align-items: stretch;
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.react-ledger__group {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-right: 1px solid var(--line);
+}
+
+.react-ledger__group--money {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-right: 0;
+}
+
+.react-ledger__cell {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  padding: 22px 20px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+
+.react-ledger__cell:last-child {
+  border-right: 0;
+}
+
+.react-ledger__cell:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.react-ledger__cell:disabled {
+  cursor: default;
+}
+
+.react-ledger__cell span {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+}
+
+.react-ledger__cell b {
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 30px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.react-ledger__cell.is-alert b,
+.react-ledger__cell.is-due b {
+  color: var(--oxblood);
+}
+
+/* 主区：左（宽）调度列表 + 右（窄）三块提醒 */
+.react-dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(280px, 1fr);
+  align-items: start;
+  gap: 24px;
+}
+
+.react-dashboard-panel {
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.react-dashboard-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px 22px 14px;
+  border-bottom: 0;
+}
+
+.react-dashboard-panel__head h2 {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.react-dashboard-panel__head > div {
+  display: grid;
+  gap: 3px;
+}
+
+.react-dashboard-panel__head > div > span,
+.react-dashboard-panel__count {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.react-dashboard-panel__count {
+  flex: none;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.react-orders-list {
+  padding: 0 8px 8px;
+}
+
+.react-order-row {
+  min-height: 66px;
+  grid-template-columns: minmax(0, 1fr) minmax(88px, .55fr) minmax(78px, .5fr) minmax(96px, auto) auto;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 12px;
+  transition: background var(--t-fast) var(--ease);
+}
+
+.react-order-row:hover,
+.react-order-row:focus-visible {
+  background: var(--surface-2);
+}
+
+.react-order-row__title b {
+  font-family: var(--font-fig);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+.react-order-row__meta {
+  margin-top: 3px;
+  color: var(--ink);
+  font-size: var(--fs-sm);
+}
+
+.react-order-row__meta span:first-child {
+  color: var(--ink-2);
+}
+
+.react-order-row__game,
+.react-order-row__progress {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.react-order-row__money b {
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+.react-order-row__money span {
+  font-size: var(--fs-xs);
+}
+
+.react-order-row__money span.is-due {
+  color: var(--amber);
+}
+
+.react-dashboard-panel__foot {
+  border-top: 1px solid var(--line);
+  padding: 12px 18px;
+}
+
+.react-dashboard-panel__foot .refactor-button {
+  background: transparent;
+  color: var(--accent);
+  font-weight: 500;
+  padding: 0;
+  min-height: 0;
+}
+
+.react-dashboard-panel__foot .refactor-button:hover {
+  background: transparent;
+  text-decoration: underline;
+}
+
+/* 右侧三块提醒 */
+.react-dashboard-side {
+  display: grid;
+  gap: 24px;
+}
+
+.react-side-row {
+  padding: 12px 22px;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.react-side-row:first-child {
+  border-top: 0;
+}
+
+.react-side-row:hover {
+  background: var(--surface-2);
+}
+
+.react-side-row b {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.react-side-row small {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.react-side-row em {
+  color: var(--amber);
+  font-style: normal;
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.react-side-row strong {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.react-dashboard-empty {
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  padding: 48px 32px;
+}
+
+.react-dashboard-empty__icon {
+  border-radius: 14px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+/* ============================================================
+   订单页：筛选条 + 一张宽表
+   ============================================================ */
+
+.orders-page,
+.customers-page,
+.quotes-page,
+.games-page,
+.finance-page,
+.price-page,
+.media-page,
+.vault-page,
+.settings-page,
+.customer-detail {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+}
+
+.orders-page__head,
+.customers-page__head,
+.quotes-page__head,
+.games-page__head,
+.finance-page__head,
+.price-page__head,
+.media-page__head,
+.vault-page__head,
+.settings-page__head,
+.customer-detail__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  min-width: 0;
+}
+
+.orders-page__head h2,
+.customers-page__head h2,
+.quotes-page__head h2,
+.games-page__head h2,
+.finance-page__head h2,
+.price-page__head h2,
+.vault-page__head h2,
+.settings-page__head h2,
+.media-page__head h2 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+}
+
+.customer-detail__head h1 {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+}
+
+.orders-page__head p,
+.customers-page__head p,
+.quotes-page__head p,
+.games-page__head p,
+.finance-page__head p,
+.price-page__head p,
+.vault-page__head p,
+.settings-page__head p,
+.media-page__head p {
+  margin: 8px 0 0;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+/* 筛选条：一排灰胶囊，选中是深色药丸 —— 和顶栏导航同一套语言 */
+.orders-toolbar,
+.customers-toolbar,
+.quotes-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.orders-filters,
+.customers-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.orders-filter,
+.customers-filter,
+.orders-chip {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+.orders-filter:hover,
+.customers-filter:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.orders-filter.is-active,
+.customers-filter.is-active {
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+.orders-chip {
+  border: 0;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  color: var(--ink);
+}
+
+.orders-select,
+.orders-search,
+.customers-search,
+.quotes-search {
+  min-height: 34px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+}
+
+.orders-select {
+  padding: 0 12px;
+}
+
+.orders-search,
+.customers-search,
+.quotes-search {
+  min-width: 210px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 13px;
+}
+
+.orders-search input,
+.customers-search input,
+.quotes-search input {
+  font-size: var(--fs-xs);
+}
+
+.orders-note {
+  border: 0;
+  border-radius: var(--r-ctl);
+  background: var(--slate-bg);
+  color: var(--slate-ink);
+  font-size: var(--fs-xs);
+  padding: 10px 14px;
+}
+
+.orders-note svg {
+  color: var(--slate);
+}
+
+/* 表格：无竖线、无外框，行与行之间一条极淡的横线 */
+.orders-panel,
+.customers-panel,
+.quotes-panel {
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.orders-table-head,
+.customers-table-head,
+.quotes-table-head {
+  min-height: 40px;
+  padding: 0 22px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.orders-row,
+.customers-row {
+  min-height: 64px;
+  padding: 12px 22px;
+  border-bottom: 1px solid var(--line);
+  transition: background var(--t-fast) var(--ease);
+}
+
+.orders-row:last-child,
+.customers-row:last-child {
+  border-bottom: 0;
+}
+
+.orders-row:hover,
+.orders-row:focus-visible,
+.customers-row:hover,
+.customers-row:focus-visible {
+  background: var(--surface-2);
+}
+
+.orders-row__number > b {
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+
+.orders-row__order > strong {
+  margin-top: 3px;
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.orders-tag {
+  min-height: 18px;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  font-size: 10px;
+}
+
+.orders-tag--amber { color: var(--amber); background: var(--amber-bg); }
+.orders-tag--jade { color: var(--jade); background: var(--jade-bg); }
+
+.orders-customer img,
+.orders-customer__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  font-size: var(--fs-xs);
+}
+
+.orders-customer b {
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.orders-customer small,
+.orders-row__game,
+.orders-row__progress small,
+.orders-cell__muted {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.orders-row__progress b {
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+}
+
+.orders-due {
+  gap: 3px;
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+}
+
+.orders-due em {
+  border-radius: var(--r-pill);
+  font-size: 10px;
+  padding: 1px 6px;
+}
+
+.orders-due__bad { background: var(--oxblood-bg); color: var(--oxblood); }
+.orders-due__soon { background: var(--amber-bg); color: var(--amber); }
+.orders-due__ok { background: var(--jade-bg); color: var(--jade); }
+
+.orders-row__money b {
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+.orders-row__money span {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.orders-row__money span.is-due {
+  color: var(--amber);
+}
+
+.orders-empty,
+.customers-empty,
+.react-panel-empty {
+  color: var(--ink-3);
+}
+
+.orders-empty b,
+.customers-empty b,
+.react-panel-empty b {
+  color: var(--ink);
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+.orders-empty span,
+.customers-empty span,
+.react-panel-empty span {
+  font-size: var(--fs-sm);
+}
+
+/* ---- 第 5 版：订单页收成「抬头 + 一张卡」----
+   筛选条原来浮在表格上方，自己是一块带阴影的灰胶囊；下面的表格又是一块白卡。
+   两块"面"之间还夹着一层页面间距，于是首屏有三条水平边界，眼睛要先跨过两道门。
+   现在筛选条坐进卡片顶部（一条分隔线就够了），整页只剩抬头和一张卡。
+   筛选胶囊在卡里是**选中态才上色**，未选中透明 —— 它们本来就是同一块面里的东西。 */
+.orders-panel__bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.orders-panel__bar .orders-filters {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  gap: 2px;
+}
+
+.orders-panel__bar .orders-filter {
+  min-height: 30px;
+}
+
+.orders-panel__bar .orders-select,
+.orders-panel__bar .orders-search,
+.orders-panel__bar .orders-chip {
+  background: var(--surface-3);
+  box-shadow: none;
+}
+
+.orders-panel__bar .orders-search {
+  min-width: 200px;
+}
+
+/* 订单列现在装着「单号 + 标题 + 游戏」三行，所以比原来窄一点点也读得开；
+   省下的宽度给了客户和金额 —— 这才是列表里真正要扫的两样东西。 */
+.orders-table-head,
+.orders-row {
+  grid-template-columns:
+    minmax(180px, 1.6fr) minmax(140px, 1.15fr) minmax(78px, .7fr)
+    minmax(88px, .75fr) minmax(100px, .85fr) minmax(96px, .85fr) 96px;
+  gap: 14px;
+}
+
+.orders-table-head {
+  padding: 0 16px;
+}
+
+.orders-row {
+  padding: 12px 16px;
+}
+
+/* 游戏名：标题下面一行小字。原来独占一列（100px 宽只写三个字），
+   现在贴着标题，扫一眼就能连起来读「这单是什么 + 哪个游戏」。 */
+.orders-row__game {
+  margin-top: 2px;
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+  font-weight: 400;
+}
+
+@media (max-width: 1060px) {
+  .orders-table-head,
+  .orders-row {
+    grid-template-columns:
+      minmax(170px, 1.6fr) minmax(130px, 1.1fr) minmax(88px, .8fr)
+      minmax(100px, .85fr) minmax(92px, .85fr) 88px;
+  }
+
+  /* 中等宽度先舍「进度」：状态和交付决定要不要现在动手，进度点进去就能看。 */
+  .orders-table-head > :nth-child(3),
+  .orders-row > .orders-row__progress {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .orders-panel__bar {
+    padding: 10px 12px;
+    gap: 6px;
+  }
+
+  .orders-panel__bar .orders-search {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .orders-row__game {
+    margin-top: 1px;
+  }
+}
+
+/* ============================================================
+   客户页：头像 + 姓名是第一列，金额右对齐
+   ============================================================ */
+
+.customers-row {
+  gap: 14px;
+}
+
+.customers-row__name b {
+  color: var(--ink);
+  font-size: var(--fs-md);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.customers-row__contact {
+  margin-top: 3px;
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.customers-tag {
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  color: var(--ink-2);
+  font-size: 10px;
+  padding: 1px 7px;
+}
+
+.customers-tag--archived {
+  background: var(--surface-3);
+  color: var(--ink-3);
+}
+
+.customers-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+
+.customers-row__source {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.customers-row__orders b {
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.customers-row__orders small,
+.customers-row__money small {
+  color: var(--ink-3);
+  font-size: 10px;
+}
+
+.customers-row__money b {
+  color: var(--ink);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.customers-row__money b.is-due {
+  color: var(--amber);
+}
+
+.customers-row__credentials {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+/* ---- 第 5 版：游戏页 / 报价单页沿用同一套「抬头 + 一张卡」----
+   这两页原来的工具条也是一块独立的浮层；收进卡里之后，
+   六个列表页（订单 / 客户 / 游戏 / 报价单 / 价格表 / 保险箱）骨架一致。 */
+.games-panel__bar,
+.quotes-panel__bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.games-panel__bar .games-filters {
+  gap: 2px;
+}
+
+/* 卡里的筛选胶囊统一成订单页那套：未选中透明，选中深底反白 */
+.games-panel__bar .games-filter,
+.quotes-panel__bar .quotes-filter {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+}
+
+.games-panel__bar .games-filter:hover,
+.quotes-panel__bar .quotes-filter:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.games-panel__bar .games-filter.is-active,
+.quotes-panel__bar .quotes-filter.is-active {
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+.games-panel__bar .games-search,
+.quotes-panel__bar .quotes-search {
+  min-width: 220px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  box-shadow: none;
+}
+
+@media (max-width: 760px) {
+  .games-panel__bar,
+  .quotes-panel__bar {
+    padding: 10px 12px;
+    gap: 6px;
+  }
+
+  .games-panel__bar .games-search,
+  .quotes-panel__bar .quotes-search {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+}
+
+/* ---- 第 5 版：客户页也收成「抬头 + 一张卡」----
+   工具条原来浮在卡片上方，和订单页是同一个问题：两条水平边界。
+   收进卡里之后，两页的骨架完全一致，切换页面时眼睛不用重新找东西。 */
+.customers-panel__bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.customers-panel__bar .customers-filters {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  gap: 2px;
+}
+
+.customers-panel__bar .customers-filter {
+  min-height: 30px;
+}
+
+.customers-panel__bar .customers-search {
+  background: var(--surface-3);
+  box-shadow: none;
+  min-width: 220px;
+}
+
+/* 「来源」列并进身份区之后是 5 列：客户 / 订单 / 金额 / 凭证 / 打开。
+   客户那一列因此可以长得更多 —— 姓名、电话、微信、标签全在一格里读。 */
+.customers-table-head,
+.customers-row {
+  grid-template-columns: minmax(320px, 2.4fr) 88px minmax(120px, .9fr) 68px 42px;
+  gap: 16px;
+}
+
+.customers-table-head {
+  padding: 0 16px;
+}
+
+.customers-row {
+  padding: 12px 16px;
+  min-height: 68px;
+}
+
+/* 来源：贴着联系方式下面一行小字，只有填了才出现 */
+.customers-row__source {
+  margin-top: 2px;
+  font-size: var(--fs-xs);
+}
+
+@media (max-width: 1060px) {
+  .customers-table-head,
+  .customers-row {
+    grid-template-columns: minmax(240px, 2.2fr) 78px minmax(108px, .9fr) 42px;
+  }
+
+  /* 中等宽度舍「凭证」：它是点进档案之后第一眼就能看到的东西 */
+  .customers-table-head > :nth-child(4),
+  .customers-row > .customers-row__credentials {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .customers-panel__bar {
+    padding: 10px 12px;
+    gap: 6px;
+  }
+
+  .customers-panel__bar .customers-filters {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .customers-panel__bar .customers-search {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .customers-row {
+    gap: 9px 12px;
+    padding: 12px 13px;
+  }
+}
+
+/* ============================================================
+   登录页：一张居中的白卡，没有网格底纹
+   ============================================================ */
+
+.refactor-gate {
+  background: var(--bg);
+  padding: 32px 20px;
+}
+
+.refactor-gate__panel {
+  width: min(100%, 440px);
+  padding: 40px 36px 32px;
+  border: 0;
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.refactor-brand__mark {
+  border-radius: 9px;
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.refactor-gate__heading {
+  margin: 32px 0 22px;
+}
+
+.refactor-gate h1 {
+  margin-top: 6px;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.refactor-gate__heading p {
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+
+.refactor-eyebrow {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.refactor-field__label {
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+}
+
+.refactor-field__hint,
+.refactor-gate__foot {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.refactor-alert {
+  border: 0;
+  border-radius: var(--r-ctl);
+  background: var(--oxblood-bg);
+  color: var(--oxblood-ink);
+  font-size: var(--fs-sm);
+  padding: 10px 13px;
+}
+
+/* ============================================================
+   移动端：顶栏收成"品牌 + 搜索 + 头像"，导航交给底部标签
+   ============================================================ */
+
+@media (max-width: 1180px) {
+  .appbar__nav .appbar__link span {
+    display: none;
+  }
+
+  .appbar__nav .appbar__link {
+    padding: 0 10px;
+  }
+
+  .appbar .refactor-search {
+    width: 170px;
+  }
+}
+
+@media (max-width: 980px) {
+  .react-main__inner {
+    padding: 24px 20px 72px;
+  }
+
+  .appbar__inner {
+    padding: 0 18px;
+    gap: 12px;
+  }
+
+  .react-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .react-dashboard-side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .react-ledger__body {
+    grid-template-columns: 1fr;
+  }
+
+  .react-ledger__group {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .react-ledger__group--money {
+    border-bottom: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .react-shell {
+    padding-bottom: 76px;
+  }
+
+  .appbar__inner {
+    min-height: 56px;
+    padding: 0 14px;
+    gap: 10px;
+  }
+
+  .appbar__nav {
+    display: none;
+  }
+
+  .appbar .refactor-search {
+    width: auto;
+    flex: 1;
+  }
+
+  .react-main__inner {
+    padding: 20px 16px 40px;
+  }
+
+  .app-page,
+  .orders-page,
+  .customers-page,
+  .react-dashboard {
+    gap: 16px;
+  }
+
+  .orders-page__head h2,
+  .customers-page__head h2,
+  .app-page__title h1,
+  .app-page__title h2 {
+    font-size: 24px;
+  }
+
+  .orders-page__head,
+  .customers-page__head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .react-ledger__group {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .react-ledger__cell {
+    padding: 16px;
+  }
+
+  .react-ledger__cell b {
+    font-size: 24px;
+  }
+
+  .react-dashboard-side {
+    grid-template-columns: 1fr;
+  }
+
+  .orders-panel,
+  .customers-panel {
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  .orders-table-head,
+  .customers-table-head {
+    display: none;
+  }
+
+  .orders-row,
+  .customers-row {
+    border-radius: var(--r-card);
+    border-bottom: 0;
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+    margin-bottom: 10px;
+  }
+
+  .react-mobile-tabs {
+    display: grid;
+    border-top: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  .react-mobile-tabs .refactor-navitem {
+    border-radius: 12px;
+    color: var(--ink-3);
+  }
+
+  .react-mobile-tabs .refactor-navitem.is-active {
+    color: var(--ink);
+    background: transparent;
+  }
+}
+
+/* 桌面版外壳：右上角是系统画的三个按钮，顶栏右侧要留出空间 */
+:root.is-desktop .appbar__inner {
+  padding-right: 12px;
+}
+
+:root.is-desktop .appbar__tools {
+  padding-right: 132px;
+}
+
+@media (max-width: 760px) {
+  :root.is-desktop .appbar__inner {
+    padding-right: 8px;
+  }
+
+  :root.is-desktop .appbar__tools {
+    padding-right: 108px;
+  }
+}

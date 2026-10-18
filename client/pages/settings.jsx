@@ -202,9 +202,9 @@ export default function SettingsPage({ onReload, reloadKey }) {
   const LAN = location.hostname !== '127.0.0.1' && location.hostname !== 'localhost'
   return (
     <div className="settings-page">
-      <header className="settings-page__head">
-        <div>
-          <h2>设置</h2>
+      <header className="app-page__head settings-page__head">
+        <div className="app-page__title">
+          <h1>设置</h1>
           <p>店铺信息、密码、备份与安全</p>
         </div>
       </header>

@@ -11,6 +11,27 @@ const STATUS_LABEL = ORDER_STATUS_LABEL
 
 const iconProps = (size = 16) => ({ size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true })
 
+/* 抬头那句话：把「今天要干什么」说成一句话。
+   后台首页最没用的是一行静止的「总览」，最有用的是"现在有 3 单等你确认"。 */
+function greeting() {
+  const hour = new Date().getHours()
+  if (hour < 5) return '还没睡？'
+  if (hour < 11) return '早上好'
+  if (hour < 14) return '中午好'
+  if (hour < 18) return '下午好'
+  return '晚上好'
+}
+
+function headline(data, counts) {
+  const c = counts || {}
+  const waiting = (c.pending_confirm || 0) + (c.pending_pay || 0) + (c.pending_accept || 0)
+  const running = c.in_progress || 0
+  if (!c.games && !c.customers) return '帐桌还空着。先录入游戏和价格，就能接第一单。'
+  if (waiting) return `${waiting} 单在等你处理${running ? `，${running} 单正在做` : ''}。`
+  if (running) return `${running} 单正在做，今天没有等你拍板的事。`
+  return '今天手上没有在做的单，台面是干净的。'
+}
+
 function LedgerCell({ label, value, tone = '', hint, onClick }) {
   return (
     <button className={`react-ledger__cell${tone ? ` is-${tone}` : ''}`} type="button" title={hint} disabled={!onClick} onClick={onClick}>
@@ -123,5 +144,23 @@ export default function DashboardPage({ data, navigate, onReload }) {
   if (!data) return <div className="refactor-loading"><span /><span /><span /></div>
   const counts = data.counts || {}
   const empty = !counts.games && !counts.customers && !counts.open && !counts.done
-  return <div className="react-dashboard"><DashboardLedger data={data} navigate={navigate} />{empty ? <EmptyOnboarding navigate={navigate} /> : <div className="react-dashboard-grid"><OpenOrders orders={data.open_orders || []} count={counts.open} navigate={navigate} onReload={onReload} /><DashboardSide data={data} navigate={navigate} onReload={onReload} /></div>}</div>
+  return (
+    <div className="react-dashboard">
+      {/* 第 5 版：页名从顶栏挪回正文。顶栏只回答"去哪儿"，
+          "这是什么、现在什么情况"由内容自己说 —— 所以总览也需要一个抬头，
+          而且这里正好是放今日一句话摘要的地方。 */}
+      <header className="app-page__head">
+        <div className="app-page__title">
+          <h1>总览</h1>
+          <p>{greeting()}，{headline(data, counts)}</p>
+        </div>
+        <div className="app-page__actions">
+          <button className="refactor-button refactor-button--ghost" type="button" onClick={() => navigate('/customers')}>看客户</button>
+          <button className="refactor-button refactor-button--primary" type="button" onClick={() => navigate('/orders/new')}><Plus {...iconProps(15)} />开新单</button>
+        </div>
+      </header>
+      <DashboardLedger data={data} navigate={navigate} />
+      {empty ? <EmptyOnboarding navigate={navigate} /> : <div className="react-dashboard-grid"><OpenOrders orders={data.open_orders || []} count={counts.open} navigate={navigate} onReload={onReload} /><DashboardSide data={data} navigate={navigate} onReload={onReload} /></div>}
+    </div>
+  )
 }

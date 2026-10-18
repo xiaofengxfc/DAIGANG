@@ -409,13 +409,23 @@ function clickModalButton(cdp, text) {
   })()`)
 }
 
-/** 点顶栏里带这段文字的动作按钮（旧视图的动作按钮类名和 React 的不一样，按文字找最稳） */
+/**
+ * 点「顶部」的动作按钮，按文字找最稳。
+ *
+ * 第 5 版把导航搬到顶栏之后，顶栏只留高频动作（开新单），
+ * 各页自己的主操作（新建游戏 / 新建客户 …）落回了页面抬头右侧。
+ * 所以这里先找顶栏，再退回页面抬头 —— 两个位置都算「顶部动作」。
+ */
 function clickTopAction(cdp, text) {
   return cdp.eval(`(() => {
-    const btn = [...document.querySelectorAll('.react-topbar__tools button')].find((b) => b.textContent.includes(${JSON.stringify(text)}))
-    if (!btn) return false
-    btn.click()
-    return true
+    const zones = ['.appbar__tools', '.app-page__actions', '[class$="page__head"]', '.customer-detail__head']
+    for (const zone of zones) {
+      for (const host of document.querySelectorAll(zone)) {
+        const btn = [...host.querySelectorAll('button')].find((b) => b.textContent.includes(${JSON.stringify(text)}))
+        if (btn) { btn.click(); return true }
+      }
+    }
+    return false
   })()`)
 }
 
@@ -625,7 +635,7 @@ async function main() {
     await checkDrawer(cdp, {
       label: '报价单 · 做报价单（顶部动作）',
       hash: '/quotes',
-      click: '.refactor-top-action',
+      click: '.quotes-page__head .refactor-button--primary',
       expect: 'dialog[open]',
     })
 
@@ -846,8 +856,8 @@ async function main() {
       const before = cdp.errors.length
 
       await gotoHash(cdp, '/quotes')
-      ok('报价单页有「做报价单」', await waitFor(cdp, `Boolean(document.querySelector('.refactor-top-action'))`, { tries: 30, interval: 200 }))
-      await cdp.eval(`document.querySelector('.refactor-top-action').click()`)
+      ok('报价单页有「做报价单」', await waitFor(cdp, `Boolean(document.querySelector('.quotes-page__head .refactor-button--primary'))`, { tries: 30, interval: 200 }))
+      await cdp.eval(`document.querySelector('.quotes-page__head .refactor-button--primary').click()`)
       ok('React 报价单抽屉打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 40, interval: 200 }))
       checkFormShape(ok, await measureForm(cdp), {
         title: '做一张报价单',
@@ -903,8 +913,8 @@ async function main() {
     {
       const before = cdp.errors.length
       await gotoHash(cdp, '/games')
-      ok('游戏页有「新建游戏」顶部按钮', await waitFor(cdp, `Boolean(document.querySelector('.refactor-top-action'))`, { tries: 30, interval: 200 }))
-      await cdp.eval(`document.querySelector('.refactor-top-action').click()`)
+      ok('游戏页有「新建游戏」顶部按钮', await waitFor(cdp, `Boolean(document.querySelector('.games-page__head .refactor-button--primary'))`, { tries: 30, interval: 200 }))
+      await cdp.eval(`document.querySelector('.games-page__head .refactor-button--primary').click()`)
       ok('React 抽屉打开了', await waitFor(cdp, `Boolean(document.querySelector(${JSON.stringify(OPEN_DRAWER)}))`, { tries: 25, interval: 200 }))
       const title = await cdp.eval(`document.querySelector('.drawer__title')?.textContent || ''`)
       ok('抽屉标题是「新建游戏」', title.includes('新建游戏'), title)

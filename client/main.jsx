@@ -4,6 +4,7 @@ import {
   Activity,
   AlertCircle,
   ArrowUpRight,
+  ChevronDown,
   ClipboardList,
   Command,
   Compass,
@@ -49,6 +50,9 @@ import { openGameForm } from './pages/game-form.jsx'
 import { openCustomerForm } from './pages/customer-form.jsx'
 import { navigate as go, parseRoute } from './app/router.js'
 import './styles.css'
+// 第 5 版视觉层排最后：同优先级下它永远赢旧规则。
+// 旧样式一行没删，回退只需去掉这一行。
+import './theme.css'
 
 const NAV = [
   { seg: '', label: '总览', icon: LayoutDashboard, group: '工作台' },
@@ -64,6 +68,14 @@ const NAV = [
 ]
 
 const NAV_BY_SEG = new Map(NAV.map((item) => [item.seg, item]))
+
+/* 顶栏一级只放五个高频页 —— 十个平铺在顶部会挤成一条标签墙，
+   而且「设置」「报价单」这类一天开两次的页面不该和「订单」同权重。
+   其余的进「更多」下拉，位置仍然只有一次点击。 */
+const PRIMARY_NAV = NAV.filter((item) => ['', 'orders', 'customers', 'price', 'games'].includes(item.seg))
+const MORE_NAV = NAV.filter((item) => !PRIMARY_NAV.includes(item))
+/* 手机底部标签：最多五个位置（含「更多」），所以这里只放四个 */
+const MOBILE_NAV = NAV.filter((item) => ['', 'orders', 'customers', 'price'].includes(item.seg))
 
 /* 主题：浅色（白玻璃）是默认，深色是同一套玻璃在暗处的版本。
    模块加载时就写一次 data-theme —— 否则登录页会先用默认色渲染一遍，
@@ -275,6 +287,72 @@ function NavItem({ item, active, count, onClick }) {
   )
 }
 
+/* 顶栏一级导航项：胶囊 + 可选计数。
+   图标只在窄屏（文字被隐藏）时才出现 —— 桌面上一排图标加文字会显得零碎。 */
+function AppbarLink({ item, active, count, onClick }) {
+  const Icon = item.icon
+  return (
+    <button className={`appbar__link${active ? ' is-active' : ''}`} type="button" onClick={onClick} aria-current={active ? 'page' : undefined}>
+      <Icon className="appbar__link-icon" {...iconProps(15)} />
+      <span>{item.label}</span>
+      {item.badge ? <Badge value={item.badge(count || {})} /> : null}
+    </button>
+  )
+}
+
+function Badge({ value }) {
+  if (!value) return null
+  return <b className="appbar__badge">{value}</b>
+}
+
+/* 「更多」下拉：装次高频页面。
+   点外面、按 Esc、选中一项都会收起 —— 一个开着不放的下拉框会挡住内容。 */
+function AppbarMore({ items, current, counts, onNavigate }) {
+  const [open, setOpen] = useState(false)
+  const boxRef = useRef(null)
+  const active = items.some((item) => item.seg === current.seg)
+
+  useEffect(() => {
+    if (!open) return undefined
+    const onDown = (event) => {
+      if (boxRef.current && !boxRef.current.contains(event.target)) setOpen(false)
+    }
+    const onKey = (event) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  return (
+    <div className="appbar__more" ref={boxRef}>
+      <button className={`appbar__link${active ? ' is-active' : ''}`} type="button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
+        <span>更多</span>
+        <ChevronDown {...iconProps(14)} />
+      </button>
+      {open ? (
+        <div className="appbar__menu" role="menu">
+          {items.map((item) => {
+            const Icon = item.icon
+            const badge = item.badge ? item.badge(counts || {}) : 0
+            return (
+              <button key={item.seg} className={item.seg === current.seg ? 'is-active' : ''} type="button" role="menuitem" onClick={() => { setOpen(false); onNavigate(item.seg) }}>
+                <Icon {...iconProps(15)} />
+                <span>{item.label}</span>
+                {badge ? <b>{badge}</b> : null}
+              </button>
+            )
+          })}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function Shell({ me, onLogout }) {
   const [route, setRoute] = useState(parseRoute())
   const [theme, setTheme] = useState(readTheme)
@@ -348,52 +426,44 @@ function Shell({ me, onLogout }) {
 
   // 认不出来的地址不偷偷退回总览 —— 抬头和正文都明说「没有这一页」
   const current = NAV_BY_SEG.get(route.seg) || (route.seg ? { seg: route.seg, label: '没有这一页', icon: Compass } : NAV[0])
-  const groups = ['工作台', '业务', '工具']
   const toggleTheme = () => setTheme((value) => (value === 'light' ? 'dark' : 'light'))
+  const goTo = (seg) => go(seg ? `/${seg}` : '/')
 
   return (
     <div className="react-shell">
-      <aside className="react-sidebar">
-        <div className="react-sidebar__brand">
-          <span className="refactor-brand__mark">代</span>
-          <b>{settings.business_name || '代肝运营台'}</b>
-        </div>
-        {/* 分组用一行 11px 灰字小标题表达 —— 它比分隔线更能说清"这些项为什么在一起"，
-            而且灰字本身是安静的：不靠颜色，靠位置和字重。 */}
-        <nav className="react-sidebar__nav" aria-label="主导航">
-          {groups.map((group, index) => (
-            <div className="react-navgroup" key={group} data-first={index === 0 ? '1' : undefined}>
-              <h2>{group}</h2>
-              {NAV.filter((item) => item.group === group).map((item) => (
-                <NavItem key={item.seg} item={item} active={current.seg === item.seg} count={counts} onClick={() => go(item.seg ? `/${item.seg}` : '/')} />
-              ))}
-            </div>
-          ))}
-        </nav>
-        <div className="react-sidebar__footer">
-          <button className="react-quick-action" type="button" onClick={() => go('/orders/new')}><Plus {...iconProps(16)} />开新单</button>
-          <div className="react-sidebar__row">
-            <button className="react-sidebar__button" type="button" title={theme === 'light' ? '切换到深色模式' : '切换到浅色模式'} aria-label={theme === 'light' ? '切换到深色模式' : '切换到浅色模式'} onClick={toggleTheme}>{theme === 'light' ? <Moon {...iconProps(16)} /> : <Sun {...iconProps(16)} />}</button>
-            <button className="react-sidebar__button" type="button" title="退出登录" aria-label="退出登录" onClick={onLogout}><LogOut {...iconProps(16)} /></button>
+      {/* 顶栏：一条横贯全宽的玻璃条。
+          导航从左侧竖轨搬到顶部横排，是因为这个后台的主内容是宽表 ——
+          侧栏常年吃掉 236px，逼得表格缩字号、藏列、加横向滚动。
+          一级放五个高频页，其余收进「更多」。 */}
+      <header className="appbar">
+        <div className="appbar__inner">
+          <button className="appbar__brand" type="button" onClick={() => goTo('')} title="回到总览">
+            <span className="appbar__mark">代</span>
+            <span className="appbar__name">{settings.business_name || '代肝运营台'}</span>
+          </button>
+          <nav className="appbar__nav" aria-label="主导航">
+            {PRIMARY_NAV.map((item) => (
+              <AppbarLink key={item.seg || 'home'} item={item} active={current.seg === item.seg} count={counts} onClick={() => goTo(item.seg)} />
+            ))}
+            <AppbarMore items={MORE_NAV} current={current} counts={counts} onNavigate={goTo} />
+          </nav>
+          <div className="appbar__tools">
+            <SearchBox onNavigate={go} />
+            <button className="app-icon" type="button" title="刷新数据" aria-label="刷新数据" onClick={refresh}><RefreshCw {...iconProps(17)} /></button>
+            <button className="app-icon" type="button" title={theme === 'light' ? '切换到深色模式' : '切换到浅色模式'} aria-label={theme === 'light' ? '切换到深色模式' : '切换到浅色模式'} onClick={toggleTheme}>{theme === 'light' ? <Moon {...iconProps(17)} /> : <Sun {...iconProps(17)} />}</button>
+            <button className="app-icon" type="button" title="退出登录" aria-label="退出登录" onClick={onLogout}><LogOut {...iconProps(17)} /></button>
+            <button className="refactor-button refactor-button--primary" type="button" onClick={() => go('/orders/new')}><Plus {...iconProps(15)} />开新单</button>
           </div>
         </div>
-      </aside>
-      <header className="react-topbar">
-        <div className="react-topbar__title"><h1>{current.label}</h1></div>
-        <SearchBox onNavigate={go} />
-        <div className="react-topbar__tools">
-          <button className="react-icon-button" type="button" title="刷新数据" aria-label="刷新数据" onClick={refresh}><RefreshCw {...iconProps(17)} /></button>
-          {current.seg === 'customers' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createCustomer}><Plus {...iconProps(15)} />新建客户</button> : current.seg === 'games' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createGame}><Plus {...iconProps(15)} />新建游戏</button> : current.seg === 'price' && !route.sub ? null : current.seg === 'quotes' && !route.sub ? <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={createQuote}><Plus {...iconProps(15)} />做报价单</button> : current.seg === 'finance' && !route.sub ? null : current.seg === 'media' && !route.sub ? null : current.seg === 'settings' && !route.sub ? null : <button className="refactor-button refactor-button--primary refactor-top-action" type="button" onClick={() => go('/orders/new')}><Plus {...iconProps(15)} />开新单</button>}
-        </div>
       </header>
-      <main className="react-main">
+      <div className="react-main">
         <div className="react-main__inner">
           {current.seg === '' ? <DashboardPage data={dashboard} navigate={go} onReload={refresh} /> : current.seg === 'orders' && !route.sub && route.query.get('new') !== '1' ? <OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'orders' && (route.sub === 'new' || route.query.get('new') === '1') ? <><OrdersPage route={route} navigate={go} onNew={() => go('/orders/new')} onReload={refresh} reloadKey={reloadKey} /><OrderComposerRoute navigate={go} onReload={refresh} /></> : current.seg === 'orders' && route.sub ? <OrderDetailPage key={`order-${route.sub}-${reloadKey}`} route={route} navigate={go} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'customers' && !route.sub ? <CustomersPage route={route} navigate={go} onNew={createCustomer} reloadKey={reloadKey} /> : current.seg === 'customers' && route.sub ? <CustomerDetailPage key={`customer-${route.sub}-${reloadKey}`} route={route} navigate={go} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'games' && !route.sub ? <GamesPage route={route} navigate={go} onNew={createGame} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'price' && !route.sub ? <PricePage route={route} navigate={go} onNewGame={createGame} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'finance' && !route.sub ? <FinancePage route={route} navigate={go} reloadKey={reloadKey} /> : current.seg === 'quotes' && !route.sub ? <QuotesPage route={route} navigate={go} onNew={createQuote} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'media' && !route.sub ? <MediaPage reloadKey={reloadKey} /> : current.seg === 'vault' && !route.sub ? <VaultPage route={route} navigate={go} onReload={refresh} reloadKey={reloadKey} /> : current.seg === 'settings' && !route.sub ? <SettingsPage route={route} navigate={go} onReload={refresh} reloadKey={reloadKey} /> : <NotFound route={route} navigate={go} />}
         </div>
-      </main>
+      </div>
       <nav className="react-mobile-tabs" aria-label="移动端导航">
-        {NAV.filter((item) => ['', 'orders', 'customers', 'price'].includes(item.seg)).map((item) => <NavItem key={item.seg} item={item} active={current.seg === item.seg} count={counts} onClick={() => go(item.seg ? `/${item.seg}` : '/')} />)}
-        <button className="refactor-navitem" type="button" onClick={() => go('/settings')}><MoreHorizontal {...iconProps(18)} /><span>更多</span></button>
+        {MOBILE_NAV.map((item) => <NavItem key={item.seg || 'home'} item={item} active={current.seg === item.seg} count={counts} onClick={() => goTo(item.seg)} />)}
+        <button className={`refactor-navitem${MORE_NAV.some((item) => item.seg === current.seg) ? ' is-active' : ''}`} type="button" onClick={() => go('/settings')}><MoreHorizontal {...iconProps(18)} /><span>更多</span></button>
       </nav>
       {/* React 浮层（新式抽屉/对话框）挂在这里；旧 ui.js 的 dialog 仍然自己往 body 上挂 */}
       <OverlayHost />

@@ -71,9 +71,11 @@ function OrderRow({ order, navigate, onReload }) {
           {order.daily_done_today ? <span className="orders-tag orders-tag--jade">今日已完成</span> : null}
         </div>
         <strong>{title}</strong>
+        {/* 游戏原来是独立一列，但每行只写两三个字，一列 100px 换来一片空白。
+            贴到标题下面当副信息，一眼就能看到，还省出一整列给更重要的东西。 */}
+        <small className="orders-row__game">{order.game_name || '未指定游戏'}</small>
       </div>
       <div className="orders-row__customer"><CustomerCell order={order} navigate={navigate} /></div>
-      <div className="orders-row__game">{order.game_name || '未指定游戏'}</div>
       <div className="orders-row__progress">{order.progress_count ? <><b>{order.progress_count} 条</b><small>到 {fmtDay(order.last_progress_on)}</small></> : <span className="orders-cell__muted">还没记</span>}</div>
       <div className="orders-row__status"><StatusBadge order={order} /></div>
       <div className="orders-row__due"><DueLabel order={order} /></div>
@@ -160,26 +162,34 @@ export default function OrdersPage({ route, navigate, onNew, onReload, reloadKey
 
   return (
     <div className="orders-page">
-      <header className="orders-page__head">
-        <div><h2>{title}</h2><p>{rows.length ? `${rows.length} 张单 · ${customers} 位客户${walkIn ? ` + ${walkIn} 张散客` : ''} · 合计 ¥${fmtMoney(total)} · 未收 ¥${fmtMoney(due)}` : '按状态、客户和交付情况快速定位订单'}</p></div>
-        <button className="refactor-button refactor-button--primary" type="button" onClick={onNew}><Plus {...iconProps(15)} />开新单</button>
-      </header>
-      <section className="orders-toolbar" aria-label="订单筛选">
-        <div className="orders-filters" role="tablist" aria-label="订单状态">
-          {FILTERS.map((filter) => {
-            const active = filter.key === 'due' ? queryFilters.due : !queryFilters.due && queryFilters.status === filter.key
-            return <button key={filter.key || 'all'} className={`orders-filter${active ? ' is-active' : ''}`} type="button" role="tab" aria-selected={active} onClick={() => update(filter.key === 'due' ? { status: 'open', due: true } : { status: filter.key, due: false })}>{filter.label}</button>
-          })}
+      <header className="app-page__head">
+        <div className="app-page__title">
+          <h1>{title}</h1>
+          <p>{rows.length ? `${rows.length} 张单 · ${customers} 位客户${walkIn ? ` + ${walkIn} 张散客` : ''} · 合计 ¥${fmtMoney(total)} · 未收 ¥${fmtMoney(due)}` : '按状态、客户和交付情况快速定位订单'}</p>
         </div>
-        {queryFilters.customerId ? <button className="orders-chip" type="button" title="取消客户筛选" onClick={() => update({ customerId: '' })}><Users {...iconProps(13)} />只看「{customer?.name || '这个客户'}」<span aria-hidden="true">×</span></button> : null}
-        <div className="orders-toolbar__spacer" />
-        <select className="orders-select" aria-label="排序方式" value={queryFilters.sort} onChange={(event) => update({ sort: event.target.value })}>{SORTS.map((sort) => <option key={sort.value} value={sort.value}>{sort.label}</option>)}</select>
-        <label className="orders-search"><Search {...iconProps(15)} /><input type="search" value={search} placeholder="搜单号 / 标题 / 客户名" onChange={(event) => { const value = event.target.value; setSearch(value); window.clearTimeout(searchTimer.current); searchTimer.current = window.setTimeout(() => update({ q: value.trim() }), 260) }} /><kbd>/</kbd></label>
-      </section>
+        <div className="app-page__actions">
+          <button className="refactor-button refactor-button--primary" type="button" onClick={onNew}><Plus {...iconProps(15)} />开新单</button>
+        </div>
+      </header>
       {queryFilters.status === 'daily_done' ? <div className="orders-note"><Check {...iconProps(15)} /><span>这些是今天标了「今日已完成」的单，过了凌晨 4 点会自动回到「在做的」。点进订单可以撤销。</span></div> : null}
       {error ? <div className="refactor-alert" role="alert">{error}</div> : null}
+      {/* 第 5 版：筛选、搜索、排序原来浮在表格上方，自成一块灰胶囊，
+          和下面的白卡片是两层"面"，页面因此有两条水平边界。
+          收进卡片顶部一条，整页就只剩"抬头 + 一张卡"。 */}
       <section className="orders-panel">
-        <div className="orders-table-head"><span>订单</span><span>客户</span><span>游戏</span><span>进度</span><span>状态</span><span>交付</span><span>金额</span><span>操作</span></div>
+        <div className="orders-panel__bar">
+          <div className="orders-filters" role="tablist" aria-label="订单状态">
+            {FILTERS.map((filter) => {
+              const active = filter.key === 'due' ? queryFilters.due : !queryFilters.due && queryFilters.status === filter.key
+              return <button key={filter.key || 'all'} className={`orders-filter${active ? ' is-active' : ''}`} type="button" role="tab" aria-selected={active} onClick={() => update(filter.key === 'due' ? { status: 'open', due: true } : { status: filter.key, due: false })}>{filter.label}</button>
+            })}
+          </div>
+          {queryFilters.customerId ? <button className="orders-chip" type="button" title="取消客户筛选" onClick={() => update({ customerId: '' })}><Users {...iconProps(13)} />只看「{customer?.name || '这个客户'}」<span aria-hidden="true">×</span></button> : null}
+          <div className="orders-toolbar__spacer" />
+          <select className="orders-select" aria-label="排序方式" value={queryFilters.sort} onChange={(event) => update({ sort: event.target.value })}>{SORTS.map((sort) => <option key={sort.value} value={sort.value}>{sort.label}</option>)}</select>
+          <label className="orders-search"><Search {...iconProps(15)} /><input type="search" value={search} placeholder="搜单号 / 标题 / 客户名" onChange={(event) => { const value = event.target.value; setSearch(value); window.clearTimeout(searchTimer.current); searchTimer.current = window.setTimeout(() => update({ q: value.trim() }), 260) }} /><kbd>/</kbd></label>
+        </div>
+        <div className="orders-table-head"><span>订单</span><span>客户</span><span>进度</span><span>状态</span><span>交付</span><span>金额</span><span>操作</span></div>
         {items === null ? <div className="refactor-loading"><span /><span /><span /></div> : rows.length ? <div className="orders-list">{rows.map((order) => <OrderRow key={order.id} order={order} navigate={navigate} onReload={onReload} />)}</div> : <EmptyOrders search={Boolean(queryFilters.q)} status={queryFilters.status} onNew={onNew} />}
       </section>
     </div>

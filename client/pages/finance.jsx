@@ -52,7 +52,12 @@ export default function FinancePage({ route, navigate, reloadKey }) {
 
   return (
     <div className="finance-page">
-      <header className="finance-page__head"><div><h2>财务</h2><p>{query.from} → {query.to} · {totals.order_count || 0} 张订单</p></div><div className="finance-date-picker"><CalendarDays {...iconProps(15)} /><input type="date" value={from} onChange={(event) => setFrom(event.target.value)} /><span>至</span><input type="date" value={to} onChange={(event) => setTo(event.target.value)} /><button className="refactor-button" type="button" onClick={applyCustom}>查看</button></div></header>
+      <header className="app-page__head finance-page__head">
+        <div className="app-page__title">
+          <h1>财务</h1>
+          <p>{query.from} → {query.to} · {totals.order_count || 0} 张订单</p>
+        </div>
+        <div className="app-page__actions finance-date-picker"><CalendarDays {...iconProps(15)} /><input type="date" value={from} onChange={(event) => setFrom(event.target.value)} /><span>至</span><input type="date" value={to} onChange={(event) => setTo(event.target.value)} /><button className="refactor-button" type="button" onClick={applyCustom}>查看</button></div></header>
       <nav className="finance-ranges" aria-label="财务区间">{[['thisMonth', '本月'], ['lastMonth', '上月'], ['last30', '近 30 天'], ['thisYear', '今年']].map(([key, label]) => <button key={key} className={query.preset === key ? 'is-active' : ''} type="button" onClick={() => goRange(key)}>{label}</button>)}<button className={query.preset === 'custom' ? 'is-active' : ''} type="button" onClick={applyCustom}>自定义</button></nav>
       {error ? <div className="refactor-alert" role="alert">{error}</div> : null}
       <section className="finance-ledger"><header><strong>区间账单</strong><span>{query.label}</span></header><div className="finance-ledger__grid"><MoneyCell label="订单额" value={totals.order_total} /><MoneyCell label="总收款" value={totals.received} tone="paid" /><MoneyCell label="退款" value={totals.refunded} tone="refund" /><MoneyCell label="净收" value={totals.net_received} tone="paid" /><MoneyCell label="应收余额" value={totals.due_total} tone="due" /><MoneyCell label="手续费" value={totals.platform_fee} /><MoneyCell label="成本" value={totals.cost} /><MoneyCell label="利润" value={totals.profit} tone="profit" /></div></section>
