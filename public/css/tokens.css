@@ -1,105 +1,126 @@
 /* ============================================================
-   运营台 · 白玻璃设计系统
+   运营台 · 纯白扁平设计系统
 
-   一条规则管住全部颜色：**中性白 + 单一强调色（靛蓝）**。
-   状态色（琥珀 / 翠玉 / 石青 / 绛红）只在状态灯和极小的标签上出现，
-   不做整块底色、不做卡片描边——这样页面读起来是白的，不是花的。
+   方向：**白底 + 细线 + 一个强调色**。
 
-   层次由「玻璃」承担，不由描边承担：
-   画布（柔光）→ 玻璃面板（backdrop-filter）→ 玻璃内的高光顶边。
-   所以这一版里 --line 刻意很淡，很多地方直接用留白代替分隔线。
+   上一版是「白玻璃」：画布铺柔光、面板半透明、靠 backdrop-filter
+   磨砂浮起来。它在截图里好看，但作为一个人一天要盯十几单的工作台，
+   有三个实际问题：
 
-   浅色是默认工作台；深色是同一套玻璃在暗处的版本。
+     1. 玻璃要"有东西可透"，就必须让底下的柔光一直存在 —— 屏幕上
+        永远有一层彩色渐变在晃，读数字时是干扰；
+     2. backdrop-filter 在滚动中是实时重算的，笔记本上滚长列表掉帧；
+     3. 层次全靠"透"和"影"，一旦打印或者截图缩放，层次就糊了。
+
+   这一版把层次交还给**边框**：1px 的线 + 留白，没有模糊、没有柔光、
+   没有半透明。白色是底，不是材质。
+
+   一条硬规则：**中性白 + 单一强调色（靛蓝）**。
+   状态色（琥珀 / 翠玉 / 石青 / 绛红）只给状态灯和小标签用，
+   不铺整块底、不做卡片描边 —— 页面读起来才是白的。
+
+   浅色是默认；深色是同一套结构在暗处的版本（同样的线、同样的扁平，
+   只换色值），两边的层次模型必须一致，不要一边靠影一边靠线。
    ============================================================ */
 
 :root {
   color-scheme: light;
 
-  /* —— 画布与柔光：毛玻璃必须有东西可透，纯白背景上玻璃是看不见的 ——
-     柔光刻意做得很淡：它是「玻璃底下有东西」的证明，不是装饰。
-     早先的版本用了四个高饱和彩色光斑 + 34 秒漂移动画，屏幕上一直在
-     缓缓变色，读久了注意力会被牵走 —— 现代 SaaS 的画布应该是安静的。 */
-  --bg: #f6f7fb;
-  --glow-a: rgba(91, 91, 214, 0.16);
-  --glow-b: rgba(56, 189, 248, 0.12);
-  --glow-c: rgba(129, 140, 248, 0.1);
-  --glow-d: rgba(45, 212, 191, 0.09);
+  /* —— 画布 ——
+     纯白。桌面版窗口底色也是它（desktop/main.mjs 的 backgroundColor），
+     两边对不上会在启动瞬间闪一下别的颜色。 */
+  --bg: #ffffff;
 
-  /* —— 玻璃层 ——
-     glass-soft  最轻，给工具条 / 表头
-     glass       常规面板
-     glass-strong 需要压住底下内容的（抽屉、弹窗、顶栏）
-     glass-inset 嵌在玻璃里的输入框、代码块 */
-  --glass: rgba(255, 255, 255, 0.68);
-  --glass-strong: rgba(255, 255, 255, 0.84);
-  --glass-soft: rgba(255, 255, 255, 0.46);
-  --glass-inset: rgba(255, 255, 255, 0.72);
-  --glass-hi: rgba(255, 255, 255, 0.92);
-  --glass-blur: 20px;
-  --glass-blur-sm: 12px;
-  --glass-sat: 165%;
+  /* 柔光层已废弃：变量保留为空色，避免历史引用处 color-mix 报错。
+     body::before 那条规则在本文件末尾被显式关掉了，见「废弃层」。 */
+  --glow-a: transparent;
+  --glow-b: transparent;
+  --glow-c: transparent;
+  --glow-d: transparent;
 
-  /* 旧变量名全部保留：surface 系列就是玻璃层的别名，改动只在这一处 */
+  /* —— 面（原来是「玻璃层」，现在是不透明层）——
+     soft   最轻，给工具条 / 表头
+     base   常规面板
+     strong 需要压住底下内容的（抽屉、弹窗、顶栏）
+     inset  嵌在面板里的输入框、代码块
+
+     名字全部保持不变（glass/surface 两套别名都在用），只换值：
+     组件不需要为这次改版改一行 CSS。 */
+  --glass: #ffffff;
+  --glass-strong: #ffffff;
+  --glass-soft: #fafafa;
+  --glass-inset: #f6f7f9;
+  --glass-hi: transparent;
+
+  /* 毛玻璃关掉的方式：blur 归零、饱和度归原。
+     既有的 backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat))
+     会变成 blur(0px) saturate(100%) —— 合法但视觉上等于没有，
+     不必逐个删那十几处声明（删漏一处就会剩下一块模糊的面）。 */
+  --glass-blur: 0px;
+  --glass-blur-sm: 0px;
+  --glass-sat: 100%;
+
   --surface: var(--glass-strong);
   --surface-2: var(--glass);
   --surface-3: var(--glass-soft);
   --surface-inset: var(--glass-inset);
 
-  /* 少数几个必须实心的位置：吸顶表头、滚动区上方的浮起元素。
-     玻璃放在滚动内容上方会透出字，这些地方不能用透明色。 */
-  --surface-solid: #f8fafd;
-  --surface-solid-2: #eef2f8;
+  /* 次级面：比白再退一档，用来区分"同一页上的另一块区域" */
+  --surface-solid: #fafafa;
+  --surface-solid-2: #f2f3f5;
 
   /* 浮层背后的压暗层 */
-  --veil: rgba(16, 24, 40, 0.34);
+  --veil: rgba(17, 24, 39, 0.4);
 
-  /* —— 结构线：刻意很淡，绝大多数分组靠留白 —— */
-  --line: rgba(16, 24, 40, 0.07);
-  --line-strong: rgba(16, 24, 40, 0.13);
+  /* —— 结构线 ——
+     这一版层次**由线承担**，所以它必须真的看得见：
+     上一版 0.07 的透明度在白玻璃上是刻意的"若有若无"，
+     在纯白扁平里就会变成"什么都没有"。 */
+  --line: #e6e8ec;
+  --line-strong: #d4d8de;
 
   /* —— 文本 ——
-     三级灰都要过 WCAG 4.5:1（对白底）。旧的 --ink-3 #8d97a6 只有 2.6:1，
-     服务说明、时间戳这类"真内容"根本读不清。现在是 16.3 / 6.5 / 4.6。 */
-  --ink: #10141c;
-  --ink-2: #4d5766;
-  --ink-3: #636d7c;
+     三级灰都过 WCAG 4.5:1（对白底）。
+     ink 16.1:1 / ink-2 7.4:1 / ink-3 4.8:1 */
+  --ink: #111827;
+  --ink-2: #4b5563;
+  --ink-3: #6b7280;
   --ink-inverse: #ffffff;
 
-  /* —— 靛蓝：唯一强调色。保留 cinnabar 变量名，兼容现有组件 —— */
-  --cinnabar: #5b5bd6;
-  --cinnabar-strong: #4a49c2;
-  --cinnabar-solid: #5b5bd6;
-  --cinnabar-solid-hover: #6a6ae0;
-  --cinnabar-bg: rgba(91, 91, 214, 0.1);
-  --cinnabar-line: rgba(91, 91, 214, 0.28);
+  /* —— 靛蓝：唯一强调色。保留 cinnabar 变量名，兼容现有组件 ——
+     白底上比上一版深半档：纯白背景会把浅靛蓝的对比度吃掉。 */
+  --cinnabar: #4f46e5;
+  --cinnabar-strong: #4338ca;
+  --cinnabar-solid: #4f46e5;
+  --cinnabar-solid-hover: #4338ca;
+  --cinnabar-bg: rgba(79, 70, 229, 0.08);
+  --cinnabar-line: rgba(79, 70, 229, 0.24);
   --on-cinnabar: #ffffff;
 
   /* —— 状态语义：只给状态灯和小标签用 —— */
-  --jade: #1f9d6b;
-  --jade-ink: #157a52;
-  --jade-bg: rgba(31, 157, 107, 0.1);
+  --jade: #0f9d63;
+  --jade-ink: #0b7a4d;
+  --jade-bg: rgba(15, 157, 99, 0.08);
 
-  --amber: #b8791a;
-  --amber-ink: #96610f;
-  --amber-bg: rgba(184, 121, 26, 0.1);
+  --amber: #b45309;
+  --amber-ink: #92400e;
+  --amber-bg: rgba(180, 83, 9, 0.08);
 
-  --slate: #3f7fbd;
-  --slate-ink: #2f6499;
-  --slate-bg: rgba(63, 127, 189, 0.1);
+  --slate: #2563eb;
+  --slate-ink: #1d4ed8;
+  --slate-bg: rgba(37, 99, 235, 0.08);
 
-  --oxblood: #c05070;
-  --oxblood-ink: #a13656;
-  --oxblood-bg: rgba(192, 80, 112, 0.1);
+  --oxblood: #be123c;
+  --oxblood-ink: #9f1239;
+  --oxblood-bg: rgba(190, 18, 60, 0.08);
 
-  /* —— 阴影：玻璃靠「一层很淡的落地影 + 顶边高光」浮起来 ——
-     两段式：1px 的贴地影负责「贴在画布上」，大范围的低透明影负责「浮起」。
-     只留大阴影会糊成一团灰雾，只留小阴影又浮不起来。 */
-  --shadow-glass: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 12px -6px rgba(16, 24, 40, 0.08),
-    0 16px 32px -20px rgba(16, 24, 40, 0.12);
-  --shadow-pop: 0 2px 8px rgba(16, 24, 40, 0.06), 0 16px 32px -16px rgba(16, 24, 40, 0.18),
-    0 40px 72px -36px rgba(16, 24, 40, 0.26);
-  --shadow-drawer: -1px 0 0 var(--line), -28px 0 64px -34px rgba(16, 24, 40, 0.32);
-  --shadow-hi: inset 0 1px 0 var(--glass-hi);
+  /* —— 阴影：扁平化后只在真正浮起来的东西上用（弹窗、抽屉、下拉）——
+     普通面板靠边框分层，不给影，否则一眼看过去全是"卡片摞卡片"。 */
+  --shadow-glass: none;
+  --shadow-pop: 0 1px 2px rgba(17, 24, 39, 0.06), 0 8px 24px -8px rgba(17, 24, 39, 0.12);
+  --shadow-drawer: -1px 0 0 var(--line), -16px 0 32px -20px rgba(17, 24, 39, 0.18);
+  /* 内高光是玻璃的产物，扁平化后没有意义 */
+  --shadow-hi: none;
 
   /* —— 字体 —— */
   --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
@@ -126,10 +147,10 @@
   --sp-7: 48px;
 
   /* —— 形状 ——
-     卡片 14px / 控件 9px：比早先的 16px 略收一点，和 8px 间距网格
-     对得齐，视觉上更「利落」，也不会让面板看起来像胶囊。 */
-  --r-card: 14px;
-  --r-ctl: 9px;
+     比白玻璃版再收一档：扁平面配大圆角会显得软，
+     12px / 8px 和 4px 网格对得齐，边界也更明确。 */
+  --r-card: 12px;
+  --r-ctl: 8px;
   --r-pill: 999px;
 
   /* —— 骨架尺寸 —— */
@@ -153,91 +174,82 @@
 }
 
 /* ============================================================
-   深色：同一套玻璃，换到暗处。
-   柔光留一点、压暗，玻璃变成「深色磨砂」，强调色提亮一档。
+   深色：同一套扁平结构，换到暗处。
+
+   关键约束：**层次模型必须和浅色一致** —— 仍然靠线和面区分，
+   不引入"玻璃"或"发光"。暗色下边框要比浅色更亮一点才看得见
+   （人眼在暗底上对细线的敏感度更低），但仍然是线，不是光。
    ============================================================ */
 
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --bg: #0a0c12;
-  /* 深色下柔光比浅色更淡：暗底上同样的透明度看起来会亮一倍，
-     照抄浅色的数值会让整屏泛紫。 */
-  --glow-a: rgba(99, 102, 241, 0.18);
-  --glow-b: rgba(56, 189, 248, 0.12);
-  --glow-c: rgba(129, 140, 248, 0.1);
-  --glow-d: rgba(45, 212, 191, 0.1);
+  --bg: #0f1115;
 
-  --glass: rgba(30, 35, 48, 0.6);
-  --glass-strong: rgba(26, 30, 42, 0.78);
-  --glass-soft: rgba(38, 44, 60, 0.42);
-  --glass-inset: rgba(16, 19, 27, 0.5);
-  --glass-hi: rgba(255, 255, 255, 0.07);
+  --glass: #16181d;
+  --glass-strong: #16181d;
+  --glass-soft: #1b1e24;
+  --glass-inset: #101216;
+  --glass-hi: transparent;
 
-  --surface-solid: #14181f;
-  --surface-solid-2: #1b202a;
+  --surface-solid: #16181d;
+  --surface-solid-2: #1f2329;
 
-  --veil: rgba(0, 0, 0, 0.58);
+  --veil: rgba(0, 0, 0, 0.6);
 
-  --line: rgba(255, 255, 255, 0.08);
-  --line-strong: rgba(255, 255, 255, 0.15);
+  --line: #2a2e36;
+  --line-strong: #3a3f49;
 
-  --ink: #eef1f6;
-  --ink-2: #a3adbd;
-  --ink-3: #737e90;
-  --ink-inverse: #0a0c12;
+  --ink: #f3f4f6;
+  --ink-2: #9ca3af;
+  --ink-3: #7b8494;
+  --ink-inverse: #0f1115;
 
-  --cinnabar: #8f8cf5;
-  --cinnabar-strong: #7a77ee;
-  --cinnabar-solid: #6360d8;
-  --cinnabar-solid-hover: #726fe4;
-  --cinnabar-bg: rgba(143, 140, 245, 0.14);
-  --cinnabar-line: rgba(143, 140, 245, 0.32);
+  --cinnabar: #818cf8;
+  --cinnabar-strong: #a5b4fc;
+  --cinnabar-solid: #4f46e5;
+  --cinnabar-solid-hover: #4338ca;
+  --cinnabar-bg: rgba(129, 140, 248, 0.12);
+  --cinnabar-line: rgba(129, 140, 248, 0.28);
   --on-cinnabar: #ffffff;
 
-  --jade: #35b681;
-  --jade-ink: #5fd0a2;
-  --jade-bg: rgba(53, 182, 129, 0.14);
+  --jade: #34d399;
+  --jade-ink: #6ee7b7;
+  --jade-bg: rgba(52, 211, 153, 0.12);
 
-  --amber: #c9932f;
-  --amber-ink: #e0b25c;
-  --amber-bg: rgba(201, 147, 47, 0.14);
+  --amber: #fbbf24;
+  --amber-ink: #fcd34d;
+  --amber-bg: rgba(251, 191, 36, 0.12);
 
-  --slate: #4f92cf;
-  --slate-ink: #85b8e4;
-  --slate-bg: rgba(79, 146, 207, 0.14);
+  --slate: #60a5fa;
+  --slate-ink: #93c5fd;
+  --slate-bg: rgba(96, 165, 250, 0.12);
 
-  --oxblood: #cc6383;
-  --oxblood-ink: #e794ac;
-  --oxblood-bg: rgba(204, 99, 131, 0.14);
+  --oxblood: #fb7185;
+  --oxblood-ink: #fda4af;
+  --oxblood-bg: rgba(251, 113, 133, 0.12);
 
-  --shadow-glass: 0 1px 1px rgba(0, 0, 0, 0.2), 0 8px 26px -14px rgba(0, 0, 0, 0.6);
-  --shadow-pop: 0 2px 8px rgba(0, 0, 0, 0.3), 0 24px 52px -22px rgba(0, 0, 0, 0.7);
-  --shadow-drawer: -1px 0 0 var(--line), -28px 0 64px -30px rgba(0, 0, 0, 0.8);
+  --shadow-glass: none;
+  --shadow-pop: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+  --shadow-drawer: -1px 0 0 var(--line), -16px 0 32px -20px rgba(0, 0, 0, 0.7);
+  --shadow-hi: none;
 }
 
 /* ============================================================
-   柔光画布
-   固定在视口上的一层极淡光斑。它是毛玻璃唯一的「透出物」，
-   所以必须 fixed 且不参与布局；滚动时光斑不动，玻璃层滑过它。
+   废弃层：柔光画布
 
-   这里**故意不做动画**。早期版本让光斑 34 秒一轮缓缓漂移，效果是
-   整个屏幕一直在极轻微地变色：静态截图看不出来，长时间盯着写单子
-   却会持续分散注意力。柔光是背景材质，不是待观赏的动效。
-   页面里的动效只保留表达状态的那几种（悬停、浮层进出）。
+   白玻璃版在 body::before 上铺了四团径向渐变当作毛玻璃的"透出物"。
+   现在没有毛玻璃了，这层只会在纯白纸上留下一片看不见的脏色
+   （以及在暗色下泛紫），所以显式关掉。
+
+   保留规则本身而不是删掉，是为了让 `glass-check` 这类
+   「它必须不存在」的断言有一个明确的对象可查 —— 见
+   scripts/checks/glass-check.mjs 里对 content / display 的断言。
    ============================================================ */
 
 .glow-canvas,
 body::before {
-  content: '';
-  position: fixed;
-  inset: -20vmax;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(38vmax 38vmax at 12% 8%, var(--glow-a), transparent 62%),
-    radial-gradient(34vmax 34vmax at 88% 4%, var(--glow-b), transparent 60%),
-    radial-gradient(40vmax 40vmax at 78% 92%, var(--glow-c), transparent 64%),
-    radial-gradient(32vmax 32vmax at 22% 88%, var(--glow-d), transparent 62%);
-  filter: blur(12px);
+  content: none;
+  display: none;
+  background: none;
 }

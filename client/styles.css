@@ -4024,3 +4024,472 @@ button.react-side-row {
 /* 只有一条的时候不画把手（拖了也没地方去）。用 :only-of-type 做不到 ——
    同行还有别的 div，所以交给 JS 决定要不要传 sortable，这里只兜个底。 */
 .price-category__body .price-service:only-of-type .price-grip { display: none; }
+
+/* ============================================================
+   桌面版窗口拖动区
+
+   桌面版（desktop/main.mjs）用的是 titleBarStyle: 'hidden'：原生标题条被藏起来，
+   网页顶栏直接充当窗口顶栏。但那只改变了「长什么样」，**没有**产生可拖动区域 ——
+   Windows 上整个窗口就拖不动，也没法双击标题栏最大化。
+
+   -webkit-app-region: drag 是这条链路里唯一能让窗口跟着鼠标走的东西。
+   规则只有两条，但第二条最容易被忘掉：拖动区会**吞掉**鼠标事件，
+   所以区内的按钮、输入框必须显式 no-drag，否则表现为「看得见但点不动」。
+
+   注意不要在拖动区里用 pointer-events: none 来「修」点击 ——
+   那会让拖动一起失效。
+   ============================================================ */
+
+.react-sidebar__brand,
+.react-topbar,
+.refactor-gate {
+  -webkit-app-region: drag;
+}
+
+/* 拖动区里的交互元素：按钮、输入、链接、搜索框和它的下拉结果 */
+.react-topbar button,
+.react-topbar input,
+.react-topbar a,
+.react-topbar kbd,
+.refactor-search,
+.refactor-search__results,
+.refactor-search__results button,
+.react-sidebar__brand button,
+.react-sidebar__brand a,
+.refactor-gate__panel {
+  -webkit-app-region: no-drag;
+}
+
+/* 可拖动的地方给个抓手光标，用户才知道这里能拖 */
+.react-topbar,
+.react-sidebar__brand,
+.refactor-gate {
+  cursor: default;
+}
+
+/* 窗口没最大化时才需要拖动提示；最大化状态下拖拽由系统接管，
+   这里不做区分 —— CSS 拿不到窗口状态，交给 Electron 自己的行为。 */
+
+/* ============================================================
+   纯白扁平覆盖层
+
+   白玻璃版的外观是分散在前面若干段里的「覆盖层」写法，本段是它的接替者：
+   同样是覆盖，但目标换成**扁平**——纯白面、1px 线分层、没有模糊、没有内高光。
+
+   为什么仍然是"覆盖层"而不是回头去改每一段：
+   这个文件前半段是第 1 版（石墨深色 + 栏线）的样式，业务结构还在用；
+   中途那层是白玻璃。把两段都删掉会牵动 4000 行里不确定的引用面，
+   而覆盖层的语义很明确——**本段之后不再有其它外观声明**，
+   新的取值一律以这里为准。真要清理，应该单独做一次删除式重构。
+
+   层次模型（本段唯一的规则）：
+     画布（白）→ 面（白/极浅灰）+ 1px 线 → 浮层（弹窗、抽屉、下拉）+ 阴影
+   普通内容不给阴影。给阴影就等于说"它浮在别的东西上面"，
+   而一个列表里的每一行都不浮在谁上面。
+   ============================================================ */
+
+/* ---------- 外壳骨架 ---------- */
+
+.react-shell {
+  background: var(--bg);
+}
+
+/* 侧栏：一条细竖线分隔，不再是一块玻璃。
+   它的 sticky + 100vh 保留 —— 长列表滚动时导航不该跟着走。 */
+.react-sidebar {
+  background: var(--bg);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-right: 1px solid var(--line);
+}
+
+.react-sidebar__brand {
+  border-bottom: 1px solid var(--line);
+}
+
+.react-sidebar__brand b {
+  color: var(--ink);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+/* 导航项：悬停给极浅灰底，选中给靛蓝淡底 + 靛蓝字 + 左侧强调条。
+   强调条用 ::before 画，不占布局宽度，所以文字不会因为选中而跳动。 */
+.react-sidebar .refactor-navitem {
+  position: relative;
+  min-height: 36px;
+  border-radius: var(--r-ctl);
+  color: var(--ink-2);
+}
+
+.react-sidebar .refactor-navitem:hover {
+  background: var(--surface-solid-2);
+  color: var(--ink);
+}
+
+.react-sidebar .refactor-navitem.is-active {
+  background: var(--cinnabar-bg);
+  color: var(--cinnabar-strong);
+  font-weight: 600;
+}
+
+.react-sidebar .refactor-navitem.is-active::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  width: 3px;
+  height: 18px;
+  border-radius: 0 2px 2px 0;
+  background: var(--cinnabar);
+  transform: translateY(-50%);
+}
+
+/* 角标退成真正的"计数"：没有边框、没有底，只是一个灰数字 */
+.refactor-navitem b {
+  min-width: auto;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.react-sidebar .refactor-navitem.is-active b {
+  background: transparent;
+  color: var(--cinnabar);
+}
+
+.react-sidebar__footer {
+  border-top: 1px solid var(--line);
+}
+
+/* 主操作按钮：扁平实色，去掉投影和按下缩放（缩放会让侧栏跟着抖） */
+.react-quick-action {
+  border-radius: var(--r-ctl);
+  background: var(--cinnabar-solid);
+  box-shadow: none;
+}
+
+.react-quick-action:hover {
+  background: var(--cinnabar-solid-hover);
+}
+
+.react-quick-action:active {
+  transform: none;
+}
+
+.react-sidebar__row .react-sidebar__button {
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: transparent;
+  color: var(--ink-2);
+}
+
+.react-sidebar__row .react-sidebar__button:hover {
+  background: var(--surface-solid-2);
+  color: var(--ink);
+}
+
+/* ---------- 顶栏 ---------- */
+
+.react-topbar {
+  background: var(--bg);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom: 1px solid var(--line);
+  /* 桌面版右上角有三个系统按钮（最小化/最大化/关闭），由 Electron 画在网页之上。
+     titleBarOverlay 的高度是 56px，和 --topbar-h 的 60px 差不多，
+     所以这里只需要在右侧让出按钮宽度，避免「刷新 / 主操作」被压住点不到。 */
+}
+
+:root.is-desktop .react-topbar {
+  padding-right: 156px;
+}
+
+.react-topbar__title h1 {
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+/* 搜索框：一条实线框的白底输入，不再靠内高光立起来 */
+.refactor-search {
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--bg);
+  box-shadow: none;
+}
+
+.refactor-search:hover {
+  border-color: var(--line-strong);
+}
+
+.refactor-search:focus-within {
+  border-color: var(--cinnabar);
+  background: var(--bg);
+  box-shadow: 0 0 0 3px var(--cinnabar-bg);
+}
+
+/* 下拉结果：这是真正的浮层，给阴影和边框是应该的 */
+.refactor-search__results {
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--bg);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: var(--shadow-pop);
+}
+
+.refactor-search__results button:hover {
+  background: var(--surface-solid-2);
+}
+
+.react-icon-button {
+  border: 1px solid transparent;
+  border-radius: var(--r-ctl);
+  color: var(--ink-2);
+}
+
+.react-icon-button:hover {
+  border-color: var(--line);
+  background: var(--surface-solid-2);
+  color: var(--ink);
+}
+
+.react-icon-button:active {
+  transform: none;
+}
+
+/* ---------- 内容区 ---------- */
+
+.react-main {
+  background: var(--bg);
+}
+
+/* 内容宽度：1440 在 2K 屏上两侧留白过大，正文会散。
+   收到 1180 之后，价格表和订单表的列不会拉得太开，眼睛不用横跳。 */
+.react-main__inner {
+  width: min(100%, 1180px);
+  padding: 24px 28px 64px;
+}
+
+/* 换页进场：从「上浮 8px + 淡入」减到「淡入」。
+   扁平面上做位移，观感是整页在跳。 */
+.react-main__inner > * {
+  animation: fade-in var(--t-base) var(--ease) both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- 面板：白面 + 1px 线，没有阴影 ---------- */
+
+.react-ledger,
+.react-dashboard-panel,
+.react-dashboard-empty,
+.orders-panel,
+.customers-panel,
+.games-panel,
+.finance-panel,
+.finance-ledger,
+.quotes-panel,
+.price-group,
+.media-panel,
+.media-summary > div,
+.vault-page > .panel,
+.settings-page > .panel {
+  background: var(--bg);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: none;
+}
+
+/* 提示条 / 警告条：扁平后靠左侧色条表达严重性，底色只留一点点 */
+.refactor-alert {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--oxblood);
+  border-radius: var(--r-ctl);
+  background: var(--oxblood-bg);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ---------- 表单控件 ---------- */
+
+.refactor-input,
+.refactor-select,
+.refactor-textarea {
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--bg);
+  box-shadow: none;
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+
+.refactor-input:hover,
+.refactor-select:hover,
+.refactor-textarea:hover {
+  border-color: var(--line-strong);
+}
+
+.refactor-input:focus,
+.refactor-select:focus,
+.refactor-textarea:focus {
+  border-color: var(--cinnabar);
+  background: var(--bg);
+  box-shadow: 0 0 0 3px var(--cinnabar-bg);
+  outline: 0;
+}
+
+/* 次级按钮：白底 + 细线（"看得见边界"比"没有边界"更像能点的东西） */
+.refactor-button {
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--bg);
+  box-shadow: none;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
+    color var(--t-fast) var(--ease);
+}
+
+.refactor-button:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background: var(--surface-solid-2);
+}
+
+.refactor-button:active:not(:disabled) {
+  transform: none;
+}
+
+.refactor-button--primary {
+  border-color: var(--cinnabar-solid);
+  background: var(--cinnabar-solid);
+  color: var(--on-cinnabar);
+  box-shadow: none;
+}
+
+.refactor-button--primary:hover:not(:disabled) {
+  border-color: var(--cinnabar-solid-hover);
+  background: var(--cinnabar-solid-hover);
+}
+
+/* ---------- 登录 / 初始化页 ---------- */
+
+.refactor-gate {
+  background: var(--bg);
+}
+
+/* 登录卡：白底 + 细线 + 居中，不再是一块浮起来的玻璃。
+   宽度收窄到 420 —— 登录表单不需要 560 那么宽，宽了输入框会显得空。 */
+.refactor-gate__panel {
+  width: min(100% - 32px, 420px);
+  background: var(--bg);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-pop);
+}
+
+.refactor-brand__mark {
+  border-radius: var(--r-ctl);
+  background: var(--cinnabar-solid);
+  box-shadow: none;
+}
+
+/* ---------- 手机底部标签 ---------- */
+
+.react-mobile-tabs {
+  background: var(--bg);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-top: 1px solid var(--line);
+}
+
+.react-mobile-tabs .refactor-navitem.is-active {
+  background: transparent;
+  color: var(--cinnabar);
+}
+
+.react-mobile-tabs .refactor-navitem.is-active::before {
+  content: none;
+}
+
+/* ---------- 滚动条：扁平化之后，默认的槽色在白底上很显眼 ---------- */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+  background-color: var(--line-strong);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ink-3);
+}
+
+/* ---------- 浮层遮罩：跟主题的中性色对齐 ----------
+   白玻璃版的遮罩是 rgb(8,6,4,.62) —— 一个偏暖的黑，压在暖白画布上刚好。
+   现在是中性白 + 中性灰，暖黑会在边缘显出一圈黄褐，改成中性黑。 */
+.drawer::backdrop,
+.modal::backdrop {
+  background: var(--veil);
+}
+
+/* 抽屉与对话框：白面 + 细线，阴影沿用 --shadow-drawer / --shadow-pop。
+   纯白浮层压在纯白页面上，靠「遮罩压暗 + 边界线」分开，
+   所以这里显式给一条边线 —— 少了它，抽屉右缘和内容区会连成一片。 */
+.drawer {
+  border-left: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.modal {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-pop);
+}
+
+/* 浮层内的输入框：浮层本身已经是白的，控件退回极浅灰才看得出是"可输入的框" */
+.drawer .refactor-input,
+.drawer .refactor-select,
+.drawer .refactor-textarea,
+.modal .refactor-input,
+.modal .refactor-select,
+.modal .refactor-textarea {
+  background: var(--surface-inset);
+}
+
+.drawer .refactor-input:focus,
+.drawer .refactor-select:focus,
+.drawer .refactor-textarea:focus,
+.modal .refactor-input:focus,
+.modal .refactor-select:focus,
+.modal .refactor-textarea:focus {
+  background: var(--bg);
+}

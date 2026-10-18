@@ -1,13 +1,20 @@
 /**
- * 白玻璃外观自检
+ * 外观自检
  *
- * 这个脚本的存在理由：改版之后要能证明「玻璃真的生效了、颜色真的收敛了」，
+ * 这个脚本的存在理由：改版之后要能证明「契约真的生效了、颜色真的收敛了」，
  * 而不是靠肉眼扫一眼截图。它做三件事：
  *
- *   1. 用计算样式断言外观契约（柔光层在、玻璃有 backdrop-filter、
- *      侧栏文字是深色、没有横向溢出、深色主题也玻璃化）；
+ *   1. 用计算样式断言外观契约（**纯白扁平**：没有毛玻璃、没有柔光层、
+ *      画布是一块平整的纯色、面板靠 1px 细线分层、文字对比度过 AA）；
  *   2. 每个页面在浅色 / 深色下各截一张图，存到 shots/glass/，供人看；
  *   3. 顺带守住「没有页面报错」。
+ *
+ * 历史：这个脚本原来叫「白玻璃自检」，断言的是反面 —— 柔光层必须存在、
+ * 面板必须有 backdrop-filter、侧栏必须是半透明玻璃。第 3 版改成扁平之后
+ * 那些断言全部反了过来。**它们不是被删掉，而是取了反**：
+ * 「必须有模糊」变成「必须没有模糊」，「画布必须有渐变」变成「必须平整」。
+ * 保留断言而不是删掉的理由很简单：扁平化最典型的做坏方式就是
+ * 某处漏了一处 backdrop-filter / 一处渐变底，肉眼在截图里看不出来。
  *
  * 用法：
  *   node scripts/checks/glass-check.mjs               跑一遍（有问题退出码 1）
@@ -261,25 +268,28 @@ async function checkTheme(cdp, theme, expectDark) {
 
   const tag = expectDark ? '深色' : '浅色'
 
-  // 1. 柔光层必须在：毛玻璃没有可透的东西就是一块死白
+  // 1. 柔光层必须**不存在**：扁平契约的第一条
+  //    （白玻璃版这里断言的是 "body::before 有径向渐变"，现在是它的反面）
   const glow = await cdp.eval(`(() => {
     const s = getComputedStyle(document.body, '::before')
-    return { bg: s.backgroundImage, pos: s.position, z: s.zIndex, pe: s.pointerEvents }
+    return { bg: s.backgroundImage, content: s.content, display: s.display }
   })()`)
-  ok(`${tag}：柔光层在（body::before 有径向渐变）`, /radial-gradient/.test(glow.bg), glow.bg.slice(0, 90))
-  ok(`${tag}：柔光层固定在视口上`, glow.pos === 'fixed', glow.pos)
-  ok(`${tag}：柔光层不吃鼠标事件`, glow.pe === 'none', glow.pe)
+  ok(
+    `${tag}：没有柔光层（body::before 不再画径向渐变）`,
+    !/radial-gradient/.test(glow.bg) && (glow.content === 'none' || glow.display === 'none'),
+    `content=${glow.content} display=${glow.display} bg=${glow.bg.slice(0, 60)}`
+  )
 
   // 2. 画布底色跟着主题走
   const canvas = await cdp.eval(`getComputedStyle(document.documentElement).backgroundColor`)
   const canvasLuma = luma(canvas)
   ok(
     `${tag}：画布底色 ${expectDark ? '偏暗' : '偏亮'}（${canvas}）`,
-    canvasLuma !== null && (expectDark ? canvasLuma < 0.12 : canvasLuma > 0.7),
+    canvasLuma !== null && (expectDark ? canvasLuma < 0.12 : canvasLuma > 0.9),
     canvas
   )
 
-  // 3. 玻璃：侧栏 / 顶栏 / 面板都要有 backdrop-filter
+  // 3. 扁平：侧栏 / 顶栏 / 面板都**不许**有毛玻璃
   for (const [label, sel] of [
     ['侧栏', '.react-sidebar'],
     ['顶栏', '.react-topbar'],
@@ -287,7 +297,8 @@ async function checkTheme(cdp, theme, expectDark) {
     ['总览面板', '.react-dashboard-panel'],
   ]) {
     const g = await cdp.eval(glassOf(sel))
-    ok(`${tag}：${label}是毛玻璃（backdrop-filter: blur）`, Boolean(g) && /blur/.test(g.backdrop), g && g.backdrop)
+    const blurry = Boolean(g) && /blur\(\s*(?!0px)[\d.]+px/.test(String(g.backdrop))
+    ok(`${tag}：${label}是平面（没有 backdrop-filter 的模糊）`, Boolean(g) && !blurry, g && g.backdrop)
   }
 
   // 4. 文字读得出来：用对比度，不用亮度阈值
@@ -310,13 +321,22 @@ async function checkTheme(cdp, theme, expectDark) {
     titleColor
   )
 
-  // 5. 描边要退场：侧栏不该再有一条"实色"右边框
-  const railBorder = await cdp.eval(`getComputedStyle(document.querySelector('.react-sidebar')).borderRightColor`)
-  const rb = rgb(railBorder)
-  ok(`${tag}：侧栏分隔线是淡的（alpha < 0.25）`, rb !== null && rb.a < 0.25, railBorder)
+  // 5. 分层靠线：侧栏必须有一条**看得见**的右边框
+  //    （白玻璃版断言的是 "alpha < 0.25"，即线要淡到几乎不存在；
+  //      扁平化之后线是唯一的层次手段，太淡等于没有层次。）
+  const railBorder = await cdp.eval(`(() => {
+    const s = getComputedStyle(document.querySelector('.react-sidebar'))
+    return { color: s.borderRightColor, width: s.borderRightWidth, style: s.borderRightStyle }
+  })()`)
+  const rb = rgb(railBorder.color)
+  ok(
+    `${tag}：侧栏有一条实线分隔（1px 且不透明）`,
+    rb !== null && rb.a > 0.99 && parseFloat(railBorder.width) >= 1 && railBorder.style === 'solid',
+    `${railBorder.width} ${railBorder.style} ${railBorder.color}`
+  )
 
-  // 6. 像素级：柔光真的画出来了，玻璃真的透
-  //    x=250 落在主内容左侧的排水沟里（侧栏 240px + 内边距 34px），那里只有画布。
+  // 6. 像素级：画布必须是**一块平整的纯色**（没有渐变、没有光斑）
+  //    x=250 落在主内容左侧的排水沟里（侧栏 236px + 内边距），那里只有画布。
   const gutter = [
     [250, 150],
     [250, 380],
@@ -326,22 +346,25 @@ async function checkTheme(cdp, theme, expectDark) {
   const gutterPixels = await samplePixels(cdp, gutter)
   const flat = gutterPixels.every((p) => dist(p, gutterPixels[0]) === 0)
   ok(
-    `${tag}：画布上有柔光渐变（不是一块死纯色）`,
-    !flat,
+    `${tag}：画布是平整纯色（没有渐变/光斑）`,
+    flat,
     gutterPixels.map((p) => `rgb(${p.join(',')})`).join(' / ')
   )
 
+  // 侧栏与画布同为白/同色是**预期行为**：靠那条 1px 线分开，不靠色差。
+  // 这里守住的是「侧栏没有偷偷叠一层半透明底」——两者应当完全同色。
   const railPixel = await samplePixels(cdp, [[120, 380]])
   const railTint = dist(railPixel[0], gutterPixels[1])
   ok(
-    `${tag}：侧栏玻璃透出了背后的画布（与同高度画布不同色，差 ${railTint}）`,
-    railTint > 2,
+    `${tag}：侧栏没有叠半透明底（与画布同色，差 ${railTint}）`,
+    railTint === 0,
     `侧栏 rgb(${railPixel[0].join(',')}) vs 画布 rgb(${gutterPixels[1].join(',')})`
   )
 
-  // 7. 每个页面都不能横向溢出，并且玻璃不许嵌套
-  //    嵌套玻璃 = 一层半透明白叠一层半透明白，内层会糊成接近实心，
-  //    既丢掉了玻璃质感，也正是 DESIGN.md 明令禁止的"嵌套卡片"。
+  // 7. 每个页面都不能横向溢出，并且不允许嵌套卡片
+  //    嵌套卡片 = 一块带边框的面里面又包一块带边框的面，
+  //    第二层边框不提供任何新信息，只是把边距吃窄了 ——
+  //    DESIGN.md 明令禁止的就是这个。
   for (const route of ROUTES) {
     await cdp.eval(`location.hash = ${JSON.stringify('#' + route.hash)}`)
     await sleep(450)
@@ -352,17 +375,30 @@ async function checkTheme(cdp, theme, expectDark) {
     ok(`${tag}·${route.label}：没有横向溢出`, geo.sw <= geo.iw + 1, `scrollWidth ${geo.sw} > 视口 ${geo.iw}`)
 
     const nest = await cdp.eval(`(() => {
-      // 叠加层（下拉、抽屉、弹窗、吐司）本来就该浮在别的面之上，
-      // 它们必须自己模糊一次才压得住底下的内容 —— 不算嵌套。
       const OVERLAY = /search__pop|refactor-search__results|drawer|modal|toast|stalebar/
-      const glassy = (el) => {
-        const f = getComputedStyle(el).backdropFilter || getComputedStyle(el).webkitBackdropFilter || 'none'
-        return f && f !== 'none'
+      // 「页面级的面」= 一整块内容区域的承载面（.panel / 总览面板 / 账簿抬头）。
+      // 这类东西套起来才是 DESIGN.md 禁止的"卡片套卡片"：第二层边框不提供
+      // 任何新信息，只是把内边距吃掉一圈。
+      //
+      // 提示条（.note）、空状态（.media-inline-empty，虚线框）、安装进度（.install）
+      // 是**内容块**，本来就该落在某个面里，不参与这条契约 —— 把它们算进来
+      // 会让断言变成"凡是画了框的都违规"，测的是噪音而不是设计。
+      const face = (el) => {
+        const s = getComputedStyle(el)
+        return (
+          el.matches('.panel, .react-dashboard-panel, .react-ledger') &&
+          parseFloat(s.borderTopWidth) >= 1 &&
+          s.borderTopStyle === 'solid' &&
+          parseFloat(s.borderTopLeftRadius) >= 1 &&
+          el.getBoundingClientRect().width >= 280
+        )
       }
-      const all = [...document.querySelectorAll('.react-main *')].filter(glassy)
+      const all = [...document.querySelectorAll('.react-main *')].filter(face)
       const offenders = all.filter((el) => {
         if (OVERLAY.test(String(el.className || ''))) return false
-        for (let p = el.parentElement; p; p = p.parentElement) if (glassy(p)) return true
+        for (let p = el.parentElement; p && p !== document.querySelector('.react-main'); p = p.parentElement) {
+          if (face(p)) return true
+        }
         return false
       })
       return {
@@ -371,7 +407,7 @@ async function checkTheme(cdp, theme, expectDark) {
       }
     })()`)
     ok(
-      `${tag}·${route.label}：玻璃没有嵌套（${nest.total} 层玻璃，全是顶层）`,
+      `${tag}·${route.label}：没有嵌套卡片（${nest.total} 个页面级面，全是顶层）`,
       nest.offenders.length === 0,
       nest.offenders.join(' | ')
     )
@@ -422,13 +458,15 @@ async function checkPricePage(cdp) {
   if (!ready) return
   await sleep(500)
 
-  // 玻璃层级：这一页原来是"一张纸"，group / workspace / category 三层都被
-  // 拍平过（border:0; background:transparent）。覆盖层如果又把它们做成卡片，
-  // 就会变成三层玻璃叠在一起 —— 内层糊成实心，等于把玻璃做没了。
+  // 价格表的层次：这一页原来是"一张纸"，group / workspace / category 三层都被
+  // 拍平过（border:0; background:transparent）。扁平化之后这条约束变得更重要 ——
+  // 只要有一层偷偷加了 backdrop-filter，就说明覆盖层又被写成玻璃了。
   const layers = await cdp.eval(`(() => {
     const glassy = (el) => {
       const f = getComputedStyle(el).backdropFilter || getComputedStyle(el).webkitBackdropFilter || 'none'
-      return f && f !== 'none'
+      if (!f || f === 'none') return false
+      const m = String(f).match(/blur\\(\\s*([\\d.]+)px/)
+      return Boolean(m) && parseFloat(m[1]) > 0
     }
     const names = ['.price-page', '.price-groups', '.price-group', '.price-workspace', '.price-category', '.price-directory', '.price-catalog']
     return names.map((sel) => {
@@ -438,7 +476,7 @@ async function checkPricePage(cdp) {
     })
   })()`)
   const glassNames = layers.filter((l) => l.glass).map((l) => l.sel)
-  ok(`价格表：只有一层玻璃（${glassNames.join(' / ') || '无'}）`, glassNames.length === 1, JSON.stringify(layers))
+  ok(`价格表：整页没有毛玻璃（${glassNames.join(' / ') || '无'}）`, glassNames.length === 0, JSON.stringify(layers))
 
   // 抬头那行小标签和 h3 说的是同一件事（游戏名），属于噪音
   ok(
@@ -581,7 +619,9 @@ async function checkPricePage(cdp) {
     }
     const glassy = (el) => {
       const f = getComputedStyle(el).backdropFilter || getComputedStyle(el).webkitBackdropFilter || 'none'
-      return f && f !== 'none'
+      if (!f || f === 'none') return false
+      const m = String(f).match(/blur\\(\\s*([\\d.]+)px/)
+      return Boolean(m) && parseFloat(m[1]) > 0
     }
     const all = [...document.querySelectorAll('.react-main *')].filter(glassy)
     const nested = all.filter((el) => {
@@ -699,9 +739,10 @@ async function main() {
     const gate = await waitFor(cdp, `Boolean(document.querySelector('.refactor-gate'))`, { tries: 40, interval: 200 })
     ok('未登录时停在登录页', gate)
     const gateGlass = await cdp.eval(glassOf('.refactor-gate__panel'))
-    ok('登录卡片是毛玻璃', Boolean(gateGlass) && /blur/.test(gateGlass.backdrop), gateGlass && gateGlass.backdrop)
+    const gateBlurry = Boolean(gateGlass) && /blur\(\s*(?!0px)[\d.]+px/.test(String(gateGlass.backdrop))
+    ok('登录卡片是平面的（没有毛玻璃）', Boolean(gateGlass) && !gateBlurry, gateGlass && gateGlass.backdrop)
     ok(
-      '登录页不再铺网格底纹（交给柔光层）',
+      '登录页没有渐变底纹（纯白画布）',
       await cdp.eval(`getComputedStyle(document.querySelector('.refactor-gate')).backgroundImage === 'none'`),
       await cdp.eval(`getComputedStyle(document.querySelector('.refactor-gate')).backgroundImage`)
     )

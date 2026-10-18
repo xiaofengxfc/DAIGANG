@@ -84,6 +84,13 @@ function applyTheme(theme) {
 
 applyTheme(readTheme())
 
+/* 标记「正跑在桌面版外壳里」。
+   桌面版用 titleBarStyle:'hidden'，右上角由 Electron 画三个系统按钮；
+   网页顶栏得给它们让出位置，否则「刷新 / 主操作」会被压在按钮底下点不到。
+   preload 是同步注入的，所以这里判空即可，不需要等 IPC ——
+   浏览器打开时没有这个对象，也就不会加这个 class（冒烟测试走的正是这条路）。 */
+if (window.daiganDesktop) document.documentElement.classList.add('is-desktop')
+
 function iconProps(size = 17) {
   return { size, strokeWidth: 1.8, absoluteStrokeWidth: true, 'aria-hidden': true }
 }
