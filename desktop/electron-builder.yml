@@ -1,0 +1,59 @@
+# 桌面版打包配置（electron-builder）
+#
+# 两个目标：
+#   portable —— 绿色版，一个 exe，双击即用；数据放在 exe 旁边的 data/
+#   nsis     —— 安装包，装到用户目录、建开始菜单和桌面快捷方式
+#
+# 关键决定：**关掉 asar**。
+# 后端要 spawn PowerShell 脚本（scripts/*.ps1）、要读 Python 源码
+# （integrations/screen-vision/）、还要在 data/vision-venv 里找解释器。
+# 这些路径在 asar 的虚拟文件系统里打不开 —— 打成 asar 之后第一次截图就会失败，
+# 而失败信息会指向一个"文件不存在"的路径，很难查。多占几十 MB 换掉这类故障。
+appId: com.daigan.opsconsole
+productName: 代肝运营台
+copyright: Copyright © 2026 DAIGANG
+asar: false
+directories:
+  output: dist-desktop
+  buildResources: desktop/build
+files:
+  - desktop/**
+  - src/**
+  - shared/**
+  - public/**
+  - scripts/**
+  - integrations/**
+  - hooks/**
+  - server.mjs
+  - package.json
+  - '!**/__pycache__/**'
+  - '!**/*.pyc'
+  - '!scripts/*.mjs'
+  - '!integrations/**/*.md'
+  - '!integrations/**/requirements-executor.txt'
+win:
+  target:
+    - target: portable
+      arch: [x64]
+    - target: nsis
+      arch: [x64]
+  icon: launcher/daigan.ico
+  # 不签名：签名工具要从 GitHub 下 winCodeSign（本机网络上不去，构建会卡死）。
+  # 副作用只是首次运行时 Windows 会提示「未知发布者」，不影响功能。
+  # 以后有了证书，把这里改回 true 并配 certificateFile 即可。
+  signAndEditExecutable: false
+  artifactName: DaiganOps-${version}-${arch}.${ext}
+portable:
+  artifactName: DaiganOps-portable-${version}.${ext}
+  # 绿色版不写注册表，数据在 exe 旁边的 data/（见 desktop/main.mjs 的 resolveDataDir）
+  splashImage: null
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: 代肝运营台
+  artifactName: DaiganOps-setup-${version}.${ext}
+  uninstallDisplayName: 代肝运营台
+  deleteAppDataOnUninstall: false

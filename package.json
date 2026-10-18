@@ -4,10 +4,16 @@
   "private": true,
   "type": "module",
   "description": "代肝价格查询 · 私用运营台 —— 本地优先的运营工作台",
-  "main": "server.mjs",
+  "author": "DAIGANG",
+  "main": "desktop/main.mjs",
   "scripts": {
     "start": "node server.mjs",
     "local": "node server.mjs --local",
+    "desktop": "electron .",
+    "desktop:dev": "vite build && electron .",
+    "dist": "npm run build && electron-builder --win --config desktop/electron-builder.yml",
+    "dist:portable": "npm run build && electron-builder --win portable --config desktop/electron-builder.yml",
+    "dist:installer": "npm run build && electron-builder --win nsis --config desktop/electron-builder.yml",
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "setup": "npm ci && npm run build",
@@ -46,6 +52,8 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "6.1.1",
+    "electron": "^44.9.0",
+    "electron-builder": "^26.15.3",
     "vite": "8.3.2"
   }
 }
