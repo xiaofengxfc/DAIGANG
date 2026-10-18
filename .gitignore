@@ -41,3 +41,7 @@ dist-desktop/
 
 # 运行日志（ui-smoke / 桌面版都会往这里写）
 logs/
+
+# 手机端打包产物（和 dist-desktop 同样的理由：二进制不进版本库）
+/android/build/
+dist-android/

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!--
+    只用平台自带的 Material 主题，不引 AndroidX。
+    这个外壳没有一行列表、没有一处状态管理，为了一个 NoActionBar 去装
+    androidx.appcompat 是给 APK 白白加 1MB+ 和方法数。
+  -->
+  <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+    <item name="android:windowBackground">@color/canvas</item>
+    <item name="android:statusBarColor">@color/canvas</item>
+    <item name="android:windowLightStatusBar">true</item>
+    <item name="android:colorAccent">@color/brand</item>
+  </style>
+</resources>

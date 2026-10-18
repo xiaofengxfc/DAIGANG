@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  手机端外壳。
+
+  这个 APK 里没有业务代码：后端依赖 node:sqlite、PowerShell 和 Python，
+  根本跑不到 Android 上。所以它做的事只有一件 —— 用 WebView 打开电脑上
+  那个正在运行的服务地址，把网页装进一个能放到桌面上的图标里。
+
+  因为是同一台服务器产出页面，页面的 origin 就是服务器本身，
+  /api 请求、HttpOnly 会话 Cookie、CSP 的 'self' 全部照常成立，
+  前端一行代码都不用为手机改。
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.daigan.opsconsole"
+    android:versionCode="1"
+    android:versionName="2.1.0">
+
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+  <!--
+    minSdk 26：自适应图标从 8.0 起才有，设到 26 就不必再为旧版准备一套 PNG。
+    targetSdk 34：Android 14 要求 exported 显式声明，下面已经写明。
+  -->
+  <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="34" />
+
+  <application
+      android:label="@string/app_name"
+      android:icon="@mipmap/ic_launcher"
+      android:theme="@style/AppTheme"
+      android:allowBackup="false"
+      android:supportsRtl="true"
+      android:usesCleartextTraffic="true">
+    <!--
+      usesCleartextTraffic：局域网地址是 http://，不是 https。
+      Android 9 起默认禁明文，不打开这个开关，WebView 会直接白屏。
+    -->
+
+    <activity
+        android:name=".MainActivity"
+        android:exported="true"
+        android:launchMode="singleTask"
+        android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+        android:windowSoftInputMode="adjustResize">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>

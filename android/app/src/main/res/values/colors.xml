@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- 和网页画布同一个值（theme.css 里的浅色背景），
+       启动那一瞬间的白屏才不会和页面本身有色差。
+       注意：XML 注释里不能出现连续两个减号，写 CSS 变量名会直接编译失败。 -->
+  <color name="canvas">#F5F5F7</color>
+  <color name="ink">#1A1A1A</color>
+  <color name="brand">#B8402A</color>
+</resources>
