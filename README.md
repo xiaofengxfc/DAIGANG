@@ -1154,9 +1154,9 @@ PNG 是无损的，想命中体积目标只能靠反复重编码 + 降分辨率�
 ```bash
 npm run test                      # 后端冒烟测试：自己起干净实例，跑完自己收尾（见下）
 npm run test:ui                   # 界面冒烟：真浏览器点一遍主要页面和抽屉（见下）
-npm run test:glass                # 玻璃层级 / 对比度 / 六种宽度不溢出（见下）
+npm run test:glass                # 外观契约 / 对比度 / 七种宽度不溢出（见下）
 npm run check                     # 闸门：语法自检 + 接口冒烟 + 构建前端
-npm run check:full                # 上面这些 + 界面冒烟 + 玻璃检查，全量
+npm run check:full                # 上面这些 + 界面冒烟 + 外观检查，全量
 node scripts/checks/check.mjs            # 只做语法自检：.mjs / .js 走 node --check，.jsx 走 rolldown
 node scripts/checks/vision-selftest.mjs  # 屏幕识别自检：先核对截屏是不是整屏，再拿真截图测十一种分辨率的准确率
 node scripts/checks/vision-parity.mjs    # 屏幕识别后端对照：旧引擎链 vs Python 后端，逐档比结果和耗时
@@ -1262,15 +1262,21 @@ npm run test:ui -- --shots    # 顺手把每个页面截一张图存到 shots/ui
 > 它不在 `npm run check` 里：一分钟对提交前太慢，而且依赖机器上装了浏览器。
 > 想连它一起过就用 `npm run check:full`。
 
-### 玻璃检查（`npm run test:glass`）
+### 外观检查（`npm run test:glass`）
 
-同一套无头浏览器，验的是**看**的东西：玻璃没有嵌套、文字对比度够、六种宽度都不横向溢出、
-价格表的行高整齐。它同样不在 `npm run check` 里（要浏览器、也慢）。
+同一套无头浏览器，验的是**看**的东西：没有任何毛玻璃、画布是平整纯色、侧栏没叠半透明底、
+文字对比度够、七种宽度都不横向溢出、价格表的行高整齐。它同样不在 `npm run check` 里
+（要浏览器、也慢）。
+
+> 脚本名 `glass-check.mjs` 和命令名 `test:glass` 是历史遗留 —— 这个项目第 2 版是「白玻璃」
+> 风格，第 3 版改成「纯白扁平」。**断言没有删，而是全部取了反**：「必须有模糊」变成
+> 「必须没有模糊」，「画布必须有渐变」变成「必须平整」。保留它们的理由：扁平化最典型的
+> 做坏方式是某处漏了一处 `backdrop-filter`、一层渐变底，那东西在截图里肉眼看不出来。
 
 这里踩过一个值得记的坑：`checkPricePage` 一直在等 `.price-service`，而价格表改成
 **默认全部收起**之后那个元素根本不会渲染 —— 于是这条断言一直红着，而且它下面那段
 `if (!ready) return` 把整个「价格表细看」小节（18 项）**静默跳过了**。因为 glass 不在
-`check` 里，没人发现。现在先点一次「全部展开」再断言，95 项全绿。
+`check` 里，没人发现。现在先点一次「全部展开」再断言，91 项全绿。
 
 教训是：**测试里那种「等不到就 return」的写法，会让失败从「红一条」变成「少一片」**。
 少的那一片不会报错，只会安静地不测。
