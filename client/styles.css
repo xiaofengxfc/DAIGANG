@@ -508,53 +508,6 @@ input {
   color: var(--ink);
 }
 
-.react-sidebar__brand {
-  min-height: var(--topbar-h);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 20px;
-  border-bottom: 1px solid var(--refactor-sidebar-line);
-}
-
-.react-sidebar__brand b,
-.react-sidebar__brand small {
-  display: block;
-  max-width: 155px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.react-sidebar__brand b {
-  font-size: 14px;
-}
-
-.react-sidebar__brand small {
-  margin-top: 3px;
-  color: rgba(238, 240, 245, 0.5);
-  font-size: 11px;
-}
-
-.react-sidebar__nav {
-  min-height: 0;
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px 12px;
-}
-
-.react-sidebar__nav section + section {
-  margin-top: 22px;
-}
-
-.react-sidebar__nav h2 {
-  margin: 0 10px 7px;
-  color: rgba(238, 240, 245, 0.42);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-}
-
 .refactor-navitem,
 .react-sidebar__button {
   width: 100%;
@@ -610,34 +563,6 @@ input {
   text-align: center;
 }
 
-.react-sidebar__footer {
-  display: grid;
-  gap: 5px;
-  padding: 14px 12px 18px;
-  border-top: 1px solid var(--refactor-sidebar-line);
-}
-
-.react-quick-action {
-  min-height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  border: 1px solid var(--cinnabar-line);
-  border-radius: 8px;
-  background: var(--cinnabar-bg);
-  color: var(--cinnabar-strong);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.react-sidebar__button {
-  min-height: 34px;
-  padding-left: 11px;
-  font-size: 12px;
-}
-
 .react-topbar {
   grid-area: topbar;
   min-width: 0;
@@ -651,20 +576,6 @@ input {
   position: sticky;
   top: 0;
   z-index: 10;
-}
-
-.react-topbar__title {
-  min-width: 125px;
-}
-
-.react-topbar__title h1 {
-  margin-top: 2px;
-  font-size: 19px;
-  letter-spacing: -0.02em;
-}
-
-.react-search {
-  position: relative;
 }
 
 .refactor-search {
@@ -783,15 +694,6 @@ input {
   font-size: 12px;
 }
 
-.react-topbar__tools {
-  min-width: 0;
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
 .react-online {
   display: inline-flex;
   align-items: center;
@@ -829,18 +731,6 @@ input {
   color: var(--ink);
 }
 
-.react-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.refactor-top-action {
-  min-height: 32px;
-  padding-inline: 11px;
-  font-size: 11px;
-}
-
 .react-main {
   grid-area: main;
   min-width: 0;
@@ -852,10 +742,6 @@ input {
   width: min(100%, 1440px);
   margin: 0 auto;
   padding: 28px 30px 70px;
-}
-
-.legacy-host {
-  min-height: 320px;
 }
 
 .refactor-loading {
@@ -881,13 +767,6 @@ input {
 @keyframes refactor-loading {
   0%, 100% { background-position: 200% 0; }
   50% { background-position: -200% 0; }
-}
-
-.refactor-error {
-  padding: 24px;
-  border: 1px solid var(--oxblood);
-  border-radius: 10px;
-  color: var(--oxblood-ink);
 }
 
 .react-mobile-tabs {
@@ -1846,15 +1725,11 @@ button.react-side-row {
     padding: 12px 14px;
     gap: 12px;
   }
-  .react-topbar__title {
-    min-width: 72px;
-  }
+  
   .react-topbar__title .refactor-eyebrow {
     display: none;
   }
-  .react-topbar__title h1 {
-    font-size: 17px;
-  }
+  
   .refactor-search {
     min-width: 0;
     width: auto;
@@ -1953,13 +1828,8 @@ button.react-side-row {
     padding: 0 4px;
     font-size: 9px;
   }
-  .react-topbar__tools > .react-icon-button {
-    display: none;
-  }
-  .react-actions {
-    max-width: 38px;
-    overflow: hidden;
-  }
+  
+  
   .react-actions .btn {
     width: 32px;
     padding: 0;
@@ -3066,33 +2936,7 @@ button.react-side-row {
   color: var(--ink);
 }
 
-.react-sidebar__brand {
-  border-bottom-color: var(--line);
-}
-
-.react-sidebar__brand b {
-  min-width: 0;
-  color: var(--ink);
-  font-size: 14px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.react-sidebar__brand small {
-  color: var(--ink-3);
-}
-
 /* 分组：一条极淡的分隔线，而不是三个小标题 —— 侧栏要安静 */
-.react-sidebar__nav {
-  padding: 14px 10px;
-}
-
-.react-navgroup + .react-navgroup {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
-}
 
 .refactor-navitem,
 .react-sidebar__button {
@@ -3136,46 +2980,7 @@ button.react-side-row {
   color: var(--cinnabar);
 }
 
-.react-sidebar__footer {
-  border-top-color: var(--line);
-  gap: 6px;
-}
-
-.react-quick-action {
-  min-height: 38px;
-  border-color: transparent;
-  border-radius: 11px;
-  background: var(--cinnabar-solid);
-  color: var(--on-cinnabar);
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12);
-  transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
-}
-
-.react-quick-action:hover {
-  background: var(--cinnabar-solid-hover);
-}
-
-.react-quick-action:active {
-  transform: scale(0.98);
-}
-
 /* 主题 / 退出：两个图标并排，别再各占一行 */
-.react-sidebar__row {
-  display: flex;
-  gap: 6px;
-}
-
-.react-sidebar__row .react-sidebar__button {
-  flex: 1;
-  min-width: 0;
-  justify-content: center;
-  padding: 0 8px;
-  background: var(--glass-soft);
-}
-
-.react-sidebar__row .react-sidebar__button:hover {
-  background: var(--glass);
-}
 
 /* ---------- 顶栏：一条横向玻璃 ---------- */
 
@@ -3186,11 +2991,6 @@ button.react-side-row {
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   border-bottom: 1px solid var(--line);
-}
-
-.react-topbar__title h1 {
-  margin-top: 0;
-  font-size: 18px;
 }
 
 .refactor-search {
@@ -3218,22 +3018,6 @@ button.react-side-row {
 
 .refactor-search__results button:hover {
   background: var(--glass-soft);
-}
-
-.react-icon-button {
-  border-radius: 10px;
-  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease),
-    transform var(--t-fast) var(--ease);
-}
-
-.react-icon-button:hover {
-  border-color: transparent;
-  background: var(--glass);
-  color: var(--ink);
-}
-
-.react-icon-button:active {
-  transform: scale(0.94);
 }
 
 /* ---------- 主内容：进场时轻轻上浮一下 ---------- */
@@ -3666,13 +3450,6 @@ button.react-side-row {
 
 /* ---------- 抽屉 / 对话框里的 React 版本 ---------- */
 
-.react-drawer,
-.react-modal {
-  background: var(--glass-strong);
-  backdrop-filter: blur(calc(var(--glass-blur) * 1.8)) saturate(var(--glass-sat));
-  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.8)) saturate(var(--glass-sat));
-}
-
 /* ============================================================
    白玻璃覆盖层 · 结束
    ============================================================ */
@@ -3888,7 +3665,6 @@ button.react-side-row {
 .ps-propose__why { color: var(--ink-3); }
 .ps-propose__sources { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-top: 5px; color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.9; }
 .ps-propose__sources .ps-chip { max-width: 46ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ps-propose__actions { display: flex; gap: 8px; margin-top: 10px; }
 
 /* ---------- AI 复核建议价 ---------- */
 /* 复核提示是「这一行下面多出来的一条」，不能挤掉主行的高度对齐 */
@@ -4103,41 +3879,9 @@ button.react-side-row {
   border-right: 1px solid var(--line);
 }
 
-.react-sidebar__brand {
-  border-bottom: 1px solid var(--line);
-}
-
-.react-sidebar__brand b {
-  color: var(--ink);
-  font-weight: 650;
-  letter-spacing: -0.01em;
-}
-
 /* 导航分组：一行灰字小标题 + 组间空白，不再画分隔线。
    线会让人去找"这两个东西差在哪"，而标题直接回答"它们是一类"。
    线被删掉后，组与组的距离由 margin 承担 —— 空白比线安静。 */
-.react-sidebar__nav {
-  padding: 16px 12px 8px;
-}
-
-.react-sidebar__nav h2 {
-  margin: 0 0 4px;
-  padding: 0 10px;
-  color: var(--ink-3);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
-.react-navgroup + .react-navgroup {
-  margin-top: 20px;
-  padding-top: 0;
-  border-top: 0;
-}
-
-.react-navgroup[data-first] h2 {
-  margin-top: 0;
-}
 
 /* 导航项：Notion 式。
    选中 = 浅灰底 + 字重加粗，**没有**左侧色条、没有强调色。
@@ -4197,42 +3941,10 @@ button.react-side-row {
   color: var(--cinnabar);
 }
 
-.react-sidebar__footer {
-  border-top: 1px solid var(--line);
-}
-
 /* 主操作按钮：白底 + 细边 + 深字。
    第 4 版一开始把它做成墨黑实心块，结果整页最重的一块颜色落在按钮上，
    而按钮只是入口，不是内容本身。改成白底细边后，页面上不再有任何深色大块，
    区分主次靠的是那条边线和字重 —— 干净但不刺眼。 */
-.react-quick-action {
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-ctl);
-  background: var(--bg);
-  color: var(--ink);
-  box-shadow: none;
-}
-
-.react-quick-action:hover {
-  border-color: var(--ink-3);
-  background: var(--surface-solid-2);
-}
-
-.react-quick-action:active {
-  transform: none;
-}
-
-.react-sidebar__row .react-sidebar__button {
-  border: 1px solid var(--line);
-  border-radius: var(--r-ctl);
-  background: transparent;
-  color: var(--ink-2);
-}
-
-.react-sidebar__row .react-sidebar__button:hover {
-  background: var(--surface-solid-2);
-  color: var(--ink);
-}
 
 /* ---------- 顶栏 ---------- */
 
@@ -4248,12 +3960,6 @@ button.react-side-row {
 
 :root.is-desktop .react-topbar {
   padding-right: 156px;
-}
-
-.react-topbar__title h1 {
-  font-size: 17px;
-  font-weight: 650;
-  letter-spacing: -0.015em;
 }
 
 /* 搜索框：一条实线框的白底输入，不再靠内高光立起来 */
@@ -4286,22 +3992,6 @@ button.react-side-row {
 
 .refactor-search__results button:hover {
   background: var(--surface-solid-2);
-}
-
-.react-icon-button {
-  border: 1px solid transparent;
-  border-radius: var(--r-ctl);
-  color: var(--ink-2);
-}
-
-.react-icon-button:hover {
-  border-color: var(--line);
-  background: var(--surface-solid-2);
-  color: var(--ink);
-}
-
-.react-icon-button:active {
-  transform: none;
 }
 
 /* ---------- 内容区 ---------- */

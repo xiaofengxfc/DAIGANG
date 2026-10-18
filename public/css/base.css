@@ -140,12 +140,7 @@ hr {
   box-shadow: var(--shadow-glass), var(--shadow-hi);
 }
 
-.glass--strong {
-  background: var(--glass-strong);
-  backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-sat));
-  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.6)) saturate(var(--glass-sat));
-  box-shadow: var(--shadow-pop), var(--shadow-hi);
-}
+
 
 /* ---------- 数字与单号：等宽 + 表格数字 ---------- */
 

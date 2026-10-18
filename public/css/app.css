@@ -21,23 +21,9 @@
   z-index: 100;
 }
 
-.boot__mark {
-  width: 46px;
-  height: 46px;
-  border-radius: 10px;
-  background: var(--cinnabar-solid);
-  color: var(--on-cinnabar);
-  display: grid;
-  place-content: center;
-  font-size: var(--fs-lg);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-}
 
-.boot__txt {
-  color: var(--ink-3);
-  font-size: var(--fs-sm);
-}
+
+
 
 /* ---------- 骨架 ---------- */
 
@@ -51,82 +37,21 @@
 
 /* ---------- 左侧导航轨 ---------- */
 
-.rail {
-  grid-area: rail;
-  background: var(--surface-2);
-  border-right: 1px solid var(--line);
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  z-index: var(--z-rail);
-}
 
-.rail__brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px var(--sp-4) 13px;
-  border-bottom: 1px solid var(--line);
-  min-width: 0;
-}
 
-.rail__brand .rail__txt {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  line-height: 1.3;
-}
 
-.rail__mark {
-  width: 30px;
-  height: 30px;
-  flex: none;
-  border-radius: 8px;
-  background: var(--cinnabar-solid);
-  color: var(--on-cinnabar);
-  display: grid;
-  place-content: center;
-  font-size: var(--fs-base);
-  font-weight: 700;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
-}
 
-.rail__name {
-  font-weight: 600;
-  font-size: var(--fs-md);
-  letter-spacing: -0.01em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  line-height: 1.3;
-}
 
-.rail__sub {
-  font-size: var(--fs-xs);
-  color: var(--ink-3);
-  margin-top: 1px;
-}
 
-.rail__nav {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: var(--sp-4) var(--sp-3) var(--sp-3);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
 
-.rail__foot {
-  border-top: 1px solid var(--line);
-  padding: var(--sp-3) var(--sp-3) var(--sp-4);
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
+
+
+
+
+
+
+
+
 
 /* 侧栏底部「做报价单」那道快捷入口：拉成通栏一条，和下面的主题/退出分层 */
 .rail__foot .btn.quick {
@@ -135,140 +60,44 @@
   border-radius: 10px;
 }
 
-.rail__foot .navitem {
-  height: 36px;
-  border-radius: 10px;
-}
 
-.navitem {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 36px;
-  padding: 0 10px;
-  border-radius: var(--r-ctl);
-  border: 1px solid transparent;
-  color: var(--ink-2);
-  font-size: var(--fs-base);
-  font-weight: 500;
-  cursor: pointer;
-  text-align: left;
-  width: 100%;
-  background: transparent;
-  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
-}
 
-.navitem:hover {
-  background: var(--surface-3);
-  color: var(--ink);
-}
 
-.navitem[aria-current='page'] {
-  background: var(--cinnabar-bg);
-  color: var(--ink);
-  border-color: var(--cinnabar-line);
-}
 
-.navitem[aria-current='page'] .navitem__ico {
-  color: var(--cinnabar);
-}
 
-.navitem__ico {
-  width: 18px;
-  flex: none;
-  display: grid;
-  place-content: center;
-  color: var(--ink-2);
-}
 
-.navitem__label {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
-.navitem__badge {
-  font-family: var(--font-fig);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--fs-xs);
-  color: var(--ink-2);
-  background: var(--surface-3);
-  border-radius: var(--r-pill);
-  padding: 1px 7px;
-  flex: none;
-}
 
-.navitem[aria-current='page'] .navitem__badge {
-  background: var(--cinnabar-solid);
-  color: var(--on-cinnabar);
-}
+
+
+
+
+
+
+
+
+
 
 /* ---------- 现代工作区导航：借鉴 Twenty 的分组与留白，保留业务识别 ---------- */
-.navgroup {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
 
-.navgroup + .navgroup {
-  margin-top: var(--sp-4);
-  padding-top: var(--sp-3);
-  border-top: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
-}
 
-.navgroup__label {
-  padding: 2px 12px 7px;
-  color: var(--ink-3);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
 
-.navitem {
-  height: 38px;
-  border-radius: 10px;
-}
 
-.navitem[aria-current='page'] {
-  background: var(--surface-3);
-  border-color: transparent;
-  box-shadow: inset 2px 0 0 var(--cinnabar);
-}
 
-.navitem[aria-current='page'] .navitem__label {
-  font-weight: 600;
-}
+
+
+
+
+
+
 
 /* ---------- 顶栏 ---------- */
 
-.topbar {
-  grid-area: topbar;
-  position: sticky;
-  top: 0;
-  z-index: var(--z-topbar);
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  padding: 0 var(--sp-4);
-  background: var(--bg);
-  border-bottom: 1px solid var(--line);
-}
 
-.topbar__title {
-  font-size: var(--fs-md);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
-.topbar__spacer {
-  flex: 1;
-}
+
+
+
 
 /* 全局搜索 */
 .search {
@@ -277,22 +106,9 @@
   min-width: 0;
 }
 
-.search__box {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  height: 32px;
-  padding: 0 10px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-ctl);
-  background: var(--surface-inset);
-  color: var(--ink-3);
-}
 
-.search__box:focus-within {
-  border-color: var(--cinnabar);
-  box-shadow: 0 0 0 3px var(--cinnabar-bg);
-}
+
+
 
 .search input {
   flex: 1;
@@ -308,18 +124,9 @@
   color: var(--ink-3);
 }
 
-.search__kbd {
-  font-family: var(--font-fig);
-  font-size: var(--fs-xs);
-  color: var(--ink-3);
-  border: 1px solid var(--line-strong);
-  border-radius: 4px;
-  padding: 0 4px;
-}
 
-.search-toggle {
-  display: none;
-}
+
+
 
 .search__pop {
   position: absolute;
@@ -336,11 +143,7 @@
   z-index: var(--z-modal);
 }
 
-.search__group + .search__group {
-  border-top: 1px solid var(--line);
-  margin-top: var(--sp-2);
-  padding-top: var(--sp-2);
-}
+
 
 .search__grouplbl {
   font-size: var(--fs-xs);
@@ -349,25 +152,9 @@
   letter-spacing: 0.04em;
 }
 
-.search__hit {
-  display: flex;
-  align-items: baseline;
-  gap: var(--sp-2);
-  width: 100%;
-  text-align: left;
-  padding: 6px 8px;
-  border: 0;
-  background: transparent;
-  border-radius: var(--r-ctl);
-  cursor: pointer;
-  color: var(--ink);
-  font-size: var(--fs-base);
-}
 
-.search__hit:hover,
-.search__hit[data-active='1'] {
-  background: var(--surface-3);
-}
+
+
 
 .search__hit .mono {
   color: var(--ink-3);
@@ -384,13 +171,7 @@
   padding: 26px 36px 64px;
 }
 
-.main__inner {
-  max-width: 1380px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-5);
-}
+
 
 /* ---------- 手机底部标签 ---------- */
 
@@ -402,59 +183,21 @@
    账簿抬头 —— 第一屏的论点：今天台面上有什么
    ============================================================ */
 
-.ledger {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-top: 2px solid var(--cinnabar);
-  border-radius: 12px;
-  overflow: hidden;
-}
 
-.ledger__head {
-  display: flex;
-  align-items: baseline;
-  gap: var(--sp-3);
-  padding: 13px var(--sp-4) 12px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-2);
-  flex-wrap: wrap;
-  row-gap: 2px;
-}
 
-.ledger__title {
-  font-size: var(--fs-md);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
 
-.ledger__date {
-  margin-left: auto;
-  font-size: var(--fs-sm);
-  color: var(--ink-2);
-}
 
-.ledger__sum {
-  font-size: var(--fs-sm);
-  color: var(--ink-2);
-  margin-left: auto;
-}
 
-.ledger__body {
-  display: flex;
-  flex-wrap: wrap;
-}
 
-.ledger__group {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(78px, 1fr);
-  flex: 1 1 auto;
-  min-width: 0;
-}
 
-.ledger__group--sum {
-  border-left: 1px solid var(--line-strong);
-}
+
+
+
+
+
+
+
+
 
 .cell {
   padding: 10px var(--sp-3) 12px;
@@ -490,27 +233,13 @@ button.cell:hover {
   letter-spacing: 0.04em;
 }
 
-.cell__fig {
-  font-family: var(--font-fig);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--fs-xl);
-  font-weight: 550;
-  letter-spacing: -0.02em;
-  text-align: right;
-  line-height: 1.25;
-}
 
-.cell__fig--sm {
-  font-size: var(--fs-md);
-}
 
-.cell--alert .cell__fig {
-  color: var(--amber-ink);
-}
 
-.cell--due .cell__fig {
-  color: var(--cinnabar);
-}
+
+
+
+
 
 /* ============================================================
    页面头
@@ -524,22 +253,11 @@ button.cell:hover {
   min-height: 44px;
 }
 
-.pagehead__txt {
-  min-width: 0;
-  flex: 1 1 240px;
-}
 
-.pagehead__sub {
-  color: var(--ink-2);
-  font-size: var(--fs-base);
-  margin-top: 2px;
-}
 
-.pagehead__acts {
-  display: flex;
-  gap: var(--sp-2);
-  flex-wrap: wrap;
-}
+
+
+
 
 /* 区块标题 */
 .sechead {
@@ -629,9 +347,7 @@ button.cell:hover {
    账簿表格
    ============================================================ */
 
-.tblwrap {
-  overflow-x: auto;
-}
+
 
 .tbl {
   width: 100%;
@@ -687,10 +403,7 @@ button.cell:hover {
   white-space: nowrap;
 }
 
-.tbl__primary {
-  font-weight: 500;
-  color: var(--ink);
-}
+
 
 .tbl__meta {
   font-size: var(--fs-xs);
@@ -711,78 +424,31 @@ button.cell:hover {
   background: var(--surface-2);
 }
 
-.tbl--compact td,
-.tbl--compact th {
-  padding-top: 6px;
-  padding-bottom: 6px;
-}
+
 
 /* 手机：表格转卡片行 */
 @media (max-width: 720px) {
-  .tblwrap--stack {
-    overflow-x: visible;
-  }
+  
 
-  .tbl--stack thead {
-    display: none;
-  }
+  
 
-  .tbl--stack,
-  .tbl--stack tbody,
-  .tbl--stack tr,
-  .tbl--stack td {
-    display: block;
-    width: auto;
-  }
+  
 
-  .tbl--stack tr {
-    border-bottom: 1px solid var(--line);
-    padding: var(--sp-2) 0;
-  }
+  
 
-  .tbl--stack tr:last-child {
-    border-bottom: 0;
-  }
+  
 
-  .tbl--stack td {
-    border: 0;
-    padding: 3px var(--sp-3);
-    display: flex;
-    align-items: baseline;
-    gap: var(--sp-2);
-    justify-content: space-between;
-    text-align: right;
-  }
+  
 
-  .tbl--stack td::before {
-    content: attr(data-label);
-    font-size: var(--fs-xs);
-    color: var(--ink-3);
-    letter-spacing: 0.04em;
-    flex: none;
-    text-align: left;
-  }
+  
 
-  .tbl--stack td[data-label='']::before,
-  .tbl--stack td:not([data-label])::before {
-    display: none;
-  }
+  
 
-  .tbl--stack td.td-main {
-    display: block;
-    text-align: left;
-    font-size: var(--fs-md);
-    padding-bottom: 3px;
-  }
+  
 
-  .tbl--stack td.td-acts {
-    justify-content: flex-start;
-    padding-top: var(--sp-2);
-  }
+  
 
-  .tbl--stack td.td-acts::before {
-    display: none;
-  }
+  
 
   /* 手机上折成卡片后，次要列直接不显示，一屏能多看几单 */
   .tbl--stack td.col-opt {
@@ -947,56 +613,19 @@ button.cell:hover {
   max-width: 100%;
 }
 
-.seg__btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 26px;
-  padding: 0 10px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--ink-2);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
-}
 
-.seg__btn:hover {
-  color: var(--ink);
-}
 
-.seg__btn[aria-pressed='true'] {
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-}
 
-.seg__n {
-  font-family: var(--font-fig);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--fs-xs);
-  color: var(--ink-3);
-}
 
-.seg__btn[aria-pressed='true'] .seg__n {
-  color: var(--cinnabar);
-}
 
-.toolbar {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  flex-wrap: wrap;
-  margin-bottom: var(--sp-3);
-}
 
-.toolbar__grow {
-  flex: 1;
-  min-width: 0;
-}
+
+
+
+
+
+
+
 
 /* ============================================================
    空态：教你怎么用，不是"暂无数据"
@@ -1057,28 +686,11 @@ button.cell:hover {
    骨架屏
    ============================================================ */
 
-.skel {
-  background: var(--surface-2);
-  border-radius: 6px;
-  height: 12px;
-  animation: pulse 1.4s var(--ease) infinite;
-}
 
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.45;
-  }
-}
 
-.skel--row {
-  height: 38px;
-  border-radius: 0;
-  border-bottom: 1px solid var(--line);
-}
+
+
+
 
 /* ============================================================
    抽屉（右侧滑出，用 <dialog> 承载，不会被裁切）
@@ -1306,34 +918,11 @@ button.cell:hover {
   box-shadow: var(--shadow-pop);
 }
 
-.stalebar__ico {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--on-cinnabar);
-  color: var(--cinnabar-solid);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-}
 
-.stalebar__x {
-  flex: none;
-  padding: 2px 5px;
-  border: 0;
-  background: none;
-  color: inherit;
-  font-size: 16px;
-  line-height: 1;
-  cursor: pointer;
-  opacity: 0.75;
-}
 
-.stalebar__x:hover {
-  opacity: 1;
-}
+
+
+
 
 @media (max-width: 700px) {
   .stalebar {
@@ -1829,187 +1418,63 @@ button.cell:hover {
 
 /* ---------- 一张价格表（一个游戏）---------- */
 
-.pgroup {
-  display: flex;
-  flex-direction: column;
-}
 
-.pgroup + .pgroup {
-  margin-top: var(--sp-5);
-}
+
+
 
 /* 表头：游戏名当作价目表的抬头，下面压一条账簿双线。
    吸在顶栏下面 —— 长表一路滚下去也知道自己在哪个游戏里。 */
-.pgroup__head {
-  position: sticky;
-  top: var(--topbar-h);
-  z-index: 4;
-  display: flex;
-  align-items: baseline;
-  gap: var(--sp-3);
-  padding: var(--sp-4) var(--sp-4) 11px;
-  flex-wrap: wrap;
-  background: var(--surface);
-  border-bottom: 3px double var(--ink);
-}
 
-.pgroup__name {
-  font-size: var(--fs-2xl);
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.1;
-}
+
+
 
 /* 公告：和导出图片 / Word 最上方那条是同一份内容，在这里也看一眼。
    不带「公告」标题，靠左边那道品牌色竖线 + 浅色底说明它是提示 ——
    和导出图里那一块长得一样，所见即所得。 */
-.pgroup__notice {
-  display: flex;
-  gap: 9px;
-  align-items: baseline;
-  padding: 10px calc(var(--sp-4) - 3px);
-  background: var(--cinnabar-bg);
-  border-left: 3px solid var(--cinnabar);
-  border-bottom: 1px solid var(--line);
-  font-size: var(--fs-sm);
-  line-height: 1.7;
-  color: var(--ink-2);
-  white-space: pre-wrap;
-}
+
 
 /* 游戏列表里那条公告预览的记号：一道小品牌色竖条，代替「公告」两个字 */
-.notice-tick {
-  flex: none;
-  align-self: center;
-  width: 3px;
-  height: 13px;
-  border-radius: 2px;
-  background: var(--cinnabar);
-}
+
 
 /* ---------- 大类：账簿里的一节 ----------
    左边一个小品牌色刻度，名字后面一条栏线拉到底，
    数字（价格区间 / 项数）坐在栏线右边，操作按钮藏起来。
    这样一眼能看出「哪些服务项属于这个大类」，而不是一排排等重的方块。 */
 
-.pcat {
-  border-top: 1px solid var(--line);
-}
 
-.pcat__head {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px var(--sp-4);
-  cursor: pointer;
-  color: var(--ink);
-  background: transparent;
-  border: 0;
-  width: 100%;
-  text-align: left;
-}
+
+
 
 /* 大类标题也能拖：抓住标题拖动 = 调大类顺序 */
-.pcat__head:active {
-  cursor: grabbing;
-}
 
-.pcat__head:hover,
-.pcat__head:focus-within {
-  background: var(--surface-2);
-}
 
-.pcat__name {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  flex: none;
-  font-weight: 600;
-  font-size: var(--fs-lg);
-  letter-spacing: -0.015em;
-}
 
-.pcat__name::before {
-  content: '';
-  flex: none;
-  width: 3px;
-  height: 16px;
-  border-radius: 2px;
-  background: var(--cinnabar);
-}
 
-.pcat__note {
-  flex: 0 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--fs-xs);
-  color: var(--ink-3);
-}
+
+
+
+
+
 
 /* 名字和数字之间那条栏线：大类看起来才像「一节」。
    太淡等于没有，只剩一片说不清的空白；line-strong 刚好是一条账簿线。 */
-.pcat__rule {
-  flex: 1 1 20px;
-  min-width: 20px;
-  height: 1px;
-  background: var(--line-strong);
-}
 
-.pcat__range,
-.pcat__n {
-  flex: none;
-  font-family: var(--font-fig);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--fs-sm);
-  color: var(--ink-3);
-  white-space: nowrap;
-}
 
-.pcat__range {
-  color: var(--ink-2);
-}
+
+
+
 
 /* 管理按钮收起来：正文要像一张能直接读的价目表。
    用绝对定位而不是占位隐藏 —— 这样「价格区间 / 项数」才能贴着右边排成一列。 */
-.pcat__acts {
-  position: absolute;
-  right: var(--sp-4);
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  gap: 6px;
-  padding-left: 26px;
-  background: linear-gradient(to right, transparent 0, var(--surface-2) 24px);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.14s;
-}
 
-.pcat__head:hover .pcat__acts,
-.pcat__head:focus-within .pcat__acts {
-  opacity: 1;
-  pointer-events: auto;
-}
+
+
 
 /* 触屏没有 hover：一直显示，并且退回成占位排布，别压在数字上 */
-@media (hover: none) {
-  .pcat__acts {
-    position: static;
-    transform: none;
-    padding-left: 0;
-    background: none;
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
+
 
 /* 服务项：退回纸面本身，靠缩进和栏线跟大类分层 */
-.pcat__body {
-  background: var(--surface);
-}
+
 
 /* 缩进对齐到大类名字（刻度 3px + 间距，见 .pitem 的 padding-left） */
 .pcat__body .pitem {
@@ -2019,22 +1484,10 @@ button.cell:hover {
 /* 大类自己的提示：排在这个大类的名字下面、服务项上面。
    缩进对齐服务项的名字，浅色底 + 品牌色竖线，比游戏那条顶部提示低一级 ——
    和导出图片 / Word 里那一块长得一样。 */
-.pcat__notice {
-  display: flex;
-  margin: 2px var(--sp-4) 6px 34px;
-  padding: 8px 12px;
-  background: var(--cinnabar-bg);
-  border-left: 3px solid var(--cinnabar);
-  font-size: var(--fs-sm);
-  line-height: 1.65;
-  color: var(--ink-2);
-  white-space: pre-wrap;
-}
+
 
 /* 大类之间空开一点，别糊成一片 */
-.pcat + .pcat {
-  margin-top: 4px;
-}
+
 
 /* ============================================================
    分享进度：预览
@@ -2101,16 +1554,9 @@ button.cell:hover {
 }
 
 /* 表头右边的数字：小号等宽，和价格用同一个字体家族 */
-.pgroup__n {
-  font-family: var(--font-fig);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--fs-sm);
-  color: var(--ink-3);
-}
 
-.pgroup__grow {
-  flex: 1 1 auto;
-}
+
+
 
 /* ---------- 服务项：一行账目 ---------- */
 .pitem {
@@ -2133,29 +1579,11 @@ button.cell:hover {
 }
 
 /* 没填备注、没填套餐内容的服务项：压成一行，别在下面留一片空白 */
-.pitem--slim {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-top: 9px;
-  padding-bottom: 9px;
-}
+
 
 /* 拖拽把手固定站在左边那一列（不占名字的位置），
    这样所有服务项的名字都对齐在 34px，和大类名一个起点。 */
-.pitem__grip {
-  position: absolute;
-  left: 12px;
-  top: 0;
-  bottom: 0;
-  margin: auto 0;
-  height: 16px;
-  display: inline-flex;
-  align-items: center;
-  color: var(--ink-3);
-  opacity: 0;
-  transition: opacity 0.12s;
-}
+
 
 .pitem:hover .pitem__grip,
 .pitem:focus-within .pitem__grip {
@@ -2163,22 +1591,9 @@ button.cell:hover {
 }
 
 /* 名字和金额之间那串点线 —— 菜单式价目表的老办法，一眼连得上 */
-.pitem__leader {
-  flex: 1;
-  min-width: 14px;
-  border-bottom: 1px dotted var(--line-strong);
-  transform: translateY(-4px);
-  align-self: center;
-}
 
-.pitem--slim .pitem__name {
-  flex: 0 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: block;
-}
+
+
 
 .pitem--slim .pitem__fig {
   flex: none;
@@ -2233,37 +1648,15 @@ button.cell:hover {
   box-shadow: inset 0 0 0 1px var(--cinnabar-line);
 }
 
-.pitem__name {
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  flex-wrap: wrap;
-}
 
-.pitem__desc {
-  color: var(--ink-2);
-  font-size: var(--fs-sm);
-  margin-top: 3px;
-  line-height: 1.55;
-}
+
+
 
 /* 金额那一列：金额 + 操作排在同一行，
    操作的位置一直留着，所以一列金额的右边缘是齐的。 */
-.pitem__price {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  text-align: right;
-  white-space: nowrap;
-  min-width: 104px;
-}
 
-.pitem__amount {
-  display: inline-flex;
-  align-items: baseline;
-}
+
+
 
 /* 金额是这一行除名字以外最该被看见的东西：等宽、加粗、主文字色（不抢品牌色） */
 .pitem__fig {
@@ -2285,11 +1678,7 @@ button.cell:hover {
   margin-left: 2px;
 }
 
-.pitem__acts {
-  display: flex;
-  gap: 6px;
-  justify-content: flex-end;
-}
+
 
 .subitems {
   margin-top: var(--sp-2);
@@ -2315,29 +1704,16 @@ button.cell:hover {
    手机上横向空间不够，栏线和备注先让路，名字和金额排得下最要紧；
    按钮那一组会自己折到第二行（触屏一直是显示的）。 */
 @media (max-width: 700px) {
-  .pgroup__name {
-    font-size: var(--fs-xl);
-  }
+  
 
-  .pcat__note,
-  .pcat__rule {
-    display: none;
-  }
+  
 
-  .pcat__head {
-    flex-wrap: wrap;
-    row-gap: 6px;
-  }
+  
 
   /* 没有栏线拉开了，就让数字自己靠右站 */
-  .pcat__range {
-    margin-left: auto;
-  }
+  
 
-  .pcat__head .pcat__acts {
-    flex: 1 0 100%;
-    justify-content: flex-end;
-  }
+  
 
   .pitem,
   .pcat__body .pitem {
@@ -2345,19 +1721,11 @@ button.cell:hover {
   }
 
   /* 窄屏上缩进也跟着收，别把提示挤成一条 */
-  .pcat__notice {
-    margin-left: 26px;
-    margin-right: var(--sp-3);
-  }
+  
 
-  .pitem__grip {
-    left: 4px;
-  }
+  
 
-  .pitem__price {
-    min-width: 0;
-    gap: 8px;
-  }
+  
 }
 
 /* ============================================================
@@ -2439,14 +1807,7 @@ pre.plaintext {
    图表（纯柱状，不做进度环、不做迷你折线）
    ============================================================ */
 
-.bars {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 72px;
-  padding-top: var(--sp-2);
-  border-bottom: 1px solid var(--line-strong);
-}
+
 
 .bar {
   flex: 1;
@@ -2461,26 +1822,9 @@ pre.plaintext {
   background: var(--ink-3);
 }
 
-.bar--money {
-  background: var(--cinnabar);
-}
 
-.bar__tip {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  translate: -50% 0;
-  background: var(--surface-3);
-  border: 1px solid var(--line-strong);
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: var(--fs-xs);
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--t-fast) var(--ease);
-  z-index: 5;
-}
+
+
 
 .bar:hover .bar__tip {
   opacity: 1;
@@ -2495,18 +1839,9 @@ pre.plaintext {
   flex-wrap: wrap;
 }
 
-.legend__k {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
 
-.legend__sw {
-  width: 9px;
-  height: 9px;
-  border-radius: 2px;
-  background: var(--line-strong);
-}
+
+
 
 /* ============================================================
    表单栅格（抽屉里用）
@@ -2647,24 +1982,9 @@ pre.plaintext {
 }
 
 /* 「只看某个客户」的筛选标签 */
-.filterchip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 9px;
-  border-radius: 999px;
-  border: 1px solid var(--cinnabar-line);
-  background: var(--cinnabar-bg);
-  color: var(--cinnabar);
-  font: inherit;
-  font-size: var(--fs-sm);
-  cursor: pointer;
-  white-space: nowrap;
-}
 
-.filterchip:hover {
-  border-color: var(--cinnabar);
-}
+
+
 
 
 /* ============================================================
@@ -2873,13 +2193,9 @@ pre.plaintext {
   letter-spacing: -0.01em;
 }
 
-.formsec {
-  padding-top: var(--sp-2);
-}
 
-.formsec:first-child {
-  padding-top: 0;
-}
+
+
 
 @media (max-width: 620px) {
   .formgrid {
@@ -2903,29 +2219,9 @@ pre.plaintext {
   background: var(--bg);
 }
 
-.gate__card {
-  width: min(420px, 100%);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-top: 2px solid var(--cinnabar);
-  border-radius: var(--r-card);
-  padding: var(--sp-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-4);
-}
 
-.gate__mark {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  background: var(--cinnabar-solid);
-  color: var(--on-cinnabar);
-  display: grid;
-  place-content: center;
-  font-size: var(--fs-lg);
-  font-weight: 700;
-}
+
+
 
 /* ============================================================
    提示条
@@ -3045,32 +2341,11 @@ pre.plaintext {
 /* ---------- 订单列表里的客户格 ----------
    客户多的时候，光看名字不容易扫，加个首字方块做视觉锚点。 */
 
-.custcell {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  max-width: 100%;
-}
 
-.custcell:hover .custcell__name {
-  color: var(--cinnabar);
-  text-decoration: underline;
-}
 
-.avatar--xs {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-}
+
+
+
 
 .avatar--lg {
   width: 52px;
@@ -3086,36 +2361,17 @@ img.avatar {
   object-fit: cover;
 }
 
-img.avatar--xs {
-  border-radius: 50%;
-}
+
 
 img.avatar--lg {
   border-radius: 50%;
 }
 
-.custcell__txt {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  line-height: 1.25;
-}
 
-.custcell__name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 10em;
-}
 
-.custcell__n {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  font-size: var(--fs-xs);
-  color: var(--ink-3);
-  white-space: nowrap;
-}
+
+
+
 
 /* 手机号：等宽、比「第 N 单」显眼一点，方便直接念/拨 */
 .custcell__n .mono {
@@ -3144,17 +2400,13 @@ img.avatar--lg {
     grid-template-areas: 'topbar' 'main';
   }
 
-  .rail {
-    display: none;
-  }
+  
 
   .main {
     padding: var(--sp-4) var(--sp-3) calc(var(--tabs-h) + var(--sp-5) + env(safe-area-inset-bottom, 0px));
   }
 
-  .main__inner {
-    gap: var(--sp-4);
-  }
+  
 
   .tabs {
     display: grid;
@@ -3201,27 +2453,11 @@ img.avatar--lg {
     border-radius: 0 0 2px 2px;
   }
 
-  .tab__n {
-    position: absolute;
-    top: 7px;
-    left: 50%;
-    translate: 4px 0;
-    font-family: var(--font-fig);
-    font-size: 10px;
-    line-height: 1;
-    background: var(--cinnabar-solid);
-    color: var(--on-cinnabar);
-    border-radius: var(--r-pill);
-    padding: 2px 5px;
-  }
+  
 
-  .topbar {
-    padding: 0 var(--sp-3);
-  }
+  
 
-  .search-toggle {
-    display: inline-flex;
-  }
+  
 
   .search {
     display: none;
@@ -3240,10 +2476,7 @@ img.avatar--lg {
     z-index: 3;
   }
 
-  .topbar--searching .search__box {
-    flex: 1;
-    height: 36px;
-  }
+  
 
   .topbar--searching .search__pop {
     top: calc(100% + 4px);
@@ -3251,34 +2484,18 @@ img.avatar--lg {
     right: var(--sp-3);
   }
 
-  .topbar--searching .topbar__title {
-    visibility: hidden;
-  }
+  
 
-  .search__kbd {
-    display: none;
-  }
+  
 
-  .ledger__group {
-    grid-auto-flow: row;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    border-left: 0;
-  }
+  
 
-  .ledger__group--sum {
-    border-left: 0;
-    border-top: 1px solid var(--line-strong);
-  }
+  
 
-  .ledger__body {
-    flex-direction: column;
-  }
+  
 
   /* 抬头里那条本月合计在窄屏上换行独占一行，否则整页会被撑宽 */
-  .ledger__sum {
-    flex-basis: 100%;
-    margin-left: 0;
-  }
+  
 
   .sechead,
   .quote-sheet__head,
@@ -3303,9 +2520,7 @@ img.avatar--lg {
     border-top: 0;
   }
 
-  .cell__fig {
-    font-size: var(--fs-lg);
-  }
+  
 
   .drawer {
     width: 100vw;
@@ -3321,9 +2536,7 @@ img.avatar--lg {
 }
 
 @media (max-width: 480px) {
-  .ledger__group {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  
 
   /* 很窄的手机上，满行服务项折成一列：名字和说明要占满整行。
      但仍然靠右排 —— 一列金额对齐着看才像价目表（原来这里是左对齐，
@@ -3396,66 +2609,27 @@ img.avatar--lg {
   gap: var(--sp-5);
 }
 
-.boot__mark {
-  width: 52px;
-  height: 52px;
-  border-radius: 15px;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.14), 0 16px 36px -18px var(--cinnabar-solid);
-  animation: boot-pulse 2.4s var(--ease) infinite;
-}
 
-@keyframes boot-pulse {
-  0%,
-  100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-3px) scale(1.03);
-  }
-}
+
+
 
 /* ---------- 左侧导航轨：整块竖玻璃 ---------- */
 
-.rail {
-  background: var(--glass);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-  border-right: 1px solid var(--line);
-}
 
-.rail__brand {
-  border-bottom: 1px solid var(--line);
-}
 
-.rail__mark {
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.16), 0 10px 22px -12px var(--cinnabar-solid);
-}
 
-.rail__foot {
-  border-top: 1px solid var(--line);
-}
+
+
+
+
 
 /* ---------- 顶栏：一条横向玻璃，去掉硬分割线 ---------- */
 
-.topbar {
-  background: var(--glass);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-  border-bottom: 1px solid var(--line);
-}
 
-.search__box {
-  border-color: transparent;
-  background: var(--glass-inset);
-  box-shadow: var(--shadow-hi);
-  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease),
-    background var(--t-fast) var(--ease);
-}
 
-.search__box:focus-within {
-  border-color: var(--cinnabar);
-  background: var(--glass-strong);
-}
+
+
+
 
 .search__pop {
   background: var(--glass-strong);
@@ -3466,9 +2640,7 @@ img.avatar--lg {
   animation: rise-in var(--t-base) var(--ease-out) both;
 }
 
-.search__hit {
-  transition: background var(--t-fast) var(--ease);
-}
+
 
 /* ---------- 主内容 ---------- */
 
@@ -3517,23 +2689,11 @@ img.avatar--lg {
 
 /* 账簿抬头：原来那道 2px 靛蓝顶线去掉，改用一块更厚的玻璃。
    它是第一屏的主角，靠体量而不是靠一条彩色线被认出来。 */
-.ledger {
-  background: var(--glass-strong);
-  border-top-color: transparent;
-  border-radius: var(--r-card);
-}
 
-.ledger__head {
-  background: var(--glass-soft);
-  border-bottom-color: var(--line);
-}
 
-.gate__card {
-  background: var(--glass-strong);
-  border-top-color: transparent;
-  border-radius: var(--r-card);
-  box-shadow: var(--shadow-pop), var(--shadow-hi);
-}
+
+
+
 
 .panel__foot,
 .modal__foot,
@@ -3593,16 +2753,11 @@ img.avatar--lg {
   box-shadow: var(--shadow-pop), var(--shadow-hi);
 }
 
-.stalebar__ico {
-  background: var(--cinnabar-solid);
-  color: var(--on-cinnabar);
-}
+
 
 /* ---------- 表格：去掉外框，只留极淡的行线 ---------- */
 
-.tblwrap {
-  border-radius: 0;
-}
+
 
 .tbl th {
   background: var(--surface-solid);
@@ -3702,19 +2857,11 @@ img.avatar--lg {
   box-shadow: var(--shadow-hi);
 }
 
-.seg__btn {
-  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
-}
 
-.seg__btn[aria-pressed='true'] {
-  background: var(--glass-strong);
-  box-shadow: var(--shadow-hi);
-}
 
-.filterchip {
-  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease),
-    border-color var(--t-fast) var(--ease);
-}
+
+
+
 
 /* ---------- 状态轨与交付日期 ---------- */
 
@@ -3736,10 +2883,7 @@ img.avatar--lg {
 
 /* ---------- 骨架屏：跟着玻璃调子走 ---------- */
 
-.skel {
-  background: linear-gradient(90deg, var(--glass-soft), var(--glass), var(--glass-soft));
-  background-size: 200% 100%;
-}
+
 
 /* ============================================================
    白玻璃覆盖层 · 结束

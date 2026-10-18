@@ -1482,6 +1482,48 @@ a:hover {
   letter-spacing: 0;
 }
 
+/* 报价单的行：表头已经是新样式，行还是 10px 小字 —— 两边对不上 */
+.quotes-row {
+  min-height: 72px;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--line);
+  transition: background var(--t-fast) var(--ease);
+}
+
+.quotes-row:last-child {
+  border-bottom: 0;
+}
+
+.quotes-row:hover {
+  background: var(--surface-2);
+}
+
+.quotes-row__main b {
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.quotes-row__main small,
+.quotes-row__items,
+.quotes-row__game,
+.quotes-row__valid {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.quotes-row__main strong {
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.quotes-row__total {
+  color: var(--ink);
+  font-size: var(--fs-base);
+  font-weight: 600;
+}
+
 .orders-row,
 .customers-row {
   min-height: 64px;
@@ -2082,6 +2124,11 @@ a:hover {
   color: var(--oxblood-ink);
   font-size: var(--fs-sm);
   padding: 10px 13px;
+  /* 旧规则给提示条加过一层 blur。它贴在一张白卡上，
+     糊的是卡片自己，看不出任何"玻璃"效果，只是白算一次合成。 */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
 }
 
 /* ============================================================
@@ -2708,5 +2755,915 @@ pre.plaintext {
   background: var(--surface);
   color: var(--ink);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* ============================================================
+   财务：区间账单 + 三栏面板
+
+   前面几轮统一的是外壳、页面抬头和两个抽屉。这个页面的"里面"
+   还留着上一版的皮肤：1px 描边 + 9px 圆角 + 10px 字号，
+   和外面的 18px 白卡并排时，一眼能看出是两代东西。
+   ============================================================ */
+
+.finance-page {
+  gap: 20px;
+}
+
+.finance-ledger,
+.finance-panel {
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.finance-ledger > header,
+.finance-panel > header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.finance-ledger > header {
+  color: var(--ink-3);
+  font-size: var(--fs-sm);
+}
+
+.finance-ledger > header strong,
+.finance-panel h3 {
+  color: var(--ink);
+  font-size: var(--fs-base);
+  font-weight: 600;
+}
+
+.finance-panel > header span,
+.finance-ledger > header span {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+/* 八个金额格：数字是这一屏的主角，标签退到后面 */
+.finance-ledger__cell {
+  min-height: 84px;
+  gap: 4px;
+  padding: 14px 16px;
+  border-right: 1px solid var(--line);
+}
+
+.finance-ledger__cell span {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.finance-ledger__cell b {
+  color: var(--ink);
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* 收支方向用文字色区分就够了，不再给整格铺底色 */
+.finance-ledger__cell.is-paid b,
+.finance-ledger__cell.is-profit b {
+  color: var(--jade-ink);
+}
+
+.finance-ledger__cell.is-refund b,
+.finance-ledger__cell.is-due b {
+  color: var(--oxblood-ink);
+}
+
+.finance-grid,
+.finance-main,
+.finance-side {
+  gap: 20px;
+}
+
+/* 区间切换：灰底药丸组，选中项是白片 */
+.finance-ranges {
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  width: fit-content;
+}
+
+.finance-ranges button {
+  min-height: 30px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+
+.finance-ranges button:hover {
+  background: transparent;
+  color: var(--ink);
+}
+
+.finance-ranges button.is-active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
+}
+
+.finance-date-picker {
+  gap: 8px;
+  color: var(--ink-3);
+  font-size: var(--fs-sm);
+}
+
+.finance-date-picker input {
+  min-height: 36px;
+  border: 1px solid transparent;
+  border-radius: var(--r-ctl);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: var(--fs-base);
+}
+
+.finance-date-picker input:focus {
+  outline: none;
+  border-color: transparent;
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 1px var(--accent);
+}
+
+.finance-table button {
+  padding: 13px 18px;
+  color: var(--ink-2);
+}
+
+.finance-table b {
+  font-size: var(--fs-sm);
+}
+
+.finance-table small {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.finance-table strong {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.finance-table strong.is-paid {
+  color: var(--jade-ink);
+}
+
+.finance-table strong.is-refund {
+  color: var(--oxblood-ink);
+}
+
+.finance-breakdown {
+  padding: 2px 18px;
+}
+
+.finance-breakdown > div {
+  padding: 12px 0;
+}
+
+.finance-breakdown span {
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+
+.finance-breakdown small {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.finance-breakdown b {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.finance-bars__legend,
+.finance-empty-text,
+.finance-panel--note p {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.finance-panel--note p {
+  padding: 14px 18px;
+  line-height: 1.7;
+}
+
+/* 柱状图：单色墨灰，不用强调色铺满 */
+.finance-bar {
+  border-radius: 4px 4px 0 0;
+  background: var(--ink);
+  opacity: 0.72;
+}
+
+.finance-bar:hover {
+  opacity: 1;
+}
+
+@media (max-width: 900px) {
+  .finance-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ============================================================
+   价格表：分组是白卡，分类是一块浅灰 —— 两层就够，不再层层描边
+   ============================================================ */
+
+.price-groups {
+  gap: 20px;
+}
+
+.price-group {
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.price-group__head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.price-group__head h3 {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+
+.price-group__head span {
+  margin-top: 2px;
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+/* 币种标记：不再是一个小描边方块，就是一行灰字 */
+.price-group__head em {
+  padding: 0;
+  border: 0;
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.price-group__body {
+  padding: 14px;
+}
+
+.price-category {
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--r-ctl);
+  background: var(--surface-2);
+}
+
+.price-category + .price-category {
+  margin-top: 8px;
+}
+
+.price-category.is-archived {
+  opacity: 0.6;
+}
+
+.price-category__head {
+  min-height: 48px;
+  padding: 8px 12px;
+}
+
+.price-category__toggle b {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.price-category__toggle small,
+.price-category__head > p {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+/* 服务表落在灰底分类里的那块白面上 */
+.price-category__body {
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.price-service__labels {
+  padding: 9px 12px;
+  background: var(--surface-2);
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.price-service {
+  padding: 12px;
+}
+
+.price-service__name {
+  gap: 6px;
+}
+
+.price-service__name b {
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.price-service__type b,
+.price-service__tiers b {
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+}
+
+.price-service__tiers small {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.price-tag {
+  min-height: 18px;
+  padding: 0 6px;
+  border-radius: 5px;
+  background: var(--surface-3);
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+}
+
+.price-tag--draft {
+  background: var(--jade-bg);
+  color: var(--jade-ink);
+}
+
+/* 未分类区：去掉虚线框，用一条普通分隔线 */
+.price-loose {
+  border-top: 1px solid var(--line);
+  margin-top: 14px;
+}
+
+.price-loose--drafts {
+  border-top: 0;
+  margin-top: 8px;
+}
+
+.price-loose__head {
+  padding: 14px 12px 8px;
+}
+
+.price-loose__head b {
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.price-loose__head span {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.price-catalog {
+  padding: 16px;
+}
+
+.price-catalog__tools {
+  margin-bottom: 12px;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+
+/* 搜索框：凹槽式控件，和别页的输入框同一套 */
+.price-search,
+.quotes-search {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: var(--r-ctl);
+  background: var(--surface-2);
+  color: var(--ink-3);
+  font-size: var(--fs-sm);
+}
+
+.price-search:focus-within,
+.quotes-search:focus-within {
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 1px var(--accent);
+}
+
+.price-search input,
+.quotes-search input {
+  color: var(--ink);
+  font-size: var(--fs-base);
+}
+
+/* 启停 / 上架分段：药丸组 */
+.price-status {
+  gap: 2px;
+  padding: 2px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+}
+
+.price-status button {
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: var(--r-pill);
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.price-status button.is-active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
+}
+
+/* 待添加（草稿）：一块浅灰区，不是描边小卡 */
+.price-draft {
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--r-ctl);
+  background: var(--surface-2);
+}
+
+.price-draft + .price-draft {
+  margin-top: 6px;
+}
+
+.price-draft__alias {
+  color: var(--ink-3);
+}
+
+/* 目录项：选中用墨底反白，和顶栏导航同一个语汇 */
+.price-directory__item {
+  padding: 9px 11px;
+  border: 0;
+  border-radius: var(--r-ctl);
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+
+.price-directory__item:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.price-directory__item.is-active {
+  border: 0;
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 500;
+}
+
+.price-directory__item.is-active small {
+  color: var(--bg);
+  opacity: 0.7;
+}
+
+.price-directory__item small {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.price-directory__add {
+  border: 0;
+  border-radius: var(--r-ctl);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+
+.price-directory__add:hover {
+  border: 0;
+  background: var(--surface-3);
+  color: var(--ink);
+}
+
+.price-directory__empty {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+/* ============================================================
+   自媒体：摘要格 / 标签页 / 选项片
+
+   这一页的控件最杂：四格摘要、下划线标签页、彩色提示卡、虚线空态。
+   统一后只剩三种视觉：白卡（摘要）、灰底药丸组（标签页）、
+   浅灰选项片（平台 / 素材），状态一律交给小圆点和文字色。
+   ============================================================ */
+
+.media-summary {
+  gap: 16px;
+}
+
+.media-summary > div {
+  padding: 16px 18px;
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.media-summary svg {
+  color: var(--ink-3);
+}
+
+.media-summary b {
+  color: var(--ink);
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.media-summary small {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+/* 标签页：灰底药丸组，选中是白片（不再用下划线） */
+.media-tabs {
+  gap: 2px;
+  padding: 3px;
+  border-bottom: 0;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  width: fit-content;
+  max-width: 100%;
+}
+
+.media-tabs button {
+  min-height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--r-pill);
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+
+.media-tabs button:hover {
+  background: transparent;
+  color: var(--ink);
+}
+
+.media-tabs button.is-active {
+  border: 0;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
+}
+
+.media-panel {
+  padding: 20px;
+}
+
+.media-panel__head {
+  margin-bottom: 16px;
+}
+
+.media-panel__head h3 {
+  color: var(--ink);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+
+.media-panel__head p {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+/* 平台 / 素材选项片：浅灰底，选中加一道墨线，不再是彩色块 */
+.media-toggle,
+.media-material-option {
+  padding: 11px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--r-ctl);
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+.media-toggle:hover,
+.media-material-option:hover {
+  border-color: transparent;
+  background: var(--surface-3);
+  color: var(--ink);
+}
+
+.media-toggle.is-selected,
+.media-material-option.is-selected {
+  border-color: transparent;
+  background: var(--surface-2);
+  color: var(--ink);
+  box-shadow: inset 2px 0 0 0 var(--ink);
+}
+
+.media-toggle small {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.media-material-option b {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.media-material-option small {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.media-material-option svg {
+  color: var(--ink-2);
+}
+
+/* 空态提示：去掉虚线框 */
+.media-inline-empty {
+  padding: 16px;
+  border: 0;
+  border-radius: var(--r-ctl);
+  background: var(--surface-2);
+  color: var(--ink-3);
+  font-size: var(--fs-sm);
+}
+
+/* 依赖检查卡：中性底，状态只靠小字与点 */
+.media-dependency-card,
+.media-dependency-card.is-ready {
+  padding: 16px 18px;
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--surface-2);
+}
+
+.media-dependency-card h3 {
+  color: var(--ink);
+  font-size: var(--fs-base);
+  font-weight: 600;
+}
+
+.media-dependency-grid span {
+  padding: 4px 9px;
+  border: 0;
+  background: var(--surface-3);
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.media-dependency-grid span.is-ok {
+  border: 0;
+  background: var(--jade-bg);
+  color: var(--jade-ink);
+}
+
+.media-dependency-note,
+.media-dependency-log {
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+}
+
+.media-dependency-log {
+  padding: 10px 12px;
+  border-radius: var(--r-ctl);
+  background: var(--surface-3);
+}
+
+.media-dependency-log.is-error {
+  border: 0;
+  color: var(--oxblood-ink);
+}
+
+/* 侧栏那条说明：浅灰底灰字，不用强调色铺底 */
+.media-hint {
+  padding: 16px;
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+.media-hint svg {
+  color: var(--ink-3);
+}
+
+.media-hint b {
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.media-hint small {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+/* 素材 / 账号 / 任务行：靠分隔线分组，图标片是浅灰 */
+.media-material-row,
+.media-account-row,
+.media-task-row {
+  padding: 13px 0;
+}
+
+.media-material-row__icon,
+.media-account-row__mark {
+  border-radius: var(--r-ctl);
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+.media-material-row__main b,
+.media-account-row__main b {
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.media-material-row__main small,
+.media-account-row__main small {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.media-task-row__title b {
+  color: var(--ink);
+  font-size: var(--fs-base);
+}
+
+.media-task-row__main p {
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+}
+
+.media-task-row__main small {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.media-cookie-button {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--r-ctl);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+}
+
+.media-cookie-button:hover {
+  border-color: transparent;
+  background: var(--surface-3);
+  color: var(--ink);
+}
+
+.media-fieldset legend {
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.media-fieldset legend b {
+  color: var(--ink-3);
+}
+
+.media-submit-row {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.media-submit-row > span {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.media-executor {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.media-preview-list > div {
+  padding-bottom: 12px;
+}
+
+.media-preview-list span {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.media-preview-list b {
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+@media (max-width: 1100px) {
+  .media-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .media-composer,
+  .media-two-column {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .media-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .media-tabs {
+    width: 100%;
+  }
+}
+
+/* ============================================================
+   游戏：卡片本体 + 行
+
+   这一页的工具栏早就换成了新壳（.games-panel__bar），但卡片本体
+   还是旧皮肤：1px 描边、9px 圆角，旧规则里还带一层 backdrop-filter。
+   同一屏里"新工具条 + 旧卡片"最扎眼，这里补齐。
+   ============================================================ */
+
+.games-panel {
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.games-table-head {
+  min-height: 38px;
+  padding: 0 20px;
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.games-row {
+  padding: 14px 20px;
+}
+
+.games-row:hover {
+  background: var(--surface-2);
+}
+
+.games-row__name > b {
+  color: var(--ink);
+  font-size: var(--fs-base);
+  font-weight: 600;
+}
+
+.games-short-name {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+.games-row__meta,
+.games-row__note {
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+}
+
+.games-row__currency {
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+
+.games-row__date {
+  color: var(--ink-3);
+  font-size: var(--fs-xs);
+}
+
+/* 头像片：浅灰圆角，不再带描边 */
+.games-avatar {
+  border-radius: var(--r-ctl);
+}
+
+.games-avatar--fallback {
+  border: 0;
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+.games-tag {
+  min-height: 19px;
+  padding: 0 7px;
+  border-radius: 5px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+}
+
+@media (max-width: 760px) {
+  .games-table-head {
+    display: none;
+  }
+
+  .games-row {
+    padding: 14px 16px;
+  }
 }
 
