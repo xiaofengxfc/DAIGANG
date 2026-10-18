@@ -766,9 +766,40 @@ async function main() {
       (await cdp.eval(`document.querySelectorAll('.react-topbar .refactor-eyebrow').length`)) === 0
     )
     ok('顶栏不再有「本机运行」状态条', (await cdp.eval(`document.querySelectorAll('.react-online').length`)) === 0)
+    // 第 4 版（Notion 式侧栏）：分组标题回**来了**，但换了理由。
+    // 第 3 版删掉它们，是因为当时那三行是 10px/700/字距 .08em 的全大写小标，
+    // 配着半透明深色侧栏，确实像一层多余的装饰。
+    // 现在侧栏是纯白 + 14px 导航项，一行 11px 灰字标题的作用变成"说清为什么这些项在一起" ——
+    // 它比一条分隔线更能表达分组，而且不靠颜色。所以断言反过来：必须正好三组。
     ok(
-      '侧栏不再有三行分组小标题',
-      (await cdp.eval(`document.querySelectorAll('.react-sidebar__nav h2').length`)) === 0
+      '侧栏有三行分组小标题（工作台/业务/工具）',
+      (await cdp.eval(
+        `JSON.stringify([...document.querySelectorAll('.react-sidebar__nav h2')].map((h) => h.textContent.trim()))`
+      )) === JSON.stringify(['工作台', '业务', '工具']),
+      await cdp.eval(
+        `JSON.stringify([...document.querySelectorAll('.react-sidebar__nav h2')].map((h) => h.textContent.trim()))`
+      )
+    )
+    // 选中态只能靠灰底和字重表达。左侧彩条是竖排导航里最容易"晃"的东西：
+    // 滚动时它一直在视野边缘，而且把"你在哪"重复说了两遍（底色已经说过一次）。
+    ok(
+      '侧栏选中态没有左侧彩条',
+      (await cdp.eval(
+        `(() => {
+           const active = document.querySelector('.react-sidebar .refactor-navitem.is-active')
+           if (!active) return 'no-active'
+           const before = getComputedStyle(active, '::before')
+           return before.content === 'none' || before.content === 'normal' ? 'ok' : before.content + '|' + before.backgroundColor
+         })()`
+      )) === 'ok'
+    )
+    // 分组之间的分隔线也要一起去掉：标题已经承担了分组，再加线就是双重标注
+    ok(
+      '侧栏分组之间不再画分隔线',
+      (await cdp.eval(
+        `[...document.querySelectorAll('.react-navgroup + .react-navgroup')]
+           .every((g) => getComputedStyle(g).borderTopWidth === '0px')`
+      ))
     )
     // 页面抬头原来压着一行靛蓝小标签（业务清单 / 客户档案 / 资金看板…），
     // 和下面的 h2 说的是同一件事，是"颜色太杂"的主要来源。

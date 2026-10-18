@@ -358,10 +358,12 @@ function Shell({ me, onLogout }) {
           <span className="refactor-brand__mark">代</span>
           <b>{settings.business_name || '代肝运营台'}</b>
         </div>
-        {/* 分组靠一条极淡的分隔线表达，不再写三个小标题 —— 侧栏要安静 */}
+        {/* 分组用一行 11px 灰字小标题表达 —— 它比分隔线更能说清"这些项为什么在一起"，
+            而且灰字本身是安静的：不靠颜色，靠位置和字重。 */}
         <nav className="react-sidebar__nav" aria-label="主导航">
           {groups.map((group, index) => (
             <div className="react-navgroup" key={group} data-first={index === 0 ? '1' : undefined}>
+              <h2>{group}</h2>
               {NAV.filter((item) => item.group === group).map((item) => (
                 <NavItem key={item.seg} item={item} active={current.seg === item.seg} count={counts} onClick={() => go(item.seg ? `/${item.seg}` : '/')} />
               ))}

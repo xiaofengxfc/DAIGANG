@@ -87,32 +87,44 @@
   --ink-3: #6b7280;
   --ink-inverse: #ffffff;
 
-  /* —— 靛蓝：唯一强调色。保留 cinnabar 变量名，兼容现有组件 ——
-     白底上比上一版深半档：纯白背景会把浅靛蓝的对比度吃掉。 */
-  --cinnabar: #4f46e5;
-  --cinnabar-strong: #4338ca;
-  --cinnabar-solid: #4f46e5;
-  --cinnabar-solid-hover: #4338ca;
-  --cinnabar-bg: rgba(79, 70, 229, 0.08);
-  --cinnabar-line: rgba(79, 70, 229, 0.24);
+  /* —— 强调色：中性墨黑 ——
+     变量名沿用 cinnabar（历史遗留），但它已经不是"颜色"了，
+     而是"最重的一档中性色"：主按钮 = 墨块白字，选中 = 墨线，
+     链接 = 墨字 + 下划线。强调靠**对比度和字重**，不靠色相。
+
+     为什么不留一个彩色：这一版的目标是"数字自己站住"。
+     一个彩色按钮会把它周围所有内容都比下去，而按钮恰恰是不重要的 ——
+     重要的是它旁边那行金额。彩色面板叠彩色按钮，就是"艳"的来源。
+     纯中性后，页面上唯一的颜色只来自状态灯（而且是低饱和的）。 */
+  --cinnabar: #1f2937;
+  --cinnabar-strong: #111827;
+  --cinnabar-solid: #1f2937;
+  --cinnabar-solid-hover: #111827;
+  --cinnabar-bg: rgba(17, 24, 39, 0.05);
+  --cinnabar-line: rgba(17, 24, 39, 0.16);
   --on-cinnabar: #ffffff;
 
-  /* —— 状态语义：只给状态灯和小标签用 —— */
-  --jade: #0f9d63;
-  --jade-ink: #0b7a4d;
-  --jade-bg: rgba(15, 157, 99, 0.08);
+  /* —— 状态语义：只给状态灯和小标签的文字用 ——
+     全部做了降饱和处理：原来是"翠玉 / 琥珀 / 石青 / 绛红"，
+     现在是四个都掺了灰的同一族色。它们需要被认出来，
+     但不需要在纯白页面上抢戏。
 
-  --amber: #b45309;
-  --amber-ink: #92400e;
-  --amber-bg: rgba(180, 83, 9, 0.08);
+     浅色版统一压到饱和度 ~30-40%，对比度仍过 4.5:1。 */
+  --jade: #3f6f5c;
+  --jade-ink: #325c4b;
+  --jade-bg: rgba(17, 24, 39, 0.05);
 
-  --slate: #2563eb;
-  --slate-ink: #1d4ed8;
-  --slate-bg: rgba(37, 99, 235, 0.08);
+  --amber: #7d6134;
+  --amber-ink: #6b5128;
+  --amber-bg: rgba(17, 24, 39, 0.05);
 
-  --oxblood: #be123c;
-  --oxblood-ink: #9f1239;
-  --oxblood-bg: rgba(190, 18, 60, 0.08);
+  --slate: #45596e;
+  --slate-ink: #38495b;
+  --slate-bg: rgba(17, 24, 39, 0.05);
+
+  --oxblood: #8a4552;
+  --oxblood-ink: #753a45;
+  --oxblood-bg: rgba(17, 24, 39, 0.05);
 
   /* —— 阴影：扁平化后只在真正浮起来的东西上用（弹窗、抽屉、下拉）——
      普通面板靠边框分层，不给影，否则一眼看过去全是"卡片摞卡片"。 */
@@ -205,29 +217,34 @@
   --ink-3: #7b8494;
   --ink-inverse: #0f1115;
 
-  --cinnabar: #818cf8;
-  --cinnabar-strong: #a5b4fc;
-  --cinnabar-solid: #4f46e5;
-  --cinnabar-solid-hover: #4338ca;
-  --cinnabar-bg: rgba(129, 140, 248, 0.12);
-  --cinnabar-line: rgba(129, 140, 248, 0.28);
-  --on-cinnabar: #ffffff;
+  /* 深色下强调色反过来：最亮的一档中性色（近白），主按钮 = 白块墨字。
+     和浅色同构：都是"最高对比的那一端"，而不是某一族色相。 */
+  --cinnabar: #e5e7eb;
+  --cinnabar-strong: #f9fafb;
+  --cinnabar-solid: #e5e7eb;
+  --cinnabar-solid-hover: #ffffff;
+  --cinnabar-bg: rgba(255, 255, 255, 0.06);
+  --cinnabar-line: rgba(255, 255, 255, 0.18);
+  --on-cinnabar: #111827;
 
-  --jade: #34d399;
-  --jade-ink: #6ee7b7;
-  --jade-bg: rgba(52, 211, 153, 0.12);
+  /* 深色状态色：原来这里是 #fbbf24 / #34d399 / #60a5fa / #fb7185 ——
+     饱和度 150-215，在近黑底上就是霓虹灯。全部换成掺灰的暗亮色，
+     亮度够读、但不发光。 */
+  --jade: #7fae9b;
+  --jade-ink: #9cc4b3;
+  --jade-bg: rgba(255, 255, 255, 0.06);
 
-  --amber: #fbbf24;
-  --amber-ink: #fcd34d;
-  --amber-bg: rgba(251, 191, 36, 0.12);
+  --amber: #bda171;
+  --amber-ink: #d0b98f;
+  --amber-bg: rgba(255, 255, 255, 0.06);
 
-  --slate: #60a5fa;
-  --slate-ink: #93c5fd;
-  --slate-bg: rgba(96, 165, 250, 0.12);
+  --slate: #8da3b8;
+  --slate-ink: #a7bacb;
+  --slate-bg: rgba(255, 255, 255, 0.06);
 
-  --oxblood: #fb7185;
-  --oxblood-ink: #fda4af;
-  --oxblood-bg: rgba(251, 113, 133, 0.12);
+  --oxblood: #b98a92;
+  --oxblood-ink: #cfa3aa;
+  --oxblood-bg: rgba(255, 255, 255, 0.06);
 
   --shadow-glass: none;
   --shadow-pop: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -8px rgba(0, 0, 0, 0.6);

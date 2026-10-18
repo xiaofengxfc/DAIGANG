@@ -299,7 +299,7 @@ input {
   place-items: center;
   padding: 24px;
   background:
-    linear-gradient(90deg, color-mix(in srgb, var(--cinnabar) 3%, transparent) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, var(--surface-3) 1px, transparent 1px) 0 0 / 32px 32px,
     var(--bg);
 }
 
@@ -478,7 +478,7 @@ input {
   align-items: flex-start;
   gap: 8px;
   padding: 10px 11px;
-  border: 1px solid color-mix(in srgb, var(--oxblood) 42%, var(--line));
+  border: 1px solid var(--line-strong);
   border-radius: 9px;
   background: var(--oxblood-bg);
   color: var(--oxblood-ink);
@@ -505,7 +505,7 @@ input {
   min-height: 0;
   flex-direction: column;
   background: var(--refactor-sidebar);
-  color: #eef0f5;
+  color: var(--ink);
 }
 
 .react-sidebar__brand {
@@ -584,13 +584,13 @@ input {
 }
 
 .refactor-navitem.is-active {
-  border-color: rgba(139, 131, 255, 0.28);
-  background: rgba(139, 131, 255, 0.16);
-  color: #fff;
+  border-color: var(--cinnabar-line);
+  background: var(--cinnabar-bg);
+  color: var(--ink);
 }
 
 .refactor-navitem.is-active svg {
-  color: #bdb8ff;
+  color: var(--cinnabar);
 }
 
 .refactor-navitem span {
@@ -623,10 +623,10 @@ input {
   align-items: center;
   justify-content: center;
   gap: 7px;
-  border: 1px solid rgba(189, 184, 255, 0.35);
+  border: 1px solid var(--cinnabar-line);
   border-radius: 8px;
-  background: rgba(139, 131, 255, 0.18);
-  color: #fff;
+  background: var(--cinnabar-bg);
+  color: var(--cinnabar-strong);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -1551,9 +1551,9 @@ button.react-side-row {
   align-items: flex-start;
   gap: 8px;
   padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--jade) 34%, var(--line));
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--jade) 8%, var(--surface));
+  background: var(--surface-3);
   color: var(--ink-2);
   font-size: 11px;
   line-height: 1.5;
@@ -1652,12 +1652,12 @@ button.react-side-row {
 }
 
 .orders-tag--amber {
-  background: color-mix(in srgb, var(--amber) 16%, transparent);
+  background: var(--surface-3);
   color: var(--amber-ink);
 }
 
 .orders-tag--jade {
-  background: color-mix(in srgb, var(--jade) 14%, transparent);
+  background: var(--surface-3);
   color: var(--jade);
 }
 
@@ -1749,9 +1749,9 @@ button.react-side-row {
   font-style: normal;
 }
 
-.orders-due__bad { background: color-mix(in srgb, var(--cinnabar) 14%, transparent); color: var(--cinnabar); }
-.orders-due__soon { background: color-mix(in srgb, var(--amber) 16%, transparent); color: var(--amber-ink); }
-.orders-due__ok { background: color-mix(in srgb, var(--jade) 13%, transparent); color: var(--jade); }
+.orders-due__bad { background: var(--surface-3); color: var(--cinnabar); }
+.orders-due__soon { background: var(--surface-3); color: var(--amber-ink); }
+.orders-due__ok { background: var(--surface-3); color: var(--jade); }
 
 .orders-row__money {
   display: grid;
@@ -2326,7 +2326,7 @@ button.react-side-row {
 }
 
 .customers-tag--archived {
-  background: color-mix(in srgb, var(--oxblood) 14%, transparent);
+  background: var(--surface-3);
   color: var(--oxblood-ink);
 }
 
@@ -2666,7 +2666,7 @@ button.react-side-row {
 }
 
 .games-tag--archived {
-  background: color-mix(in srgb, var(--oxblood) 14%, transparent);
+  background: var(--surface-3);
   color: var(--oxblood-ink);
 }
 
@@ -2859,7 +2859,7 @@ button.react-side-row {
 .price-service__name b { color: var(--ink); font-size: 11px; font-weight: 600; }
 .price-service__main p, .price-service__main small { display: block; overflow: hidden; margin: 4px 0 0; color: var(--ink-3); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .price-tag { min-height: 16px; display: inline-flex; align-items: center; padding: 0 4px; border-radius: 4px; background: var(--surface-3); color: var(--ink-3); font-size: 9px; }
-.price-tag--jade { background: color-mix(in srgb, var(--jade) 14%, transparent); color: var(--jade-ink); }
+.price-tag--jade { background: var(--surface-3); color: var(--jade-ink); }
 .price-service__type { color: var(--ink-2); font-size: 10px; }
 .price-service__type small { display: block; margin-top: 3px; color: var(--ink-3); }
 .price-service__money { display: grid; justify-items: end; gap: 3px; }
@@ -3147,7 +3147,7 @@ button.react-side-row {
   border-radius: 11px;
   background: var(--cinnabar-solid);
   color: var(--on-cinnabar);
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12), 0 10px 22px -12px var(--cinnabar-solid);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12);
   transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
 }
 
@@ -3295,7 +3295,7 @@ button.react-side-row {
 .refactor-brand__mark {
   border-radius: 11px;
   background: var(--cinnabar-solid);
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.14), 0 10px 22px -12px var(--cinnabar-solid);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.14);
 }
 
 .refactor-input {
@@ -3330,7 +3330,7 @@ button.react-side-row {
   border-color: transparent;
   background: var(--cinnabar-solid);
   color: var(--on-cinnabar);
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12), 0 8px 20px -12px var(--cinnabar-solid);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12);
 }
 
 .refactor-button--primary:hover:not(:disabled) {
@@ -4113,13 +4113,51 @@ button.react-side-row {
   letter-spacing: -0.01em;
 }
 
-/* 导航项：悬停给极浅灰底，选中给靛蓝淡底 + 靛蓝字 + 左侧强调条。
-   强调条用 ::before 画，不占布局宽度，所以文字不会因为选中而跳动。 */
+/* 导航分组：一行灰字小标题 + 组间空白，不再画分隔线。
+   线会让人去找"这两个东西差在哪"，而标题直接回答"它们是一类"。
+   线被删掉后，组与组的距离由 margin 承担 —— 空白比线安静。 */
+.react-sidebar__nav {
+  padding: 16px 12px 8px;
+}
+
+.react-sidebar__nav h2 {
+  margin: 0 0 4px;
+  padding: 0 10px;
+  color: var(--ink-3);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.react-navgroup + .react-navgroup {
+  margin-top: 20px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.react-navgroup[data-first] h2 {
+  margin-top: 0;
+}
+
+/* 导航项：Notion 式。
+   选中 = 浅灰底 + 字重加粗，**没有**左侧色条、没有强调色。
+   一列竖排的导航，左边多一根彩条等于把"你在哪"重复说两遍，
+   而且彩条会跟着滚动一直晃，是页面上最闹的东西之一。
+
+   尺寸按"内容优先"放大一档：13px/38px → 14px/40px，
+   一行只放一个词，大一点读起来反而更快。 */
 .react-sidebar .refactor-navitem {
   position: relative;
-  min-height: 36px;
-  border-radius: var(--r-ctl);
+  min-height: 40px;
+  gap: 11px;
+  padding: 0 10px;
+  border-radius: 6px;
   color: var(--ink-2);
+  font-size: 14px;
+}
+
+.react-sidebar .refactor-navitem + .refactor-navitem {
+  margin-top: 2px;
 }
 
 .react-sidebar .refactor-navitem:hover {
@@ -4128,21 +4166,18 @@ button.react-side-row {
 }
 
 .react-sidebar .refactor-navitem.is-active {
-  background: var(--cinnabar-bg);
-  color: var(--cinnabar-strong);
+  background: var(--surface-solid-2);
+  color: var(--ink);
   font-weight: 600;
 }
 
+/* 选中项的图标跟着加粗，和文字一起变重 —— 这是唯一的"选中信号" */
+.react-sidebar .refactor-navitem.is-active svg {
+  stroke-width: 2.2;
+}
+
 .react-sidebar .refactor-navitem.is-active::before {
-  content: '';
-  position: absolute;
-  left: -10px;
-  top: 50%;
-  width: 3px;
-  height: 18px;
-  border-radius: 0 2px 2px 0;
-  background: var(--cinnabar);
-  transform: translateY(-50%);
+  content: none;
 }
 
 /* 角标退成真正的"计数"：没有边框、没有底，只是一个灰数字 */
@@ -4166,15 +4201,21 @@ button.react-side-row {
   border-top: 1px solid var(--line);
 }
 
-/* 主操作按钮：扁平实色，去掉投影和按下缩放（缩放会让侧栏跟着抖） */
+/* 主操作按钮：白底 + 细边 + 深字。
+   第 4 版一开始把它做成墨黑实心块，结果整页最重的一块颜色落在按钮上，
+   而按钮只是入口，不是内容本身。改成白底细边后，页面上不再有任何深色大块，
+   区分主次靠的是那条边线和字重 —— 干净但不刺眼。 */
 .react-quick-action {
+  border: 1px solid var(--line-strong);
   border-radius: var(--r-ctl);
-  background: var(--cinnabar-solid);
+  background: var(--bg);
+  color: var(--ink);
   box-shadow: none;
 }
 
 .react-quick-action:hover {
-  background: var(--cinnabar-solid-hover);
+  border-color: var(--ink-3);
+  background: var(--surface-solid-2);
 }
 
 .react-quick-action:active {
@@ -4371,16 +4412,19 @@ button.react-side-row {
   transform: none;
 }
 
+/* 主按钮：白底 + 深边 + 深字，而不是墨块白字。
+   整屏最重的一块颜色应该是内容（金额、单号），不是按钮。 */
 .refactor-button--primary {
-  border-color: var(--cinnabar-solid);
-  background: var(--cinnabar-solid);
-  color: var(--on-cinnabar);
+  border-color: var(--ink);
+  background: var(--bg);
+  color: var(--ink);
+  font-weight: 600;
   box-shadow: none;
 }
 
 .refactor-button--primary:hover:not(:disabled) {
-  border-color: var(--cinnabar-solid-hover);
-  background: var(--cinnabar-solid-hover);
+  border-color: var(--ink);
+  background: var(--surface-solid-2);
 }
 
 /* ---------- 登录 / 初始化页 ---------- */
@@ -4401,9 +4445,13 @@ button.react-side-row {
   box-shadow: var(--shadow-pop);
 }
 
+/* 品牌方块：白底 + 细边 + 深字，和主按钮同一套语言。
+   一个实心深色方块挂在侧栏顶部，会让整个侧栏显得比内容区重。 */
 .refactor-brand__mark {
+  border: 1px solid var(--line-strong);
   border-radius: var(--r-ctl);
-  background: var(--cinnabar-solid);
+  background: var(--bg);
+  color: var(--ink);
   box-shadow: none;
 }
 
