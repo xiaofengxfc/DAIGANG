@@ -840,6 +840,35 @@ async function main() {
       moreOpened === 1 && ['保险箱', '财务', '报价单', '自媒体', '设置'].every((n) => moreItems.includes(n)),
       JSON.stringify(moreItems)
     )
+    /*
+     * 回归防线：菜单「在 DOM 里」不等于「用户看得见」。
+     *
+     * 这条断言是为一个真实故障补的：.appbar__nav 上原本写着 overflow-x: auto
+     * （为了窄屏横向滚动），而 CSS 规定一个方向非 visible 时另一个方向自动算成
+     * auto —— 于是这个 32px 高的横条把 208×182 的绝对定位菜单裁成一条缝。
+     * 菜单节点存在、textContent 齐全、getComputedStyle 报 visibility: visible，
+     * 只查节点的断言全绿，用户却点不到任何一项（点击落到下面的页面标题上）。
+     * 所以这里必须查几何：尺寸、是否出视口、祖先是否裁剪、中心点命中谁。
+     */
+    const moreVisible = await cdp.eval(`(() => {
+      const menu = document.querySelector('.appbar__menu')
+      if (!menu) return { ok: false, why: '菜单没渲染' }
+      const r = menu.getBoundingClientRect()
+      if (r.width < 100 || r.height < 100) return { ok: false, why: '被压扁', w: Math.round(r.width), h: Math.round(r.height) }
+      if (r.top < 0 || r.left < 0 || r.right > window.innerWidth || r.bottom > window.innerHeight) {
+        return { ok: false, why: '跑出视口' }
+      }
+      for (let p = menu.parentElement; p && p !== document.body; p = p.parentElement) {
+        const s = getComputedStyle(p)
+        if (s.overflowX !== 'visible' || s.overflowY !== 'visible') {
+          return { ok: false, why: '被祖先裁剪：' + p.className, overflowX: s.overflowX, overflowY: s.overflowY }
+        }
+      }
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)
+      if (!hit || !menu.contains(hit)) return { ok: false, why: '中心点被别的元素盖住', hit: hit && (hit.className || hit.tagName) }
+      return { ok: true }
+    })()`)
+    ok('「更多」下拉是真的可见可点（尺寸正常、不被祖先裁剪、不跑出视口）', moreVisible.ok, moreVisible)
     await cdp.eval(`document.body.click()`)
     await sleep(200)
 

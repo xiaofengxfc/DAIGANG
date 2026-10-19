@@ -308,18 +308,20 @@ a:hover {
 }
 
 /* 一级导航：一排胶囊。选中态是"深色药丸"，不是"下划线 + 彩色字" ——
-   横向导航里下划线会被旁边的项误认成分隔，实心药丸的边界最清楚。 */
+   横向导航里下划线会被旁边的项误认成分隔，实心药丸的边界最清楚。
+
+   这里**不能**写 overflow-x: auto —— 哪怕只想在窄屏上横向滚动也不行。
+   CSS 的规定是：一个方向设成非 visible，另一个方向会自动算成 auto，
+   于是这个 32px 高的横条把「更多」那张 208×182 的绝对定位菜单裁成一条缝：
+   DOM 里在、getComputedStyle 说 visible、可用户什么都看不到，
+   连鼠标点击都落到下面的页面标题上。窄屏的收纳交给 1180px 断点
+   （只留图标）和 760px 断点（整条隐藏，换底部标签）。 */
 .appbar__nav {
   min-width: 0;
   display: flex;
   align-items: center;
   gap: 2px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.appbar__nav::-webkit-scrollbar {
-  display: none;
+  flex-wrap: nowrap;
 }
 
 .appbar__link {
@@ -3689,3 +3691,266 @@ pre.plaintext {
   }
 }
 
+
+/* ============================================================
+   手机端（≤760px）
+
+   这一段的每一条都来自 390×844 的实测，不是"顺手再收紧一点"：
+
+   · 顶栏：品牌 123px + 搜索 + 三个图标 + 开新单 90px 挤不下，
+     搜索框的输入区被压到 **4px** —— 看得见，打不了字。
+     现在品牌只留那个「代」字方块，刷新/主题/退出收进底部「更多」，
+     开新单在窄屏上是一个圆钮，宽度全给搜索。
+   · 字号：11px 在手机上要凑近看。手机段把 --fs-xs 抬到 12px，
+     其余字号不动 —— 桌面版的密度是合适的，不要跟着放大。
+   · 触摸目标：iOS 的 44pt、Material 的 48dp 都在说同一件事。
+     这里把图标按钮 32→38、迷你按钮 26→34，是在不改版式的前提下的上限。
+   · 长标签：设置页那条「缺 a、b、c…」是 nowrap 的胶囊，
+     实测撑到 446px 宽，在 390 的屏上被切掉一半。手机段允许它折行。
+   ============================================================ */
+
+@media (max-width: 760px) {
+  :root {
+    --fs-xs: 0.75rem; /* 12 */
+    --topbar-h: 52px;
+  }
+
+  /* ---------- 顶栏 ---------- */
+
+  .appbar__inner {
+    min-height: 52px;
+    padding: 0 12px;
+    gap: 10px;
+  }
+
+  /* 品牌名收起，只留「代」字方块：它在 390px 上要吃掉 123px */
+  .appbar__name {
+    display: none;
+  }
+
+  /* 刷新 / 主题 / 退出必须在底部「更多」里找 —— 那里同时收纳了
+     手机上进不去的五个二级页，一个入口解决两件事 */
+  .appbar__tools > .app-icon {
+    display: none;
+  }
+
+  .appbar .refactor-search {
+    width: auto;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 34px;
+  }
+
+  /* 放大镜让出来给输入区：34px 高的框里再放一个图标，
+     真正能打字的宽度只剩一半 */
+  .appbar .refactor-search > svg:first-child {
+    display: none;
+  }
+
+  /* 开新单：窄屏只留加号。文字用 font-size:0 收起，
+     svg 有自己的宽高，不受影响。 */
+  .appbar__tools .refactor-button--primary {
+    width: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+    border-radius: var(--r-pill);
+    font-size: 0;
+  }
+
+  /* ---------- 触摸目标 ---------- */
+
+  .app-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .react-mini-button {
+    min-width: 34px;
+    min-height: 34px;
+  }
+
+  .refactor-button--compact {
+    min-height: 36px;
+  }
+
+  /* ---------- 底部标签 ---------- */
+
+  .react-mobile-tabs .refactor-navitem {
+    min-height: 50px;
+    font-size: 11px;
+  }
+
+  /* 内容底部的留白跟着标签栏走，加上刘海屏的安全区 */
+  .react-shell {
+    padding-bottom: calc(78px + env(safe-area-inset-bottom));
+  }
+
+  /* ---------- 长标签允许折行 ----------
+     设置页那条「Python 3.14.8：C:\Users\…」的标签实测宽 403px，
+     而手机上的父容器只有 298px —— 它被 panel 的 overflow:hidden
+     直接切掉，用户看不到后半截路径。
+     .tag 是 inline-flex，不加 max-width 的话宽度永远等于 max-content，
+     里面的文字也就没有「可换行的宽度」可言。 */
+  .tag {
+    max-width: 100%;
+    height: auto;
+    min-height: 22px;
+    padding: 2px 8px;
+    line-height: 1.5;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* ---------- 自媒体：表单在 390px 上排不下两列 ---------- */
+
+  .media-form-grid,
+  .media-option-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* ---------- 卡片与页面留白 ---------- */
+
+  .panel {
+    border-radius: 14px;
+  }
+
+  .react-main__inner {
+    padding: 18px 14px calc(24px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ---------- 「更多」底部菜单 ---------- */
+
+.mobile-more {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+}
+
+.mobile-more__veil {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.32);
+  cursor: default;
+  animation: mobile-more-fade 180ms ease-out;
+}
+
+.mobile-more__sheet {
+  position: relative;
+  width: 100%;
+  padding: 8px 14px calc(14px + env(safe-area-inset-bottom));
+  border-radius: 20px 20px 0 0;
+  background: var(--surface);
+  box-shadow: 0 -8px 40px -12px rgba(0, 0, 0, 0.28);
+  animation: mobile-more-rise 220ms cubic-bezier(0.22, 0.8, 0.28, 1);
+}
+
+.mobile-more__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 2px 10px;
+}
+
+.mobile-more__head b {
+  color: var(--ink);
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+/* 二级页：两列方块，一屏放得下，比一列长列表少滑一半 */
+.mobile-more__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mobile-more__grid button {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-base);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mobile-more__grid button.is-active {
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+.mobile-more__grid button b {
+  margin-left: auto;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  color: var(--ink-3);
+  font-family: var(--font-fig);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+}
+
+.mobile-more__utils {
+  display: grid;
+  gap: 2px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.mobile-more__utils button {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--fs-base);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mobile-more__utils button:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.mobile-more__utils button.is-danger {
+  color: var(--oxblood-ink);
+}
+
+@keyframes mobile-more-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes mobile-more-rise {
+  from { transform: translateY(14px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-more__veil,
+  .mobile-more__sheet {
+    animation: none;
+  }
+}

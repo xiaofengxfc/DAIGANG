@@ -80,6 +80,11 @@ const PRIMARY_NAV = NAV.filter((item) => ['', 'orders', 'customers', 'price', 'g
 const MORE_NAV = NAV.filter((item) => !PRIMARY_NAV.includes(item))
 /* 手机底部标签：最多五个位置（含「更多」），所以这里只放四个 */
 const MOBILE_NAV = NAV.filter((item) => ['', 'orders', 'customers', 'price'].includes(item.seg))
+/* 手机上「更多」里装的是**所有没进底栏的页** —— 不只是 MORE_NAV。
+   注意「游戏」在 PRIMARY_NAV 里却不在 MOBILE_NAV 里，而顶栏导航在
+   760px 以下整条 display:none，所以它只可能出现在这里。
+   早先这里用的是 MORE_NAV，结果手机上没有「游戏」入口。 */
+const MOBILE_MORE_NAV = NAV.filter((item) => !MOBILE_NAV.includes(item))
 
 /* 主题：浅色（白玻璃）是默认，深色是同一套玻璃在暗处的版本。
    模块加载时就写一次 data-theme —— 否则登录页会先用默认色渲染一遍，
@@ -423,8 +428,76 @@ function WindowControls() {
   )
 }
 
+/**
+ * 手机底部「更多」：一张从底部升起的菜单。
+ *
+ * 这个按钮原来直接跳到设置页。但手机宽度下顶栏导航是整条隐藏的，
+ * 于是「更多」里的五个页面（游戏 / 财务 / 报价单 / 自媒体 / 保险箱）
+ * 在手机上一个都进不去 —— 不是难看，是功能断了。
+ *
+ * 顺带把顶栏放不下的三件杂事（刷新 / 主题 / 退出）也收到这里：
+ * 390px 上品牌 + 搜索 + 四个图标 + 主按钮挤不下，实测搜索框只剩 4px。
+ */
+function MobileMore({ items, current, counts, onNavigate, onRefresh, theme, onToggleTheme, onLogout, onClose }) {
+  // 弹出时锁住背景滚动，否则手指在遮罩上划会把下面的页面拖着走
+  useEffect(() => {
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previous
+    }
+  }, [])
+
+  useEffect(() => {
+    const onKey = (event) => {
+      if (event.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  return (
+    <div className="mobile-more" role="dialog" aria-modal="true" aria-label="更多">
+      <button className="mobile-more__veil" type="button" aria-label="关闭" onClick={onClose} />
+      <div className="mobile-more__sheet">
+        <header className="mobile-more__head">
+          <b>更多</b>
+          <button className="app-icon" type="button" aria-label="关闭" onClick={onClose}><X {...iconProps(17)} /></button>
+        </header>
+        <div className="mobile-more__grid">
+          {items.map((item) => {
+            const Icon = item.icon
+            const badge = item.badge ? item.badge(counts || {}) : 0
+            return (
+              <button
+                key={item.seg}
+                className={item.seg === current.seg ? 'is-active' : ''}
+                type="button"
+                onClick={() => { onClose(); onNavigate(item.seg) }}
+              >
+                <Icon {...iconProps(19)} />
+                <span>{item.label}</span>
+                {badge ? <b>{badge}</b> : null}
+              </button>
+            )
+          })}
+        </div>
+        <div className="mobile-more__utils">
+          <button type="button" onClick={() => { onClose(); onRefresh() }}><RefreshCw {...iconProps(17)} /><span>刷新数据</span></button>
+          <button type="button" onClick={() => { onClose(); onToggleTheme() }}>
+            {theme === 'light' ? <Moon {...iconProps(17)} /> : <Sun {...iconProps(17)} />}
+            <span>{theme === 'light' ? '深色模式' : '浅色模式'}</span>
+          </button>
+          <button className="is-danger" type="button" onClick={() => { onClose(); onLogout() }}><LogOut {...iconProps(17)} /><span>退出登录</span></button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function Shell({ me, onLogout }) {
   const [route, setRoute] = useState(parseRoute())
+  const [moreOpen, setMoreOpen] = useState(false)
   const [theme, setTheme] = useState(readTheme)
   const [counts, setCounts] = useState({})
   const [dashboard, setDashboard] = useState(null)
@@ -534,8 +607,30 @@ function Shell({ me, onLogout }) {
       </div>
       <nav className="react-mobile-tabs" aria-label="移动端导航">
         {MOBILE_NAV.map((item) => <NavItem key={item.seg || 'home'} item={item} active={current.seg === item.seg} count={counts} onClick={() => goTo(item.seg)} />)}
-        <button className={`refactor-navitem${MORE_NAV.some((item) => item.seg === current.seg) ? ' is-active' : ''}`} type="button" onClick={() => go('/settings')}><MoreHorizontal {...iconProps(18)} /><span>更多</span></button>
+        <button
+          className={`refactor-navitem${MORE_NAV.some((item) => item.seg === current.seg) ? ' is-active' : ''}`}
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={moreOpen}
+          onClick={() => setMoreOpen(true)}
+        >
+          <MoreHorizontal {...iconProps(18)} />
+          <span>更多</span>
+        </button>
       </nav>
+      {moreOpen ? (
+        <MobileMore
+          items={MOBILE_MORE_NAV}
+          current={current}
+          counts={counts}
+          onNavigate={goTo}
+          onRefresh={refresh}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+          onLogout={onLogout}
+          onClose={() => setMoreOpen(false)}
+        />
+      ) : null}
       {/* React 浮层（新式抽屉/对话框）挂在这里；旧 ui.js 的 dialog 仍然自己往 body 上挂 */}
       <OverlayHost />
     </div>
