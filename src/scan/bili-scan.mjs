@@ -1670,6 +1670,17 @@ async function triageCandidates({ job, video, candidates, frameLines, serviceNam
  *
  * 只**追加**不覆盖：库内已有的内容一个字都不动。宁可少补，不可改错。
  */
+/** 从白名单里挑出前端要的那条；对不上就返回空（宁可少补，不可写错） */
+function pickInclusions(allowed, wanted) {
+  const text = String(wanted || '').trim().slice(0, 120)
+  if (!text || !allowed || !allowed.size) return ''
+  const norm = (s) => String(s).replace(/\s+/g, '')
+  for (const candidate of allowed) {
+    if (norm(candidate) === norm(text)) return candidate.slice(0, 120)
+  }
+  return ''
+}
+
 function appendInclusions(serviceId, inclusions) {
   const text = String(inclusions || '').trim().slice(0, 120)
   if (!text) return null
@@ -1706,18 +1717,44 @@ export function applyScan(id, rows = [], options = {}) {
    * 两次 UPDATE 会照跑，`changed` 就会数成 2 —— 于是界面告诉用户「改了 2 项」，
    * 实际只落了一项。计数不准比报错更坏，因为没人会去查。
    */
+  /**
+   * 这次扫描里「真的出现过」的包含内容白名单。
+   *
+   * 前端传什么就写什么是不行的：package_items 是**给客户看的文案**，
+   * 而 apply 接口是公开的，等于允许任意文本写进服务项说明。
+   * 白名单来自这一轮 OCR/AI 的样本，用户勾「顺便补上」时也只是从里面挑一条。
+   */
+  const allowedInclusions = new Map()
+  for (const match of job.matched || []) {
+    const texts = new Set()
+    for (const sample of match.samples || []) {
+      const text = String(sample?.inclusions || '').trim()
+      if (text) texts.add(text)
+    }
+    if (texts.size) allowedInclusions.set(String(match.service_id), texts)
+  }
+
   const byService = new Map()
   for (const row of rows) {
     const serviceId = Number(row.service_id)
-    const price = Number(row.price)
     if (!Number.isFinite(serviceId) || !allowed.has(serviceId)) continue
-    if (!Number.isFinite(price) || price < 0 || price > 100000) continue
+    /**
+     * 价格必须是「真的填了」的正数。
+     *
+     * Number(null) 和 Number('') 都是 0，以前只挡 < 0，于是前端一个空输入框
+     * （「没给出建议」那一页的行）就把基准价写成 ¥0 —— 用户看到的是空，
+     * 落库的是零，价格表从此静默失真。
+     */
+    const rawPrice = row.price
+    if (rawPrice === null || rawPrice === undefined || String(rawPrice).trim() === '') continue
+    const price = Number(rawPrice)
+    if (!Number.isFinite(price) || price <= 0 || price > 100000) continue
     byService.set(serviceId, {
       serviceId,
       price: Math.round(price * 100) / 100,
       service: allowed.get(serviceId),
       // 只认「这个服务项在这次扫描里真的抽到过」的包含内容，不信任前端传什么
-      inclusions: fillInclusions ? String(row.inclusions || '').trim().slice(0, 120) : '',
+      inclusions: fillInclusions ? pickInclusions(allowedInclusions.get(String(serviceId)), row.inclusions) : '',
     })
   }
   const updates = [...byService.values()]
@@ -1808,8 +1845,12 @@ export function createCategoriesFromScan(id, names = []) {
   // 这个游戏下已有的（含通用的）大类名，用来判重
   const existing = new Map(
     db
-      .prepare("SELECT id, name, game_id FROM service_categories WHERE status <> 'archived'")
-      .all()
+      .prepare(
+        // 只看「这个游戏下已有的（含通用的）」—— 少这个条件的话，
+        // 游戏 A 有「主线」，给游戏 B 建同名大类就会被误判成重复而跳过。
+        "SELECT id, name, game_id FROM service_categories WHERE status <> 'archived' AND (game_id IS NULL OR game_id = ?)",
+      )
+      .all(job.game_id ?? null)
       .map((row) => [nameKey(row.name), row]),
   )
 

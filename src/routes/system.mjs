@@ -93,7 +93,10 @@ function buildDashboard() {
       db.prepare("SELECT COALESCE(SUM(amount),0) AS s FROM payments WHERE status='confirmed' AND kind='refund' AND paid_at >= ? AND paid_at <= ?").get(from, to).s
     )
 
-  const ordersToday = db.prepare('SELECT COUNT(*) AS c, COALESCE(SUM(total),0) AS t FROM orders WHERE ordered_at >= ?').get(`${today}T00:00:00.000Z`)
+  // 口径同财务页：按本地日历日算「今天」，不能拿 UTC 零点当边界
+  const ordersToday = db
+    .prepare("SELECT COUNT(*) AS c, COALESCE(SUM(total),0) AS t FROM orders WHERE date(ordered_at,'localtime') = ?")
+    .get(today)
   const openOrders = db
     .prepare(
       `SELECT * FROM orders
@@ -126,8 +129,8 @@ function buildDashboard() {
     .all()
     .map((r) => ({ ...decorateLite(r), due_total: money(num(r.total) - money(r.paid_total)) }))
   const monthAgg = db
-    .prepare('SELECT COUNT(*) AS c, COALESCE(SUM(total),0) AS t, COALESCE(SUM(platform_fee),0) AS f, COALESCE(SUM(cost),0) AS k FROM orders WHERE ordered_at >= ? AND status <> ?')
-    .get(`${month}-01T00:00:00.000Z`, 'cancelled')
+    .prepare("SELECT COUNT(*) AS c, COALESCE(SUM(total),0) AS t, COALESCE(SUM(platform_fee),0) AS f, COALESCE(SUM(cost),0) AS k FROM orders WHERE date(ordered_at,'localtime') >= ? AND status <> ?")
+    .get(`${month}-01`, 'cancelled')
 
   const receivables = money(
     db
@@ -195,9 +198,11 @@ function buildFinance(from, to) {
               COALESCE(SUM(platform_fee),0) AS platform_fee,
               COALESCE(SUM(cost),0) AS cost,
               COALESCE(SUM(discount),0) AS discount
-       FROM orders WHERE ordered_at >= ? AND ordered_at <= ? AND status <> 'cancelled'`
+       FROM orders
+       WHERE date(ordered_at,'localtime') >= ? AND date(ordered_at,'localtime') <= ?
+         AND status <> 'cancelled'`
     )
-    .get(`${from}T00:00:00.000Z`, `${to}T23:59:59.999Z`)
+    .get(String(from).slice(0, 10), String(to).slice(0, 10))
 
   const received = money(
     db
@@ -228,10 +233,12 @@ function buildFinance(from, to) {
               COUNT(*) AS order_count,
               COALESCE(SUM(o.total),0) AS order_total,
               COALESCE(SUM(o.total - o.platform_fee - o.cost),0) AS profit
-       FROM orders o WHERE o.ordered_at >= ? AND o.ordered_at <= ? AND o.status <> 'cancelled'
+       FROM orders o
+       WHERE date(o.ordered_at,'localtime') >= ? AND date(o.ordered_at,'localtime') <= ?
+         AND o.status <> 'cancelled'
        GROUP BY game_name ORDER BY order_total DESC`
     )
-    .all(`${from}T00:00:00.000Z`, `${to}T23:59:59.999Z`)
+    .all(String(from).slice(0, 10), String(to).slice(0, 10))
 
   const daily = db
     .prepare(
@@ -347,7 +354,19 @@ export function register() {
   })
 
   post('/api/auth/password', (ctx) => {
-    if (!verifyPassword(String(ctx.body.current ?? ''))) bad('当前密码不对', 'bad_password')
+    /**
+     * 改密码也要限速。
+     *
+     * 这个接口本来只靠「当前密码对不对」把关，但它是**不需要登录**的吗？
+     * 需要 —— 不过登录态可以来自一台忘记锁屏的机器，或者被 XSS 拿到的 cookie。
+     * 有了限速，猜主密码的成本才和登录爆破一样高（登录那边早就在用了）。
+     */
+    assertNotThrottled('auth-password', ctx.ip)
+    if (!verifyPassword(String(ctx.body.current ?? ''))) {
+      noteFailure('auth-password', ctx.ip)
+      bad('当前密码不对', 'bad_password')
+    }
+    clearFailures('auth-password', ctx.ip)
     const next = String(ctx.body.next ?? '')
     if (next !== String(ctx.body.confirm ?? '')) bad('两次输入的新密码不一致', 'password_mismatch')
     setPassword(next)
@@ -991,6 +1010,18 @@ export function register() {
     'media_tasks',
   ]
 
+  /**
+   * 每张表实际有哪些列。
+   *
+   * 导入时要把备份里的列名过滤一遍：备份文件是**外部输入**（用户可能手改过、
+   * 也可能是旧版本导出的），把列名直接拼进 INSERT 有两个后果 ——
+   * 多一个不存在的列就整批 500，而列名本身还成了裸 SQL 片段。
+   * 值一直是参数绑定的，只有列名在拼；这里把它锁死在真实列集合里。
+   */
+  function tableColumnsOf(table) {
+    return new Set(db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name))
+  }
+
   get('/api/backup/export', () => {
     const data = {}
     for (const t of BACKUP_TABLES) data[t] = db.prepare(`SELECT * FROM ${t}`).all()
@@ -1009,21 +1040,42 @@ export function register() {
     if (!payload || payload.app !== 'daigan-ops-console' || !payload.data) bad('这不是本后台导出的备份文件', 'bad_backup')
     if (ctx.body?.confirm !== 'REPLACE') bad('导入会覆盖现有全部数据，需要确认', 'need_confirm')
     const data = payload.data
+    /** 备份里有、这张表没有的列：一律忽略，并在结果里如实报出来 */
+    const ignored = new Map()
     transaction(() => {
       for (const t of [...BACKUP_TABLES].reverse()) db.prepare(`DELETE FROM ${t}`).run()
       for (const t of BACKUP_TABLES) {
         const rows = Array.isArray(data[t]) ? data[t] : []
+        if (!rows.length) continue
+        const known = tableColumnsOf(t)
         for (const row of rows) {
-          const cols = Object.keys(row)
+          const cols = Object.keys(row).filter((c) => {
+            if (known.has(c)) return true
+            if (!ignored.has(t)) ignored.set(t, new Set())
+            ignored.get(t).add(c)
+            return false
+          })
           if (!cols.length) continue
           db.prepare(`INSERT INTO ${t} (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`).run(...cols.map((c) => row[c]))
         }
       }
     })
+    if (ignored.size) {
+      console.warn(
+        '[backup] 导入时忽略了这些不存在的列：',
+        [...ignored].map(([t, cols]) => `${t}.${[...cols].join('/')}`).join(', '),
+      )
+    }
     lock('imported')
     destroyAllSessions()
     ctx.clearSessionCookie()
-    return { ok: true, imported: Object.fromEntries(BACKUP_TABLES.map((t) => [t, (data[t] || []).length])), note: '所有设备需要重新登录' }
+    return {
+      ok: true,
+      imported: Object.fromEntries(BACKUP_TABLES.map((t) => [t, (data[t] || []).length])),
+      // 不静默丢数据：备份里多出来的列要让人知道（旧版本备份、手改过的文件都会撞上）
+      ignored_columns: Object.fromEntries([...ignored].map(([t, cols]) => [t, [...cols]])),
+      note: '所有设备需要重新登录',
+    }
   })
 
   get('/api/backup/counts', () => {

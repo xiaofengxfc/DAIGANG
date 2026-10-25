@@ -90,6 +90,9 @@ export function releasePage(spec) {
    ============================================================ */
 
 let extractorCache = null
+/** 上一次探测解压器的时间（「没找到」的结论会过期，见 findExtractor） */
+let extractorCacheAt = 0
+const EXTRACTOR_NEGATIVE_TTL = 5000
 
 /** 跑一个短命令，返回 { status, stdout }（不用管道时也安全） */
 function runSync(bin, args, timeoutMs = 20000) {
@@ -125,7 +128,15 @@ function sevenZipWorks(bin) {
  *     但直接按名字调用是好的 —— 所以候选里既有路径也有纯命令名。
  */
 export function findExtractor({ force = false } = {}) {
-  if (extractorCache && !force) return extractorCache
+  /**
+   * 找到的可以一直缓存；**没找到的不能缓存一辈子**。
+   * 用户去装了 7-Zip 再回来点「重新检测」，缓存里还留着「没有解压器」的旧结论，
+   * 界面就永远卡在「请先安装 7-Zip」上，只有重启后端才好。
+   */
+  if (extractorCache && !force) {
+    if (extractorCache.found || Date.now() - extractorCacheAt < EXTRACTOR_NEGATIVE_TTL) return extractorCache
+  }
+  extractorCacheAt = Date.now()
   const tried = []
   const cands = []
   if (process.env.SEVENZIP_BIN) cands.push(process.env.SEVENZIP_BIN)
@@ -480,11 +491,17 @@ export async function installEngine(engineId) {
   if (spec.manual) return { ok: false, error: `${spec.name} 需要手动安装（见下载页）` }
   const job = newJob(engineId)
 
-  // 同一个引擎只允许一个在跑的安装
+  /**
+   * **任何**引擎都只允许一个安装在跑。
+   *
+   * 以前只挡「同一个引擎」。两个引擎同时装会互相踩：下载区共用同一个 .tmp\，
+   * 同名归档直接覆盖对方正在写的文件；解压目标也共用 .tmp-out\；
+   * 而且谁先跑完谁把整个临时目录删掉，另一个当场失败。
+   */
   for (const j of jobs.values()) {
-    if (j !== job && j.engine === engineId && !j.finished_at) {
+    if (j !== job && !j.finished_at) {
       jobs.delete(job.id)
-      return { ok: false, error: `${spec.name} 已经有一个安装在跑了`, job: publicJob(j) }
+      return { ok: false, error: `已经有一个安装在跑了（${j.engine}），等它装完再试`, job: publicJob(j) }
     }
   }
 
@@ -518,8 +535,9 @@ export async function installEngine(engineId) {
       if (!dl) dl = await startDownload(job, asset)
       if (!dl.ok) throw new Error(dl.error)
 
-      fs.rmSync(TMP_DIR + '-out', { recursive: true, force: true })
-      const outDir = `${TMP_DIR}-out`
+      // 解压目录带 job id：两个安装并行时不能往同一个目录里解（见 installEngine 的锁）
+      const outDir = path.join(TOOLS_DIR, `.extract-${job.id}`)
+      fs.rmSync(outDir, { recursive: true, force: true })
       const ex = await extract(job, dl.path, outDir)
       if (!ex.ok) throw new Error(ex.error)
 
@@ -532,22 +550,51 @@ export async function installEngine(engineId) {
       const srcDir = path.dirname(exePath)
       const destDir = path.join(TOOLS_DIR, engineId)
       job.step = '放到 tools\\ocr'
-      fs.rmSync(destDir, { recursive: true, force: true })
       fs.mkdirSync(path.dirname(destDir), { recursive: true })
+      /**
+       * 先搬到暂存目录、确认 exe 真的在里面，再拿它替换旧目录。
+       *
+       * 原来是「先 rmSync(destDir) 再 rename」：第二步失败（文件被占用、磁盘满）
+       * 时新旧两份都没了 —— 用户本来只是想升级，结果连能用的旧版本也丢了。
+       */
+      const staging = path.join(TOOLS_DIR, `.staging-${engineId}-${Date.now()}`)
       try {
-        fs.renameSync(srcDir, destDir)
+        fs.renameSync(srcDir, staging)
       } catch {
         // 跨盘符等情况 rename 会失败，退回「拷贝 + 删源」
-        copyDir(srcDir, destDir)
+        copyDir(srcDir, staging)
+      }
+      const stagedExe = path.join(staging, path.basename(exePath))
+      if (!fs.existsSync(stagedExe)) {
+        fs.rmSync(staging, { recursive: true, force: true })
+        throw new Error('搬完之后没找到可执行文件（磁盘满了？）')
+      }
+      const backup = `${destDir}.old-${Date.now()}`
+      try {
+        if (fs.existsSync(destDir)) fs.renameSync(destDir, backup)
+        fs.renameSync(staging, destDir)
+      } catch (err) {
+        // 换不进去就把旧目录换回来
+        try {
+          if (!fs.existsSync(destDir) && fs.existsSync(backup)) fs.renameSync(backup, destDir)
+        } catch {
+          /* 还不回来也没别的办法了 */
+        }
+        throw err
+      }
+      try {
+        fs.rmSync(backup, { recursive: true, force: true })
+      } catch {
+        /* 旧版本删不掉就留着，下次 cleanupTmp 会清 */
       }
       const finalExe = path.join(destDir, path.basename(exePath))
       if (!fs.existsSync(finalExe)) throw new Error('搬完之后没找到可执行文件（磁盘满了？）')
       rememberBin(engineId, finalExe)
       log(job, `已安装到 ${finalExe}`)
 
-      // 收拾临时文件
+      // 收拾临时文件：解压目录清掉，下载好的包留着 —— 重来时（比如装完探测没认出来）
+      // 不用再下一次 70MB，进程重启时 cleanupTmp 会一并清掉
       try {
-        fs.rmSync(TMP_DIR, { recursive: true, force: true })
         fs.rmSync(outDir, { recursive: true, force: true })
       } catch {
         /* 清不掉就算了 */
@@ -777,7 +824,16 @@ function engineBinPath(engineId) {
 
 /** 进程重启后清掉上次遗留的临时目录 */
 export function cleanupTmp() {
-  for (const p of [TMP_DIR, `${TMP_DIR}-out`]) {
+  const targets = [TMP_DIR, `${TMP_DIR}-out`]
+  // 安装中途被强杀留下的 .extract-* / .staging-* / .old-* 也在清理范围内
+  try {
+    for (const name of fs.readdirSync(TOOLS_DIR)) {
+      if (/^(?:\.extract-|\.staging-)/.test(name) || /\.old-\d+$/.test(name)) targets.push(path.join(TOOLS_DIR, name))
+    }
+  } catch {
+    /* tools 目录还不存在 */
+  }
+  for (const p of targets) {
     try {
       if (fs.existsSync(p)) fs.rmSync(p, { recursive: true, force: true })
     } catch {

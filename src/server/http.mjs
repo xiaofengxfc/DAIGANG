@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import { PUBLIC_DIR, SESSION_COOKIE, MAX_JSON_BYTES } from '../core/config.mjs'
-import { HttpError, fail } from '../core/util.mjs'
+import { HttpError, fail, safeDecode } from '../core/util.mjs'
 
 /* ---------------- 路由表 ---------------- */
 
@@ -56,7 +56,9 @@ export function match(method, pathname) {
     if (!m) continue
     const params = {}
     r.keys.forEach((k, i) => {
-      params[k] = decodeURIComponent(m[i + 1])
+      // 路径参数里可能带着解不开的百分号（/api/orders/100%25 就是），
+      // 这里不能让它抛 —— 抛出去会越过下面的 try，直接把进程带死。
+      params[k] = safeDecode(m[i + 1])
     })
     return { handler: r.handler, params, maxBytes: r.maxBytes || 0, raw: Boolean(r.raw) }
   }
@@ -90,7 +92,8 @@ export function parseCookies(req) {
     if (idx < 0) continue
     const k = part.slice(0, idx).trim()
     const v = part.slice(idx + 1).trim()
-    if (k) out[k] = decodeURIComponent(v)
+    // 同上：cookie 值不合法时保持原文，由 readSession 当成「没有这个会话」处理
+    if (k) out[k] = safeDecode(v)
   }
   return out
 }
@@ -194,7 +197,7 @@ const MIME = {
 }
 
 export function resolveSafe(baseDir, relPath) {
-  const clean = decodeURIComponent(relPath).replace(/^\/+/, '')
+  const clean = safeDecode(relPath).replace(/^\/+/, '')
   const full = path.resolve(baseDir, clean)
   const base = path.resolve(baseDir)
   if (full !== base && !full.startsWith(base + path.sep)) return null
@@ -223,7 +226,23 @@ export function serveFile(req, res, filePath, { cache = true } = {}) {
     ETag: etag,
     'Cache-Control': cache ? 'no-cache' : 'no-store',
   })
-  fs.createReadStream(filePath).pipe(res)
+  /**
+   * 流错误必须自己接住。
+   *
+   * stat 到这里之间文件可能被删掉（清理任务、用户删图），或者读的时候被
+   * 杀毒软件锁住 —— ReadStream 的 'error' 没有监听器就是未捕获异常，
+   * 照样能把进程带走。这时头已经发出去了，只能断开连接。
+   */
+  const stream = fs.createReadStream(filePath)
+  stream.on('error', () => {
+    try {
+      res.destroy()
+    } catch {
+      /* 连接已经断了 */
+    }
+  })
+  res.on('close', () => stream.destroy())
+  stream.pipe(res)
   return true
 }
 

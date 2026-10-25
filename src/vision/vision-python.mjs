@@ -238,19 +238,39 @@ export function spawnVisionSidecar({ force = false } = {}) {
 
   spawnTimes.push(Date.now())
   note(`启动 sidecar pid=${child.pid} python=${python} port=${VISION_PORT}`)
-  child.once('error', (err) => note(`sidecar 进程错误：${err.message}`))
-  child.once('exit', (code, signal) => {
-    note(`sidecar 退出 code=${code} signal=${signal}`)
-    child = null
-    lastHealth = { ok: false, at: 0, payload: null, error: `进程退出了（code=${code}）` }
-    if (logFd !== null) {
+  /**
+   * 清理只清**这一个进程**的状态。
+   *
+   * 回调里操作的 child / logFd 是模块级变量：如果用户点了「停止」又立刻「启动」，
+   * 旧进程的 exit 会晚到，把**新**的 child 置成 null、把新的日志句柄关掉 ——
+   * 于是状态显示「没运行」而进程其实活着，再点启动就 spawn 出第二个抢同一端口。
+   */
+  const spawnedChild = child
+  const spawnedFd = logFd
+  const releaseSpawned = (error) => {
+    // 只清「自己那一个」：child / logFd 可能已经被下一次 spawn 换掉了
+    if (child === spawnedChild) {
+      child = null
+      lastHealth = { ok: false, at: 0, payload: null, error }
+    }
+    if (spawnedFd !== null && logFd === spawnedFd) {
       try {
-        fs.closeSync(logFd)
+        fs.closeSync(spawnedFd)
       } catch {
         /* 已经关了 */
       }
       logFd = null
     }
+  }
+  child.once('error', (err) => {
+    note(`sidecar 进程错误：${err.message}`)
+    // spawn 失败时 Node 只发 'error' + 'close'，**不发 'exit'**：
+    // 不在这里清理的话 child 恒为真值，/start 永远返回 already，日志句柄也泄漏
+    releaseSpawned(`进程启动失败（${err.message}）`)
+  })
+  child.once('exit', (code, signal) => {
+    note(`sidecar 退出 code=${code} signal=${signal}`)
+    releaseSpawned(`进程退出了（code=${code}）`)
   })
   return { ok: true, pid: child.pid, python }
 }

@@ -157,6 +157,20 @@ export function startMediaExecutor() {
   try {
     executorProcess = spawn(probe.python.bin, [MEDIA_EXECUTOR_SCRIPT], { cwd: MEDIA_PUBLISH_ROOT, env, stdio: 'ignore', windowsHide: true })
     executorProcess.unref()
+    /**
+     * 这个子进程的两条失败路径都要接住。
+     *
+     * 'error'：spawn 本身失败（python 被卸载、EACCES、ENOENT）。ChildProcess 的
+     *   'error' 没有监听器时是**未捕获异常**，会把整个后端进程带走；而且这时候
+     *   不会触发 'exit'，executorProcess 会一直是真值，函数开头那句
+     *   `if (executorProcess) return` 就永久短路，自动启动再也拉不起来。
+     * 'exit'：进程退出，清掉状态，下次还能重新拉起来。
+     */
+    executorProcess.on('error', (err) => {
+      console.error('[media-executor] 启动失败：', err?.message || err)
+      executorProcess = null
+      executorUrl = ''
+    })
     executorProcess.once('exit', () => { executorProcess = null; executorUrl = '' })
     executorUrl = `http://127.0.0.1:${MEDIA_EXECUTOR_PORT}`
   } catch {
@@ -180,4 +194,29 @@ export function mediaExecutorInfo() {
 
 export function mediaExecutorBaseUrl() {
   return (MEDIA_EXECUTOR_URL || executorUrl).replace(/\/+$/, '')
+}
+
+/**
+ * 等执行器真的能应答（最多 timeoutMs）。
+ *
+ * 为什么需要：`startMediaExecutor()` 只把进程拉起来就返回，Flask 还要几秒才
+ * bind 端口。派发流程紧接着就 POST /tasks，撞上的必然是 ECONNREFUSED ——
+ * 任务从 queued 被改成 failed，定时发布更是静默错过发布时刻。
+ * 所以派发前在这里等一下（健康检查带 token，见 media_executor.py 的 /health）。
+ */
+export async function waitMediaExecutorReady(timeoutMs = 8000) {
+  const base = (MEDIA_EXECUTOR_URL || executorUrl).replace(/\/+$/, '')
+  if (!base) return false
+  const headers = MEDIA_EXECUTOR_TOKEN ? { authorization: `Bearer ${MEDIA_EXECUTOR_TOKEN}` } : {}
+  const deadline = Date.now() + Math.max(0, timeoutMs)
+  for (;;) {
+    try {
+      const res = await fetch(`${base}/health`, { headers, signal: AbortSignal.timeout(1500) })
+      if (res.ok) return true
+    } catch {
+      /* 端口还没 bind，继续等 */
+    }
+    if (Date.now() >= deadline) return false
+    await new Promise((resolve) => setTimeout(resolve, 250))
+  }
 }

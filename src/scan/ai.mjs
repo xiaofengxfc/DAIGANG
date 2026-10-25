@@ -40,6 +40,20 @@ const keyFromEnv = () => String(process.env.XFC_AI_API_KEY || '').trim()
  * API key **优先环境变量**，其次 settings —— 环境变量优先是为了让
  * 「不想把 key 落盘」的人有个干净的选择。
  */
+/**
+ * 读一个「数字型环境变量」。
+ *
+ * 直接 Number() 的话，手写的 `XFC_AI_TIMEOUT_MS=10s` 会得到 NaN，
+ * 而 Math.max(3000, NaN) 还是 NaN —— 这个 NaN 会一路变成 fetch 的
+ * timeout 选项，请求立刻就炸，报错还和「超时」看不出关系。
+ */
+function envNumber(raw, fallback, min) {
+  if (raw === undefined || raw === null || String(raw).trim() === '') return fallback
+  const value = Number(raw)
+  if (!Number.isFinite(value)) return fallback
+  return Math.max(min, value)
+}
+
 export function aiConfig() {
   const envKey = keyFromEnv()
   const storedKey = String(getSetting('ai_api_key', '') || '').trim()
@@ -54,8 +68,8 @@ export function aiConfig() {
     key,
     keySource: envKey ? 'env' : storedKey ? 'settings' : 'none',
     keyIsEnv: Boolean(envKey),
-    timeoutMs: Math.max(3000, Number(process.env.XFC_AI_TIMEOUT_MS || DEFAULT_TIMEOUT_MS)),
-    maxTokens: Math.max(256, Number(process.env.XFC_AI_MAX_TOKENS || DEFAULT_MAX_TOKENS)),
+    timeoutMs: envNumber(process.env.XFC_AI_TIMEOUT_MS, DEFAULT_TIMEOUT_MS, 3000),
+    maxTokens: envNumber(process.env.XFC_AI_MAX_TOKENS, DEFAULT_MAX_TOKENS, 256),
     disabled,
   }
 }

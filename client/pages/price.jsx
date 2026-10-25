@@ -582,11 +582,26 @@ export default function PricePage({ route, navigate, onNewGame, onReload, reload
     if (draftBusy || !list.length) return
     if (!await confirmDelete({ title: `删掉这 ${list.length} 项待添加？`, message: '它们只是比价整理出来的草稿，删了不影响价格表里已有的服务项。' })) return
     setDraftBusy(true)
+    // 逐条删、逐条算：中途失败时前面的已经删掉了，界面必须跟着刷新，
+    // 否则用户看着还在、再点一次会对已删的 id 继续报错（旁边 acceptAllDrafts 就是这么做的）
+    let done = 0
+    const failed = []
     try {
-      for (const draft of list) await api.del(`/api/service-drafts/${draft.id}`)
-      toast(`删掉 ${list.length} 项待添加`, 'ok')
+      for (const draft of list) {
+        try {
+          await api.del(`/api/service-drafts/${draft.id}`)
+          done += 1
+        } catch (err) {
+          failed.push(draft.name || draft.id)
+          if (!failed.length || failed.length === 1) toastErr(err)
+        }
+      }
+      if (done) toast(`删掉 ${done} 项待添加`, 'ok')
+      if (failed.length) toastErr(`${failed.length} 项没删掉：${failed.slice(0, 3).join('、')}`)
+    } finally {
       await onReload()
-    } catch (err) { toastErr(err) } finally { setDraftBusy(false) }
+      setDraftBusy(false)
+    }
   }
 
   const toggleCategory = async (category) => { try { await api.patch(`/api/categories/${category.id}`, { status: category.status === 'active' ? 'archived' : 'active' }); toast(category.status === 'active' ? '大类已归档' : '大类已恢复', 'ok'); await onReload() } catch (err) { toastErr(err) } }

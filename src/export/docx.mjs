@@ -254,10 +254,12 @@ function noticeParas(notice, label = '', { left = 160, size = 20, after = 140 } 
     .map((s) => s.trim())
     .filter(Boolean)
   if (!lines.length) return []
+  // pPr 的子元素顺序按 schema 走：pBdr → spacing → ind。
+  // 把 ind 写在 spacing 前面会被严格校验的打开器报「文档内容有问题」。
   const box = (extra) =>
     `<w:pBdr><w:left w:val="single" w:sz="12" w:space="10" w:color="${RULE_STRONG}"/></w:pBdr>` +
-    `<w:ind w:left="${left}" w:right="120"/>` +
-    extra
+    extra +
+    `<w:ind w:left="${left}" w:right="120"/>`
   // 标签单独一行，和图片版排法一致（同一个模型，两边看起来要一样）
   const out = label ? [para(run(label, { size: size - 2, bold: true, color: INK }), { pPr: box(spacing(80, 0, 240)) })] : []
   lines.forEach((ln, i) =>

@@ -102,7 +102,24 @@ export function computeItems(rawItems) {
     const qty = Math.max(num(raw.quantity, service.min_qty || 1) || 1, 0.01)
     const tierList = loadTiers(service.id)
     const { price: autoPrice, tier } = unitPriceFor(service, tierList, qty)
-    const override = raw.unit_price === undefined || raw.unit_price === null || raw.unit_price === '' ? null : money(raw.unit_price)
+    /**
+     * 手工改的单价必须是一个「说得清」的数字。
+     *
+     * 以前直接 money(raw.unit_price)：money 内部是 round(Number(x))，
+     * 于是 "abc"、纯空格、NaN 全被抹成 0（这一行白干还不报错），
+     * 负数则直接存进明细（items_subtotal 变负，只有总价被夹到 0，
+     * 账目从此对不上）。价格是钱，宁可报错也不能猜。
+     */
+    let override = null
+    const hasOverride =
+      raw.unit_price !== undefined &&
+      raw.unit_price !== null &&
+      !(typeof raw.unit_price === 'string' && raw.unit_price.trim() === '')
+    if (hasOverride) {
+      const value = typeof raw.unit_price === 'number' || typeof raw.unit_price === 'string' ? Number(raw.unit_price) : NaN
+      if (!Number.isFinite(value) || value < 0) bad('单价要填一个不小于 0 的数字', 'bad_unit_price')
+      override = money(value)
+    }
     const unit_price = override === null ? autoPrice : override
 
     const available = loadOptions(service.id)

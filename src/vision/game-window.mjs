@@ -57,14 +57,23 @@ export function beginScreenFlow({ id = '', game = '' } = {}) {
 /** 续期（流程里的每一步都调一次，避免长流程中途过期） */
 export function touchScreenFlow(id) {
   if (!screenFlow) return
-  if (id && screenFlow.id !== String(id)) return
+  /**
+   * 没有 id 就当「不是你的」，什么都不做。
+   *
+   * 原来是 `if (id && ...)`：调用方不带 id（路由的 clampStr 缺省给空串）时，
+   * 空串是 falsy，于是任何人都能续期别人的租约。
+   */
+  const wanted = String(id ?? '').trim()
+  if (!wanted || screenFlow.id !== wanted) return
   screenFlow.at = Date.now()
 }
 
 /** 释放。id 不匹配就什么都不做 —— 不能让别人替自己解锁 */
 export function endScreenFlow(id) {
   if (!screenFlow) return false
-  if (id && screenFlow.id !== String(id)) return false
+  // 同上：id 不匹配（包括没传）就什么都不做 —— 不能让别人替自己解锁
+  const wanted = String(id ?? '').trim()
+  if (!wanted || screenFlow.id !== wanted) return false
   screenFlow = null
   return true
 }

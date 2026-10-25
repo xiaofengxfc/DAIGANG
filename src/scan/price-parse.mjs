@@ -162,8 +162,14 @@ export function toHalfWidth(text) {
 export function cleanName(raw) {
   const name = toHalfWidth(raw)
     .replace(/\s+/g, ' ')
-    // 上一段价格留下的单位残渣：`r 岩神瞳` 里的 `r `
-    .replace(/^[\s:：,，、/\\|+*·\-—–]*[rR元块米¥￥]?\s*/, '')
+    /**
+     * 上一段价格留下的单位残渣：`r 岩神瞳` 里的 `r `。
+     *
+     * 关键在 lookahead：单位字符后面必须紧跟空白/标点（或已到结尾）才算残渣。
+     * 原来没有这个限制，名字自己的首字就被吃掉 —— 元素方碑→素方碑、
+     * 米饭套餐→饭套餐、块状结晶→状结晶，而这些名字会一路进到「建议新建的服务项」里。
+     */
+    .replace(/^[\s:：,，、/\\|+*·\-—–]*(?:[rR元块米¥￥](?=[\s:：,，、/\\|+*·\-—–]|$))?\s*/, '')
     .replace(/^[\s:：,，、/\\|+*·\-—–]+/, '')
     .replace(/[\s:：\-—–+*·、,，.。|/\\<《【\[(]+$/, '')
     .replace(/[《》【】\[\]()（）]/g, '')
@@ -298,7 +304,21 @@ function hardRejectReason(ctx) {
   if (CONTENT_TAIL.test(tail)) return 'content' // 数量说明
   if (ADDON_TAIL.test(tail)) return 'addon' // 「+30r包后续」这类加价项，不是基准价
   if (digitCount >= 6) return 'long' // UID / QQ / 手机号
-  if (/^(?:19|20)\d{2}$/.test(matched)) return 'year'
+  /**
+   * 形似年份的四位数**不一定是年份**。
+   *
+   * 以前只看数字形状，于是「全图全收集 2000r」「全包 1999 元」这种价格被整条丢掉 ——
+   * 而全收集类套餐过千很常见。现在要求「后面既没有货币也没有单位、附近也没有
+   * 时间语境」才判成年份（2025年、2026-01 这类仍然照旧排除）。
+   */
+  if (
+    /^(?:19|20)\d{2}$/.test(matched) &&
+    !CURRENCY_TAIL.test(tail) &&
+    !SLASH_UNIT.test(tail) &&
+    !/[年月日]/.test(tail)
+  ) {
+    return 'year'
+  }
   // 等级/数量区间：`1-10级` 里的 1 和 10 都不是价格
   if (/[-~—～]\s*$/.test(before)) return 'range'
   if (/^[-~—～]\s*\d/.test(tail)) return 'range'
@@ -707,7 +727,10 @@ export function collapseWithinVideo(candidates) {
   for (const item of candidates) {
     if (!byName.has(item.name)) byName.set(item.name, new Map())
     const prices = byName.get(item.name)
-    const priceKey = String(item.price)
+    // 去重键要带上口径：周常 25/周 和 周常 25/月 是两条不同的报价。
+    // 只按价格合并会把第二个口径连同单位一起吞掉，连「同一视频给了两种说法」
+    // 这个信号都传不到 price-match 的歧义保护里。
+    const priceKey = [item.price, item.unit || '', item.unitKind || ''].join('|')
     const existing = prices.get(priceKey)
     if (existing) {
       existing.hits += item.hits || 1

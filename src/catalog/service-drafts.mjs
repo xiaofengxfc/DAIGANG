@@ -116,6 +116,15 @@ export function saveDrafts(job, items = [], { known = new Set(), categoryIds = n
   const updated = []
   const skipped = []
 
+  /**
+   * 上限要按**库里现有条数**算，不是「本次新建了几条」。
+   *
+   * 原来只数 created，所以每存一批最多再加 400 条，反复存可以无限增长；
+   * 而且超限时直接 break，多出来的项既不入库也不进 skipped ——
+   * 前端以为都存上了。
+   */
+  let remaining = Math.max(0, MAX_DRAFTS_PER_GAME - pendingByName.size)
+
   db.exec('BEGIN')
   try {
     const insert = db.prepare(
@@ -134,10 +143,19 @@ export function saveDrafts(job, items = [], { known = new Set(), categoryIds = n
       const there = pendingByName.get(nameKey(checked.name))
       if (there) {
         refresh.run(checked.categoryId, checked.price, checked.aliases, checked.why, String(job.id), now, there.id)
-        updated.push(shape({
+        const merged = {
           ...there, category_id: checked.categoryId, price: checked.price, aliases: checked.aliases,
           why: checked.why, source_job: job.id, updated_at: now,
-        }))
+        }
+        // 缓存里必须是**完整行**：同批出现两个同名项时，第二个走这条分支，
+        // 只存了 {id} 的话返回的条目 name/created_at 会变成 undefined
+        pendingByName.set(nameKey(checked.name), merged)
+        updated.push(shape(merged))
+        continue
+      }
+      if (remaining <= 0) {
+        // 超上限要说清楚，不能悄悄丢
+        skipped.push({ name: checked.name, reason: 'draft_limit' })
         continue
       }
       const info = insert.run(
@@ -151,13 +169,14 @@ export function saveDrafts(job, items = [], { known = new Set(), categoryIds = n
         now,
         now,
       )
-      created.push(shape({
+      const createdRow = shape({
         id: info.lastInsertRowid, game_id: gameId, category_id: checked.categoryId, name: checked.name,
         price: checked.price, aliases: checked.aliases, why: checked.why, source_job: job.id,
         created_at: now, updated_at: now,
-      }))
-      pendingByName.set(nameKey(checked.name), { id: Number(info.lastInsertRowid) })
-      if (created.length >= MAX_DRAFTS_PER_GAME) break
+      })
+      created.push(createdRow)
+      pendingByName.set(nameKey(checked.name), createdRow)
+      remaining -= 1
     }
     db.exec('COMMIT')
   } catch (err) {
@@ -178,11 +197,18 @@ export function updateDraft(id, patch = {}) {
       : (patch.category_id === null || patch.category_id === '' ? null : Number(patch.category_id)),
   }
   if (!next.name) throw bad('服务名不能空着')
+  // 把价格清空后提交的是空串，Number('') 是 0 —— 不挡住的话这条草稿将来会按 ¥0 建项
+  if (patch.price !== undefined && String(patch.price).trim() === '') throw bad('价格要填 0 到 100000 之间的数')
   if (!Number.isFinite(next.price) || next.price < 0 || next.price > 100000) throw bad('价格要填 0 到 100000 之间的数')
-  // 大类可能已经被删了 —— 那就退回「未归类」，而不是写一个悬空的 id
+  /**
+   * 大类必须存在**且属于这个游戏**（通用大类 game_id 为 NULL，哪个游戏都能挂）。
+   * 只校验存在的话，可以把 A 游戏的草稿改成 B 游戏的大类，
+   * 建出来的服务项会带着 A 的 game_id 挂在 B 的分组下面。
+   */
   if (next.category_id !== null) {
-    const exists = db.prepare('SELECT id FROM service_categories WHERE id = ?').get(next.category_id)
-    if (!exists) next.category_id = null
+    const exists = db.prepare('SELECT id, game_id FROM service_categories WHERE id = ?').get(next.category_id)
+    const sameGame = exists && (exists.game_id === null || Number(exists.game_id) === Number(row.game_id))
+    if (!sameGame) next.category_id = null
   }
   db.prepare('UPDATE service_drafts SET name = ?, price = ?, category_id = ?, updated_at = ? WHERE id = ?')
     .run(next.name, Math.round(next.price * 100) / 100, next.category_id, stamp(), Number(id))

@@ -98,6 +98,20 @@ function splitName(full) {
   return { name: out, prefix: '' }
 }
 
+/**
+ * 这个名字能不能原样放进 USTAR 头（prefix 155 + name 100）。
+ *
+ * 放不下时 splitName 会**按字节截断**，两个长路径可能截成同一个名字 ——
+ * 还原时后一个把前一个覆盖掉，而且用户完全看不出来。
+ * 所以放不下的条目要额外写一条 PAX 的 path 记录把完整名字带过去。
+ */
+function fitsUstar(full) {
+  if (Buffer.byteLength(full, 'utf8') <= 100) return true
+  const cut = full.lastIndexOf('/')
+  if (cut <= 0) return false
+  return Buffer.byteLength(full.slice(0, cut), 'utf8') <= 155 && Buffer.byteLength(full.slice(cut + 1), 'utf8') <= 100
+}
+
 /** 一个 512 对齐的填充：内容不足一块要补 NUL，tar 靠这个找下一个头 */
 function pad(size) {
   const rem = size % BLOCK
@@ -196,10 +210,16 @@ function buildTar({ dbSnapshot, uploadDir = UPLOAD_DIR, now = Date.now, includeU
 
   const addFile = (name, data, { mode = 0o644, usePax = false } = {}) => {
     const buf = Buffer.isBuffer(data) ? data : Buffer.from(data)
-    if (usePax) {
-      // 声明「文件名是 UTF-8」。只用 hdrcharset 这一条就够：路径本身仍写在
-      // 普通头里，解压器知道该按 UTF-8 读它就对了。
-      const record = Buffer.from(paxRecord('hdrcharset', 'UTF-8'), 'utf8')
+    // 两条 PAX 记录可能要一起写：hdrcharset 声明编码，path 带完整长路径
+    const records = []
+    // 声明「文件名是 UTF-8」。只用 hdrcharset 这一条就够：路径本身仍写在
+    // 普通头里，解压器知道该按 UTF-8 读它就对了。
+    if (usePax) records.push(paxRecord('hdrcharset', 'UTF-8'))
+    // 放得下的路径本来就写在普通头里；放不下的必须靠 path 记录带过去，
+    // 否则 splitName 的字节截断会让两个长路径撞成同一个名字。
+    if (!fitsUstar(name)) records.push(paxRecord('path', name))
+    if (records.length) {
+      const record = Buffer.from(records.join(''), 'utf8')
       chunks.push(header(paxNameFor(name), { size: record.length, mode: 0o644, mtime, type: 'x' }))
       chunks.push(record)
       chunks.push(pad(record.length))
@@ -215,8 +235,12 @@ function buildTar({ dbSnapshot, uploadDir = UPLOAD_DIR, now = Date.now, includeU
   const addDir = (name, { usePax = false } = {}) => {
     // 目录条目以 / 结尾、size 为 0，这是 tar 的约定，解压器靠它建目录
     const dirName = name.endsWith('/') ? name : `${name}/`
-    if (usePax) {
-      const record = Buffer.from(paxRecord('hdrcharset', 'UTF-8'), 'utf8')
+    const records = []
+    if (usePax) records.push(paxRecord('hdrcharset', 'UTF-8'))
+    // 目录同样可能超长，path 记录是唯一能原样带过去的办法
+    if (!fitsUstar(dirName)) records.push(paxRecord('path', dirName))
+    if (records.length) {
+      const record = Buffer.from(records.join(''), 'utf8')
       chunks.push(header(paxNameFor(dirName), { size: record.length, mode: 0o644, mtime, type: 'x' }))
       chunks.push(record)
       chunks.push(pad(record.length))

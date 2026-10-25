@@ -150,7 +150,7 @@ function appendJob(job, text) {
   job.log = `${job.log}${text}`.slice(-12000)
 }
 
-function spawnStep(job, bin, args, label) {
+function spawnStep(job, bin, args, label, timeoutMs = 20 * 60 * 1000) {
   return new Promise((resolve) => {
     job.step = label
     let child
@@ -162,8 +162,29 @@ function spawnStep(job, bin, args, label) {
     }
     child.stdout.on('data', (chunk) => appendJob(job, chunk.toString()))
     child.stderr.on('data', (chunk) => appendJob(job, chunk.toString()))
-    child.on('error', (error) => resolve({ code: -1, error: error.message }))
-    child.on('close', (code) => resolve({ code: code ?? -1 }))
+    /**
+     * 每一步都有上限。
+     *
+     * yt-dlp 卡在「正在下载」或者 venv 建在网络盘上时，子进程可以一直不退出，
+     * 任务状态就永远停在 running —— 界面上那个转圈不会自己停，用户只能重启后端。
+     */
+    const limitMs = timeoutMs
+    const timer = setTimeout(() => {
+      try {
+        child.kill()
+      } catch {
+        /* 已经退了 */
+      }
+      resolve({ code: -1, error: `${label}卡住了（超过 ${Math.round(limitMs / 60000)} 分钟没结束），已中止` })
+    }, limitMs)
+    child.on('error', (error) => {
+      clearTimeout(timer)
+      resolve({ code: -1, error: error.message })
+    })
+    child.on('close', (code) => {
+      clearTimeout(timer)
+      resolve({ code: code ?? -1 })
+    })
   })
 }
 

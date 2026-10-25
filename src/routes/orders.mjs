@@ -18,6 +18,61 @@ import { resourceDeltaList } from '../../shared/resources.js'
 
 export { STATUS_LABEL, TRANSITIONS, canTransition }
 
+/* ---------------- 收款的白名单与日期归一 ---------------- */
+
+const PAY_KINDS = ['deposit', 'full', 'balance', 'refund']
+const PAY_STATUSES = ['confirmed', 'pending', 'void']
+
+/**
+ * 收款日期只能是 `YYYY-MM-DD`。
+ *
+ * paid_at 参与两种比较：`paid_at >= '2026-10-01'` 这种区间，和
+ * `paid_at = days.d` 这种等值。传进来一个带时间的 ISO 会两边都不成立
+ * （'2026-10-25T10:00:00Z' 既不等于 '2026-10-25'，也不 <= '2026-10-25'），
+ * 这笔收款就从所有统计里消失了。所以统一截成日期。
+ */
+function paidAtDate(value) {
+  const text = String(value ?? '').trim()
+  const hit = /^(\d{4}-\d{2}-\d{2})/.exec(text)
+  return hit ? hit[1] : localDate()
+}
+
+/**
+ * 下单时间：接受 `YYYY-MM-DD` 或完整时间，统一存成 UTC ISO。
+ *
+ * 以前是「把传进来的字符串拼上当前 UTC 时刻再加 Z」：只给日期时，
+ * 在 UTC+8 的凌晨会拼出「今天的日期 + 昨天 19 点」，等于把单子挪了一天；
+ * 给完整 ISO 时更糟，直接拼成 `2025-06-01T10:20:30.000ZT08:03:33.000Z` 这种非法值，
+ * 之后 date(ordered_at,'localtime') 算不出日期，该单从日报里消失。
+ */
+function orderedAtStamp(value) {
+  const text = String(value ?? '').trim()
+  if (!text) return nowISO()
+
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text)
+  if (dateOnly) {
+    const year = Number(dateOnly[1])
+    const month = Number(dateOnly[2])
+    const day = Number(dateOnly[3])
+    const now = new Date()
+    // 只给了日期：时刻沿用「现在」，按本地时区换算，再由 toISOString 转成 UTC
+    const local = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds())
+    if (
+      Number.isNaN(local.getTime()) ||
+      local.getFullYear() !== year ||
+      local.getMonth() !== month - 1 ||
+      local.getDate() !== day
+    ) {
+      bad('下单时间不是有效日期，应该像 2026-10-25 这样', 'bad_ordered_at')
+    }
+    return local.toISOString()
+  }
+
+  const parsed = new Date(text)
+  if (Number.isNaN(parsed.getTime())) bad('下单时间格式不对，应该像 2026-10-25 或 2026-10-25T10:20:30 这样', 'bad_ordered_at')
+  return parsed.toISOString()
+}
+
 /* ---------------- 注册 ---------------- */
 
 export function register() {
@@ -56,13 +111,22 @@ export function register() {
       const t = `%${q.replace(/[%_\\]/g, (m) => '\\' + m)}%`
       values.push(t, t, t, t)
     }
+    /**
+     * 日期筛选按**本地日历日**比。
+     *
+     * ordered_at 里存的是 UTC ISO（如 2026-10-24T19:00:00.000Z，本地是 25 日 03:00），
+     * 以前拿 `${from}T00:00:00.000Z` 当边界，等于「从 UTC 零点起算」——
+     * 在 UTC+8 里把每天 00:00–08:00 下的单子划到了前一天，于是「今天」筛不到
+     * 今天凌晨的单。按天统计（财务的 daily 曲线）用的是 date(ordered_at,'localtime')，
+     * 两处口径必须一致，否则同一个页面里合计和明细会互相打脸。
+     */
     if (ctx.query.from) {
-      where.push('o.ordered_at >= ?')
-      values.push(`${ctx.query.from}T00:00:00.000Z`)
+      where.push("date(o.ordered_at,'localtime') >= ?")
+      values.push(String(ctx.query.from).slice(0, 10))
     }
     if (ctx.query.to) {
-      where.push('o.ordered_at <= ?')
-      values.push(`${ctx.query.to}T23:59:59.999Z`)
+      where.push("date(o.ordered_at,'localtime') <= ?")
+      values.push(String(ctx.query.to).slice(0, 10))
     }
     if (ctx.query.due === '1') {
       where.push("o.status NOT IN ('done','cancelled') AND o.total > (SELECT COALESCE(SUM(CASE WHEN p.kind='refund' THEN -p.amount ELSE p.amount END),0) FROM payments p WHERE p.order_id = o.id AND p.status='confirmed')")
@@ -102,7 +166,7 @@ export function register() {
     if (gameId && !game) bad('游戏不存在', 'bad_game')
 
     const now = stamp()
-    const orderedAt = ctx.body.ordered_at ? `${ctx.body.ordered_at}T${new Date().toISOString().slice(11, 19)}.000Z` : now
+    const orderedAt = ctx.body.ordered_at ? orderedAtStamp(ctx.body.ordered_at) : now
     const order_no = nextSerialNo('DH', 'orders', 'order_no')
     const title = clampStr(ctx.body.title, 120) || computed.items.map((i) => i.name).join(' + ').slice(0, 120)
     const status = STATUS_LABEL[ctx.body.status] ? ctx.body.status : 'pending_confirm'
@@ -304,7 +368,7 @@ export function register() {
     }
     if ('ordered_at' in ctx.body && ctx.body.ordered_at) {
       sets.push('ordered_at = ?')
-      values.push(`${String(ctx.body.ordered_at).slice(0, 10)}T${new Date().toISOString().slice(11, 19)}.000Z`)
+      values.push(orderedAtStamp(ctx.body.ordered_at))
     }
     if ('customer_id' in ctx.body) {
       const cid = ctx.body.customer_id ? int(ctx.body.customer_id) : null
@@ -608,7 +672,7 @@ export function register() {
   post('/api/payments', (ctx) => {
     const amount = money(ctx.body.amount)
     if (amount <= 0) bad('金额要大于 0', 'bad_amount')
-    const kind = ['deposit', 'full', 'balance', 'refund'].includes(ctx.body.kind) ? ctx.body.kind : 'deposit'
+    const kind = PAY_KINDS.includes(ctx.body.kind) ? ctx.body.kind : 'deposit'
     const orderId = ctx.body.order_id ? int(ctx.body.order_id) : null
     let customerId = ctx.body.customer_id ? int(ctx.body.customer_id) : null
     let advancedTo = null
@@ -630,7 +694,7 @@ export function register() {
           amount,
           clampStr(ctx.body.method, 20) || 'wechat',
           ['confirmed', 'pending', 'void'].includes(ctx.body.status) ? ctx.body.status : 'confirmed',
-          clampStr(ctx.body.paid_at, 30) || localDate(),
+          paidAtDate(ctx.body.paid_at),
           clampStr(ctx.body.note, 500),
           nowISO()
         )
@@ -660,15 +724,34 @@ export function register() {
     if (!row) notFound('这条收款记录不存在')
     const sets = []
     const values = []
-    for (const k of ['kind', 'method', 'status', 'paid_at', 'note']) {
+    // 只有「自由文本」这几列能原样透传；kind/status/amount 是有语义的，逐个校验
+    for (const k of ['method', 'note']) {
       if (k in ctx.body) {
         sets.push(`${k} = ?`)
         values.push(clampStr(ctx.body[k], 500))
       }
     }
+    if ('kind' in ctx.body) {
+      if (!PAY_KINDS.includes(ctx.body.kind)) bad('收款类型只能是 deposit / full / balance / refund', 'bad_kind')
+      sets.push('kind = ?')
+      values.push(ctx.body.kind)
+    }
+    if ('status' in ctx.body) {
+      if (!PAY_STATUSES.includes(ctx.body.status)) bad('收款状态只能是 confirmed / pending / void', 'bad_status')
+      sets.push('status = ?')
+      values.push(ctx.body.status)
+    }
+    if ('paid_at' in ctx.body) {
+      sets.push('paid_at = ?')
+      values.push(paidAtDate(ctx.body.paid_at))
+    }
     if ('amount' in ctx.body) {
+      // POST 有「金额要大于 0」，改一条的时候同样不能松口：
+      // 一个负数金额会让这张单的已收金额归零甚至为负，而且没有任何痕迹
+      const amount = money(ctx.body.amount)
+      if (!(amount > 0)) bad('金额要大于 0', 'bad_amount')
       sets.push('amount = ?')
-      values.push(money(ctx.body.amount))
+      values.push(amount)
     }
     if (!sets.length) return row
     values.push(id)

@@ -72,6 +72,8 @@ export const quotes = makeDef({
     title: { type: 'string', max: 120 },
     items: { type: 'json', default: [] },
     total: { type: 'money', default: 0 },
+    // 折扣必须跟着单子走，否则转成订单时这条信息只能丢掉（明细与小计会对不上）
+    discount: { type: 'money', default: 0 },
     note: { type: 'text', max: 2000 },
     valid_until: { type: 'string', max: 30 },
   },
@@ -105,6 +107,13 @@ function buildQuote(body) {
     snapshot: i.snapshot,
   }))
   return { lines, totals }
+}
+
+/** 一条明细里增项金额之和（增项存在快照里，明细金额是含增项的） */
+function addonSumOf(line) {
+  const addons = line?.snapshot?.addons
+  if (!Array.isArray(addons)) return 0
+  return addons.reduce((sum, item) => sum + num(item.amount), 0)
 }
 
 /**
@@ -232,7 +241,16 @@ export function register() {
   })
 
   post('/api/vault/password', (ctx) => {
-    const count = changePassword(String(ctx.body.current ?? ''), String(ctx.body.next ?? ''))
+    // 和登录、改主密码一样限速：保险箱密码泄露一次，客户凭证就全部明文了
+    assertNotThrottled('vault-password', ctx.ip)
+    let count
+    try {
+      count = changePassword(String(ctx.body.current ?? ''), String(ctx.body.next ?? ''))
+    } catch (err) {
+      noteFailure('vault-password', ctx.ip)
+      throw err
+    }
+    clearFailures('vault-password', ctx.ip)
     return { ok: true, reencrypted: count }
   })
 
@@ -401,8 +419,8 @@ export function register() {
     const now = stamp()
     const info = db
       .prepare(
-        `INSERT INTO quotes (quote_no, customer_id, game_id, title, items, total, note, valid_until, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO quotes (quote_no, customer_id, game_id, title, items, total, discount, note, valid_until, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         quote_no,
@@ -411,6 +429,7 @@ export function register() {
         clampStr(ctx.body.title, 120) || '代肝报价单',
         stringifyJSON(lines),
         totals.total,
+        totals.discount,
         clampStr(ctx.body.note, 2000),
         validUntil,
         now,
@@ -430,14 +449,28 @@ export function register() {
     const game = q.game_id ? db.prepare('SELECT name FROM games WHERE id = ?').get(q.game_id) : null
     const order_no = nextSerialNo('DH', 'orders', 'order_no')
     const now = stamp()
-    const totals = computeTotals({ items_subtotal: money(q.total), addon_total: 0, discount: 0 })
+    /**
+     * 金额从明细反推，而不是「拿 total 当小计」。
+     *
+     * 老算法把报价总价直接塞进 items_subtotal、折扣记 0，订单里就出现
+     * 「明细合计 50 / 小计 40」这种自相矛盾的账：之后改一次明细（哪怕只改备注）
+     * 都会按明细重算，总价从 40 悄悄涨回 50。现在把增项和折扣都拆出来，
+     * 保持「小计 + 增项 − 折扣 = 总价」。
+     */
+    const gross = money(q.items.reduce((sum, i) => sum + num(i.amount), 0))
+    const addonTotal = money(q.items.reduce((sum, i) => sum + addonSumOf(i), 0))
+    const totals = computeTotals({
+      items_subtotal: money(gross - addonTotal),
+      addon_total: addonTotal,
+      discount: money(q.discount),
+    })
     const result = transaction(() => {
       const info = db
         .prepare(
           `INSERT INTO orders (order_no, customer_id, game_id, title, status, customer_name, game_name,
              items_subtotal, addon_total, discount, total, platform_fee, cost, ordered_at,
              note, internal_note, created_at, updated_at)
-           VALUES (?, ?, ?, ?, 'pending_confirm', ?, ?, ?, 0, 0, ?, 0, 0, ?, ?, ?, ?, ?)`
+           VALUES (?, ?, ?, ?, 'pending_confirm', ?, ?, ?, ?, ?, ?, 0, 0, ?, ?, ?, ?, ?)`
         )
         .run(
           order_no,
@@ -447,6 +480,8 @@ export function register() {
           customer?.name || '',
           game?.name || '',
           totals.items_subtotal,
+          totals.addon_total,
+          totals.discount,
           totals.total,
           now,
           q.note,
@@ -490,6 +525,11 @@ export function register() {
       if (i.spec) lines.push(`   说明：${i.spec}`)
     })
     lines.push('————————————')
+    // 有折扣时先给小计和优惠，否则「合计 40」跟上面 50 的明细看着对不上
+    if (num(q.discount) > 0) {
+      lines.push(`小计：${money(num(q.total) + num(q.discount))} 元`)
+      lines.push(`优惠：−${money(q.discount)} 元`)
+    }
     lines.push(`合计：${money(q.total)} 元`)
     if (q.note) lines.push(`备注：${q.note}`)
     if (q.valid_until) lines.push(`有效期至：${q.valid_until}`)

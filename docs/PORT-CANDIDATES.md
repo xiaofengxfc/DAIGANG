@@ -211,18 +211,18 @@
 
 ### A6. SQLite 备份一致性 → `VACUUM INTO` + Litestream
 
-**现状的隐患**：`src/backup/restic.mjs` 的 `createResticBackup()` 直接 `restic backup DATA_DIR`，
-而 `db.mjs` 开了 **WAL**。备份过程中数据库正在写，抓到的可能是「主库 + 半截 WAL」的组合。
+**已修（v2.1.x）**：`src/backup/restic.mjs` 的 `createResticBackup()` 原来直接
+`restic backup DATA_DIR`，而 `db.mjs` 开了 **WAL** —— 备份过程中数据库还在写，
+三个文件（`console.db`/`-wal`/`-shm`）是在三个不同时刻被读走的，还原出来可能是
+「主库是旧的 + WAL 里有半条新事务」。
 
-**方案一（零依赖，立刻能做，我已实测通过）：**
+现在的做法（零依赖）：先用 `db.serialize()` 取一份**包含全部已提交事务**的内存快照，
+写到临时目录里的一个 `.db` 文件；再一次让 restic 把「数据目录（排除
+`console.db`/`-wal`/`-shm`）+ 这份快照」收进同一个快照里。还原时用快照里的
+那个 `.db` 覆盖 `data/console.db`，uploads/logs 照常还原。
 
-`node:sqlite` 支持 `VACUUM INTO`——产出一个**事务一致**的单文件快照：
-
-```js
-db.exec(`VACUUM INTO '${snapshotPath}'`)   // 实测 OK
-```
-
-备份前先 `VACUUM INTO` 到一个临时文件，再让 restic 备份那个文件。**不用加任何依赖。**
+（`VACUUM INTO` 也能产出事务一致的单文件，`node:sqlite` 实测支持；这里用
+`serialize()` 是因为它不占额外的磁盘峰值，也不需要给路径做 SQL 字符串转义。）
 
 **方案二（可选）：[benbjohnson/litestream](https://github.com/benbjohnson/litestream)**（Apache-2.0）
 

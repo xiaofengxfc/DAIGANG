@@ -493,6 +493,18 @@ const MIGRATIONS = [
   );
   CREATE INDEX IF NOT EXISTS idx_service_drafts_game ON service_drafts (game_id, category_id);
   `,
+
+  /**
+   * 报价单要有「折扣」这一列。
+   *
+   * 以前没有：算总价时算了折扣（total 是对的），可是没地方存，转成订单时
+   * 只能拿 total 当 items_subtotal、折扣记 0 —— 于是订单里「明细合计 50、
+   * 小计 40」，改一次明细价格就自己从 40 涨回 50。
+   * 老数据默认 0，行为不变。
+   */
+  `
+  ALTER TABLE quotes ADD COLUMN discount REAL NOT NULL DEFAULT 0;
+  `,
 ]
 
 export function migrate() {

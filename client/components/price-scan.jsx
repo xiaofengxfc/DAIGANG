@@ -606,7 +606,15 @@ function PriceScan({ game, close, onApplied }) {
           })
         }
       } catch (err) {
-        if (!stopped) toastErr(err)
+        if (stopped) return
+        toastErr(err)
+        /**
+         * 失败也要接着轮询。
+         *
+         * 以前不重排下一次 tick：一次请求失败（服务重启、断网、代理超时）之后
+         * 进度条就永远停在旧数字上，任务看着「运行中」其实再也不会更新。
+         */
+        pollRef.current = window.setTimeout(tick, 3000)
       }
     }
     pollRef.current = window.setTimeout(tick, 600)
@@ -631,10 +639,21 @@ function PriceScan({ game, close, onApplied }) {
         } else {
           if (next.status === 'done') toast('yt-dlp 装好了')
           if (next.status === 'failed') toastErr(next.error || '安装失败')
+          /**
+           * 装完/装失败都要把 installing 清空。
+           *
+           * 不清的话面板一直停在「安装中…」转圈（按钮还被 installing 分支挡掉），
+           * 用户除了关掉抽屉重开之外没有任何重试入口。
+           */
+          setInstalling(null)
           void loadReadiness()
         }
       } catch (err) {
-        if (!stopped) toastErr(err)
+        if (stopped) return
+        toastErr(err)
+        // 轮询失败同样要收尾，不然状态永远「安装中」
+        setInstalling(null)
+        void loadReadiness()
       }
     }
     pollRef.current = window.setTimeout(tick, 800)
@@ -654,6 +673,9 @@ function PriceScan({ game, close, onApplied }) {
     setPicked(new Set())
     setEdited({})
     setExpanded(new Set())
+    // 改派是「上一次扫描」的决定，换一次扫描就不该继续生效：
+    // 不清的话，新任务里出现同一个服务项时，价会写到用户这次没选过的项上
+    setTargets({})
     setTab('all')
     try {
       const result = await api.post('/api/price-scan/start', {
@@ -711,12 +733,32 @@ function PriceScan({ game, close, onApplied }) {
       toastErr('有两行被改派到了同一个服务项，先错开再写')
       return
     }
+    /**
+     * 价格要「真的有个数」才允许写入。
+     *
+     * 这里以前是 Number(edited[id]) ?? Number(row.suggested_price)，而
+     * Number(null) 和 Number('') 都是 0、都能过 `price < 0` 这道检查 ——
+     * 于是「没给出建议」那一页的行、或者被清空的输入框，会把基准价写成 ¥0。
+     * 用户看到的是空输入框，账上却是零元，而且没有任何提示。
+     */
+    const priceOf = (serviceId, row) => {
+      const editedRaw = edited[serviceId]
+      const hasEdited = editedRaw !== undefined && String(editedRaw).trim() !== ''
+      const raw = hasEdited ? editedRaw : row.suggested_price
+      if (raw === null || raw === undefined || String(raw).trim() === '') return null
+      const value = Number(raw)
+      return Number.isFinite(value) && value > 0 ? value : null
+    }
+    let missingPrice = 0
     const rows = [...picked]
       .map((serviceId) => {
         const row = (job?.matched || []).find((item) => item.service_id === serviceId)
         if (!row) return null
-        const price = edited[serviceId] !== undefined ? Number(edited[serviceId]) : Number(row.suggested_price)
-        if (!Number.isFinite(price) || price < 0) return null
+        const price = priceOf(serviceId, row)
+        if (price === null) {
+          missingPrice += 1
+          return null
+        }
         // 改派过的行写它改到的那个服务项
         const target = targetOf(row)
         /**
@@ -729,6 +771,10 @@ function PriceScan({ game, close, onApplied }) {
         return { service_id: target, price, inclusions }
       })
       .filter(Boolean)
+    if (missingPrice) {
+      toastErr(`有 ${missingPrice} 行没有价格（或填了 0），补上再写`)
+      return
+    }
     if (!rows.length) {
       toastErr('还没勾选要写入的行')
       return

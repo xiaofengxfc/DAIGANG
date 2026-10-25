@@ -372,7 +372,7 @@ function appendJob(job, text) {
   job.log = `${job.log}${text}`.slice(-12000)
 }
 
-function spawnStep(job, bin, args, label, index) {
+function spawnStep(job, bin, args, label, index, timeoutMs = 20 * 60 * 1000) {
   return new Promise((resolve) => {
     job.step = label
     job.step_index = index
@@ -399,8 +399,30 @@ function spawnStep(job, bin, args, label, index) {
     })
     child.stdout.on('data', (chunk) => appendJob(job, chunk.toString()))
     child.stderr.on('data', (chunk) => appendJob(job, chunk.toString()))
-    child.on('error', (error) => resolve({ code: -1, error: error.message }))
-    child.on('close', (code) => resolve({ code: code ?? -1 }))
+    /**
+     * 每一步都得有上限。
+     *
+     * pip 卡在「正在下载」、venv 建在半个网络盘上、包在等一个永远不来的响应 ——
+     * 这些都会让子进程一直不退出。没有这条超时，任务状态永远是 running，
+     * 界面上那个「安装中…」的转圈能转到天荒地老，用户只能重启后端。
+     */
+    const limitMs = timeoutMs
+    const timer = setTimeout(() => {
+      try {
+        child.kill()
+      } catch {
+        /* 已经退了 */
+      }
+      resolve({ code: -1, error: `${label}` + `卡住了（超过 ${Math.round(limitMs / 60000)} 分钟没结束），已中止` })
+    }, limitMs)
+    child.on('error', (error) => {
+      clearTimeout(timer)
+      resolve({ code: -1, error: error.message })
+    })
+    child.on('close', (code) => {
+      clearTimeout(timer)
+      resolve({ code: code ?? -1 })
+    })
   })
 }
 

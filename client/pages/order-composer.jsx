@@ -313,7 +313,15 @@ function OrderComposer({
   }
 
   async function submit() {
-    if (!pickedCount) {
+    /**
+     * 改单时「一条都没勾」不等于「交不出东西」。
+     *
+     * 从报价单转来的单，服务项可能全被删了（那几条会带 keep_id 原样保留）；
+     * 用户也可能就是想把可改的明细全删掉、只改标题或折扣。这两种情况下面
+     * 拼出来的 items 都是有内容的，却会被这里挡回去 —— 和页面提示
+     * 「其它明细的改动照常保存」直接矛盾。只有「新建、又没勾任何项」才拦。
+     */
+    if (!pickedCount && !existing) {
       toast('还没挑服务项', 'err')
       return
     }

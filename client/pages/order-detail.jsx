@@ -40,8 +40,15 @@ export default function OrderDetailPage({ route, navigate, onReload, reloadKey }
       setOrder(data)
       setError('')
     } catch (err) {
+      /**
+       * 只在「这一单还没读出来过」时用错误页兜底。
+       *
+       * 页面上的每个动作（记收款、记进度、删收款）都会触发一次刷新，这一下
+       * 失败就把整张单——明细、收款、进度——换成一行红字，等于惩罚用户刚才的操作。
+       * 已经有数据时只在页头挂一条错误提示，内容照旧留着。
+       */
       setError(err?.message || String(err))
-      setOrder(null)
+      setOrder((current) => current)
     }
   }, [id])
 
@@ -54,7 +61,7 @@ export default function OrderDetailPage({ route, navigate, onReload, reloadKey }
     if (onReload) onReload()
   }, [load, onReload])
 
-  if (error) {
+  if (error && !order) {
     return (
       <div className="orders-page">
         <div className="refactor-alert" role="alert">{error}</div>

@@ -149,6 +149,23 @@ export async function captureGameFrame({ game = '', key = 'F2' } = {}) {
   // 没切过去时不用等：窗口没动，画面也没变。
   if (focused) await sleep(500)
 
+  /**
+   * 把前台还给浏览器 —— **成功和失败都要还**。
+   *
+   * 以前只有成功路径会调 returnToPreviousWindow，于是抓到黑图、窗口占满全屏、
+   * 暂存失败这几种情况用户被丢在游戏里；而且 previousWindow 没清，
+   * 下一次 /api/ocr/screen/return 会把焦点切到一个已经过期的句柄上。
+   */
+  const restoreFocus = async () => {
+    if (!focused) return
+    try {
+      const back = await returnToPreviousWindow()
+      if (back && back.ok === false) warnings.push(`没能自动切回浏览器：${back.error || '未知原因'}`)
+    } catch (err) {
+      warnings.push(`没能自动切回浏览器：${err.message}`)
+    }
+  }
+
   // 2) 顺手按一下游戏自带的截图键。失败只记一句，不影响我们自己的抓屏。
   //    没切到前台时**不发**：按键会打到当时前台的窗口上（很可能是浏览器），
   //    那既没意义，还可能误触别的东西。
@@ -171,11 +188,13 @@ export async function captureGameFrame({ game = '', key = 'F2' } = {}) {
   try {
     const grabbed = await grabScreen(tmp, { maxWidth: MAX_STORE_WIDTH, allowUnfocused: true })
     if (!grabbed || !grabbed.ok) {
+      await restoreFocus()
       return { ok: false, error: (grabbed && grabbed.error) || '抓取屏幕失败。', warnings }
     }
     meta = grabbed.meta || null
     buf = fs.readFileSync(tmp)
   } catch (err) {
+    await restoreFocus()
     return { ok: false, error: `抓取屏幕失败：${err.message}`, warnings }
   } finally {
     try {
@@ -185,7 +204,10 @@ export async function captureGameFrame({ game = '', key = 'F2' } = {}) {
     }
   }
 
-  if (!buf || !buf.length) return { ok: false, error: '抓到的画面是空的。', warnings }
+  if (!buf || !buf.length) {
+    await restoreFocus()
+    return { ok: false, error: '抓到的画面是空的。', warnings }
+  }
 
   /* 5) 关键一步：**没抢到焦点、且窗口占满整屏时，这张图不能信。**
    *
@@ -203,6 +225,7 @@ export async function captureGameFrame({ game = '', key = 'F2' } = {}) {
    * 2560 缩到 1920 会看起来只占屏幕 75%，那就漏掉了。 */
   const covered = Boolean(meta && meta.covered)
   if (!focused && covered) {
+    await restoreFocus()
     return {
       ok: false,
       error:
@@ -218,6 +241,7 @@ export async function captureGameFrame({ game = '', key = 'F2' } = {}) {
    * 都算失败。 */
   const blank = detectBlank(buf)
   if (blank) {
+    await restoreFocus()
     return {
       ok: false,
       error:
@@ -228,18 +252,13 @@ export async function captureGameFrame({ game = '', key = 'F2' } = {}) {
   }
 
   const token = stashFrame({ session: 'manual-shot', stage: 'manual', buf, width: 0, height: 0 })
-  if (!token) return { ok: false, error: '画面没能暂存下来，请重试。', warnings }
-
-  // 4) 把前台还给浏览器：用户要回来点「记下」。失败只提示（和识别流程一个口径）。
-  //    只有真抢过焦点才需要还 —— 没抢到就说明前台没动过，别去多此一举。
-  if (focused) {
-    try {
-      const back = await returnToPreviousWindow()
-      if (back && back.ok === false) warnings.push(`没能自动切回浏览器：${back.error || '未知原因'}`)
-    } catch (err) {
-      warnings.push(`没能自动切回浏览器：${err.message}`)
-    }
+  if (!token) {
+    await restoreFocus()
+    return { ok: false, error: '画面没能暂存下来，请重试。', warnings }
   }
+
+  // 4) 把前台还给浏览器：用户要回来点「记下」
+  await restoreFocus()
 
   const win = activeGameWindow()
   return {

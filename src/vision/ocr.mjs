@@ -64,7 +64,10 @@ function normalizeDigits(s) {
  * 只有少数资源 0 是真值 —— 异环的都市活力会显示 0/700，那个 0 得记下来。
  */
 export function parseNumber(raw, { allowZero = false } = {}) {
-  let s = normalizeDigits(raw)
+  // 全角「／」(U+FF0F) 和「∕」(U+2215) 先归一成半角斜杠。
+  // 游戏里的「当前/上限」很容易被 OCR 认成全角，而下面的字符白名单里没有它们 ——
+  // 不归一等价于整块数字被丢掉，体力 / 都市活力这类「0/700」就永远认不出来。
+  let s = normalizeDigits(raw).replace(/[／∕]/g, '/')
   // 「240 / 240」这种「当前/上限」只取前面的当前值
   if (s.includes('/')) s = s.split('/')[0]
   s = s.trim()
@@ -354,6 +357,9 @@ async function umiOCR(imagePath, { timeoutMs = 20000, port } = {}) {
   const base64 = buf.toString('base64')
   const ports = port ? [port] : UMI_PORTS
   let lastErr = 'Umi-OCR 没有响应'
+  // 只要有一次 HTTP 应答，就说明 Umi-OCR 活着 —— 绝不能因此把它标成「离线」，
+  // 那样的后果是这一轮扫码把本来好用的引擎从链里摘掉
+  let reached = false
   for (const p of ports) {
     const url = `http://${UMI_HOST}:${p}/api/ocr`
     const res = await fetchJSON(url, {
@@ -364,6 +370,7 @@ async function umiOCR(imagePath, { timeoutMs = 20000, port } = {}) {
       lastErr = res.error || `HTTP ${res.status}`
       continue
     }
+    reached = true
     const json = res.json || {}
     if (Number(json.code) !== 100) {
       lastErr = json.msg || json.data || `Umi-OCR 返回 code=${json.code}`
@@ -372,7 +379,7 @@ async function umiOCR(imagePath, { timeoutMs = 20000, port } = {}) {
     const words = umiItemsToWords(json.data)
     return { ok: true, engine: 'umi', port: p, words, lines: textLines(words) }
   }
-  return { ok: false, error: lastErr }
+  return { ok: false, error: lastErr, reached }
 }
 
 /* ============================================================
@@ -1086,13 +1093,20 @@ export async function ocrImage(imagePath, { lang = 'zh-Hans-CN', timeoutMs = 300
     else if (id === 'rapidocr') r = await consoleOCR('rapidocr', st.rapidBin, imagePath, { timeoutMs })
     else if (id === 'tesseract') r = await tesseractOCR(st.tessBin, imagePath, { timeoutMs })
     else r = await windowsOCR(imagePath, { lang, timeoutMs })
-    tried.push({ engine: id, ok: r.ok, error: r.error })
-    if (r.ok) return { ...r, tried }
+    const words = Array.isArray(r.words) ? r.words : []
+    tried.push({ engine: id, ok: r.ok && words.length > 0, error: r.ok && !words.length ? '没认出文字' : r.error })
+    if (r.ok && words.length) return { ...r, tried }
+    /**
+     * 引擎在、但这次一个字都没认出来（图太糊 / 界面一片空白）：
+     * 换下一个引擎再试，别把空结果当成最终答案返回 —— 界面上就是「识别成功，0 个字」。
+     */
+    if (r.ok) continue
     // 这次挂了（用户关了 Umi-OCR / 把 exe 挪走了 / sidecar 崩了）→ 从链里摘掉，
     // 别每次都白等一个超时
     if (forced) continue
     if (id === 'python') engineCache.visionOnline = false
-    if (id === 'umi') engineCache.umiOnline = false
+    // 只有「连不上」才摘掉；返回了非 100 的 code（比如「没识别到文本」）不算离线
+    if (id === 'umi' && r.reached === false) engineCache.umiOnline = false
     if (id === 'paddleocr' && /起不了/.test(String(r.error))) engineCache.paddleBin = null
     if (id === 'rapidocr' && /起不了/.test(String(r.error))) engineCache.rapidBin = null
   }

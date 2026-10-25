@@ -290,35 +290,66 @@ export function createApplication() {
   initialize()
   const server = http.createServer(async (req, res) => {
     const started = Date.now()
-    for (const [key, value] of Object.entries(securityHeaders())) res.setHeader(key, value)
 
-    let url
+    /**
+     * 请求级兜底。
+     *
+     * node 的 http 回调里，任何漏网的异常都会升级成 uncaughtException，
+     * 而 uncaughtException 的默认后果是整个进程退出 —— 对桌面版来说就是
+     * 「后端进程退出了」，用户正在填的单子一起没了。所以这里再包一层：
+     * 出错就回 500 并记日志，进程继续服务下一个请求。
+     *
+     * 具体接口里的错误仍由 handleAPI 的 try 处理（那里能给出准确的中文提示），
+     * 这一层只负责「绝对不许死」。
+     */
     try {
-      url = new URL(req.url, `http://${req.headers.host || 'localhost'}`)
-    } catch {
-      sendText(res, 400, '请求地址不合法')
-      return
-    }
-    const pathname = decodeURIComponent(url.pathname)
+      for (const [key, value] of Object.entries(securityHeaders())) res.setHeader(key, value)
 
-    if (req.method === 'OPTIONS') {
-      res.writeHead(204)
-      res.end()
-      return
-    }
+      let url
+      try {
+        url = new URL(req.url, `http://${req.headers.host || 'localhost'}`)
+      } catch {
+        sendText(res, 400, '请求地址不合法')
+        return
+      }
 
-    if (pathname === '/api/health' && req.method === 'GET') {
-      sendJSON(res, 200, { ok: true, service: 'daigan-ops-console', time: new Date().toISOString() })
-      return
-    }
+      // 地址里带解不开的百分号（/%E0%A4%A 之类）就是一条坏请求，回 400 即可。
+      // 以前这里直接 decodeURIComponent，抛出的 URIError 会杀掉整个进程。
+      let pathname
+      try {
+        pathname = decodeURIComponent(url.pathname)
+      } catch {
+        sendText(res, 400, '请求地址不合法')
+        return
+      }
 
-    if (pathname.startsWith('/api/')) {
-      await handleAPI(req, res, url, pathname)
-      logRequest(req, res, pathname, started)
-      return
-    }
+      if (req.method === 'OPTIONS') {
+        res.writeHead(204)
+        res.end()
+        return
+      }
 
-    if (!handleStatic(req, res, pathname)) sendText(res, 404, '页面不存在')
+      if (pathname === '/api/health' && req.method === 'GET') {
+        sendJSON(res, 200, { ok: true, service: 'daigan-ops-console', time: new Date().toISOString() })
+        return
+      }
+
+      if (pathname.startsWith('/api/')) {
+        await handleAPI(req, res, url, pathname)
+        logRequest(req, res, pathname, started)
+        return
+      }
+
+      if (!handleStatic(req, res, pathname)) sendText(res, 404, '页面不存在')
+    } catch (err) {
+      console.error(`[请求处理]`, req.method, req.url, err)
+      try {
+        if (!res.headersSent && !res.writableEnded) sendText(res, 500, '服务器出错了')
+        else res.destroy()
+      } catch {
+        /* 连接已经断了 */
+      }
+    }
   })
 
   const timer = setInterval(purgeExpiredSessions, 60 * 60 * 1000)

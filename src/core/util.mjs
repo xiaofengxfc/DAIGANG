@@ -18,6 +18,24 @@ export const fail = (status, message, code) => {
 export const bad = (message, code) => fail(400, message, code || 'bad_request')
 export const notFound = (message = '没有找到这条记录') => fail(404, message, 'not_found')
 
+/**
+ * 解 URL 编码，解不开就原样返回。
+ *
+ * 为什么必须这么写：`decodeURIComponent('%')` 会抛 URIError。地址栏里一个手抖的
+ * 百分号、请求头里一个畸形 cookie、别的程序拼出来的链接，都能让这个异常从
+ * 请求处理里冒出去 —— 而在 node 的 http 回调里，未捕获异常等于整个进程退出
+ * （界面全白，后台没了）。这类输入没有任何「正确结果」可言，唯一的要求是
+ * 别把进程带走：解不开就当它是普通字符串，交给后面的校验去拒绝。
+ */
+export function safeDecode(value) {
+  const text = String(value ?? '')
+  try {
+    return decodeURIComponent(text)
+  } catch {
+    return text
+  }
+}
+
 /* ---------- 临时文件 ---------- */
 
 const scratchProbe = new Map()

@@ -3,9 +3,9 @@ import path from 'node:path'
 import crypto from 'node:crypto'
 import { db, stamp } from '../core/db.mjs'
 import { UPLOAD_DIR, MEDIA_COOKIE_DIR, MAX_MEDIA_UPLOAD_BYTES, MEDIA_EXECUTOR_TOKEN, MEDIA_EXECUTOR_TIMEOUT_MS } from '../core/config.mjs'
-import { mediaDependencyStatus, startMediaDependencyInstall, mediaDependencyInstallStatus, startMediaExecutor, mediaExecutorInfo, mediaExecutorBaseUrl } from '../media/media-deps.mjs'
+import { mediaDependencyStatus, startMediaDependencyInstall, mediaDependencyInstallStatus, startMediaExecutor, mediaExecutorInfo, mediaExecutorBaseUrl, waitMediaExecutorReady } from '../media/media-deps.mjs'
 import { get, post, patch, del, postRaw } from '../server/http.mjs'
-import { bad, notFound, int, clampStr, parseJSON, stringifyJSON, fail } from '../core/util.mjs'
+import { bad, notFound, int, clampStr, parseJSON, stringifyJSON, fail, safeDecode } from '../core/util.mjs'
 
 // 重命名素材时根据新扩展名推断 mime_type，保证执行器能按图文/视频正确分类。
 const MIME_BY_EXT = {
@@ -94,6 +94,19 @@ async function dispatchTask(id) {
     return { ok: false, available: true, status: latest?.status || row.status, message: '这个任务正在被处理或状态已变化，请刷新后查看' }
   }
   try {
+    /**
+     * 刚 spawn 出来的执行器还要几秒才 bind 端口。没就绪就把任务**退回队列**，
+     * 而不是让它死在 failed 上 —— 定时发布错过时间点，人是不会发现的。
+     */
+    if (!(await waitMediaExecutorReady())) {
+      db.prepare('UPDATE media_tasks SET status = ?, error_msg = ?, updated_at = ? WHERE id = ?').run(
+        row.status === 'scheduled' ? 'scheduled' : 'queued',
+        '发布执行器还在启动，任务已留在队列里',
+        stamp(),
+        id
+      )
+      return { ok: false, available: false, status: row.status, message: '发布执行器还在启动，任务已留在队列里，稍后再点一次' }
+    }
     const accountIds = listJSON(row.account_ids)
     const materialIds = listJSON(row.material_ids)
     const accounts = accountIds.length
@@ -150,8 +163,9 @@ export async function dispatchDueScheduledTasks() {
   let dispatched = 0
   for (const row of due) {
     try {
-      await dispatchTask(row.id)
-      dispatched += 1
+      // 只有真派出去才算「已派发」：没配置执行器 / 还在启动时任务留在队列里
+      const result = await dispatchTask(row.id)
+      if (result?.ok) dispatched += 1
     } catch (err) {
       console.error(`[media-scheduler] 任务 ${row.id} 派发失败：`, err?.message || err)
     }
@@ -275,7 +289,8 @@ export function register() {
     const body = ctx.rawBody || Buffer.alloc(0)
     if (!body.length) bad('上传文件为空', 'empty_file')
     const filenameHeader = ctx.req.headers['x-file-name']
-    const original = clampStr(filenameHeader ? decodeURIComponent(String(filenameHeader)) : 'media-file', 180).replace(/[\\/:*?"<>|\0]/g, '_').trim() || 'media-file'
+    // x-file-name 是前端编码过的文件名；解不开就按原文用，别让一个坏请求变成 500
+    const original = clampStr(filenameHeader ? safeDecode(filenameHeader) : 'media-file', 180).replace(/[\\/:*?"<>|\0]/g, '_').trim() || 'media-file'
     const ext = path.extname(original).toLowerCase().replace(/[^a-z0-9.]/g, '') || '.bin'
     const stem = path.basename(original, path.extname(original)).replace(/[^\w\u4e00-\u9fff.-]+/g, '_').slice(0, 100) || 'media'
     const stored = `${stem}-${Date.now().toString(36)}-${crypto.randomBytes(3).toString('hex')}${ext}`

@@ -228,6 +228,15 @@ export function unitCompatibility(sampleUnit, serviceUnit) {
   const sample = unitGroup(sampleUnit)
   if (!service) return { ok: true, certain: false }
   if (!sample) return { ok: true, certain: false }
+  /**
+   * 「元」不是口径。
+   *
+   * 解析器把货币后缀统一记成元（150r → unit '元'），它只说明「这是个金额」，
+   * 不说明按天还是按周算。unitBonus 早就把它当「没有单位信息」，
+   * 这里也必须一致 —— 否则库里单位是「30天」的服务项会把所有 `xxxr` 样本
+   * 判成口径冲突整条剔除，一项建议价都拿不到。
+   */
+  if (service === '元' || sample === '元') return { ok: true, certain: false }
   return { ok: sample === service, certain: true }
 }
 
@@ -431,7 +440,15 @@ export function matchServices(parsedNames, services, opts = {}) {
       const parsedKey = entry.parsed.key
       if (usedParsed.has(parsedKey)) continue
       // 分数不够突出就别猜：两个服务项咬得很紧时，猜错比不猜更糟
-      const isExact = entry.score >= 0.999
+      /**
+       * exact 的语义是「完全同名」，只能由信号判断，不能用分数。
+       *
+       * windowedEditSimilarity 对「短名字被完整包进长名字」必然给 1.0
+       * （黎那汐塔 vs 黎那汐塔全图探索），unitBonus 也能把 0.94 抬到 1.0。
+       * 一旦按 >= 0.999 判 exact，紧跟着那句歧义 margin 保护就整条被跳过 ——
+       * 界面还会显示「完全同名」，与 341-347 行「windowed 是弱信号、要更严」相反。
+       */
+      const isExact = entry.signal === 'exact'
       const need = entry.signal === 'edit' || entry.signal === 'windowed' ? fuzzyMargin : margin
       if (!isExact && entry.score - entry.runnerUp < need) continue
       usedParsed.add(parsedKey)
