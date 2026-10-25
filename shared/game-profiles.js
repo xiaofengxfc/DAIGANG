@@ -96,10 +96,16 @@ export const GAME_PROFILES = [
 /** 认不出游戏名时用第一个（= 鸣潮，也就是改造前的老行为） */
 export const DEFAULT_PROFILE = GAME_PROFILES[0]
 
-/** 游戏名（或 id）→ profile。认不出来就退回默认那份，不抛错 */
-export function profileForGame(name) {
+/**
+ * 游戏名（或 id）→ profile，认不出来是 null。
+ *
+ * 要判断「这个游戏配没配模板」时用这个，不要用 profileForGame：静默退回默认
+ * 那份的代价是把鸣潮的模板套到别的游戏上，认出来的数字看着像真的 ——
+ * 比认不出来糟得多（认不出来用户会去核对）。
+ */
+export function matchProfile(name) {
   const raw = String(name || '').trim()
-  if (!raw) return DEFAULT_PROFILE
+  if (!raw) return null
   const lower = raw.toLowerCase()
   for (const p of GAME_PROFILES) {
     if (p.id === lower) return p
@@ -115,7 +121,20 @@ export function profileForGame(name) {
       if (candidate.length >= 2 && lower.includes(candidate)) return p
     }
   }
-  return DEFAULT_PROFILE
+  return null
+}
+
+/**
+ * 认不出来就退回默认那份（= 鸣潮）。只给「没有游戏名也要跑」的内部路径用，
+ * 比如不带 game 的老调用。入口处判断游戏支持与否请用 matchProfile。
+ */
+export function profileForGame(name) {
+  return matchProfile(name) || DEFAULT_PROFILE
+}
+
+/** 现在能认的游戏名（拼提示语用：告诉用户「能认哪些」） */
+export function supportedGameNames() {
+  return GAME_PROFILES.map((p) => (p.names && p.names[0]) || p.id)
 }
 
 /** 这个游戏要记的资源，按游戏里从左往右的顺序 */

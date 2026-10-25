@@ -3,7 +3,7 @@ import { Camera, Eye, RefreshCw, Square } from 'lucide-react'
 import { api } from '../lib/api.js'
 import { fmtQty } from '../lib/formatters.js'
 import { RES_KEYS, buildResources, deltaText, joinResourceSections, parseResources, sectionText } from '../../shared/resources.js'
-import { profileForGame, profileKeys } from '../../shared/game-profiles.js'
+import { matchProfile, DEFAULT_PROFILE, profileKeys, supportedGameNames } from '../../shared/game-profiles.js'
 import { rememberFrameToken } from '../lib/screen-frames.js'
 import { toast, toastErr } from '../app/toast-store.js'
 
@@ -66,10 +66,16 @@ export default function ResourceField(props) {
  */
 function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', orderId = '', onChange }) {
   // 订单上选的游戏 → 这张表：记哪几个资源、按什么键打开哪些界面
-  const profile = profileForGame(game)
+  //
+  // 认不出这个游戏就不再套鸣潮的模板：套上去认出来的数字看着像真的，比认不出来糟。
+  // 表还是按默认那份画（用户要能接着手填），但识别按钮会明说用不了。
+  const matchedProfile = matchProfile(game)
+  const profileOk = Boolean(matchedProfile)
+  const profile = matchedProfile || DEFAULT_PROFILE
   const keys = profileKeys(profile)
   const stages = profile.stages || []
-  const gameName = (profile.names && profile.names[0]) || profile.id
+  // 认不出来时用订单上的原始游戏名：写「鸣潮」会把「这是谁的表」说错
+  const gameName = profileOk ? (profile.names && profile.names[0]) || profile.id : String(game || '').trim() || '这个游戏'
   // 解析和拼回都用**并集**（RES_KEYS）：万一历史文本里带着别的游戏的资源名，
   // 它会落到「其他」框里原样留着，不会因为换了游戏就悄悄丢字。
   const [sides, setSides] = useState(() => ({ before: parseResources(before, RES_KEYS), after: parseResources(after, RES_KEYS) }))
@@ -236,9 +242,20 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
    */
   async function watchScreen(side) {
     if (watchers.current.before || watchers.current.after) return
-    if (ocrOk === false) {
-      toast('这台机器上用不了屏幕识别：装一个本地 OCR（设置页有指引），或者用 Windows 自带的那个', 'err', 4200)
+    if (!profileOk) {
+      toast(`「${gameName}」还没有识别模板，识别画面用不了。现在能认的是：${supportedGameNames().join('、')}。`, 'err', 4600)
       return
+    }
+    // 引擎状态是挂载时取的那一次：用户很可能刚在设置页装好引擎再回来点这里。
+    // 所以 ocrOk=false 不能直接挡死，点一次就重新探一次，真不行才说不行。
+    if (ocrOk === false) {
+      const fresh = await api.get('/api/ocr/status').catch(() => null)
+      const available = Boolean(fresh && fresh.available)
+      setOcrOk(available)
+      if (!available) {
+        toast('这台机器上用不了屏幕识别：装一个本地 OCR（设置页有指引），或者用 Windows 自带的那个', 'err', 4200)
+        return
+      }
     }
     const token = { stop: false }
     // 中途「停止」要能立刻打断等待：流程里有好几段 500~1400ms 的固定等待，
@@ -500,6 +517,10 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
    * 要按 M、认不出来还会报错）。
    */
   async function grabShot(side) {
+    if (!profileOk) {
+      toast(`「${gameName}」还没有识别模板，截图会截到别的游戏。现在能认的是：${supportedGameNames().join('、')}。`, 'err', 4600)
+      return
+    }
     setBusy((prev) => ({ ...prev, [side]: 'grab' }))
     try {
       const r = await api.post('/api/ocr/screen/shot', { game: gameName, key: 'F2' })
@@ -620,6 +641,11 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
   return (
     // field--full 不能省：旧引擎会给自定义块补一个，少了它这两排会挤进网格的一列
     <div className="stack stack--tight field--full">
+      {profileOk ? null : (
+        <div className="tiny tone-amber" style={amberStyle}>
+          {`「${gameName}」还没有识别模板：只能手填，识别画面与截图都用不了。现在能认的是：${supportedGameNames().join('、')}。`}
+        </div>
+      )}
       {buildSide('before', '资源对比 · 做之前', true)}
       {buildSide('after', '资源对比 · 做之后', false)}
     </div>

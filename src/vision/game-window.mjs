@@ -270,7 +270,8 @@ export function findGameWindow({ timeoutMs = 8000, game = '' } = {}) {
   })
 }
 
-/** Send only the keys used by the resource-reading and screenshot flows. */export function sendGameKey(key, { timeoutMs = 5000 } = {}) {
+/** Send only the keys used by the resource-reading and screenshot flows. */
+export function sendGameKey(key, { timeoutMs = 5000 } = {}) {
   const normalized = String(key || '').trim().toUpperCase()
   // F2 / F12 是给「只截图不识别」用的：那是游戏自带的截图键
   if (!['B', 'M', 'ESC', 'F2', 'F12'].includes(normalized)) {
@@ -321,15 +322,27 @@ export function findGameWindow({ timeoutMs = 8000, game = '' } = {}) {
       if (code !== 0 || !result?.ok) {
         // 报「哪个游戏」而不是写死鸣潮：两个游戏共用这条路径，写死会误导。
         const label = activeWindow?.title || activeWindow?.process || '游戏'
+        /* input_blocked 表示 Windows 拒绝了这次注入，不是没找到窗口。
+           game-key.ps1 用 SendInput 的返回值判断，这里把它翻成人话：
+           最常见的原因是游戏以管理员身份运行、本程序不是（UIPI 拦截），
+           其次是安全软件拦截模拟按键。 */
+        const win32Error = Number(result?.win32_error || 0)
         const knownErrors = {
           game_not_foreground: `没能把焦点保持在${label}窗口上，按键没有发出去（不会盲发，免得打到别的窗口上）。`,
           game_window_closed: `${label}窗口已经关闭。`,
+          input_blocked:
+            `Windows 没有接受这次按键${win32Error ? `（Win32 错误 ${win32Error}）` : ''}。`
+            + `最常见的原因是${label}以管理员身份运行、而本程序不是 —— 用「以管理员身份运行」重新打开本程序再试；`
+            + '也可能是安全软件拦了模拟按键。'
+            + (result?.stuck ? '按键可能还处在按下状态，在键盘上按一下这个键就能释放。' : ''),
         }
         // 把实际的前台窗口报出来：只说「不在前台」的话，分不清是句柄过期还是被别人抢了
         const detail = result && result.got ? `（当前前台窗口 0x${Number(result.got).toString(16)}，期望 0x${Number(result.want).toString(16)}）` : ''
         return finish({ ok: false, code: result?.code, error: (knownErrors[result?.code] || stderr.trim() || `没有向${label}发送按键。`) + detail })
       }
-      finish({ ok: true, key: normalized })
+      // scan/sent 一起带回去：认不出按键有没有生效时，这两个数是第一手证据
+      // （scan=0 就是老版本那个毛病，见 scripts/win32/game-key.ps1 的注释）。
+      finish({ ok: true, key: normalized, scan: result?.scan ?? null, sent: result?.sent ?? null })
     })
   })
 }

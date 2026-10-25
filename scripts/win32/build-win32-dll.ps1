@@ -25,7 +25,7 @@ Write-Output "Built $dll ($size bytes)"
 # this repo's path has Chinese characters in it, which makes that URI invalid
 # (measured: COR_E_FILELOAD 0x80131515). See win32.ps1.
 $asm = [Reflection.Assembly]::Load([IO.File]::ReadAllBytes($dll))
-foreach ($name in @('ScreenDpi', 'DisplayMode', 'GameWindowFocus', 'GameKeyInput', 'GameKeyFocus', 'WindowCapture')) {
+foreach ($name in @('ScreenDpi', 'DisplayMode', 'GameWindowFocus', 'GameKeyInput', 'GameKeyFocus', 'GameKeySend', 'WindowCapture')) {
   if (-not $asm.GetType($name)) { throw "Type $name is missing from the built assembly" }
 }
-Write-Output "Verified: ScreenDpi, DisplayMode, GameWindowFocus, GameKeyInput, GameKeyFocus, WindowCapture"
+Write-Output "Verified: ScreenDpi, DisplayMode, GameWindowFocus, GameKeyInput, GameKeyFocus, GameKeySend, WindowCapture"

@@ -663,6 +663,10 @@ async function main() {
       ok('资源对比两排都在', resText.includes('资源对比 · 做之前') && resText.includes('资源对比 · 做之后'), resText.slice(0, 200))
       ok('三个资源框都在', ['星声', '体力', '贝币'].every((key) => resText.includes(key)), resText.slice(0, 200))
       ok('两个识别按钮都在', resText.includes('识别画面') && resText.includes('识别截图'))
+      // 这一单的游戏（UI冒烟游戏）没有识别模板。以前会静默套鸣潮的模板 ——
+      // 认出来的数字看着像真的。现在必须在界面上说明，且仍然能手填。
+      ok('没配识别模板的游戏会说清楚', resText.includes('还没有识别模板'), resText.slice(-200))
+      ok('说清楚了也照样能手填', ['星声', '体力', '贝币'].every((key) => resText.includes(key)), resText.slice(0, 200))
       // 「截图」= 切到游戏按 F2 只留图不认数字，和识别是两条并行的路。
       // 按按钮文字找（不能拿整段文本 includes('截图')，那会被「识别截图」命中）。
       const shotBtn = await cdp.eval(`(() => {

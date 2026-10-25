@@ -1734,6 +1734,25 @@ export async function run() {
     r = await api('POST', '/api/ocr/screen/begin', { id: 'smoke-http-b', game: 'nte' })
     ok('第二条流程被 409 挡下（不是 500）', r.status === 409 && r.body.code === 'screen_busy', r.body)
 
+    // 切窗口这一步也必须带当前流程的 id。不带就能切的话，任何页面（或者一条
+    // 已经结束的老流程）都能把玩家正在玩的游戏窗口抢走。
+    r = await api('POST', '/api/ocr/screen/focus', { game: 'wuwa' })
+    ok('不在流程里不让切窗口（会抢走玩家正在玩的窗口）', r.status === 409 && r.body.code === 'screen_busy', r.body)
+
+    r = await api('POST', '/api/ocr/screen/focus', { game: 'wuwa', flow: 'smoke-http-b' })
+    ok('拿着别的流程的 id 也不让切窗口', r.status === 409 && r.body.code === 'screen_busy', r.body)
+
+    r = await api('POST', '/api/ocr/screen/focus', { game: '异环', flow: 'smoke-http-a' })
+    ok('一条流程只切它自己那个游戏', r.status === 409 && r.body.code === 'screen_game_mismatch', r.body)
+
+    // 没配模板的游戏：不拿鸣潮的模板去认，也不切到鸣潮的窗口
+    r = await api('POST', '/api/ocr/screen/focus', { game: '没配模板的游戏', flow: 'smoke-http-a' })
+    ok('没配模板的游戏拒绝切窗口', r.status === 400 && r.body.code === 'game_profile_missing', r.body)
+    ok('拒绝时说清现在能认哪些', /现在能认的是/.test(String(r.body.error)) && /鸣潮/.test(String(r.body.error)), r.body.error)
+
+    r = await api('POST', '/api/ocr', { game: '没配模板的游戏', data_url: 'data:image/png;base64,iVBORw0KGgo=' })
+    ok('截图识别同样拒绝没配模板的游戏', r.status === 400 && r.body.code === 'game_profile_missing', r.body)
+
     r = await api('POST', '/api/ocr/screen', { session: 'smoke-http-b', game: 'nte', flow: 'smoke-http-b' })
     ok('拿着别的流程的 id 去识别会被挡下', r.status === 409 && r.body.code === 'screen_busy', r.body)
 
@@ -1748,6 +1767,11 @@ export async function run() {
 
     r = await api('POST', '/api/ocr/screen', { session: 'smoke-http-b', game: 'nte' })
     ok('没有流程在跑时拒绝识别（否则那一帧没有归属）', r.status === 409 && r.body.code === 'screen_flow_gone', r.body)
+
+    // 截图那条也要判游戏：它是按游戏找窗口的，没配模板会切到鸣潮的窗口，
+    // 截回来的是别的游戏的画面。（放这里是因为流程在跑时它会先报 screen_busy）
+    r = await api('POST', '/api/ocr/screen/shot', { game: '没配模板的游戏' })
+    ok('截图也拒绝没配模板的游戏（否则截的是鸣潮的窗口）', r.status === 400 && r.body.code === 'game_profile_missing', r.body)
 
     r = await api('POST', '/api/ocr/screen/end', { id: 'smoke-http-a' })
     ok('重复释放不报错', r.status === 200 && r.body.released === false, r.body)
@@ -1769,6 +1793,16 @@ export async function run() {
     const rawSleeps = src.match(/setTimeout\(resolve\s*,/g) || []
     ok('流程里的等待不再用裸 setTimeout（sleep 统一走可打断的 wait）', rawSleeps.length === 0, `${rawSleeps.length} 处`)
     ok('停止后有交代（不是静默 return）', /已停止识别/.test(src), '')
+
+    // 引擎状态是挂载时取的那一次。用户很可能刚在设置页装好引擎再回来点
+    // 「识别画面」，所以 ocrOk=false 不能一次定终身 —— 点的时候要重新探一次。
+    ok(
+      '引擎状态不是一次定终身（点的时候会重新探一次）',
+      /if \(ocrOk === false\) \{[\s\S]{0,400}api\.get\('\/api\/ocr\/status'\)/.test(src),
+      ''
+    )
+    // 没配识别模板的游戏：以前静默套鸣潮的模板，认出来的数字看着像真的。
+    ok('没配模板的游戏会说出来并列出能认哪些', /还没有识别模板/.test(src) && /supportedGameNames\(\)/.test(src), '')
   }
 
   /* ---------- 退出与登录 ---------- */

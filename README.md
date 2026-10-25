@@ -1482,6 +1482,37 @@ python.exe，5419 会被占着，脚本会明确告诉你结束掉它或换个�
 问来的真实显示模式（`EnumDisplaySettings`，不受 DPI 虚拟化影响）跟截出来的图比，
 对不上就直接判失败。
 
+#### 切窗口要属于一条流程
+
+`/api/ocr/screen/focus` 必须带当前流程的 `flow`，而且只能切这条流程自己那个游戏。
+
+- 不带 `flow`：任何页面（或者一条已经结束的老流程）都能把游戏窗口从玩家手里抢走，
+  切走之后玩家的操作就落到别的窗口里了。这时返回 409 `screen_busy` 或 `screen_flow_gone`。
+- 换游戏：租约是按游戏申请的。拿着鸣潮的租约去切异环的窗口，后面每一帧都会认错，
+  所以直接返回 409 `screen_game_mismatch`。
+- 没配模板的游戏：不切窗口、不识别、不截图，返回 400 `game_profile_missing` 并列出
+  现在能认哪些游戏。默认那份 profile 只给「不带游戏名」的内部调用用。
+
+#### 按键：必须带真实扫描码
+
+识别要按 B/M/ESC 开界面、按 F2 截图。这些键由 `scripts/win32/game-key.ps1` 模拟发出。
+
+- **按键必须带真实扫描码**：B=48、M=50、ESC=1、F2=60、F12=88。扫描码为 0 的事件会被
+  按扫描码映射键位的游戏丢掉（Raw Input 与 DirectInput 都按扫描码映射）。窗口照样切到
+  前台，游戏里没有反应，也不报错。实现用 `SendInput` 加 `MapVirtualKey`，不要换回
+  `keybd_event`：它的扫描码参数很容易被写成 0，而且没有返回值。
+- **被拦下要说出来**：`SendInput` 返回 Windows 接受的事件数，返回 0 就是被拦下，
+  原因在 Win32 错误码里。这时返回 `{ok:false, code:'input_blocked', win32_error}`，
+  界面显示「Windows 没有接受这次按键（Win32 错误 N）」。最常见的原因是游戏以管理员
+  身份运行、本程序不是（UIPI）。
+- **发送前确认焦点在游戏上**：先试 ALT 加 `SetForegroundWindow`，再试
+  `AttachThreadInput`（与 `focus-game.ps1` 同一套）。两次都失败就拒绝发送。
+  不把 B 打到别的窗口的输入框里。
+- **按住 80ms 再抬起**：真实按键就是这样。按下与抬起分两次发，不要合并成一次。
+
+`npm run test:key` 验收这一层。它开一个探针窗口收按键（`scripts/checks/key-probe.ps1`），
+跑真的 `game-key.ps1`，核对 5 个白名单按键的虚拟键码与扫描码。扫描码为 0 判失败。
+
 实测（同一台机器、同一张截图缩到不同尺寸）：
 
 | 分辨率 | 认出来的星声 | 认出来的贝币 |
@@ -1778,6 +1809,7 @@ Add-Type : A required privilege is not held by the client     ← Win32 1314
 
 ```bash
 npm run test:icon-probe          # 12 项断言，会把合成图存到 shots/icon-probe/
+npm run test:key                 # 按键注入：开探针窗口收按键，核对 5 个键的虚拟键码 + 扫描码（会短暂弹窗抢焦点）
 ```
 
 内部接口 `POST /api/ocr?deep=1` 会带上 `icon_probe` 字段（每个模板的分数、
@@ -1792,6 +1824,8 @@ npm run test:icon-probe          # 12 项断言，会把合成图存到 shots/ic
 | `POST /api/ocr/screen` | 认当前屏幕并投票，同一 `session` 连续调用会累计票数；`keys` 同上（前端按当前这一屏的资源传）。返回里的 `frame_token` 是这一帧暂存的凭据 |
 | `POST /api/ocr/screen/shot` | **只截图不识别**：按 `key`（F2 / F12，默认 F2）抓一张游戏画面并暂存，返回 `frame_token`。不需要 OCR 引擎，也不碰游戏 UI。抢不到焦点时改读窗口像素；全屏窗口下会明确报错而不是给一张桌面截图 |
 | `GET /api/ocr/screen/frame?token=` | 取回识别时暂存的那一帧原始截图（**取走即删**，没取就 10 分钟后过期）。前端拿它在浏览器里压缩后挂到进度上 |
+| `POST /api/ocr/screen/focus` | 把这一单那个游戏的窗口切到前台。必须带当前流程的 `flow`（否则 `screen_busy` / `screen_flow_gone`），且只能切这条流程自己那个游戏（换游戏报 `screen_game_mismatch`）。没有租约也能切的话，任何页面都能把玩家正在玩的窗口抢走 |
+| `POST /api/ocr/screen/key` | 向游戏窗口发一个白名单按键（B / M / ESC / F2 / F12）。焦点不在游戏上时先取回焦点（ALT 加 AttachThreadInput），失败则拒绝发送。被 Windows 拦下（UIPI）返回 `input_blocked` 与 `win32_error`。返回值带 `scan` 与 `sent`，用于排查 |
 | `POST /api/ocr/screen/reset` | 清掉这次投票记录 |
 | `GET/POST /api/ocr/icons` | 列出 / 上传自备图标模板 |
 | `GET /api/ocr/install` | 安装选项清单 + 解压器探测结果 |
@@ -1875,6 +1909,26 @@ npm run test:icon-probe          # 12 项断言，会把合成图存到 shots/ic
 6. **说「5410 端口上已经有一个视觉进程，但 token 对不上」？** 那是上次程序被强杀时
    留下的 python.exe 还占着端口。正常情况下它会跟着主程序一起退（主程序一死，
    管道断开它就自己退出）；真留下了就在任务管理器里结束那个 python.exe。
+
+**点了「识别画面」，游戏窗口切到前台了，但背包与地图没有打开？**
+
+按键没有送到游戏。按顺序查三处：
+
+1. **游戏以管理员身份运行、本程序不是。** Windows 会拦下模拟按键（UIPI），界面显示
+   「Windows 没有接受这次按键（Win32 错误 5）」。用「以管理员身份运行」重新打开本程序。
+2. **安全软件拦截模拟输入。** 部分游戏模式与防作弊会拦。把本程序加进白名单。
+3. **按键这一层没有送到。** 跑 `npm run test:key`。它开一个小窗口收按键，核对虚拟键码
+   与扫描码。扫描码为 0 判失败，见上一节的「按键：必须带真实扫描码」。
+
+**提示「这个游戏还没有识别模板」？**
+
+识别模板是按游戏配的，现在只有鸣潮与异环（见 `shared/game-profiles.js`）。订单上的游戏
+不在其中时，界面会直说，只能手填 —— 以前会静默套用鸣潮的模板，认出来的数字看着像真的，
+比认不出来糟。要加一个游戏：加一条 profile 与几张图标模板，`src/vision/screen.mjs` 不用改。
+
+**在设置页装好 OCR，回到「记进度」还要刷新页面？**
+
+不用了。引擎状态在点「识别画面」时会重新探一次；真的还不能用，才会提示装引擎。
 
 想自己确认「换分辨率还认不认得出」，跑 `node scripts/checks/vision-selftest.mjs`；
 想比较两个后端，跑 `node scripts/checks/vision-parity.mjs`。

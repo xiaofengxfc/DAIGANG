@@ -23,6 +23,7 @@
     "test:ui": "node scripts/checks/ui-smoke.mjs",
     "test:glass": "node scripts/checks/glass-check.mjs",
     "test:icon-probe": "node scripts/checks/icon-probe-check.mjs",
+    "test:key": "node scripts/checks/game-key-check.mjs",
     "test:vision-python": "node scripts/checks/vision-python-check.mjs",
     "vision:matrix": "node scripts/checks/vision-matrix.mjs",
     "test:bili": "node scripts/checks/bili-scan-check.mjs",

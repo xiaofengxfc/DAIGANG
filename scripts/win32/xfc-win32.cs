@@ -162,6 +162,14 @@ public static class GameKeyFocus {
   [DllImport("user32.dll", SetLastError = true)] public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
   [DllImport("user32.dll", SetLastError = true)] public static extern bool SetForegroundWindow(IntPtr hWnd);
   [DllImport("user32.dll")] public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
+  // Second focus attempt: attach our input queue to the game's, which is the
+  // other half of the foreground-lock workaround (focus-game.ps1 uses it too).
+  // GetCurrentThreadId lives in kernel32, not user32 (measured: a user32 import
+  // throws "Unable to find an entry point" and the whole focus retry died).
+  [DllImport("kernel32.dll")] public static extern uint GetCurrentThreadId();
+  [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hWnd, IntPtr processId);
+  [DllImport("user32.dll", SetLastError = true)] public static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool attach);
+  [DllImport("user32.dll", SetLastError = true)] public static extern bool BringWindowToTop(IntPtr hWnd);
   public const byte VK_MENU = 0x12; // ALT
   public const uint KEYEVENTF_KEYUP = 0x2;
 
@@ -169,4 +177,68 @@ public static class GameKeyFocus {
     keybd_event(VK_MENU, 0, 0, UIntPtr.Zero);
     keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
   }
+}
+
+// Sending one whitelisted key to the game, used by game-key.ps1.
+//
+// Two constraints, both measured with a window that logs WM_KEYDOWN:
+//
+//  1) The scan code must be real. keybd_event with bScan=0 delivers
+//     "WM_KEYDOWN vk=66 sc=0". Games map keys by scan code (Raw Input,
+//     DirectInput), so they drop such an event: the window comes to the front
+//     and nothing happens. SendInput with MapVirtualKey(VK, MAPVK_VK_TO_VSC)
+//     delivers sc=48 for B, 50 for M, 1 for ESC, 60 for F2, 88 for F12 -- what
+//     a physical keyboard sends, and the window's WM_KEYDOWN carries it.
+//
+//  2) The result must be readable. SendInput returns how many events Windows
+//     inserted, so a UIPI refusal (game elevated, this program not) is visible;
+//     keybd_event returns nothing, which makes a refusal look like success.
+//
+// Press and release stay separate calls: the script holds the key for 80ms, the
+// way a physical key press behaves. Do not merge them into one call.
+public static class GameKeySend {
+  [StructLayout(LayoutKind.Sequential)] public struct KEYBDINPUT { public ushort wVk; public ushort wScan; public uint dwFlags; public uint time; public IntPtr dwExtraInfo; }
+  [StructLayout(LayoutKind.Sequential)] public struct MOUSEINPUT { public int dx; public int dy; public uint mouseData; public uint dwFlags; public uint time; public IntPtr dwExtraInfo; }
+  [StructLayout(LayoutKind.Sequential)] public struct HARDWAREINPUT { public uint uMsg; public ushort wParamL; public ushort wParamH; }
+  // Union laid out at offset 0 and sized by its largest member (MOUSEINPUT), so
+  // the same declaration is correct on x86 (ki at 4) and x64 (ki at 8). Sized
+  // 40 bytes on x64, which is what SendInput expects.
+  [StructLayout(LayoutKind.Explicit)] public struct INPUTUNION { [FieldOffset(0)] public MOUSEINPUT mi; [FieldOffset(0)] public KEYBDINPUT ki; [FieldOffset(0)] public HARDWAREINPUT hi; }
+  [StructLayout(LayoutKind.Sequential)] public struct INPUT { public uint type; public INPUTUNION u; }
+
+  [DllImport("user32.dll", SetLastError = true)] public static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
+  [DllImport("user32.dll")] public static extern uint MapVirtualKey(uint code, uint mapType);
+
+  public const uint INPUT_KEYBOARD = 1;
+  public const uint KEYEVENTF_KEYUP = 0x0002;
+
+  // Win32 error of the LAST SendInput/SendDown/SendUp call in this process.
+  // Read through a field, not Marshal.GetLastWin32Error(): the value only stays
+  // valid until the next Win32 call on the thread, and PowerShell makes plenty
+  // of those between our call and the script reading the error.
+  public static int LastErrorValue;
+
+  /// Hardware scan code the system maps this virtual key to (0 = no mapping).
+  public static int ScanOf(int vk) {
+    return (int)(MapVirtualKey((uint)vk, 0) & 0xFF);
+  }
+
+  /// Insert events. Returns how many Windows accepted (1 expected per call).
+  static int Insert(int vk, ushort scan, uint flags) {
+    INPUT[] buf = new INPUT[1];
+    buf[0].type = INPUT_KEYBOARD;
+    buf[0].u.ki.wVk = (ushort)vk;
+    buf[0].u.ki.wScan = scan;
+    buf[0].u.ki.dwFlags = flags;
+    buf[0].u.ki.time = 0;
+    buf[0].u.ki.dwExtraInfo = IntPtr.Zero;
+    uint n = SendInput(1, buf, Marshal.SizeOf(typeof(INPUT)));
+    LastErrorValue = Marshal.GetLastWin32Error();
+    return (int)n;
+  }
+
+  // Press and release are two calls on purpose (see the note above): the script
+  // holds the key for 80ms, the way a real key press behaves.
+  public static int SendDown(int vk) { return Insert(vk, (ushort)ScanOf(vk), 0); }
+  public static int SendUp(int vk) { return Insert(vk, (ushort)ScanOf(vk), KEYEVENTF_KEYUP); }
 }

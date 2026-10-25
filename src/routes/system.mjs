@@ -11,7 +11,7 @@ import { startVisionDependencyInstall, visionDependencyInstallStatus, visionDepe
 import { installOptions, installEngine, installStatus, extractorStatus, releasePage, INSTALL_SPECS, engineHealth, cleanupTmp } from '../vision/ocr-install.mjs'
 import { recognizeScreenOnce, recognizeImageFile, resetVotes, screenAvailable, templateStatus, loadTemplates, extractIconTemplate, screenResourcesFor, templateFileFor, SCREEN_RESOURCES, MIN_SCORE, probeIcons } from '../vision/screen.mjs'
 import { peekFrame, releaseFrame } from '../vision/screen-stash.mjs'
-import { profileForGame } from '../../shared/game-profiles.js'
+import { profileForGame, matchProfile, supportedGameNames } from '../../shared/game-profiles.js'
 import { focusGameWindow, returnToPreviousWindow, sendGameKey, beginScreenFlow, endScreenFlow, touchScreenFlow, currentScreenFlow } from '../vision/game-window.mjs'
 import { captureGameFrame } from '../vision/game-shot.mjs'
 import { decodePNG, encodePNG } from '../vision/imgmatch.mjs'
@@ -41,6 +41,21 @@ function screenKeysWanted(game, raw) {
   const allowed = new Set(loadTemplates({ profile: profileForGame(game) }).map((r) => r.key))
   const keys = [...new Set(raw.map((k) => clampStr(k, 40)).filter((k) => k && allowed.has(k)))]
   return keys.length ? keys : null
+}
+
+/**
+ * 这个游戏配了识别模板吗。没配就报错，不拿默认那份去认（原因见 matchProfile 的注释）。
+ * 空游戏名放行：那是不带游戏的老调用，走默认 profile。
+ */
+function requireProfile(game) {
+  if (!game) return null
+  const profile = matchProfile(game)
+  if (profile) return profile
+  fail(
+    400,
+    `「${game}」还没有识别模板，认不了。现在能认的是：${supportedGameNames().join('、')}。`,
+    'game_profile_missing'
+  )
 }
 
 function decorateLite(row) {
@@ -450,10 +465,12 @@ export function register() {
    * 认出来的只是「猜」，前端会让人核对后再填，不直接写库。
    */
   post('/api/ocr', async (ctx) => {
+    // 先判游戏：没配模板的话，探了引擎也没用，而且不能拿鸣潮的模板去认
+    const game = clampStr(ctx.body.game, 40)
+    requireProfile(game)
     // 识别前先把引擎状态探一次：不然 Umi-OCR 明明开着也轮不到它（见 /api/ocr/status 的注释）
     const st = await ensureEnginesProbed()
     if (!st.available) fail(400, '这台机器上没有可用的 OCR（Windows 自带引擎或本地 OCR 程序，二者有一即可）', 'no_ocr')
-    const game = clampStr(ctx.body.game, 40)
     const { name, buf } = saveDataURL(ctx.body.data_url, 'ocr', { maxBytes: MAX_OCR_IMAGE_BYTES })
     const ext = /\.(jpe?g|webp)$/i.test(name) ? path.extname(name) : '.png'
     // 这张图要喂给 OCR 引擎（可能是外部 exe），所以走 ascii 档
@@ -562,7 +579,25 @@ export function register() {
    */
   post('/api/ocr/screen/focus', async (ctx) => {
     const game = clampStr(ctx.body?.game, 40)
-    const r = await focusGameWindow({ game })
+    const want = requireProfile(game)
+    // 切窗口必须属于一条正在跑的流程：没有租约也能切的话，任何页面（或者一条
+    // 已经结束的老流程）都能把玩家正在玩的游戏窗口抢走。
+    const flow = clampStr(ctx.body?.flow, 60)
+    const active = currentScreenFlow()
+    if (!active) fail(409, '这条识别流程已经结束了（或者超时了），请重新点「识别画面」。', 'screen_flow_gone')
+    if (!flow || active.id !== flow) {
+      fail(409, '上一条「识别画面」还没结束，这次没有切窗口。等它结束再试。', 'screen_busy')
+    }
+    // 一条流程只切它自己那个游戏：租约是按游戏申请的，切错窗口后面会全认错。
+    const leased = active.game ? matchProfile(active.game) : null
+    if (want && leased && want.id !== leased.id) {
+      const nameOf = (p) => (p.names && p.names[0]) || p.id
+      fail(409, `这条流程是给${nameOf(leased)}的，不能切到${nameOf(want)}。等它结束，或者重新点一次「识别画面」。`, 'screen_game_mismatch')
+    }
+    touchScreenFlow(active.id)
+    // 前端一般会带游戏名；不带就按租约上那个游戏去切，别退回默认那份
+    const profileId = (want && want.id) || (leased && leased.id) || ''
+    const r = await focusGameWindow({ game: profileId })
     if (!r.ok) fail(400, r.error || '没有切换到游戏窗口', 'game_focus_failed')
     return r
   })
@@ -614,11 +649,12 @@ export function register() {
       fail(409, '上一条「识别画面」还没结束，这次识别没有执行。等它结束再试。', 'screen_busy')
     }
     touchScreenFlow(active.id)
+    const game = clampStr(ctx.body.game, 40)
+    requireProfile(game)
 
     // 看屏幕之前先探一次，别让首选引擎白白闲置
     const st = await ensureEnginesProbed()
     if (!st.available) fail(400, '这台机器上用不了屏幕识别（需要有可用的 OCR）', 'no_screen')
-    const game = clampStr(ctx.body.game, 40)
     const r = await recognizeScreenOnce({
       id: clampStr(ctx.body.session, 40) || 'default',
       game,
@@ -715,7 +751,10 @@ export function register() {
     }
     const key = (clampStr(ctx.body.key, 6).toUpperCase() || 'F2')
     if (!['F2', 'F12'].includes(key)) bad('只支持 F2 / F12 这两个截图键', 'bad_key')
-    const r = await captureGameFrame({ game: clampStr(ctx.body.game, 40), key })
+    const game = clampStr(ctx.body.game, 40)
+    // 截图也要按游戏找窗口：没配模板就会切到鸣潮的窗口，截回来的是别的游戏
+    requireProfile(game)
+    const r = await captureGameFrame({ game, key })
     if (!r.ok) fail(400, r.error || '没能截到游戏画面', 'shot_failed')
     return {
       frame_token: r.frame_token,
