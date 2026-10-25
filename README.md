@@ -1487,7 +1487,13 @@ python.exe，5419 会被占着，脚本会明确告诉你结束掉它或换个�
 `/api/ocr/screen/focus` 必须带当前流程的 `flow`，而且只能切这条流程自己那个游戏。
 
 - 不带 `flow`：任何页面（或者一条已经结束的老流程）都能把游戏窗口从玩家手里抢走，
-  切走之后玩家的操作就落到别的窗口里了。这时返回 409 `screen_busy` 或 `screen_flow_gone`。
+  切走之后玩家的操作就落到别的窗口里了。**三种情况分开报，别混成一句**：
+  - 有流程在跑，但请求里压根没带 `flow` → 400 `screen_flow_missing`（调用方漏传参数）；
+  - 带了别人的 `flow` → 409 `screen_busy`（真的有另一条在跑）；
+  - 当前没有任何流程 → 409 `screen_flow_gone`（流程结束了或超时了）。
+
+  分开报是有代价换来的教训：这几个原本共用一个 `screen_busy` 和同一句「上一条还没结束」，
+  结果前端漏传参数被说成「另一条识别画面在跑」，现象是「我明明没点它，凭什么说它在跑」。
 - 换游戏：租约是按游戏申请的。拿着鸣潮的租约去切异环的窗口，后面每一帧都会认错，
   所以直接返回 409 `screen_game_mismatch`。
 - 没配模板的游戏：不切窗口、不识别、不截图，返回 400 `game_profile_missing` 并列出
@@ -1824,7 +1830,7 @@ npm run test:key                 # 按键注入：开探针窗口收按键，核
 | `POST /api/ocr/screen` | 认当前屏幕并投票，同一 `session` 连续调用会累计票数；`keys` 同上（前端按当前这一屏的资源传）。返回里的 `frame_token` 是这一帧暂存的凭据 |
 | `POST /api/ocr/screen/shot` | **只截图不识别**：按 `key`（F2 / F12，默认 F2）抓一张游戏画面并暂存，返回 `frame_token`。不需要 OCR 引擎，也不碰游戏 UI。抢不到焦点时改读窗口像素；全屏窗口下会明确报错而不是给一张桌面截图 |
 | `GET /api/ocr/screen/frame?token=` | 取回识别时暂存的那一帧原始截图（**取走即删**，没取就 10 分钟后过期）。前端拿它在浏览器里压缩后挂到进度上 |
-| `POST /api/ocr/screen/focus` | 把这一单那个游戏的窗口切到前台。必须带当前流程的 `flow`（否则 `screen_busy` / `screen_flow_gone`），且只能切这条流程自己那个游戏（换游戏报 `screen_game_mismatch`）。没有租约也能切的话，任何页面都能把玩家正在玩的窗口抢走 |
+| `POST /api/ocr/screen/focus` | 把这一单那个游戏的窗口切到前台。必须带当前流程的 `flow`（没带报 400 `screen_flow_missing`、带别人的报 409 `screen_busy`、没有流程在跑报 409 `screen_flow_gone`），且只能切这条流程自己那个游戏（换游戏报 `screen_game_mismatch`）。没有租约也能切的话，任何页面都能把玩家正在玩的窗口抢走 |
 | `POST /api/ocr/screen/key` | 向游戏窗口发一个白名单按键（B / M / ESC / F2 / F12）。焦点不在游戏上时先取回焦点（ALT 加 AttachThreadInput），失败则拒绝发送。被 Windows 拦下（UIPI）返回 `input_blocked` 与 `win32_error`。返回值带 `scan` 与 `sent`，用于排查 |
 | `POST /api/ocr/screen/reset` | 清掉这次投票记录 |
 | `GET/POST /api/ocr/icons` | 列出 / 上传自备图标模板 |

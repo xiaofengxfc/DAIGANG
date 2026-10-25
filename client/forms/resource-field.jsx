@@ -330,7 +330,9 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
       if (!lease || !lease.ok) throw new Error((lease && lease.error) || '另有一条「识别画面」正在跑，等它结束再试')
       flowHeld = true
       // 带上游戏名：切窗口是按游戏找的（鸣潮和异环的进程名/窗口标题都不一样）
-      const focus = await api.post('/api/ocr/screen/focus', { game: gameName })
+      // flow 不能省：服务端要求切窗口属于某条正在跑的流程，不带就被当成
+      // 「另一个人在跑」挡掉。漏过一次，每次点「识别画面」都死在这一步。
+      const focus = await api.post('/api/ocr/screen/focus', { game: gameName, flow: flowId })
       if (!focus || !focus.ok) throw new Error((focus && focus.error) || `没有切换到${gameName}窗口`)
       focused = true
       // 按通用规则猜中的窗口要说出来：猜错的话后面认出来的全是别的游戏的画面

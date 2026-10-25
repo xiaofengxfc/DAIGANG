@@ -604,7 +604,13 @@ export function register() {
     const flow = clampStr(ctx.body?.flow, 60)
     const active = currentScreenFlow()
     if (!active) fail(409, '这条识别流程已经结束了（或者超时了），请重新点「识别画面」。', 'screen_flow_gone')
-    if (!flow || active.id !== flow) {
+    // 「没带 flow」和「别人占着」必须分开报。以前两者共用 screen_busy 和同一句
+    // 「上一条还没结束」，于是前端漏传参数被说成另一条流程在跑 —— 现象就是
+    // 「我明明没点它，凭什么说它在跑」，排查方向直接跑偏（踩过）。
+    if (!flow) {
+      fail(400, '这次切窗口的请求没带流程 id（flow），不知道是哪条流程发的，所以没有切。这不是「另一条识别画面在跑」，是调用方漏传了参数。', 'screen_flow_missing')
+    }
+    if (active.id !== flow) {
       fail(409, '上一条「识别画面」还没结束，这次没有切窗口。等它结束再试。', 'screen_busy')
     }
     // 一条流程只切它自己那个游戏：租约是按游戏申请的，切错窗口后面会全认错。
@@ -664,7 +670,11 @@ export function register() {
     if (!active) fail(409, '这条识别流程已经结束了（或者超时了），请重新点「识别画面」。', 'screen_flow_gone')
     // 必须**明确带着当前流程的 id**：不带 id 也放行的话，别的标签页（或者
     // 已经结束的老流程）就能蹭着别人的租约抓屏幕，那这一帧没有归属。
-    if (!flow || active.id !== flow) {
+    // 同 /focus：没带参数和真被别人占着是两件事，报同一句话会把人带偏。
+    if (!flow) {
+      fail(400, '这次识别的请求没带流程 id（flow），那一帧没有归属，所以没有抓屏幕。这不是「另一条识别画面在跑」，是调用方漏传了参数。', 'screen_flow_missing')
+    }
+    if (active.id !== flow) {
       fail(409, '上一条「识别画面」还没结束，这次识别没有执行。等它结束再试。', 'screen_busy')
     }
     touchScreenFlow(active.id)

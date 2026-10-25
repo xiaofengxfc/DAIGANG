@@ -1736,8 +1736,11 @@ export async function run() {
 
     // 切窗口这一步也必须带当前流程的 id。不带就能切的话，任何页面（或者一条
     // 已经结束的老流程）都能把玩家正在玩的游戏窗口抢走。
+    // 有流程在跑、但请求里没带 flow：要报「调用方漏传参数」。以前这里报 409
+    // screen_busy 和「上一条还没结束」，把前端漏传说成了另一条流程在跑。
     r = await api('POST', '/api/ocr/screen/focus', { game: 'wuwa' })
-    ok('不在流程里不让切窗口（会抢走玩家正在玩的窗口）', r.status === 409 && r.body.code === 'screen_busy', r.body)
+    ok('没带 flow 说是漏传参数，不冤枉另一条流程', r.status === 400 && r.body.code === 'screen_flow_missing', r.body)
+    ok('而且那句话里不出现「上一条…还没结束」', !/上一条/.test(String(r.body.error)) && /漏传/.test(String(r.body.error)), r.body.error)
 
     r = await api('POST', '/api/ocr/screen/focus', { game: 'wuwa', flow: 'smoke-http-b' })
     ok('拿着别的流程的 id 也不让切窗口', r.status === 409 && r.body.code === 'screen_busy', r.body)
@@ -1757,7 +1760,49 @@ export async function run() {
     ok('拿着别的流程的 id 去识别会被挡下', r.status === 409 && r.body.code === 'screen_busy', r.body)
 
     r = await api('POST', '/api/ocr/screen', { session: 'smoke-http-a', game: 'wuwa' })
-    ok('不带流程 id 也挡（否则能蹭别人的租约抓一帧没归属的屏幕）', r.status === 409 && r.body.code === 'screen_busy', r.body)
+    ok('不带流程 id 也挡（否则能蹭别人的租约抓一帧没归属的屏幕）', r.status === 400 && r.body.code === 'screen_flow_missing', r.body)
+
+    /* 源码级的守门：前端每个**需要** flow 的调用都必须真的带上 flow。
+       这条是给「服务端改了约定、前端没跟上」那类错配用的。23dae4a 给 /key、
+       /screen、/return 都补了 flow，漏了 /focus —— 于是每次点「识别画面」都死在
+       切窗口那一步，而接口用例照样全绿：它们验的是「服务端会挡」，没验「前端带没带」。
+       （/begin 带的是 id、/reset 带的是 session，不在这一组的检查范围里。） */
+    const needFlow = ['/api/ocr/screen/focus', '/api/ocr/screen/key', '/api/ocr/screen/return', '/api/ocr/screen']
+    const flowCalls = []
+    const uncovered = []
+    let screenCalls = 0
+    const walkClient = (dir) => {
+      for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, ent.name)
+        if (ent.isDirectory()) walkClient(full)
+        else if (/\.(jsx?|mjs)$/.test(ent.name)) {
+          const src = fs.readFileSync(full, 'utf8')
+          // 数两遍：先数「发往 screen 系列的调用」，再数「参数写成字面量对象的那些」。
+          // 两个数对不上，说明有写法没被下面那条正则认出来（比如先把参数放进变量再传），
+          // 那样这条检查会静默失明、永远报绿 —— 跟这次 bug 是同一类风险。
+          const anyRe = /api\.(?:post|put|del|delete)\(\s*'(\/api\/ocr\/screen[a-z/]*)'/g
+          const bodyRe = /api\.(?:post|put|del|delete)\(\s*'(\/api\/ocr\/screen[a-z/]*)'\s*,\s*\{([^}]*)\}/g
+          let m
+          while ((m = anyRe.exec(src))) screenCalls += 1
+          while ((m = bodyRe.exec(src))) flowCalls.push({ file: full, route: m[1], args: m[2] })
+        }
+      }
+    }
+    walkClient(path.join(ROOT, 'client'))
+    if (screenCalls !== flowCalls.length) {
+      uncovered.push(`${screenCalls} 条 screen 调用里只认得出 ${flowCalls.length} 条的参数`)
+    }
+    const missing = flowCalls.filter((c) => needFlow.includes(c.route) && !/\bflow\s*:/.test(c.args))
+    const seenRoutes = new Set(flowCalls.map((c) => c.route))
+    const notSeen = needFlow.filter((route) => !seenRoutes.has(route))
+    ok(
+      '前端每个要 flow 的 screen 调用都带了 flow（漏传会被服务端说成「另一条在跑」）',
+      missing.length === 0 && uncovered.length === 0,
+      missing.length
+        ? missing.map((c) => `${path.relative(ROOT, c.file)} ${c.route} {${c.args.trim()}}`)
+        : (uncovered.length ? uncovered : `检查了 ${flowCalls.length} 条调用`)
+    )
+    ok('守门检查认到了每一条要 flow 的调用（正则失明会变成假绿）', notSeen.length === 0, notSeen)
 
     r = await api('POST', '/api/ocr/screen/shot', {})
     ok('流程正在跑时不允许抢窗口截图', r.status === 409 && r.body.code === 'screen_busy', r.body)
