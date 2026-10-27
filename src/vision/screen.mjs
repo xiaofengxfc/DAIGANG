@@ -33,7 +33,7 @@ import { activeGameWindow } from './game-window.mjs'
 import { profileForGame, profileKeys, DEFAULT_PROFILE } from '../../shared/game-profiles.js'
 import { decodePNG, crop, encodePNG, resize } from './imgmatch.mjs'
 import { buildIntegral, compileTemplate, findIcon, findIconTop, pickStableCandidate, resampleBilinear, sweepScales, groupNumberBlocks, subImage } from './vision.mjs'
-import { stashFrame } from './screen-stash.mjs'
+import { stashFrame, releaseFrame } from './screen-stash.mjs'
 
 // 这几个目录都在项目根下。screen.mjs 从 src/ 下沉到 src/vision/ 后，
 // 「本文件上一级」变成 src/，继续沿用会让截图脚本找不到、图标一张也读不到，
@@ -215,7 +215,7 @@ export function loadTemplates({ force = false, profile = DEFAULT_PROFILE } = {})
  *
  * 阈值传 0，等于「都别拦，全报上来」。
  */
-export function probeIcons(img, { profile = DEFAULT_PROFILE, minScore = 0, keys = null } = {}) {
+export function probeIcons(img, { profile = DEFAULT_PROFILE, minScore = 0, keys = null, budgetMs = 8000 } = {}) {
   const p = profile && profile.resources ? profile : profileForGame(profile)
   const wanted = keys ? new Set(keys) : null
   const refs = loadTemplates({ profile: p }).filter((r) => !wanted || wanted.has(r.key))
@@ -237,8 +237,11 @@ export function probeIcons(img, { profile = DEFAULT_PROFILE, minScore = 0, keys 
     let found = []
     let error = ''
     try {
-      // 时间预算给足：这是「用户主动来看一眼」的场景，一次跑完比跑一半有用
-      found = findIconTop(img, r.img, { work, minScore, timeBudgetMs: 8000 }, 3) || []
+      // 时间预算默认给足：这是「用户主动来看一眼」的场景，一次跑完比跑一半有用。
+      // 但识别画面**失败时**也会顺手跑一次这里（每帧多这一步，用户没得选），
+      // 那一路上调用方会把预算压到几百毫秒 —— 否则 8 帧 × 每个模板 8 秒，
+      // 一个「点了没反应」就变成了「点了要等半分钟」。
+      found = findIconTop(img, r.img, { work, minScore, timeBudgetMs: budgetMs }, 3) || []
     } catch (err) {
       error = err.message
     }
@@ -1035,15 +1038,72 @@ const sessions = new Map()
 const SESSION_TTL = 5 * 60 * 1000
 const MAX_SESSIONS = 32
 
+/**
+ * 每个会话手上那张「诊断帧」的 token。
+ *
+ * 为什么要单独记：暂存池按会话做「只留最近 N 帧」的裁剪（默认 4 帧），
+ * 而识别一段最多看 8 帧。要是把每一帧都塞进同一个会话，就会把**认全的那一帧**
+ * 挤出去 —— 用户点保存时反而拿不到真正该留档的画面。
+ * 所以诊断帧走独立会话名（`<id>#diag`），并且每会话只保留最近一张：
+ * 存新的之前先把上一张释放掉，内存有界、也不影响 keeper。
+ */
+const diagTokens = new Map()
+
+/** 诊断帧那一次图标体检的时间预算（每个模板）。700ms 是「看得出来趋势、又不会让人干等」的量级 */
+const PROBE_BUDGET_MS = 700
+
+function diagKey(id) {
+  return String(id || 'default')
+}
+
+/**
+ * 存一张诊断帧，返回 token。
+ *
+ * 同一个会话只保留最新一张：先释放上一张再存。暂存池是按会话做「只留最近 N 帧」
+ * 裁剪的，攒着不放只会白占内存，而用户真正想看的就是「刚才那一帧」。
+ */
+function stashDiagFrame(id, stage, buf, img) {
+  const key = diagKey(id)
+  // 同一会话只留最新一张：释放规则和 resetVotes / 过期清理共用同一份实现
+  dropDiagToken(id)
+  let token = null
+  try {
+    token = stashFrame({ session: `${key}#diag`, stage, buf, width: img.width, height: img.height })
+    if (token) diagTokens.set(key, token)
+  } catch {
+    token = null
+  }
+  return token
+}
+
+/** 释放某个会话的诊断帧（重置、过期、被新帧顶掉时都走这里） */
+function dropDiagToken(id) {
+  const key = diagKey(id)
+  const prev = diagTokens.get(key)
+  if (prev) releaseFrame(prev)
+  diagTokens.delete(key)
+}
+
 export function resetVotes(id) {
   sessions.delete(id)
+  dropDiagToken(id)
   return { ok: true }
 }
 
 function pruneSessions() {
   const now = Date.now()
-  for (const [k, v] of sessions) if (now - v.touched > SESSION_TTL) sessions.delete(k)
-  while (sessions.size > MAX_SESSIONS) sessions.delete(sessions.keys().next().value)
+  for (const [k, v] of sessions) {
+    if (now - v.touched > SESSION_TTL) {
+      sessions.delete(k)
+      // 会话过期了，它那张诊断帧也别留着占内存
+      dropDiagToken(k)
+    }
+  }
+  while (sessions.size > MAX_SESSIONS) {
+    const oldest = sessions.keys().next().value
+    sessions.delete(oldest)
+    dropDiagToken(oldest)
+  }
 }
 
 function tally(session, frame, minVotes) {
@@ -1143,12 +1203,20 @@ export async function recognizeScreenOnce({
     }
     const bandH = Math.max(48, Math.round(img.height * TOP_BAND_RATIO))
     const ocr = await ocrBand(img, bandH, { lang })
-    if (!ocr.ok) return { ok: false, error: ocr.error }
+    if (!ocr.ok) {
+      /* 连文字都没认出来 —— 这一帧反而最该留下。
+         用户看到「没认出文字」时唯一的疑问就是「那当时屏幕上到底是什么」，
+         不留帧就永远答不了（实测：游戏在前台、截到 1920x1200，OCR 却一个字没认到，
+         没有这张图根本分不清是截错了、画面是黑的，还是引擎在这张图上失效）。 */
+      return { ok: false, code: 'no_text', error: ocr.error, diag_token: stashDiagFrame(id, stage, buf, img) }
+    }
     // 单帧最多花 1.5 秒：认不出来就该老实返回，让前端接着看下一帧
     const frame = recognizeFrame(img, ocr.words, { minScore, timeBudgetMs: 1500, profile, keys, stage })
     let session = sessions.get(id)
     if (!session) {
-      session = { votes: new Map(), frames: 0, touched: Date.now(), game: profile.id }
+      // probed：这条会话有没有已经跑过「认不出来时的图标体检」。
+      // 体检每个模板几百毫秒，只在第一次失败时付一次，后面的帧不再重复。
+      session = { votes: new Map(), frames: 0, touched: Date.now(), game: profile.id, probed: false }
       sessions.set(id, session)
     }
     session.touched = Date.now()
@@ -1169,6 +1237,33 @@ export async function recognizeScreenOnce({
       }
     }
 
+    /* ---- 认不全时留下的诊断材料 ----
+       用户能看到的只有「还差体力」四个字，而背后可能是三件完全不同的事：
+       模板跟画面不是一个版本、阈值高了、或者截屏本身就截错了。
+       以前这三种在界面上长得一模一样，而且**认不出来就不留帧**，复盘只能靠猜。
+       现在认不全的那一帧单独留一张（独立会话，不挤占 keeper），并顺手跑一次
+       图标体检：每个模板在这张图上多少分、有没有过阈值，一眼就能分开。
+       代价有界：失败帧每会话只留最新一张，体检每会话只跑一次。 */
+    const wantedKeys = Array.isArray(keys) && keys.length ? keys : profileKeys(profile)
+    const missingKeys = wantedKeys.filter((k) => agreed[k] === undefined)
+    /* 这一帧「最像资源图标」的那个分数。
+       调用方靠它判断「屏幕上到底有没有那排图标」—— 口径留在识别这一层，
+       前端就不用自己再 reduce 一遍 seen（seen 的字段将来变了也不会漏改）。 */
+    const bestSeen = (frame.seen || []).reduce((m, s) => Math.max(m, Number(s && s.score) || 0), 0)
+    let diagToken = null
+    let iconProbe = null
+    if (missingKeys.length) {
+      diagToken = stashDiagFrame(id, stage, buf, img)
+      if (!session.probed) {
+        session.probed = true
+        try {
+          iconProbe = probeIcons(img, { profile, minScore, keys: wantedKeys, budgetMs: PROBE_BUDGET_MS })
+        } catch {
+          iconProbe = null
+        }
+      }
+    }
+
     return {
       ok: true,
       game: profile.id,
@@ -1186,6 +1281,14 @@ export async function recognizeScreenOnce({
       // 前端拿它说「这帧没跑完，再看一帧」，而不是让人以为「这屏只有这么点资源」。
       timed_out: Boolean(frame.timed_out),
       frame_token: frameToken,
+      // 认不全时那一帧的凭据（看一眼「当时屏幕上到底是什么」）
+      diag_token: diagToken,
+      // 每个模板在这张图上的分数（只在第一次没认全时给，之后为 null）
+      icon_probe: iconProbe,
+      // 这一帧还差哪几个 —— 让调用方不用自己再算一遍
+      missing: missingKeys,
+      // 这一帧的最高图标分（0 表示一个候选都没有）。判断「有没有资源栏」看它
+      best_seen: +bestSeen.toFixed(3),
     }
   } catch (err) {
     return { ok: false, error: err.message }

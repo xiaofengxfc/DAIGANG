@@ -40,6 +40,16 @@ const tinyTopStyle = { marginTop: '4px', opacity: '.85' }
 const amberStyle = { marginTop: '2px' }
 const MAX_SCREEN_FRAMES = 8
 /**
+ * 「这一屏根本没看到资源栏」的判定线。
+ *
+ * 判的不是「过没过阈值」，而是「屏幕上有没有那排图标」：
+ *   · 主界面实测：星声 0.88~0.93、贝币 0.70~0.77（同一台机器、同一个窗口）；
+ *   · 停在声骸强化界面实测：星声 0.53、贝币 0.40。
+ * 0.6 落在两者中间，也刻意压在 MIN_SCORE（0.62）之下 —— 只有明显不像的时候才收手，
+ * 不会把「差一点点过阈值」的正常画面误判成「没有资源栏」。
+ */
+const HUD_MISSING_SCORE = 0.6
+/**
  * 「识别截图」能读多大的文件。
  *
  * 后端 /api/ocr 收 12MB（MAX_OCR_IMAGE_BYTES，见 src/core/config.mjs），以前这里却卡
@@ -241,7 +251,13 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
    * 具体是 B 背包 / M 地图，还是别的键，看订单上那个游戏的 profile。
    */
   async function watchScreen(side) {
-    if (watchers.current.before || watchers.current.after) return
+    // 上一次还在收尾（按 ESC、逐会话 reset、把前台还给浏览器）时再点，
+    // 以前是**静默 return** —— 界面一点反馈都没有，用户看到的就是「点了没反应」。
+    // 收尾最长要好几秒，这个窗口不算小，所以必须说清楚在等什么。
+    if (watchers.current.before || watchers.current.after) {
+      toast('上一次「识别画面」还在收尾（正在把窗口还给你），等它结束再点。', 'err', 3200)
+      return
+    }
     if (!profileOk) {
       toast(`「${gameName}」还没有识别模板，识别画面用不了。现在能认的是：${supportedGameNames().join('、')}。`, 'err', 4600)
       return
@@ -301,6 +317,16 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
     // 有几帧撞到了单帧时间预算（服务端 timed_out）：说明这一帧没跑完就被截断了，
     // 不是「这屏本来就没这个资源」。要单独说一句，否则「还差体力」会被读成识别不了。
     let timedOutFrames = 0
+    // 这一屏根本没看到资源栏（图标分数全线偏低）。实测：游戏停在「声骸强化」这类
+    // 子界面时，顶栏被整个换掉，星声只有 0.53、贝币 0.40 —— 而主界面上是 0.88~0.93。
+    // 那种情况下再扫 8 帧也不会变好，只会让人干等一分多钟。
+    let hudMissing = false
+    // 连续几帧连一个字都没认出来（服务端 no_text）。偶发一帧不管，连着两帧就停：
+    // 那说明截到的画面里根本没有可读文字，再扫也是同样的结果。
+    let noTextFrames = 0
+    // 认不全时服务端留下的诊断材料：那一帧的凭据 + 每个模板的分数（最后一次为准）
+    let diagToken = ''
+    let iconProbe = null
     let progressHint = `正在切回${gameName}…`
 
     const paintProgress = (stage, extra = progressHint) => {
@@ -320,6 +346,36 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
           </>
         ),
       }))
+    }
+
+    /* 没认全时给出的诊断材料。
+       服务端已经留了那一帧（diag_token），也给了每个模板的分数（icon_probe）。
+       把这两样摊开，才能把「模板不是一个版本」「阈值高了」「截屏截错了」分开 ——
+       以前这三件事在界面上都是同一句「还差体力」，只能靠猜。 */
+    const diagnosticsNote = () => {
+      const items = iconProbe && Array.isArray(iconProbe.items) ? iconProbe.items : []
+      if (!diagToken && !items.length) return null
+      return (
+        <>
+          {diagToken ? (
+            <div className="tiny" style={tinyTopStyle}>
+              {'当时的画面：'}
+              <a href={`/api/ocr/screen/frame?token=${encodeURIComponent(diagToken)}`} target="_blank" rel="noreferrer">
+                点开看这一帧
+              </a>
+            </div>
+          ) : null}
+          {items.length ? (
+            <div className="tiny" style={tinyTopStyle}>
+              {`图标体检（阈值 ${iconProbe.min_score}）：` +
+                items.map((it) => `${it.key} ${it.score}${it.passes ? '' : '(没过)'}`).join(' · ')}
+            </div>
+          ) : null}
+          <div className="tiny" style={tinyTopStyle}>
+            分数普遍偏低 = 模板跟这个游戏版本对不上；分数够高却没认到 = 阈值或取数字那一步；两样都正常 = 截屏截错了区域。
+          </div>
+        </>
+      )
     }
 
     paintProgress(stages[0])
@@ -365,6 +421,9 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
           const result = await api.post('/api/ocr/screen', { session, stage: stage.id, min_votes: 2, game: gameName, keys: stage.resources, flow: flowId })
           if (result.engine) engine = result.engine
           if (result.timed_out) timedOutFrames += 1
+          // 这一帧没认全时，服务端会留一张诊断帧并（第一次）给一份图标体检
+          if (result.diag_token) diagToken = result.diag_token
+          if (result.icon_probe) iconProbe = result.icon_probe
           if (Array.isArray(result.hits)) {
             for (const hit of result.hits) {
               const label = `${hit.key}(分${hit.score}${hit.source === 'ocr-layout' ? '·格式兜底' : hit.warn ? '·字太小' : ''})`
@@ -382,6 +441,36 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
           }
           fill(side, got)
           const missing = stage.resources.filter((key) => got[key] === undefined)
+          /* 这一帧**一个都没认到**、而且所有模板的分数都低得离谱 ——
+             这不是「再等一帧就好」，是「屏幕上根本没有那排资源图标」。
+             实测场景：游戏停在声骸强化界面，顶栏被换掉，星声 0.53 / 贝币 0.40，
+             而主界面上同样是这两个图标能到 0.88~0.93。
+             继续扫满 8 帧只会让人等一分多钟，还在最后附上一句误导的「还差体力」。
+             所以第 2 帧起就判：提前收手，把真正该做的事（退回主界面）说出来。 */
+          if (result.no_text) {
+            noTextFrames += 1
+            if (noTextFrames >= 2) {
+              stoppedReason =
+                '连续两帧一个字都没认出来 —— 截到的画面里没有可读文字。' +
+                '多半是画面被挡住或还在加载，也可能是 OCR 引擎在这张图上失效；' +
+                '点开下面的「当时的画面」看一眼就能确认。'
+              pageOpen = false
+              break
+            }
+          }
+          // 最高分由识别层算好（口径只有一处），这里只做判断
+          const seenBest = Number(result.best_seen) || 0
+          const noHitThisFrame = !(Array.isArray(result.hits) && result.hits.length)
+          if (noHitThisFrame && attempt >= 1 && seenBest > 0 && seenBest < HUD_MISSING_SCORE) {
+            hudMissing = true
+            stoppedReason =
+              `这一屏没看到资源栏（图标最高分 ${seenBest.toFixed(2)}，阈值 0.62）。` +
+              `游戏现在多半停在背包 / 强化 / 对话这类界面，右上角的资源被挡住了 —— ` +
+              `先把游戏退回主界面（能看到右上角那排数字），再点「识别画面」。`
+            // 这个界面不是我们打开的，别按 ESC 去关它（可能正是用户自己在看的页）
+            pageOpen = false
+            break
+          }
           progressHint = `${stage.title}画面扫描 ${attempt + 1}/${MAX_SCREEN_FRAMES} 次${missing.length ? `，还差${missing.join('、')}` : ''}`
           paintProgress(stage)
           if (!missing.length) {
@@ -394,7 +483,11 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
         if (token.stop) break
         const missing = stage.resources.filter((key) => got[key] === undefined)
         if (missing.length) {
-          stoppedReason = `${stage.title}连续识别 ${MAX_SCREEN_FRAMES} 帧后仍缺少：${missing.join('、')}。流程已停止。`
+          // hudMissing 那条已经把真正的原因说清楚了（没看到资源栏），
+          // 这里再用「连续 8 帧」盖掉它，等于把用户引回「阈值/识别坏了」那条错路。
+          if (!stoppedReason) {
+            stoppedReason = `${stage.title}连续识别 ${MAX_SCREEN_FRAMES} 帧后仍缺少：${missing.join('、')}。流程已停止。`
+          }
           break
         }
 
@@ -414,6 +507,9 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
     } catch (err) {
       stoppedReason = err.message || '屏幕识别流程失败。'
     } finally {
+      // 收尾期间按钮上写「收尾中」：这一段要做 ESC、逐会话 reset、把前台还回去，
+      // 最长好几秒。以前先置空再干这些活，界面看起来就是「按钮不转了、什么都没发生」。
+      setBusy((prev) => ({ ...prev, [side]: 'stopping' }))
       if (pageOpen) {
         try {
           await api.post('/api/ocr/screen/key', { key: 'ESC', flow: flowId })
@@ -424,8 +520,6 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
           escError = `未能自动按 ESC 返回游戏：${err.message || '按键发送失败'}`
         }
       }
-      watchers.current[side] = null
-      setBusy((prev) => ({ ...prev, [side]: '' }))
       for (const session of sessions) {
         try {
           await api.post('/api/ocr/screen/reset', { session })
@@ -452,6 +546,10 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
           /* 服务端 3 分钟后自己过期，不至于把后续识别锁死 */
         }
       }
+      // 收尾彻底结束才允许下一次：租约已经放了、前台也已经还了。这时候再点
+      // 不会撞上「上一条还没结束」，也不会把刚切回去的窗口又抢回来。
+      watchers.current[side] = null
+      setBusy((prev) => ({ ...prev, [side]: '' }))
     }
 
     if (token.stop) {
@@ -469,6 +567,7 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
             </div>
             {escError ? <div className="tiny tone-amber" style={amberStyle}>{escError}</div> : null}
             {backError ? <div className="tiny tone-amber" style={amberStyle}>{backError}</div> : null}
+            {diagnosticsNote()}
           </>
         ),
       }))
@@ -488,6 +587,7 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
           <strong>{summary}</strong>
           {escError ? <div className="tiny tone-amber" style={amberStyle}>{escError}</div> : null}
           {backError ? <div className="tiny tone-amber" style={amberStyle}>{backError}</div> : null}
+          {diagnosticsNote()}
           {small.length ? (
             <div className="tiny tone-amber" style={amberStyle}>
               {`${small.join('、')} 字太小，自带 OCR 可能读错位数，请对照游戏核验。`}

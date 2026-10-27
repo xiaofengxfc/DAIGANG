@@ -692,6 +692,34 @@ export function register() {
       minVotes: Math.max(1, Math.min(6, int(ctx.body.min_votes, 2) || 2)),
       minScore: num(ctx.body.min_score, MIN_SCORE) || MIN_SCORE,
     })
+    /* 连文字都没认出来的那一帧，**不能**用 400 把它吞掉。
+       用户看到的会是「没认出文字」，而唯一的疑问是「那当时屏幕上是什么」；
+       可 fail() 只发 error/code，前端收到非 2xx 也会直接抛错 —— 画面就丢了。
+       所以这一支仍然返回 200：空结果 + 那一帧的凭据，让界面能把画面摆出来。 */
+    if (!r.ok && r.code === 'no_text') {
+      return {
+        game,
+        resources: {},
+        agreed: {},
+        pending: {},
+        votes: {},
+        hits: [],
+        seen: [],
+        anchor: null,
+        frames: 0,
+        size: null,
+        engine: null,
+        ms: 0,
+        timed_out: false,
+        frame_token: null,
+        diag_token: r.diag_token || null,
+        icon_probe: null,
+        missing: [],
+        best_seen: 0,
+        no_text: true,
+        warning: r.error || '这一帧没认出任何文字',
+      }
+    }
     if (!r.ok) fail(400, r.error || '识别失败', r.code || 'screen_failed')
     return {
       game: r.game,
@@ -713,6 +741,18 @@ export function register() {
       timed_out: Boolean(r.timed_out),
       // 这一帧暂存的凭据：前端拿着它在保存进度时取回原图（见 /api/ocr/screen/frame）
       frame_token: r.frame_token || null,
+      // 认不全时那一帧也留了一张（独立会话，不挤占上面那张）：
+      // 用户点开就能看到「当时屏幕上到底是什么」，不用再靠描述猜。
+      diag_token: r.diag_token || null,
+      // 图标体检：每个模板在这张图上的分数与是否过阈值。
+      // 只在这次会话第一次没认全时给（之后是 null），用来分清
+      // 「模板不是一个版本」「阈值高了」「截屏截错了」三件事。
+      icon_probe: r.icon_probe || null,
+      // 这一帧还差哪几个资源（前端不必自己再算）
+      missing: r.missing || [],
+      // 这一帧的最高图标分：前端靠它判断「屏幕上到底有没有那排资源图标」
+      // （低于 HUD_MISSING_SCORE 就不再空扫后面的帧）
+      best_seen: r.best_seen ?? null,
       want: screenResourcesFor(game),
       min_votes: Math.max(1, Math.min(6, int(ctx.body.min_votes, 2) || 2)),
     }

@@ -24,7 +24,7 @@ import { bizDate, localDate, DAY_START_HOUR } from '../../src/core/util.mjs'
 import { splitResourceSections, sectionText, joinResourceSections, deltaText, resourceDeltaList } from '../../shared/resources.js'
 // 识别打分口径（掩码 NCC）和「按屏取键」也是纯函数：不连服务器就能验那两个踩过的坑
 import { subImage, buildIntegral, compileTemplate, matchAt, findIcon, findIconTop, resampleBilinear } from '../../src/vision/vision.mjs'
-import { recognizeFrame, CLUSTER_RATIO } from '../../src/vision/screen.mjs'
+import { recognizeFrame, CLUSTER_RATIO, probeIcons } from '../../src/vision/screen.mjs'
 import { profileForGame } from '../../shared/game-profiles.js'
 // 导出配色的定义处，断言从这里取色值，不再把十六进制写死在测试里
 import { DOCX_PALETTE } from '../../src/export/docx.mjs'
@@ -661,6 +661,47 @@ export async function run() {
     ok('鸣潮的簇半径和旧的 6.5×图标宽等价', Math.abs(CLUSTER_RATIO - 6.5 * wuwa.iconWidthRatio) < 0.001, `${CLUSTER_RATIO} vs ${6.5 * wuwa.iconWidthRatio}`)
     ok('异环的簇半径更宽（图标只有鸣潮的 65%，顶栏资源还铺得更开）', profileForGame('异环').clusterRatio > CLUSTER_RATIO, profileForGame('异环').clusterRatio)
     ok('异环走掩码 NCC、鸣潮不走（不动它标定好的阈值）', profileForGame('异环').maskedNcc === true && !wuwa.maskedNcc, `${profileForGame('异环').maskedNcc}/${wuwa.maskedNcc}`)
+
+    /* ---- 图标体检的预算参数 ----
+       「识别画面」没认全时，服务端会顺手跑一次 probeIcons，把每个模板的分数
+       摊给用户看。那个预算必须能压低：写死 8000ms/模板的话，一段 8 帧 × 3 个
+       模板就是一分多钟，用户看到的就是「点了没反应」。
+       这里守三件事：接受 budgetMs、返回结构完整、确实按预算收工。
+       分数可以是 0（这张图里本来就没有星声，那是正常结论），所以不检查阈值。 */
+    {
+      const t0 = Date.now()
+      const probe = probeIcons(board, { profile: '鸣潮', keys: ['星声'], budgetMs: 200 })
+      const cost = Date.now() - t0
+      ok('图标体检接受预算参数、返回结构完整', Array.isArray(probe.items) && probe.items.length === 1 && typeof probe.items[0].score === 'number', probe.items)
+      ok('图标体检报的是这一屏的尺寸', probe.size[0] === board.width && probe.size[1] === board.height, probe.size)
+      ok('预算收紧后提前收工（不会跑满 8 秒）', cost < 3000, `${cost}ms`)
+    }
+
+    /* ---- 源码级守门：这两个坑别再改回去 ---- */
+    {
+      const fieldSrc = fs.readFileSync(path.join(ROOT, 'client', 'forms', 'resource-field.jsx'), 'utf8')
+      ok(
+        '连点「识别画面」不再静默 return（会说清在等收尾）',
+        !/if \(watchers\.current\.before \|\| watchers\.current\.after\) return/.test(fieldSrc) && fieldSrc.includes('还在收尾'),
+        'resource-field.jsx'
+      )
+      ok(
+        '没看到资源栏时第 2 帧就收手（不再死磕 8 帧、不再给误导的「还差」）',
+        fieldSrc.includes('hudMissing') && fieldSrc.includes('没看到资源栏'),
+        'resource-field.jsx'
+      )
+      const screenSrc = fs.readFileSync(path.join(ROOT, 'src', 'vision', 'screen.mjs'), 'utf8')
+      ok(
+        '认不出的帧也会暂存（诊断帧走独立会话，不挤占 keeper）',
+        screenSrc.includes('#diag') && screenSrc.includes('diag_token'),
+        'screen.mjs'
+      )
+      ok(
+        '连文字都没认出来时也留帧（否则用户连当时画面对不对都看不到）',
+        screenSrc.includes("code: 'no_text'"),
+        'screen.mjs'
+      )
+    }
 
     /* ---- findIconTop 的挖洞：洞必须是**原图坐标** ----
        这条对应一个反复踩的坑：findIcon 收到 exclude 之后自己会把它乘上 work.scale
