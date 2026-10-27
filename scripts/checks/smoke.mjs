@@ -701,6 +701,22 @@ export async function run() {
         screenSrc.includes("code: 'no_text'"),
         'screen.mjs'
       )
+      const gwSrc = fs.readFileSync(path.join(ROOT, 'src', 'vision', 'game-window.mjs'), 'utf8')
+      ok(
+        '切窗口成功后先验「按键送不送得进去」（管理员权限的 UIPI 会静默吃掉按键）',
+        gwSrc.includes('checkInputChannel') && gwSrc.includes('input_ready'),
+        'game-window.mjs'
+      )
+      ok(
+        '按键之前就拦下权限不一致，不再空转到最后一帧',
+        fieldSrc.includes('input_ready'),
+        'resource-field.jsx'
+      )
+      ok(
+        '权限判据用双方提权状态（WM_NULL 在 UIPI 放行名单里，不能拿它判）',
+        fs.readFileSync(path.join(ROOT, 'scripts', 'win32', 'xfc-input-probe.cs'), 'utf8').includes('targetElevated && !selfElevated'),
+        'xfc-input-probe.cs'
+      )
     }
 
     /* ---- findIconTop 的挖洞：洞必须是**原图坐标** ----

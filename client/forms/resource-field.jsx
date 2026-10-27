@@ -43,8 +43,8 @@ const MAX_SCREEN_FRAMES = 8
  * 「这一屏根本没看到资源栏」的判定线。
  *
  * 判的不是「过没过阈值」，而是「屏幕上有没有那排图标」：
- *   · 主界面实测：星声 0.88~0.93、贝币 0.70~0.77（同一台机器、同一个窗口）；
- *   · 停在声骸强化界面实测：星声 0.53、贝币 0.40。
+ *   · 图标真在画面里时，这一项能到 0.9 以上（异环背包页实测 0.93~0.97）；
+ *   · 按键没生效、画面还停在大世界或声骸强化界面时，只有 0.50~0.53（贝币 0.40）。
  * 0.6 落在两者中间，也刻意压在 MIN_SCORE（0.62）之下 —— 只有明显不像的时候才收手，
  * 不会把「差一点点过阈值」的正常画面误判成「没有资源栏」。
  */
@@ -391,6 +391,14 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
       const focus = await api.post('/api/ocr/screen/focus', { game: gameName, flow: flowId })
       if (!focus || !focus.ok) throw new Error((focus && focus.error) || `没有切换到${gameName}窗口`)
       focused = true
+      /* 「窗口切到了」不等于「按键送得进去」。
+         游戏以管理员身份运行时是高完整性进程，普通权限的我们发什么都会被 UIPI
+         静默丢掉：窗口照样切到前台、进度条照样在走，但 B / M 永远到不了游戏，
+         接下来每一帧都认不出来，最后还给一句误导的「还差体力」。
+         与其让人等一分钟，不如现在就停下并说清怎么修。 */
+      if (focus.input_ready === false) {
+        throw new Error(focus.input_warning || `${gameName}以管理员身份运行，本程序不是，按键送不进游戏。`)
+      }
       // 按通用规则猜中的窗口要说出来：猜错的话后面认出来的全是别的游戏的画面
       if (focus.matched_by === 'fallback') {
         progressHint = `没认出${gameName}的窗口特征，按通用规则切到了 ${focus.title || focus.process}`
@@ -465,8 +473,9 @@ function SingleGameField({ before = '', after = '', beforeFrom = '', game = '', 
             hudMissing = true
             stoppedReason =
               `这一屏没看到资源栏（图标最高分 ${seenBest.toFixed(2)}，阈值 0.62）。` +
-              `游戏现在多半停在背包 / 强化 / 对话这类界面，右上角的资源被挡住了 —— ` +
-              `先把游戏退回主界面（能看到右上角那排数字），再点「识别画面」。`
+              `按 ${stage.key} 之后本该出现那排资源数字 —— 现在没有，说明这一步没生效：` +
+              `要么按键没送进游戏（游戏以管理员运行时会被 Windows 拦掉），要么画面还停在别的界面。` +
+              `先手动按一下 ${stage.key} 确认能打开，再点「识别画面」。`
             // 这个界面不是我们打开的，别按 ESC 去关它（可能正是用户自己在看的页）
             pageOpen = false
             break

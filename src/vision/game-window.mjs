@@ -11,6 +11,7 @@ const FOCUS_PS1 = path.join(ROOT, 'scripts', 'win32', 'focus-game.ps1')
 const FIND_PS1 = path.join(ROOT, 'scripts', 'win32', 'find-game-window.ps1')
 const KEY_PS1 = path.join(ROOT, 'scripts', 'win32', 'game-key.ps1')
 const ACTIVATE_PS1 = path.join(ROOT, 'scripts', 'win32', 'activate-window.ps1')
+const CHECK_INPUT_PS1 = path.join(ROOT, 'scripts', 'win32', 'check-input.ps1')
 let activeWindow = null
 // The window that was in front before the game was focused -- in practice the
 // browser the user clicked "识别画面" in. Handed back when the reading is done.
@@ -127,6 +128,90 @@ function describeWindowFailure(profile, result, fallback) {
   return { code: result?.code, error: knownErrors[result?.code] || fallback }
 }
 
+/* ---------- 「按键到底送不送得进去」 ----------
+
+   实测（2026-10-27）：鸣潮以**管理员身份**运行时，本程序是普通权限。
+   这种情况下 SetForegroundWindow 照样成功 —— 窗口切到前台、焦点也拿到了 ——
+   但 Windows 的 UIPI 不允许低完整性进程向高完整性窗口投递输入：
+
+     · SendInput 返回成功，按键却被静默丢掉（游戏根本没收到）；
+     · PostMessage 直接返回 False。
+
+   用户看到的就是「窗口切过去了，但背包/地图没打开」，而且流程会一直空转到结束。
+   这个检查在**按键之前**问一次，把原因直接摆出来，而不是让人猜。
+
+   同一个窗口只查一次（编译 C# 要一秒多），结果缓存在这里。 */
+const inputChecks = new Map()
+
+export function checkInputChannel({ hwnd = '', processId = 0, game = '', timeoutMs = 9000 } = {}) {
+  const key = `${hwnd}:${processId}`
+  const cached = inputChecks.get(key)
+  if (cached) return Promise.resolve(cached)
+
+  const profile = profileForGame(game)
+  const gameLabel = (profile.names && profile.names[0]) || '游戏'
+  // 探测本身失败（脚本没起来、超时）时**不阻断**流程：宁可像以前一样跑到按键那步
+  // 报错，也不能因为一个辅助检查把能用的功能挡死。
+  const passThrough = { ok: false, ready: true, warning: '' }
+
+  if (process.platform !== 'win32' || !hwnd || !processId) return Promise.resolve(passThrough)
+
+  return new Promise((resolve) => {
+    let settled = false
+    let timer = null
+    let stdout = ''
+    let stderr = ''
+    const finish = (result) => {
+      if (settled) return
+      settled = true
+      if (timer) clearTimeout(timer)
+      if (result.ok) inputChecks.set(key, result)
+      resolve(result)
+    }
+
+    let child
+    try {
+      child = spawn('powershell.exe', [
+        '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
+        '-File', CHECK_INPUT_PS1,
+        '-ProcessId', String(processId),
+        '-Hwnd', String(hwnd),
+      ], { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
+    } catch {
+      return finish(passThrough)
+    }
+
+    timer = setTimeout(() => {
+      try { child.kill() } catch { /* 可能已经退了 */ }
+      finish(passThrough)
+    }, timeoutMs)
+
+    child.stdout.setEncoding('utf8')
+    child.stderr.setEncoding('utf8')
+    child.stdout.on('data', (chunk) => { stdout += chunk })
+    child.stderr.on('data', (chunk) => { stderr += chunk })
+    child.on('error', () => finish(passThrough))
+    child.on('close', (code) => {
+      let parsed = null
+      try { parsed = JSON.parse(stdout.trim().replace(/^\uFEFF/, '')) } catch { /* 下面按失败处理 */ }
+      if (code !== 0 || !parsed) return finish(passThrough)
+      const ready = parsed.input_ok !== false
+      finish({
+        ok: true,
+        ready,
+        self_elevated: Boolean(parsed.self_elevated),
+        target_elevated: Boolean(parsed.target_elevated),
+        post_ok: Boolean(parsed.post_ok),
+        warning: ready
+          ? ''
+          : `${gameLabel}是以管理员身份运行的，而本程序不是 —— Windows 不允许普通权限的程序给管理员窗口发送按键。`
+            + `窗口能切到前台，但 B / M 永远到不了游戏。两条路：① 关掉本程序，右键「以管理员身份运行」再打开；`
+            + `② 或者让游戏以普通权限启动（取消启动器里的「以管理员身份运行」）。`,
+      })
+    })
+  })
+}
+
 export function focusGameWindow({ timeoutMs = 10000, game = '' } = {}) {
   if (process.platform !== 'win32') {
     return Promise.resolve({ ok: false, error: '自动切回游戏目前只支持 Windows。' })
@@ -188,9 +273,23 @@ export function focusGameWindow({ timeoutMs = 10000, game = '' } = {}) {
       // front), so the flow will not try to hand focus anywhere.
       const previousHwnd = String(result.previous || '0')
       previousWindow = previousHwnd && previousHwnd !== '0' ? { hwnd: previousHwnd } : null
-      // matchedBy=fallback：进程名/标题里没有任何该游戏的特征，是按「一个不是
-      // 其它支持游戏的 UE 窗口」猜的。界面会说出来，别让人以为一定切对了。
-      finish({ ...result, game: profile.id, game_name: gameLabel, matched_by: result.matchedBy || 'name', ok: true })
+      // 窗口切到了，但「能不能把按键送进去」是另一件事（见 checkInputChannel 注释）。
+      // 先清掉超时：这一步要多花一两秒，不该算在「切窗口超时」头上。
+      if (timer) clearTimeout(timer)
+      checkInputChannel({ hwnd: activeWindow.hwnd, processId: activeWindow.processId, game: profile.id })
+        .then((input) => {
+          // matchedBy=fallback：进程名/标题里没有任何该游戏的特征，是按「一个不是
+          // 其它支持游戏的 UE 窗口」猜的。界面会说出来，别让人以为一定切对了。
+          finish({
+            ...result,
+            game: profile.id,
+            game_name: gameLabel,
+            matched_by: result.matchedBy || 'name',
+            ok: true,
+            input_ready: input.ready,
+            input_warning: input.warning || '',
+          })
+        })
     })
   })
 }
