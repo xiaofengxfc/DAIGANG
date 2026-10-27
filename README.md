@@ -24,7 +24,7 @@ npm run setup
 
 | 系统 | 怎么做 |
 | --- | --- |
-| Windows（桌面版） | 运行安装包 `DaiganOps-setup-2.1.0.exe` |
+| Windows（桌面版） | 运行安装包 `DaiganOps-setup-2.1.1.exe` |
 | Windows（从源码） | `npm start`；只给本机用 `npm run local` |
 | macOS / Linux | 终端里 `./start.sh`，或 `./start.sh --local` |
 
@@ -1686,7 +1686,7 @@ icacls "D:\...\代肝价格查询"
 # 1. 把整棵树的 Low 换成 Medium —— 恢复 %TEMP% 写入和 C# 编译
 icacls "D:\github_xm\代肝价格查询" /setintegritylevel (OI)(CI)Medium
 # 2. 再把桌面版 exe 单独标成 High —— 这一步之后进程才和游戏同级，才能激活它的窗口
-icacls "D:\github_xm\代肝价格查询\dist-desktop\DaiganOps-setup-2.1.0.exe" /setintegritylevel High
+icacls "D:\github_xm\代肝价格查询\dist-desktop\DaiganOps-setup-2.1.1.exe" /setintegritylevel High
 ```
 
 然后**重启程序**（进程的级别在启动时就定死了，改标签不会影响已经在跑的进程）。
